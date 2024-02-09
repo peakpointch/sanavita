@@ -5,5 +5,6 @@ require("esbuild")
         minify: true,
         sourcemap: true,
         outfile: "dist/vimeo-component.js",
+        format: "esm",
     })
     .catch(() => process.exit(1));
