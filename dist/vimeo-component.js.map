@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../js-library/vimeo-component.ts"],
+  "sourcesContent": ["function createVideo() {\r\n    const component = document.querySelector('[component=\"iphone\"]');\r\n    if (!component) return;\r\n    const id = component.closest('[vimeo-id]').getAttribute('vimeo-id');\r\n    \r\n}\r\n\r\ncreateVideo();"],
+  "mappings": ";;AAAA,WAAS,cAAc;AACnB,UAAM,YAAY,SAAS,cAAc,sBAAsB;AAC/D,QAAI,CAAC;AAAW;AAChB,UAAM,KAAK,UAAU,QAAQ,YAAY,EAAE,aAAa,UAAU;AAAA,EAEtE;AAEA,cAAY;",
+  "names": []
+}

@@ -1,0 +1,18 @@
+{
+  "name": "webflow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "serve",
+    "build-vimeo": "esbuild js-library/vimeo-component.ts --bundle --outfile=dist/vimeo-component.js",
+    "build": "node builder.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.20.0",
+    "serve": "^14.2.1"
+  }
+}
