@@ -2,7 +2,7 @@ require("esbuild")
     .build({
         entryPoints: ["js-library/vimeo-component.ts"],
         bundle: true,
-        minify: false,
+        minify: true,
         sourcemap: true,
         outfile: "dist/vimeo-component.js",
     })
