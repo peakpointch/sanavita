@@ -16,7 +16,6 @@
     "serve": "^14.2.1"
   },
   "dependencies": {
-    "@vimeo/player": "^2.21.0",
     "jquery": "^3.7.1"
   }
 }
