@@ -1,4 +1,4 @@
-var vimeoIframe = document.createElement("iframe");
+const vimeoIframe = document.createElement("iframe");
 vimeoIframe.src = "";
 vimeoIframe.allowFullscreen = true;
 vimeoIframe.dataset.ready = "true";
@@ -6,10 +6,9 @@ vimeoIframe.style.cssText = "height: 100%; width: 100%; margin-top: 0%; border: 
 
 function createVideo(component) {
     // Get Component
-    const componentId = component?.getAttribute('component-id');
+    const componentId = component?.getAttribute('iphone-id');
     const video = component?.querySelector('[vimeo-id]');
     if (!component || !video) return;
-    console.log(componentId);
 
     // Create and insert Iframes
     video.innerHTML = '';
