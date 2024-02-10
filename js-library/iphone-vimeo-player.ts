@@ -34,19 +34,12 @@ $(document).ready(function () {
             }
 
             $(component).find('[iphone="close-button"]').click(function () {
-                const video = $(this).siblings('[vimeo-id]').find("iframe")[0];
-                const video_src = $(video).attr("src");
-
-                if (video && video_src.includes("vimeo.com")) {
-                    new Vimeo.Player(video).pause();
-                }
-
                 $(this).siblings('[iphone="video-play"]').find("iframe[src*='https://player.vimeo.com/video/']").each(function () {
-                    new Vimeo.Player(this).pause();
+                    new Vimeo.Player(this).pause()
                 });
 
                 $("iframe[src*='?background=1'][src*='vimeo.com']").each(function () {
-                    new Vimeo.Player(this).play();
+                    new Vimeo.Player(this).play()
                 });
             });
 
