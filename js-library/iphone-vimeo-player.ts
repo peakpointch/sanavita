@@ -1,5 +1,5 @@
-// requires jquery: https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js
-// requires vimeo api: https://player.vimeo.com/api/player.js
+import $ from "jquery";
+import Vimeo from "@vimeo/player";
 
 $(document).ready(function () {
     const vimeoIframe = $('<iframe>');
@@ -15,7 +15,6 @@ $(document).ready(function () {
         const componentId = component?.getAttribute('iphone-id');
         const video = $(component).find('[vimeo-id]');
         if (!component || !video.length) return;
-        // console.log(componentId);
 
         video.empty();
         const id = video.attr('vimeo-id');
