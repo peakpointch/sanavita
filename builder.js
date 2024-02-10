@@ -1,10 +1,10 @@
 require("esbuild")
     .build({
-        entryPoints: ["js-library/vimeo.ts"],
+        entryPoints: ["js-library/iphone-vimeo-player.ts"],
         bundle: true,
         minify: true,
         sourcemap: true,
-        outfile: "dist/vimeo.js",
+        outfile: "dist/iphone-vimeo-player.js",
         format: "esm",
     })
     .catch(() => process.exit(1));

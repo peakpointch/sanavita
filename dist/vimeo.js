@@ -1,2 +1,0 @@
-$(document).ready(function(){$('[iphone="close-button"]').click(function(){let i=$(this).siblings("[vimeo-id]").find("iframe")[0],e=$(i).attr("src");i&&e.includes("vimeo.com")&&new Vimeo.Player(i).pause(),$(this).siblings('[iphone="video-play"]').find("iframe[src*='https://player.vimeo.com/video/']").each(function(){new Vimeo.Player(this).pause()}),$("iframe[src*='?background=1'][src*='vimeo.com']").each(function(){new Vimeo.Player(this).play()})})});
-//# sourceMappingURL=vimeo.js.map
