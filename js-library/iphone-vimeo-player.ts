@@ -1,5 +1,5 @@
 import $ from "jquery";
-import Vimeo from "@vimeo/player";
+// import Vimeo from "@vimeo/player";
 
 $(document).ready(function () {
     const vimeoIframe = $('<iframe>');
@@ -19,13 +19,38 @@ $(document).ready(function () {
         video.empty();
         const id = video.attr('vimeo-id');
         const iframeBg = vimeoIframe.clone().attr('src', `https://player.vimeo.com/video/${id}?background=1&autoplay=1&loop=1&muted=1`);
-        const iframePlayer = vimeoIframe.clone().attr('src', `https://player.vimeo.com/video/${id}`);
 
         video.append(iframeBg);
 
-        const play = $(component).find('[iphone="video-play"]');
-        if (!play.length) return;
-        play.append(iframePlayer);
+        const playButton = $(component).find('[iphone="play-button"]');
+        if (!playButton.length) return;
+        let firstClick = true;
+        playButton.click(function () {
+            if (firstClick) {
+                const play = $(component).find('[iphone="video-play"]');
+                const iframePlayer = vimeoIframe.clone().attr('src', `https://player.vimeo.com/video/${id}`);
+                play.append(iframePlayer);
+                firstClick = false;
+            }
+
+            $(component).find('[iphone="close-button"]').click(function () {
+                const video = $(this).siblings('[vimeo-id]').find("iframe")[0];
+                const video_src = $(video).attr("src");
+
+                if (video && video_src.includes("vimeo.com")) {
+                    new Vimeo.Player(video).pause();
+                }
+
+                $(this).siblings('[iphone="video-play"]').find("iframe[src*='https://player.vimeo.com/video/']").each(function () {
+                    new Vimeo.Player(this).pause();
+                });
+
+                $("iframe[src*='?background=1'][src*='vimeo.com']").each(function () {
+                    new Vimeo.Player(this).play();
+                });
+            });
+
+        });
     }
 
     function createVideos() {
@@ -35,22 +60,5 @@ $(document).ready(function () {
     }
 
     createVideos();
-
-    $('[iphone="close-button"]').click(function () {
-        const video = $(this).siblings('[vimeo-id]').find("iframe")[0];
-        const video_src = $(video).attr("src");
-
-        if (video && video_src.includes("vimeo.com")) {
-            new Vimeo.Player(video).pause();
-        }
-
-        $(this).siblings('[iphone="video-play"]').find("iframe[src*='https://player.vimeo.com/video/']").each(function() {
-            new Vimeo.Player(this).pause();
-        });
-
-        $("iframe[src*='?background=1'][src*='vimeo.com']").each(function () {
-            new Vimeo.Player(this).play();
-        });
-    });
 
 });
