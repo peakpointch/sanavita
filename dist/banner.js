@@ -1,0 +1,2 @@
+var n={lounge:"/limmathof-lounge",thaiGarden:"/thai-garden"},r=document.querySelector('[pp-type="nav-wrapper"]'),o=r.querySelector('[pp-type="infobanner-wrapper"]'),l=o.querySelectorAll("[banner-type]"),t=window.location.pathname;function p(){Object.values(n).includes(t)&&l.forEach(e=>{let a=e.getAttribute("banner-type");t===n[a]?e.classList.toggle("show"):e.classList.toggle("hide")})}window.addEventListener("DOMContentLoaded",p);
+//# sourceMappingURL=banner.js.map
