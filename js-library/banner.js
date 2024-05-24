@@ -23,4 +23,18 @@ function manageBanners() {
     });
 }
 
-window.addEventListener('DOMContentLoaded', manageBanners);
+function setBannerSpeed() {
+    const tracks = bannerWrapper.querySelectorAll('.marquee_track');
+    tracks.forEach(track => {
+        const distance = track.offsetWidth;
+
+        const pixelsPerSecond = 100; // Adjust this value to change the speed
+        const duration = distance / pixelsPerSecond;
+        track.style.animationDuration = `${duration}s`;
+    });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    manageBanners();
+    setBannerSpeed();
+});
