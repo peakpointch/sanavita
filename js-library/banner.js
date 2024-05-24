@@ -16,9 +16,9 @@ function manageBanners() {
     allBanners.forEach(banner => {
         let currentBannerType = banner.getAttribute('banner-type');
         if (path === bannerType[currentBannerType]) {
-            banner.classList.toggle('show');
+            banner.classList.add('show');
         } else {
-            banner.classList.toggle('hide');
+            banner.classList.add('hide');
         }
     });
 }
