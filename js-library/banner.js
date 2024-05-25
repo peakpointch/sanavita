@@ -1,5 +1,6 @@
 // Speziellen Infobanner in die Navbar verschieben
 
+const languagePrefixes = ['/en'];
 const bannerType = {
     lounge: "/limmathof-lounge",
     thaiGarden: "/thai-garden"
@@ -7,34 +8,48 @@ const bannerType = {
 
 const nav = document.querySelector('[pp-type="nav-wrapper"]');
 const bannerWrapper = nav.querySelector('[pp-type="infobanner-wrapper"]');
-const allBanners = bannerWrapper.querySelectorAll('[banner-type]');
+const allBanners = bannerWrapper.querySelectorAll('[banner-type]:not(:has(.w-dyn-empty))');
 const path = window.location.pathname;
 
 function manageBanners() {
-    if (!Object.values(bannerType).includes(path)) return;
+    if (!allBanners.length) { return }
+    else if (!Object.values(bannerType).some(bannerPath => path.includes(bannerPath))) {
+        allBanners.forEach(banner => {
+            banner.classList.add('hide');
+        });
+        const defaultBanner = bannerWrapper.querySelector('[banner-type="default"]');
+        if (!defaultBanner) { return }
+        defaultBanner.classList.add('show');
+        setBannerSpeed(defaultBanner);
+        return;
+    }
 
     allBanners.forEach(banner => {
         let currentBannerType = banner.getAttribute('banner-type');
-        if (path === bannerType[currentBannerType]) {
+        if (path.includes(bannerType[currentBannerType])) {
             banner.classList.add('show');
+            setBannerSpeed(banner);
         } else {
             banner.classList.add('hide');
         }
     });
 }
 
-function setBannerSpeed() {
-    const tracks = bannerWrapper.querySelectorAll('.marquee_track');
-    tracks.forEach(track => {
-        const distance = track.offsetWidth;
+function setBannerSpeed(track) {
+    track = track.querySelector('.marquee_track');
+    const distance = track.offsetWidth;
+    const pixelsPerSecond = 100; // Adjust this value to change the speed
+    const duration = distance / pixelsPerSecond;
+    track.style.animationDuration = `${duration}s`;
+    return duration
+}
 
-        const pixelsPerSecond = 100; // Adjust this value to change the speed
-        const duration = distance / pixelsPerSecond;
-        track.style.animationDuration = `${duration}s`;
-    });
+function setAllSpeeds() {
+    const allMarquees = document.querySelector('main').querySelectorAll('.marquee_component');
+    allMarquees.forEach(marquee => setBannerSpeed(marquee));
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     manageBanners();
-    setBannerSpeed();
+    setAllSpeeds();
 });
