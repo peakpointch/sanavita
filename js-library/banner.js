@@ -13,20 +13,17 @@ const path = window.location.pathname;
 
 function manageBanners() {
     if (!allBanners.length) { return }
-    else if (!Object.values(bannerType).some(bannerPath => path.includes(bannerPath))) {
-        allBanners.forEach(banner => {
-            banner.classList.add('hide');
-        });
-        const defaultBanner = bannerWrapper.querySelector('[banner-type="default"]');
-        if (!defaultBanner) { return }
-        defaultBanner.classList.add('show');
-        setBannerSpeed(defaultBanner);
-        return;
-    }
 
     allBanners.forEach(banner => {
         let currentBannerType = banner.getAttribute('banner-type');
-        if (path.includes(bannerType[currentBannerType])) {
+        if (currentBannerType === 'default') {
+            if (!Object.values(bannerType).some(bannerPath => path.includes(bannerPath))) {
+                banner.classList.add('show');
+                setBannerSpeed(banner);
+            } else {
+                banner.classList.add('hide');
+            }
+        } else if (path.includes(bannerType[currentBannerType])) {
             banner.classList.add('show');
             setBannerSpeed(banner);
         } else {
