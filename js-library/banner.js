@@ -1,13 +1,12 @@
 // Speziellen Infobanner in die Navbar verschieben
 
-const languagePrefixes = ['/en', '/de'];
 const bannerType = {
     lounge: "/limmathof-lounge",
     thaiGarden: "/thai-garden"
 };
 
 const nav = document.querySelector('[pp-type="nav-wrapper"]');
-const bannerWrapper = nav.querySelector('[pp-type="infobanner-wrapper"]');
+const bannerWrapper = nav.querySelector('[pp-type="infobanner-component"]');
 const allBanners = bannerWrapper.querySelectorAll('[banner-type]:not(:has(.w-dyn-empty))');
 const path = window.location.pathname;
 
@@ -58,5 +57,4 @@ function setAllSpeeds() {
 window.addEventListener('DOMContentLoaded', () => {
     manageBanners();
     setAllSpeeds();
-    console.log('manage banners done');
 });
