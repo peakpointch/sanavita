@@ -14,10 +14,19 @@ const path = window.location.pathname;
 function manageBanners() {
     if (!allBanners.length) { return }
 
+    let hasExpectedBanner = false;
+    const hasSpecialBannerPath = Object.values(bannerType).some(bannerPath => path.includes(bannerPath));
+    
+    // Is it a special path that has the banner expected by the path?
+    allBanners.forEach(banner => {
+        let existingBanner = banner.getAttribute('banner-type');
+        if (path.includes(bannerType[existingBanner])) { hasExpectedBanner = true};
+    })
+
     allBanners.forEach(banner => {
         let currentBannerType = banner.getAttribute('banner-type');
         if (currentBannerType === 'default') {
-            if (!Object.values(bannerType).some(bannerPath => path.includes(bannerPath))) {
+            if (!hasSpecialBannerPath || !hasExpectedBanner) {
                 banner.classList.add('show');
                 setBannerSpeed(banner);
             } else {
