@@ -1,6 +1,6 @@
 // Speziellen Infobanner in die Navbar verschieben
 
-const languagePrefixes = ['/en'];
+const languagePrefixes = ['/en', '/de'];
 const bannerType = {
     lounge: "/limmathof-lounge",
     thaiGarden: "/thai-garden"
@@ -58,4 +58,5 @@ function setAllSpeeds() {
 window.addEventListener('DOMContentLoaded', () => {
     manageBanners();
     setAllSpeeds();
+    console.log('manage banners done');
 });
