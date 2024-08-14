@@ -23,6 +23,11 @@ let jspath: string
 // WEBFLOW_ENV.production = false;
 // WEBFLOW_ENV.development = true;
 
+console.log("Webflow Environment:");
+console.log(WEBFLOW_ENV);
+console.log("Webflow CONFIG:");
+console.log(WEBFLOW_CONFIG);
+
 function buildWebflowConfig() {
   csspath = 'assets/css'
 
@@ -30,6 +35,8 @@ function buildWebflowConfig() {
     jspath = 'assets/js'
     host = 'http://localhost:3000'
   } else if (WEBFLOW_ENV.production) {
+    console.log("PRODUCTION = TRUE");
+
     jspath = 'dist'
     host = 'https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@latest'
   } else {
@@ -41,6 +48,8 @@ function buildWebflowConfig() {
     let script = new Script(url)
     script.addAttribute('data-dyn-js', 'true')
     document.body.appendChild(script.element)
+    console.log("url: " + url);
+    console.log(script);
   });
 
   WEBFLOW_CONFIG.css.forEach(file => {
