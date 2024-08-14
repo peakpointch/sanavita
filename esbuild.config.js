@@ -2,7 +2,7 @@ const esbuild = require("esbuild")
 const chokidar = require("chokidar")
 const http = require('http')
 const path = require("path")
-const build = require('./builder');
+const { files, devFiles, build } = require('./builder');
 
 // const isProduction = process.env.RAILS_ENV === "production"
 // const watchMode =
@@ -11,7 +11,7 @@ const build = require('./builder');
 const port = 3001
 
 // Start the esbuild build process
-build()
+build(files, devFiles)
 
 // Set up a simple HTTP server for live reload with CORS headers
 const clients = []
@@ -43,7 +43,7 @@ chokidar
     "assets"
   ])
   .on("all", () => {
-    build()
+    build(files, devFiles)
     clients.forEach((client) => client.write("data: reload\n\n"))
     console.log("CHANGE")
   })

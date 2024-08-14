@@ -1,28 +1,34 @@
 const esbuild = require("esbuild");
 
-function build() {
-  const files = {
-    "ts": [
-      "banner",
-      "iphone-vimeo-player"
-    ],
-    "js": [
-      "circle-tabs",
-      "circle",
-      "cms-form-select",
-      "copy",
-      "crc",
-      "jobs",
-      "marquee",
-      "popup-cookie",
-      "popup",
-      "purecounter",
-      "scroll",
-      "swiper",
-      "translate-dates",
-    ]
-  }
+const files = {
+  "ts": [
+    "webflow.config",
+    "banner",
+    "iphone-vimeo-player"
+  ],
+  "js": [
+    "circle-tabs",
+    "circle",
+    "cms-form-select",
+    "copy",
+    "crc",
+    "date",
+    "marquee",
+    "popup-cookie",
+    "popup",
+    "purecounter",
+    "scroll",
+    "sozjobs",
+    "swiper",
+    "translate-dates",
+  ]
+}
 
+const devFiles = [
+  "livereload/livereload.js",
+]
+
+function build(files, devFiles) {
   for (const [extension, names] of Object.entries(files)) {
     names.forEach(name => {
       esbuild.build({
@@ -37,8 +43,19 @@ function build() {
       }).catch(() => process.exit(1));
     });
   }
+
+  esbuild.build({
+    entryPoints: devFiles,
+    outdir: "dist", // Output directly to the dist folder
+    bundle: true,
+    minify: false,
+    sourcemap: false,
+    format: "esm",
+    minifyIdentifiers: false,
+    // keepNames: true,
+  }).catch(() => process.exit(1));
 }
 
-build();
+build(files, devFiles);
 
-module.exports = build;
+module.exports = { files, devFiles, build };
