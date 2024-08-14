@@ -1,4 +1,4 @@
-<!-- Popup v3.0 -->
+// <!-- Popup v3.0 -->
 
 // PRIVACY FRIENDLY VERSION ONLY
 
@@ -58,4 +58,4 @@ function checkToRun() {
 
 fsCookieScript.addEventListener('load', checkToRun);
 
-<!-- END Popup v3.0 -->
+// <!-- END Popup v3.0 -->
