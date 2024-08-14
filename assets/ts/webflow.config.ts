@@ -1,11 +1,27 @@
 import { Script, Stylesheet } from '../../library/script';
 
-var WEBFLOW_ENV = WEBFLOW_ENV || {}
-var WEBFLOW_CONFIG = WEBFLOW_CONFIG || {}
+declare global {
+  interface Window {
+    WEBFLOW_ENV?: {
+      "production": boolean;
+      "development": boolean;
+    };
+    WEBFLOW_CONFIG?: {
+      "js": any;
+      "css": any;
+    };
+  }
+}
+
+var WEBFLOW_ENV = window.WEBFLOW_ENV!;
+var WEBFLOW_CONFIG = window.WEBFLOW_CONFIG!;
 var page: Document
 let host: string
 let csspath: string
 let jspath: string
+
+// WEBFLOW_ENV.production = false;
+// WEBFLOW_ENV.development = true;
 
 function buildWebflowConfig() {
   csspath = 'assets/css'
@@ -24,14 +40,14 @@ function buildWebflowConfig() {
     let url: string = `${host}/dist/${file}.js`
     let script = new Script(url)
     script.addAttribute('data-dyn-js', 'true')
-    page.body.appendChild(script.element)
+    document.body.appendChild(script.element)
   });
 
   WEBFLOW_CONFIG.css.forEach(file => {
     let url: string = `${host}/${csspath}/${file}.css`
     let stylesheet = new Stylesheet(url)
     stylesheet.addAttribute('data-dyn-js', 'true')
-    page.head.appendChild(stylesheet.element)
+    document.head.appendChild(stylesheet.element)
   });
 
   setTimeout(() => {

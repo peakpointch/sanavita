@@ -2,8 +2,8 @@
  * Livereload for Webflow v1.0.0
  */
 
-const pageIframe = document.getElementById("site-iframe-next") || null;
-var page = pageIframe ? pageIframe.contentDocument || pageIframe.contentWindow.document : document;
+// const pageIframe = document.getElementById("site-iframe-next") || null;
+// var page = pageIframe ? pageIframe.contentDocument || pageIframe.contentWindow.document : document;
 let liveSource;
 
 const webflow = window ? {

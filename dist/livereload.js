@@ -1,6 +1,4 @@
 // livereload/livereload.js
-var pageIframe = document.getElementById("site-iframe-next") || null;
-var page = pageIframe ? pageIframe.contentDocument || pageIframe.contentWindow.document : document;
 var liveSource;
 var webflow = window ? {
   designer: location.href.includes("design"),
