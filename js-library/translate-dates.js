@@ -6,7 +6,7 @@ function translateDates() {
         console.error('No elements found for translation.'); // Debug
         return;
     }
-    x
+
     const data = {
         months: {
             en: [
