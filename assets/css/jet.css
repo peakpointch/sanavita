@@ -40,6 +40,7 @@
   0% {
     left: 0%;
   }
+
   100% {
     left: 90%;
   }
@@ -50,13 +51,16 @@
     opacity: 100%;
     left: 0rem;
   }
+
   20% {
     opacity: 0%;
     left: 0rem;
   }
+
   80% {
     opacity: 0%;
   }
+
   100% {
     opacity: 100%;
     left: -3rem;

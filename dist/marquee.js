@@ -1,0 +1,1 @@
+var r=!0,l=document.querySelectorAll('[pp-type="image-marquee"]');function s(u){u.forEach(t=>{let e=t.querySelector(".marquee_pause"),a=t.querySelector(".marquee_track");!e|!a||e.addEventListener("click",()=>{a.classList.toggle("marquee_paused"),r?(e.innerText="play",r=!1):(e.innerText="pause",r=!0)})})}s(l);
