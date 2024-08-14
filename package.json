@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "serve",
     "build-vimeo": "esbuild js-library/vimeo-component.ts --bundle --outfile=dist/vimeo-component.js",
-    "build": "node builder.js"
+    "build": "node builder.js",
+    "livereload": "node esbuild.config.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +17,9 @@
     "serve": "^14.2.3"
   },
   "dependencies": {
-    "jquery": "^3.7.1"
+    "chokidar": "^3.6.0",
+    "http": "^0.0.1-security",
+    "jquery": "^3.7.1",
+    "swiper": "^11.1.9"
   }
 }
