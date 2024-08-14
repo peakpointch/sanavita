@@ -15,7 +15,7 @@ function buildWebflowConfig() {
     host = 'http://localhost:3000'
   } else if (WEBFLOW_ENV.production) {
     jspath = 'dist'
-    host = 'https://cdn.jsdelivr.net/gh/lukas-peakpoint@latest'
+    host = 'https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@latest'
   } else {
     return
   }
