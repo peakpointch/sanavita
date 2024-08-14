@@ -1,7 +1,10 @@
 require("esbuild")
     .build({
-        entryPoints: ["js-library/banner.ts"],
-        outfile: "dist/banner.js",
+        entryPoints: [
+          "assets/ts/banner.ts",
+          "assets/ts/iphone-vimeo-player.ts",
+        ],
+        outdir: "dist",
         bundle: true,
         minify: true,
         sourcemap: false,
