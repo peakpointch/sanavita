@@ -47,8 +47,6 @@
     });
   }
 
-  // Remove all empty slides
-  document.querySelectorAll('.w-slide:empty').forEach(e => e.remove());
 
   // Unpack all selected CMS lists
   const allCmsListsToUnpack = document.querySelectorAll('.w-dyn-list[data-cms-unpack="true"]');
@@ -57,6 +55,9 @@
     unpackCmsList(cmsList, target);
     cmsList.dataset.cmsUnpack = 'initialized';
   });
+
+  // Remove all empty slides
+  document.querySelectorAll('.w-slide:empty').forEach(e => e.remove());
 
   // Initialize all swipers
   const allSwipers = document.querySelectorAll('[swiper-component="true"]:not(.swiper-initialized)');
