@@ -24,6 +24,8 @@
     jobs.forEach(job => {
       const jobCard = jobCardTemplate.cloneNode(true);
       jobCard.classList.remove('hide');
+      jobCard.classList.remove('is-template');
+      jobCard.style.display = "flex";
       const props = ['title', 'accessionPer', 'rate', 'categoryNames', 'contractTypeName'];
 
       // Determine rate
