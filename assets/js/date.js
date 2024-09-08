@@ -1,9 +1,13 @@
 // Helper function to format the date as "DD. <span class='monthclass'>Month</span> YYYY"
-function formatDate(date) {
+function formatDate(date, option = 'd-mmmm-yyyy') {
   const day = date.getDate();
   const month = date.toLocaleString('default', { month: 'long' });
   const year = date.getFullYear();
-  return `${day}. <span class="monthclass">${month}</span> ${year}`;
+  if (option === 'd-mmmm') {
+    return `${day}. <span class="monthclass">${month}</span>`;
+  } else {
+    return `${day}. <span class="monthclass">${month}</span> ${year}`;
+  }
 }
 
 // Function to get today's date
@@ -25,7 +29,7 @@ function getCurrentWeek() {
   endDate.setDate(startDate.getDate() + 6);
 
   // Return the formatted start and end dates
-  return `${formatDate(startDate)} – ${formatDate(endDate)}`;
+  return `${formatDate(startDate, 'd-mmmm')} – ${formatDate(endDate)}`;
 }
 
 const today = getTodaysDate();
