@@ -30,16 +30,16 @@
 
       // Determine rate
       if (job.isparttime) {
-        job.rate = `${job.parttimefrom0}-${parttimeto}%`;
+        job.rate = `${job.parttimefrom}-${job.parttimeto}%`;
       } else {
         job.rate = `Vollzeit 100%`;
       }
 
       // Determine category names
       job.categorynames = job.categories
-        .map(id => {
-          const category = categories.find(category => category.id === id);
-          return category ? category.name : null;
+        .map(category => {
+          console.log('CATEGORY NAME:', category.name);
+          return category ? category.name : '';
         })
         .filter(name => name !== null)
         .join(', ');
@@ -55,8 +55,8 @@
         });
 
       const cardLink = jobCard.querySelector('a');
-      cardLink.href = job.url;
-      cardLink.target = "_blank"
+      cardLink.href = `/job?id=${job.identitynumber}`;
+      cardLink.target = ""
 
       jobsComponent.appendChild(jobCard);
       console.log(job);

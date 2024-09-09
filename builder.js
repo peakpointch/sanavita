@@ -19,6 +19,7 @@ const files = {
     "purecounter",
     "scroll",
     "sozjobs",
+    "sozjobs-job",
     "swiper",
     "translate-dates",
   ]
