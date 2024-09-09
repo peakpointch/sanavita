@@ -73,7 +73,9 @@
     const dataNav = (swiperElement.dataset.swiperNav || '.swiper-button').toString();
     const prevEl = `${dataNav}:not(.next)`;
     const nextEl = `${dataNav}.next`;
+    const autoHeight = JSON.parse(swiperElement.dataset.swiperAutoHeight || 'false');
     const slidesPerView = parseFloat(swiperElement.dataset.swiperSlidesPerView || 1);
+    const spaceBetween = parseFloat(swiperElement.dataset.swiperSpace || 1);
     const loop = JSON.parse(swiperElement.dataset.swiperLoop || 'true');
     const allowTouchMove = JSON.parse(swiperElement.dataset.swiperTouchMove || 'true');
 
@@ -88,7 +90,8 @@
       },
       allowTouchMove: allowTouchMove,
       speed: 400,
-      spaceBetween: 8,
+      autoHeight: autoHeight,
+      spaceBetween: spaceBetween,
       loop: loop,
       slidesPerView: slidesPerView,
       on: {
