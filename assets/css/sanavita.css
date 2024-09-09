@@ -28,6 +28,106 @@
   display: none;
 }
 
+[gap="regular"] {
+  gap: var(--spacing--regular);
+}
+
+[gap="xregular"] {
+  gap: var(--spacing--xregular);
+}
+
+[gap="medium"] {
+  gap: var(--spacing--medium);
+}
+
+[gap="xmedium"] {
+  gap: var(--spacing--xmedium);
+}
+
+[gap="large"] {
+  gap: var(--spacing--large);
+}
+
+[gap="xlarge"] {
+  gap: var(--spacing--xlarge);
+}
+
+[gap="xxlarge"] {
+  gap: var(--spacing--xxlarge);
+}
+
+[gap="huge"] {
+  gap: var(--spacing--huge);
+}
+
+[gap="xhuge"] {
+  gap: var(--spacing--xhuge);
+}
+
+[gap="xxhuge"] {
+  gap: var(--spacing--xxhuge);
+}
+
+a:hover:not(:has(*), .button, .button-arrow) {
+  text-decoration: underline;
+}
+
+[section-style="branded"] .circle-background {
+  background-color: var(--brand-900);
+}
+
+[background-color="dark"] {
+  background-color: var(--brand-900);
+}
+
+[background-color="light"] {
+  background-color: var(--brand-50);
+}
+
+.w-dyn-item.swiper-slide {
+  margin-right: 0.5rem;
+}
+
+.swiper-slide {
+  height: 100% !important;
+}
+
+[data-swiper-space="8"] .w-dyn-item.swiper-slide {
+  margin-right: 0.5rem;
+}
+
+[data-swiper-space="16"] .w-dyn-item.swiper-slide {
+  margin-right: 1rem;
+}
+
+[data-swiper-space="20"] .w-dyn-item.swiper-slide {
+  margin-right: 1.25rem;
+}
+
+[data-swiper-space="24"] .w-dyn-item.swiper-slide {
+  margin-right: 1.5rem;
+}
+
+[data-swiper-space="32"] .w-dyn-item.swiper-slide {
+  margin-right: 2rem;
+}
+
+[data-swiper-space="48"] .w-dyn-item.swiper-slide {
+  margin-right: 2rem;
+}
+
+[data-swiper-slides-per-view="2"] .w-dyn-item.swiper-slide {
+  width: 50%;
+}
+
+[data-swiper-slides-per-view="3"] .w-dyn-item.swiper-slide {
+  width: 33.333%;
+}
+
+.split-slot:has(.swiper) {
+  padding-right: 1px;
+}
+
 .w-richtext ol li::marker {
   color: var(--brand-400);
 }
@@ -252,12 +352,27 @@
     --circle-size: calc(1212px / 100 * 1.1 * 50);
     /* --space: 3rem; */
   }
+
+  .job-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .job-sticky {
+    max-width: 48rem;
+  }
 }
 
 /*}*/
 
 [padding-global] {
   padding: 0rem 3rem;
+}
+
+@media (min-height: 64rem) {
+  section {
+    min-height: 64rem !important;
+  }
 }
 
 @media screen and (max-width: 991px) {
