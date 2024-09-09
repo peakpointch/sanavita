@@ -138,6 +138,11 @@ a:hover:not(:has(*), .button, .button-arrow) {
   container-name: dish
 }
 
+.team-abteilung:has(.team-grid):has(.w-dyn-item:nth-child(3)) {
+  width: 100%;
+  grid-column: 1 / -1 !important;
+}
+
 @container dish (max-width: 35rem) {
   [data-label="true"]>[data-label-text="true"] {
     display: none;
