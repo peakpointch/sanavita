@@ -18,15 +18,17 @@ function scrollToSection(id, offset = 0) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const allScrollLinks = document.querySelectorAll('a[href^="#"], [scroll-to]');
+  const cmsScrollLinks = document.querySelectorAll('a[data-href-scroll]');
+  cmsScrollLinks.forEach(link => { link.href = `${link.dataset.hrefPrefix + '#' + link.dataset.hrefScroll}` });
 
-  const globalScrollLinks = documen.querySelectorAll('a[href*="#"]');
+  const globalScrollLinks = document.querySelectorAll('a[data-global-scroll="true"]');
   let globalFiltered = Array.from(globalScrollLinks).filter(link => link.href.includes(location.pathname));
   globalFiltered.forEach(link => {
     const url = new URL(link.href); // Create a URL object from the link's href
     link.href = url.hash; // Set the href to only the hash (e.g., "#section")
   });
 
+  const allScrollLinks = document.querySelectorAll('a[href^="#"], [scroll-to]');
   allScrollLinks.forEach(link => {
     link.addEventListener('click', (event) => {
       event.preventDefault();
