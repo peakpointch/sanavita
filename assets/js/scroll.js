@@ -21,12 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const cmsScrollLinks = document.querySelectorAll('a[data-href-scroll]');
   cmsScrollLinks.forEach(link => { link.href = `${link.dataset.hrefPrefix + '#' + link.dataset.hrefScroll}` });
 
-  const globalScrollLinks = document.querySelectorAll('a[data-global-scroll="true"]');
-  let globalFiltered = Array.from(globalScrollLinks).filter(link => link.href.includes(location.pathname));
-  globalFiltered.forEach(link => {
-    const url = new URL(link.href); // Create a URL object from the link's href
-    link.href = url.hash; // Set the href to only the hash (e.g., "#section")
-  });
+  if (location.pathname != '/') {
+    const globalScrollLinks = document.querySelectorAll('a[data-global-scroll="true"]');
+    let globalFiltered = Array.from(globalScrollLinks).filter(link => link.href.includes(location.pathname));
+    globalFiltered.forEach(link => {
+      const url = new URL(link.href); // Create a URL object from the link's href
+      link.href = url.hash; // Set the href to only the hash (e.g., "#section")
+    });
+  }
 
   const allScrollLinks = document.querySelectorAll('a[href^="#"], [scroll-to]');
   allScrollLinks.forEach(link => {
