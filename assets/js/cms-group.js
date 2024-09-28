@@ -1,55 +1,42 @@
 (() => {
-
   const MENU_SELECTOR = '.accordion-content';
-  const DISH_LIST_SELECTOR = '[role="dish-cms-list"]';
-  const MENU_LIST_SELECTOR = '[role="menu-cms-list"]';
-  const CATEGORY_LIST_SELECTOR = '[role="category-cms-list"]';
-  const DISH_GROUP_TEMPLATE = (category) => `
-    <div class="dish-group">
-      <div class="heading-style-h6">${category.name}</div>
-      <div class="spacer-small"></div>
-      ${category.dishes.map(dish => dish.htmlString).join('')}
-      ${category.subcategories.map(sub => `
-        <div class="heading-topic">${sub.name}</div>
-        <div class="spacer-small"></div>
-        <div class="drinks-cms_list">
-          ${sub.dishes.map(dish => dish.htmlString).join('')}
-        </div>
-        <div class="spacer-medium"></div>
-      `).join('')}
-      <div class="spacer-medium"></div>
-    </div>
-  `;
+  const MENU_NAME = 'menu';
+  const MENU_SECTION_NAME = 'menu-section'
+  const DISH_NAME = 'dish';
+  const DRINK_NAME = 'drink';
+  const CATEGORY_NAME = 'category';
+
+  const cmsListSuffix = '-cms-list';
+  const cmsItemSuffix = '-cms-item';
+
+  const MENU_LIST_SELECTOR = `[aria-role="${MENU_NAME + cmsListSuffix}"]`;
+  const MENU_SECTION_LIST_SELECTOR = `[aria-role="${MENU_SECTION_NAME + cmsListSuffix}"]`;
+  const DISH_LIST_SELECTOR = `[aria-role="${DISH_NAME + cmsListSuffix}"]`;
+  const DRINK_LIST_SELECTOR = `[aria-role="${DRINK_NAME + cmsListSuffix}"]`;
+  const CATEGORY_LIST_SELECTOR = `[aria-role="${CATEGORY_NAME + cmsListSuffix}"]`;
+
 
   const DISH_CATEGORY_CLASS = `heading-style-h6`;
   const DISH_SUBCATEGORY_CLASS = `heading-topic`;
+
 
   window.addEventListener('DOMContentLoaded', () => {
 
     const menuElement = document.querySelector(MENU_SELECTOR);
     const dishListElement = document.querySelector(DISH_LIST_SELECTOR);
+    const drinkListElement = document.querySelector(DRINK_LIST_SELECTOR);
     const menuListElement = document.querySelector(MENU_LIST_SELECTOR);
+
     const categoryListElement = document.querySelector(CATEGORY_LIST_SELECTOR);
 
     const dishListItems = dishListElement.querySelectorAll('.w-dyn-item');
-    const menuListItems = menuListElement.querySelectorAll('.w-dyn-item');
+    const drinkListItems = drinkListElement.querySelectorAll('.w-dyn-item');
+    const menuListItems = menuListElement.querySelectorAll(`[aria-role="${MENU_NAME + cmsItemSuffix}"]`);
     const categoryListItems = categoryListElement.querySelectorAll('.w-dyn-item');
 
     let menus = {};
     let categories = {};
     let dishes = [];
-
-    menuListItems.forEach(item => {
-
-
-      menus[item.dataset.menu] = {
-        name: item.dataset.menuName,
-        type: item.dataset.menuType,
-        domElement: item,
-        menuContentElement: item.querySelector('.accordion-content[role="menu-content"]'),
-        sections: {}
-      }
-    });
 
     // Iterate through each category item
     categoryListItems.forEach(item => {
@@ -64,6 +51,7 @@
       if (!isSubcategory) {
         if (!categories[category]) {
           categories[category] = {
+            id: category,
             name: categoryName,
             type: categoryType,
             isSubcategory: isSubcategory,
@@ -74,52 +62,141 @@
       } else {
         // If it's a subcategory, find the parent and add it to the subcategories array
         categories[parentCategory].subcategories.push({
-          slug: category,
+          id: category,
           name: categoryName,
           isSubcategory: isSubcategory,
-          dishes: [] // Add a place for subcategory dishes
+          dishes: []
         });
       }
     });
-
-    console.log(menus);
-    console.log(categories);
-    console.log("SUBCATEGORIES");
 
     // Group dishes under the right category or subcategory
-    dishListItems.forEach(dish => {
-      const dishCategory = dish.dataset.dishCategory; // This is the category or subcategory name
+    drinkListItems.forEach(dish => {
       const dishName = dish.dataset.dishName;
+      const dishType = dish.dataset.dishType;
+      const dishMenu = dish.dataset.dishMenu;
+      const dishCategory = dish.dataset.dishCategory;
       const dishHtml = dish.outerHTML;
 
-      // Find the category or subcategory in the categoryMap
-      let category = categories[dishCategory];
-
-      if (category) {
-        // Add the dish directly to the category
-        category.dishes.push({ name: dishName, htmlString: dishHtml });
-      } else {
-        // If no category is found, search for a matching subcategory
-        Object.values(categories).forEach(cat => {
-          const subcategory = cat.subcategories.find(sub => sub.slug === dishCategory);
-          if (subcategory) {
-            // Add the dish to the subcategory
-            subcategory.dishes.push({ name: dishName, htmlString: dishHtml });
-          }
+      if (dishMenu) {
+        dishes.push({
+          name: dishName,
+          type: dishType,
+          menu: dishMenu,
+          category: dishCategory,
+          dishElement: dish,
+          htmlString: dishHtml,
         });
       }
     });
 
-    // Render the grouped dishes
-    const dishGroupHTML = Object.values(categories).map(category => {
-      //console.log(category.subcategories);
-      // [category.subcategories].forEach(sub => console.log(sub))
+    dishListItems.forEach(dish => {
+      const dishName = dish.dataset.dishName;
+      const dishType = dish.dataset.dishType;
+      const dishMenu = dish.dataset.dishMenu;
+      const dishCategory = dish.dataset.dishCategory;
+      const dishHtml = dish.outerHTML;
 
-      return DISH_GROUP_TEMPLATE(category);
-    }).join('');
+      if (dishMenu) {
+        dishes.push({
+          name: dishName,
+          type: dishType,
+          menu: dishMenu,
+          category: dishCategory,
+          dishElement: dish,
+          htmlString: dishHtml,
+        });
+      }
+    });
 
-    // Insert the rendered content into the DOM
-    menuElement.innerHTML = dishGroupHTML;
+    menuListItems.forEach(menuElement => {
+      // console.log("MENU: " + menuElement.dataset.menuName.toUpperCase());
+
+      menus[menuElement.dataset.menu] = {
+        id: menuElement.dataset.menu,
+        name: menuElement.dataset.menuName,
+        type: menuElement.dataset.menuType,
+        domElement: menuElement,
+        menuContentElement: menuElement.querySelector('.accordion-content[role="menu-content"]'),
+        sections: [],
+        classname: menuElement.dataset.menuType === 'Gerichte' ? 'gerichte-cms_list' : 'drinks-cms_list'
+      }
+
+      let menu = menus[menuElement.dataset.menu]
+
+      const menuSectionListElement = menuElement.querySelector(MENU_SECTION_LIST_SELECTOR);
+      const menuSectionListItems = menuSectionListElement.querySelectorAll('.w-dyn-item');
+
+      menuSectionListItems.forEach(section => {
+        menu.sections.push(section.dataset.menuSection);
+      });
+
+      let menuDishes = dishes.filter(dish => dish.menu === menu.id)
+      // let menuSections = categories.filter(section => section)
+
+      // Assuming you already have the categories array structure
+      menu.sections.forEach(section => {
+        let sectionCategory = categories[section];
+
+        // If sectionCategory has subcategories, handle them
+        if (sectionCategory.subcategories.length > 0) {
+          sectionCategory.subcategories.forEach(subcat => {
+            // Find dishes belonging to this subcategory and store them in subcat.dishes
+            subcat.dishes = menuDishes.filter(dish => dish.category === subcat.id);
+          });
+        }
+
+        // Store dishes directly under the category if they don't belong to subcategories
+        sectionCategory.dishes = menuDishes.filter(dish => dish.category === sectionCategory.id);
+      });
+
+      const DISH_GROUP_TEMPLATE = (menu, category) => {
+        const filteredSubcategories = category.subcategories.filter(sub => sub.dishes.length > 0);
+
+        return `
+          <div class="dish-group">
+            <div class="heading-style-h6">${category.name}</div>
+            <div class="spacer-small"></div>
+            <div class="${menu.classname}">
+            <!-- Render dishes that belong directly to the category -->
+            ${category.dishes.map(dish => dish.htmlString).join('')}
+            </div>
+
+            <!-- Now render the subcategories and their dishes (if they have dishes) -->
+            ${filteredSubcategories.map(sub => `
+                <div class="heading-topic">${sub.name}</div>
+                <div class="spacer-small"></div>
+                <div class="${menu.classname}">
+                  ${sub.dishes.map(dish => dish.htmlString).join('')}
+                </div>
+                <div class="spacer-medium"></div>
+              `).join('')}
+          </div>
+        `;
+      };
+
+      // Loop through the menu sections and render only those with dishes
+      menu.sections.forEach(section => {
+        let sectionCategory = categories[section];
+
+        // Only render the section if it has dishes in the main category or subcategories
+        if (sectionCategory.dishes.length > 0 || sectionCategory.subcategories.some(sub => sub.dishes.length > 0)) {
+          // Create HTML for the section with its subcategories and dishes
+          const sectionHTML = DISH_GROUP_TEMPLATE(menu, sectionCategory);
+
+          // Insert the sectionHTML into your desired DOM element
+          menu.menuContentElement.insertAdjacentHTML('beforeend', sectionHTML);
+        }
+      });
+    });
+
+    // console.log("MENUS");
+    // console.log(menus);
+    // console.log("CATEGORIES");
+    // console.log(categories);
+    // console.log("DISHES");
+    // console.log(dishes);
+
   });
 
 })();
