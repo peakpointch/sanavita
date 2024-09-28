@@ -1,0 +1,1 @@
+(()=>{let r="uploadcare-uuid",c="uploadcare-file";document.querySelector("uc-upload-ctx-provider").addEventListener("change",n=>{let e=n.detail.successEntries;console.log("FILES:",e);let d=e.map(t=>t.uuid),o=e.map(t=>t.cdnUrl);document.getElementById(r).value=d.join(", "),document.getElementById(c).value=o.join(", ")})})();
