@@ -10,6 +10,7 @@ const files = {
     "circle-tabs",
     "circle",
     "cms-form-select",
+    "cms-group",
     "copy",
     "crc",
     "date",
@@ -17,11 +18,13 @@ const files = {
     "popup-cookie",
     "popup",
     "purecounter",
+    "sanavita-video",
     "scroll",
     "sozjobs",
     "sozjobs-job",
     "swiper",
     "translate-dates",
+    "uploadcare",
   ]
 }
 

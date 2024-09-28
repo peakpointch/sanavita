@@ -1,0 +1,12 @@
+[
+  {
+    "data": {
+      "data-form-select-target": "true",
+      "data-form-select-source": "true",
+      "data-form-select-option-value": "value",
+      "data-form-select-option-prefix": "prefix"
+    },
+    "enable": true,
+    "name": "CMS Form Select"
+  }
+]
