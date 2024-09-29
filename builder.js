@@ -9,6 +9,7 @@ const files = {
   "js": [
     "circle-tabs",
     "circle",
+    "count-down",
     "cms-form-select",
     "cms-group",
     "copy",
@@ -23,6 +24,7 @@ const files = {
     "sozjobs",
     "sozjobs-job",
     "swiper",
+    "timeline",
     "translate-dates",
     "uploadcare",
   ]
