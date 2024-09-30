@@ -3,6 +3,9 @@
     // Get all elements that represent a timeline component
     const timelineComponents = document.querySelectorAll('[data-timeline-element="component"]');
 
+    // Get the current screen width
+    const screenWidth = window.innerWidth;
+
     // Iterate over each timeline component
     timelineComponents.forEach(timeline => {
       const timeFromString = timeline.getAttribute('data-timeline-time-from');
@@ -24,35 +27,39 @@
       const progressElement = timeline.querySelector('[data-timeline-element="progres"]');
       const dotElement = timeline.querySelector('[data-timeline-element="dot"]');
 
-      console.log("NEW ELEMENT:", timeline);
-
-      console.log("today:", today);
-      console.log("fromDate:", fromDate);
-      console.log("toDate:", toDate);
+      let progressPercentage = 0;
 
       // If the current date is before the start date, set progress to 0%
       if (today < fromDate) {
-        progressElement.style.width = '0%';
+        progressPercentage = 0;
         dotElement.classList.remove('is-active');  // Ensure dot is not active before the start date
       }
       // If the current date is after the end date, set progress to 100%
       else if (today >= toDate) {
-        progressElement.style.width = '100%';
+        progressPercentage = 100;
         dotElement.classList.add('is-active');  // Ensure dot is active after the end date
       }
       // If the current date is between the start and end dates, calculate progress percentage
       else {
         const totalDuration = toDate - fromDate;
         const elapsedDuration = today - fromDate;
-        const progressPercentage = (elapsedDuration / totalDuration) * 100;
-
-        // Set the width of the progress element based on the percentage
-        progressElement.style.width = `${progressPercentage}%`;
+        progressPercentage = (elapsedDuration / totalDuration) * 100;
 
         // Add the 'is-active' class to the dot element on or after the start date
         if (today >= fromDate) {
           dotElement.classList.add('is-active');
         }
+      }
+
+      // Determine whether to animate width or height based on screen width
+      if (screenWidth > 991) {
+        // Larger screens: animate the width
+        progressElement.style.width = `${progressPercentage}%`;
+        progressElement.style.height = 'auto';  // Reset height to auto for larger screens
+      } else {
+        // Smaller screens: animate the height
+        progressElement.style.height = `${progressPercentage}%`;
+        progressElement.style.width = 'auto';  // Reset width to auto for smaller screens
       }
     });
   }
@@ -62,4 +69,8 @@
 
   // Optionally, set an interval to continuously update the timeline (e.g., daily)
   setInterval(updateTimelineProgress, 24 * 60 * 60 * 1000);  // Update once every day
+
+  // Add a resize event listener to re-check the screen width on window resize
+  window.addEventListener('resize', updateTimelineProgress);
+
 })();
