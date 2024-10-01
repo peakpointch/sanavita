@@ -1,20 +1,22 @@
-(()=>{let S=".accordion-content",u="menu",g="menu-section",E="dish",L="drink",T="category",l="-cms-list",p="-cms-item",f=`[aria-role="${u+l}"]`,_=`[aria-role="${g+l}"]`,C=`[aria-role="${E+l}"]`,N=`[aria-role="${L+l}"]`,I=`[aria-role="${T+l}"]`,D="heading-style-h6",w="heading-topic";window.addEventListener("DOMContentLoaded",()=>{let G=document.querySelector(S),M=document.querySelector(C),v=document.querySelector(N),A=document.querySelector(f),O=document.querySelector(I),b=M.querySelectorAll(".w-dyn-item"),R=v.querySelectorAll(".w-dyn-item"),q=A.querySelectorAll(`[aria-role="${u+p}"]`),$=O.querySelectorAll(".w-dyn-item"),y={},m={},h=[];$.forEach(e=>{let s=e.querySelector("[data-subcategory]"),n=e.dataset.category,c=e.dataset.categoryName,i=e.dataset.categoryGroup,d=e.dataset.categoryType,t=JSON.parse(s&&s.dataset.subcategory||"false");t?m[i].subcategories.push({id:n,name:c,isSubcategory:t,dishes:[]}):m[n]||(m[n]={id:n,name:c,type:d,isSubcategory:t,subcategories:[],dishes:[]})}),R.forEach(e=>{let s=e.dataset.dishName,n=e.dataset.dishType,c=e.dataset.dishMenu,i=e.dataset.dishCategory,d=e.outerHTML;c&&h.push({name:s,type:n,menu:c,category:i,dishElement:e,htmlString:d})}),b.forEach(e=>{let s=e.dataset.dishName,n=e.dataset.dishType,c=e.dataset.dishMenu,i=e.dataset.dishCategory,d=e.outerHTML;c&&h.push({name:s,type:n,menu:c,category:i,dishElement:e,htmlString:d})}),q.forEach(e=>{y[e.dataset.menu]={id:e.dataset.menu,name:e.dataset.menuName,type:e.dataset.menuType,domElement:e,menuContentElement:e.querySelector('.accordion-content[role="menu-content"]'),sections:[],classname:e.dataset.menuType==="Gerichte"?"gerichte-cms_list":"drinks-cms_list"};let s=y[e.dataset.menu];e.querySelector(_).querySelectorAll(".w-dyn-item").forEach(t=>{s.sections.push(t.dataset.menuSection)});let i=h.filter(t=>t.menu===s.id);s.sections.forEach(t=>{let o=m[t];o.subcategories.length>0&&o.subcategories.forEach(a=>{a.dishes=i.filter(r=>r.category===a.id)}),o.dishes=i.filter(a=>a.category===o.id)});let d=(t,o)=>{let a=o.subcategories.filter(r=>r.dishes.length>0);return`
+(()=>{let S=".accordion-content",h="menu",g="menu-section",E="dish",p="drink",L="category",l="-cms-list",T="-cms-item",f=`[aria-role="${h+l}"]`,_=`[aria-role="${g+l}"]`,C=`[aria-role="${E+l}"]`,N=`[aria-role="${p+l}"]`,v=`[aria-role="${L+l}"]`,D="heading-style-h6",w="heading-topic";window.addEventListener("DOMContentLoaded",()=>{let G=document.querySelector(S),I=document.querySelector(C),M=document.querySelector(N),A=document.querySelector(f),O=document.querySelector(v),$=I.querySelectorAll(".w-dyn-item"),q=M.querySelectorAll(".w-dyn-item"),R=A.querySelectorAll(`[aria-role="${h+T}"]`),b=O.querySelectorAll(".w-dyn-item"),y={},m={},u=[];b.forEach(e=>{let o=e.querySelector("[data-subcategory]"),c=e.dataset.category,a=e.dataset.categoryName,r=e.dataset.categoryGroup,d=e.dataset.categoryType,s=JSON.parse(o&&o.dataset.subcategory||"false"),t=e.querySelector('[data-category-element="description"]'),i=t?t.outerHTML:!1;s?m[r].subcategories.push({id:c,name:a,description:i,isSubcategory:s,dishes:[]}):m[c]||(m[c]={id:c,name:a,type:d,description:i,isSubcategory:s,subcategories:[],dishes:[]})}),q.forEach(e=>{let o=e.dataset.dishName,c=e.dataset.dishType,a=e.dataset.dishMenu,r=e.dataset.dishCategory,d=e.outerHTML;a&&u.push({name:o,type:c,menu:a,category:r,dishElement:e,htmlString:d})}),$.forEach(e=>{let o=e.dataset.dishName,c=e.dataset.dishType,a=e.dataset.dishMenu,r=e.dataset.dishCategory,d=e.outerHTML;a&&u.push({name:o,type:c,menu:a,category:r,dishElement:e,htmlString:d})}),R.forEach(e=>{y[e.dataset.menu]={id:e.dataset.menu,name:e.dataset.menuName,type:e.dataset.menuType,domElement:e,menuContentElement:e.querySelector('.accordion-content[role="menu-content"]'),sections:[],classname:e.dataset.menuType==="Gerichte"?"gerichte-cms_list":"drinks-cms_list"};let o=y[e.dataset.menu];e.querySelector(_).querySelectorAll(".w-dyn-item").forEach(s=>{o.sections.push(s.dataset.menuSection)});let r=u.filter(s=>s.menu===o.id);o.sections.forEach(s=>{let t=m[s];t.subcategories.length>0&&t.subcategories.forEach(i=>{i.dishes=r.filter(n=>n.category===i.id)}),t.dishes=r.filter(i=>i.category===t.id)});let d=(s,t)=>{let i=t.subcategories.filter(n=>n.dishes.length>0);return`
           <div class="dish-group">
-            <div class="heading-style-h6">${o.name}</div>
+            <div class="heading-style-h6">${t.name}</div>
             <div class="spacer-small"></div>
-            <div class="${t.classname}">
+            <div class="${s.classname}">
             <!-- Render dishes that belong directly to the category -->
-            ${o.dishes.map(r=>r.htmlString).join("")}
+            ${t.dishes.map(n=>n.htmlString).join("")}
             </div>
+            ${t.description?t.description+'<div class="spacer-regular"></div>':""}
 
             <!-- Now render the subcategories and their dishes (if they have dishes) -->
-            ${a.map(r=>`
-                <div class="heading-topic">${r.name}</div>
+            ${i.map(n=>`
+                <div class="heading-topic">${n.name}</div>
                 <div class="spacer-small"></div>
-                <div class="${t.classname}">
-                  ${r.dishes.map(H=>H.htmlString).join("")}
+                <div class="${s.classname}">
+                  ${n.dishes.map(H=>H.htmlString).join("")}
                 </div>
+                ${n.description?'<div class="spacer-regular"></div>'+n.description:""}
                 <div class="spacer-medium"></div>
               `).join("")}
           </div>
-        `};s.sections.forEach(t=>{let o=m[t];if(o.dishes.length>0||o.subcategories.some(a=>a.dishes.length>0)){let a=d(s,o);s.menuContentElement.insertAdjacentHTML("beforeend",a)}})})})})();
+        `};o.sections.forEach(s=>{let t=m[s];if(t.dishes.length>0||t.subcategories.some(i=>i.dishes.length>0)){let i=d(o,t);o.menuContentElement.insertAdjacentHTML("beforeend",i)}})})})})();

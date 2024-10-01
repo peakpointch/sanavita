@@ -46,6 +46,8 @@
       const parentCategory = item.dataset.categoryGroup;
       const categoryType = item.dataset.categoryType;
       const isSubcategory = JSON.parse(subcategoryElement && subcategoryElement.dataset.subcategory || 'false');
+      const descriptionElement = item.querySelector('[data-category-element="description"]');
+      const description = descriptionElement ? descriptionElement.outerHTML : false;
 
       // If it's a top-level category (no parent), create a new entry for it
       if (!isSubcategory) {
@@ -54,6 +56,7 @@
             id: category,
             name: categoryName,
             type: categoryType,
+            description: description,
             isSubcategory: isSubcategory,
             subcategories: [],
             dishes: []
@@ -64,6 +67,7 @@
         categories[parentCategory].subcategories.push({
           id: category,
           name: categoryName,
+          description: description,
           isSubcategory: isSubcategory,
           dishes: []
         });
@@ -161,6 +165,7 @@
             <!-- Render dishes that belong directly to the category -->
             ${category.dishes.map(dish => dish.htmlString).join('')}
             </div>
+            ${category.description ? category.description + '<div class="spacer-regular"></div>' : ''}
 
             <!-- Now render the subcategories and their dishes (if they have dishes) -->
             ${filteredSubcategories.map(sub => `
@@ -169,6 +174,7 @@
                 <div class="${menu.classname}">
                   ${sub.dishes.map(dish => dish.htmlString).join('')}
                 </div>
+                ${sub.description ? '<div class="spacer-regular"></div>' + sub.description : ''}
                 <div class="spacer-medium"></div>
               `).join('')}
           </div>
