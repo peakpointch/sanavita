@@ -13,12 +13,18 @@
     const playButton = component.querySelector(PLAY_BUTTON_SELECTOR);
     const muteButton = component.querySelector(MUTE_BUTTON_SELECTOR);
 
-    // Mute the video by default and play automatically
-    videoElement.loop = true;
-    videoElement.muted = true;
-    videoElement.autoplay = true;
-    videoElement.play();
+    // Get autoplay and muted attributes from the video element
+    const isAutoplay = JSON.parse(videoElement.dataset.playerAutoplay);
+    const isMuted = JSON.parse(videoElement.dataset.playerMuted);
 
+    // Set video properties based on attributes
+    videoElement.loop = true;
+    videoElement.muted = isMuted;  // Initialize mute state based on data attribute
+    if (isAutoplay) {
+      videoElement.play();  // Only autoplay if the attribute is true
+    }
+
+    // Function to toggle play/pause
     function togglePlay() {
       const pauseState = playButton.querySelector('[data-player-button-state="pause"]');
       const playState = playButton.querySelector('[data-player-button-state="play"]');
@@ -40,6 +46,7 @@
 
       const muteState = muteButton.querySelector('[data-player-button-state="unmuted"]');
       const unmuteState = muteButton.querySelector('[data-player-button-state="muted"]');
+
       // Toggle video mute/unmute
       if (videoElement.muted) {
         videoElement.muted = false;
@@ -62,4 +69,4 @@ window.addEventListener('LR_UPLOAD_FINISH', (e) => {
   console.log(e.detail);
   document.getElementById('uploadcare-uuid').value = e.detail.data[0].uuid;
   document.getElementById('uploadcare-file').value = e.detail.data[0].cdnUrl;
-})
+});
