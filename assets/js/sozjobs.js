@@ -9,17 +9,20 @@
     return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
   }
 
+  const jobComponent = document.querySelector('[data-job-element="component"]');
+  const jobList = jobComponent.querySelector('[data-job-element="list"]');
+  const jobEmptyState = jobComponent.querySelector('[data-job-element="empty-state"]');
+  const jobCardTemplate = jobComponent.querySelector('[data-job-element="template"]')
+
   window.addEventListener('jobDataReady', () => {
     console.log('JOB DATA READY');
-    
+    jobEmptyState.remove();
+
     const jobs = window.jobData; // Get all jobs fetched by api
     const categories = window.categoryData;
     const contractTypes = window.contractTypesData;
-    const jobsComponent = document.getElementById('jobs-component');
-    const jobCardTemplate = jobsComponent.querySelector('[data-job-card-template="true"]')
-    
+
     console.log(jobData);
-    console.log(contractTypes);
 
     jobs.forEach(job => {
       const jobCard = jobCardTemplate.cloneNode(true);
@@ -47,19 +50,23 @@
       job.contracttypename = contractTypes.find(type => type.key === job.contracttype)?.value
 
       props.forEach(prop => {
-          const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
-          const el = jobCard.querySelector(attr);
-          // console.log(el);
-          el.innerText = job[prop.toLowerCase()];
-          el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
-        });
+        const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
+        const el = jobCard.querySelector(attr);
+        // console.log(el);
+        el.innerText = job[prop.toLowerCase()];
+        el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+      });
 
       const cardLink = jobCard.querySelector('a');
       cardLink.href = `/job?id=${job.identitynumber}`;
       cardLink.target = ""
 
-      jobsComponent.appendChild(jobCard);
+      jobList.appendChild(jobCard);
       console.log(job);
     });
+  })
+
+  window.addEventListener('jobDataEmpty', () => {
+    jobList.remove();
   })
 })();
