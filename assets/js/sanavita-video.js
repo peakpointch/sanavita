@@ -18,6 +18,8 @@
     const isMuted = JSON.parse(videoElement.dataset.playerMuted);
 
     // Set video properties based on attributes
+    videoElement.autoplay = false;
+    videoElement.removeAttribute('autoplay');
     videoElement.loop = true;
     videoElement.muted = isMuted;  // Initialize mute state based on data attribute
     if (isAutoplay) {
