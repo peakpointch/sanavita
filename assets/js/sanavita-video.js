@@ -4,12 +4,14 @@
 
   // ELEMENTS
   const VIDEO_SELECTOR = '[data-player-video]';
+  const CONTROLS_SELECTOR = '[data-player-element="controls"]';
   const PLAY_BUTTON_SELECTOR = '[data-player-button="play"]';
   const MUTE_BUTTON_SELECTOR = '[data-player-button="mute"]';
 
   document.addEventListener("DOMContentLoaded", () => {
     const component = document.querySelector(VIDEO_COMPONENT_SELECTOR);
     const videoElement = component.querySelector(VIDEO_SELECTOR);
+    const controls = component.querySelector(CONTROLS_SELECTOR);
     const playButton = component.querySelector(PLAY_BUTTON_SELECTOR);
     const muteButton = component.querySelector(MUTE_BUTTON_SELECTOR);
 
@@ -26,6 +28,13 @@
       videoElement.play();  // Only autoplay if the attribute is true
     }
 
+    function showControls() {
+      controls.style.opacity = 1;
+    }
+    function hideControls() {
+      controls.style.opacity = 0;
+    }
+
     // Function to toggle play/pause
     function togglePlay() {
       const pauseState = playButton.querySelector('[data-player-button-state="pause"]');
@@ -40,6 +49,7 @@
         videoElement.pause();
         playState.classList.remove('hide');  // Show play button
         pauseState.classList.add('hide');  // Hide pause button
+        showControls();
       }
     }
 
@@ -60,6 +70,19 @@
         unmuteState.classList.remove('hide');
       }
     }
+
+    // Show controls initially when video is paused or hasn't started yet
+    showControls();
+
+    videoElement.addEventListener('pause', showControls);
+
+    // Add event listener for mouse events to show/hide controls
+    component.addEventListener('mouseenter', showControls);  // Show controls on hover
+    component.addEventListener('mouseleave', () => {
+      if (!videoElement.paused) {
+        hideControls();  // Hide controls only if the video is playing
+      }
+    });
 
     // Add event listeners
     playButton.addEventListener('click', togglePlay);
