@@ -62,7 +62,7 @@
       });
 
       const cardLink = jobCard.querySelector('a');
-      cardLink.href = `/job?id=${job.identitynumber}`;
+      cardLink.href = `/jobs/job?id=${job.identitynumber}`;
       cardLink.target = ""
 
       jobList.appendChild(jobCard);
