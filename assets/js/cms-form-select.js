@@ -1,9 +1,9 @@
 (() => {
   function getSelectValue(item) {
-    const prefix = item.dataset.formSelectOptionPrefix + " ";
-    const value = item.dataset.formSelectOptionValue;
+    const prefix = item.dataset.formSelectOptionPrefix || "";
+    const value = item.dataset.formSelectOptionValue || "";
 
-    const optionValue =  prefix + value;
+    const optionValue = prefix ? `${prefix} ${value}` : value;
     return optionValue;
   }
 
@@ -15,14 +15,32 @@
     return optionElement;
   }
 
+  function insertSelectOptions() {
+    const items = selectList.querySelectorAll("[data-form-select-option-value]");
+    const selectTarget = document.querySelector("[data-form-select-target]");
+
+    items.forEach(item => {
+      const optionValue = getSelectValue(item);
+
+      if (optionValue) {
+        const option = new Option(optionValue);
+        console.log('CMS FORM SELECT -- INSERTING ...', optionValue);
+        selectTarget.appendChild(option);
+      } else {
+        console.log('CMS FORM SELECT -- SKIPPING EMPTY OPTION');
+      }
+    });
+  }
+
   const selectList = document.querySelector("[data-form-select-source]");
-  const items = selectList.querySelectorAll("[data-form-select-option-value]");
-  const selectTarget = document.querySelector("[data-form-select-target]");
+  const waitEvent = selectList.dataset.formSelectWait
 
-  items.forEach(item => {
-    const optionValue = getSelectValue(item);
-    const option = new Option(optionValue);
+  if (waitEvent && waitEvent.length > 0) {
+    console.log('CMS FORM SELECT -- WAITING ...');
 
-    selectTarget.appendChild(option);
-  });
+    selectList.addEventListener(selectList.dataset.formSelectWait, insertSelectOptions);
+  } else {
+    console.log('CMS FORM SELECT -- INSTANT ...');
+    insertSelectOptions();
+  }
 })();
