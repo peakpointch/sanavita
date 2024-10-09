@@ -9,6 +9,15 @@
     return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
   }
 
+  function Option(value) {
+    const optionElement = document.createElement('option');
+    optionElement.setAttribute('value', value);
+    optionElement.innerText = value;
+
+    return optionElement;
+  }
+
+  const formSelectField = document.querySelector("[data-form-select-target]");
   const jobComponent = document.querySelector('[data-job-element="component"]');
   const jobList = jobComponent.querySelector('[data-job-element="list"]');
   const jobEmptyState = jobComponent.querySelector('[data-job-element="empty-state"]');
@@ -57,10 +66,6 @@
           const el = jobCard.querySelector(attr);
           el.innerText = job[prop.toLowerCase()];
           el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
-
-          if (prop === 'title') {
-            el.dataset.formSelectOptionValue = job[prop.toLowerCase()];
-          }
         });
 
         const cardLink = jobCard.querySelector('a');
@@ -90,8 +95,10 @@
       });
     }
 
-    const cmsFormSelectReady = new Event('cmsFormSelectReady');
-    jobList.dispatchEvent(cmsFormSelectReady);
+    jobs.map(job => {
+      const optionElement = new Option(job.title);
+      formSelectField.appendChild(optionElement);
+    });
   });
 
   window.addEventListener('jobDataEmpty', () => {
