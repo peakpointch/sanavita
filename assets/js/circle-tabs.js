@@ -1,8 +1,5 @@
-console.log('hello from circle tabs');
-
-
 // window.addEventListener('buildWebflowConfig', () => {
-console.log('INSIDE BUILDWEBFLOWCONFIG EVENTLISTENER');
+// console.log('INSIDE BUILDWEBFLOWCONFIG EVENTLISTENER');
 if (window.matchMedia("(min-width: 768px)").matches) {
   const allTabComponents = document.querySelectorAll('[pp-tabs="tabs-component"]');
   allTabComponents.forEach(component => {
@@ -59,8 +56,8 @@ if (window.matchMedia("(min-width: 768px)").matches) {
       tab.setAttribute('aria-selected', 'false');
       tab.setAttribute('tabindex', '-1');
       tab.setAttribute('aria-controls', `tabpane-${index}`);
-      console.log(index);
-      console.log(tabpanes[index]);
+      // console.log(index);
+      // console.log(tabpanes[index]);
       tabpanes[index].setAttribute('id', `tabpane-${index}`);
       tabpanes[index].setAttribute('role', 'tabpanel');
       tabpanes[index].setAttribute('pp-hidden', 'true');
@@ -77,7 +74,7 @@ if (window.matchMedia("(min-width: 768px)").matches) {
     // Add click event listener to each tab
     tablinks.forEach(tab => {
       tab.addEventListener('click', () => {
-        console.log('CLICK');
+        // console.log('CLICK');
         deactivateTabs();
         activateTab(tab);
         rotateTabToTop(tab);
