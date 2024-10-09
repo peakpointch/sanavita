@@ -18,10 +18,9 @@
 
   window.addEventListener('jobDataReady', () => {
     const jobs = window.jobData; // Get all jobs fetched by api
-    const categories = window.categoryData;
     const contractTypes = window.contractTypesData;
 
-    console.log('JOB DATA READY', jobs);
+    // console.log('JOB DATA READY', jobs);
 
     if (!jobs.length) {
       jobList.remove();
@@ -69,7 +68,6 @@
         cardLink.target = "";
 
         jobList.appendChild(jobCard);
-        console.log(job);
       });
     };
 
