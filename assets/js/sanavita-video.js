@@ -29,10 +29,10 @@
     }
 
     function showControls() {
-      controls.style.opacity = 1;
+      controls ? controls.style.opacity = 1 : null;
     }
     function hideControls() {
-      controls.style.opacity = 0;
+      controls ? controls.style.opacity = 0 : null;
     }
 
     // Function to toggle play/pause
