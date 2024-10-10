@@ -37,10 +37,12 @@
 
     props.forEach(prop => {
       const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
-      const el = document.querySelector(attr);
+      const elements = document.querySelectorAll(attr);
       console.log(attr);
-      el.innerText = job[prop.toLowerCase()];
-      el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+      elements.forEach(el => {
+        el.innerText = job[prop.toLowerCase()];
+        el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+      });
     });
 
     const abstractWrapper = document.querySelector('[data-job-abstract]');
