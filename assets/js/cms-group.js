@@ -22,10 +22,9 @@
 
   window.addEventListener('DOMContentLoaded', () => {
 
-    const menuElement = document.querySelector(MENU_SELECTOR);
+    const menuListElement = document.querySelector(MENU_LIST_SELECTOR);
     const dishListElement = document.querySelector(DISH_LIST_SELECTOR);
     const drinkListElement = document.querySelector(DRINK_LIST_SELECTOR);
-    const menuListElement = document.querySelector(MENU_LIST_SELECTOR);
 
     const categoryListElement = document.querySelector(CATEGORY_LIST_SELECTOR);
 
@@ -74,7 +73,7 @@
       }
     });
 
-    // Group dishes under the right category or subcategory
+    // Group drinks under the right category or subcategory
     drinkListItems.forEach(dish => {
       const dishName = dish.dataset.dishName;
       const dishType = dish.dataset.dishType;
@@ -94,6 +93,7 @@
       }
     });
 
+    // Group dishes under the right category or subcategory
     dishListItems.forEach(dish => {
       const dishName = dish.dataset.dishName;
       const dishType = dish.dataset.dishType;
@@ -136,7 +136,6 @@
       });
 
       let menuDishes = dishes.filter(dish => dish.menu === menu.id)
-      // let menuSections = categories.filter(section => section)
 
       // Assuming you already have the categories array structure
       menu.sections.forEach(section => {
@@ -195,14 +194,11 @@
         }
       });
     });
+    
 
-    // console.log("MENUS");
-    // console.log(menus);
-    // console.log("CATEGORIES");
-    // console.log(categories);
-    // console.log("DISHES");
-    // console.log(dishes);
-
+    console.log("MENUS", menus);
+    console.log("CATEGORIES", categories);
+    console.log("DISHES", dishes);
   });
 
 })();
