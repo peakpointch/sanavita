@@ -17,22 +17,35 @@
     return optionElement;
   }
 
+  function emptyState() {
+    jobList.remove();
+    jobEmptyState.classList.remove('hide');
+  }
+
+  function disableLoading() {
+    jobLoadingTemplate.forEach(element => {
+      element.remove();
+    });
+  }
+
   const formSelectField = document.querySelector("[data-form-select-target]");
   const jobComponent = document.querySelector('[data-job-element="component"]');
   const jobList = jobComponent.querySelector('[data-job-element="list"]');
   const jobEmptyState = jobComponent.querySelector('[data-job-element="empty-state"]');
   const jobCardTemplate = jobComponent.querySelector('[data-job-element="template"]');
+  const jobLoadingTemplate = jobComponent.querySelectorAll('[data-job-element="loading"]');
 
   let displayedJobs = 3; // Start with the first 3 jobs
 
   window.addEventListener('jobDataReady', () => {
-    const jobs = window.jobData; // Get all jobs fetched by api
+    let jobs = window.jobData; // Get all jobs fetched by api
     const contractTypes = window.contractTypesData;
 
     // console.log('JOB DATA READY', jobs);
+    // jobs = [];
 
     if (!jobs.length) {
-      jobList.remove();
+      emptyState();
       return
     }
     jobEmptyState.remove();
@@ -78,6 +91,7 @@
 
     // Initial display of jobs
     displayJobs(0, displayedJobs);
+    disableLoading();
 
     // Load More Button
     if (jobs.length > displayedJobs) {
@@ -102,6 +116,6 @@
   });
 
   window.addEventListener('jobDataEmpty', () => {
-    jobList.remove();
+    emptyState();
   });
 })();

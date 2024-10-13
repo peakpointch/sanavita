@@ -9,13 +9,13 @@
     return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
   }
 
+  function removePlaceholderClass() {
+    document.querySelector('[data-job-element="layout"]').classList.remove('placeholder');
+  }
+
   window.addEventListener('jobDataReady', () => {
-    console.log('JOB DATA READY');
-
-    const job = window.jobData; // Get all jobs fetched by api
+    const job = window.jobData;
     const contractTypes = window.contractTypesData;
-    // const categories = window.categoryData;
-
     const props = ['title', 'accessionPer', 'rate', 'categoryNames', 'contractTypeName'];
 
     // Determine rate
@@ -38,7 +38,6 @@
     props.forEach(prop => {
       const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
       const elements = document.querySelectorAll(attr);
-      console.log(attr);
       elements.forEach(el => {
         el.innerText = job[prop.toLowerCase()];
         el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
@@ -51,6 +50,6 @@
     const detailWrapper = document.querySelector('[data-job-detail]');
     detailWrapper.insertAdjacentHTML('beforeend', job.detail)
 
-    console.log(job);
+    removePlaceholderClass();
   })
 })();
