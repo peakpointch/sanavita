@@ -1,5 +1,3 @@
-import { initialize } from "esbuild";
-
 const COMPONENT_SELECTOR: string = '[data-form-element="component"]';
 const FORM_SELECTOR: string = 'form';
 const SUCCESS_SELECTOR: string = '[data-form-element="success"]';
