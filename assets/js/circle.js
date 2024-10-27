@@ -1,4 +1,4 @@
-(() => {
+
   function updateOffset() {
     const itemWrap = page.querySelector('.pgc-item_wrap');
 
@@ -25,7 +25,6 @@
   updateOffset();  // Call the function initially
 
   window.addEventListener('resize', updateOffset);  // Update on resize
-})();
 
 // (() => {
 //   let isDragging = false;

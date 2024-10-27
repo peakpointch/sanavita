@@ -4,7 +4,8 @@ const files = {
   "ts": [
     "webflow.config",
     "banner",
-    "iphone-vimeo-player"
+    "iphone-vimeo-player",
+    "form"
   ],
   "js": [
     "circle-tabs",
@@ -43,7 +44,7 @@ function build(files, devFiles) {
         bundle: true,
         minify: true,
         sourcemap: false,
-        format: "esm",
+        format: "iife",
         minifyIdentifiers: false,
         // keepNames: true,
       }).catch(() => process.exit(1));

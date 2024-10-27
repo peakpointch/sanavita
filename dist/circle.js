@@ -1,1 +1,1 @@
-(()=>{function n(){let i=page.querySelector(".pgc-item_wrap"),e=10,f=1270,a=e,t=-1/150*window.innerWidth+8;t=Math.max(0,t);let s=Math.max(e,e+t);i&&i.style.setProperty("--item-offset",`${s}deg`)}n(),window.addEventListener("resize",n)})();
+(()=>{function i(){let n=page.querySelector(".pgc-item_wrap"),e=10,f=1270,a=e,t=-1/150*window.innerWidth+8;t=Math.max(0,t);let s=Math.max(e,e+t);n&&n.style.setProperty("--item-offset",`${s}deg`)}i();window.addEventListener("resize",i);})();

@@ -1,1 +1,1 @@
-(()=>{function a(t){let[n,e,c]=t.split("."),s=new Date(`${c}-${e}-${n}`),o=new Date;o.setHours(0,0,0,0);let l=s-o;return Math.ceil(l/(1e3*60*60*24))}document.querySelectorAll("[data-count-down]").forEach(t=>{let n=t.getAttribute("data-count-down"),e=a(n);t.innerText=`${e}`})})();
+(()=>{function l(t){let[n,e,a]=t.split("."),c=new Date(`${a}-${e}-${n}`),o=new Date;o.setHours(0,0,0,0);let s=c-o;return Math.ceil(s/(1e3*60*60*24))}var i=document.querySelectorAll("[data-count-down]");i.forEach(t=>{let n=t.getAttribute("data-count-down"),e=l(n);t.innerText=`${e}`});})();
