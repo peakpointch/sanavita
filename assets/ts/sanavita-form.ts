@@ -44,7 +44,7 @@ function initForm(component: HTMLElement | null) {
     return false;
   }
 
-  disableButtons(form);
+  initFormButtons(form);
   initFormSteps(component);
   initFormArray(component);
   initCustomInputs(component);
@@ -138,7 +138,7 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
   }
 }
 
-function disableButtons(form: HTMLFormElement) {
+function initFormButtons(form: HTMLFormElement) {
   const buttons = form.querySelectorAll('button');
   buttons.forEach((button) => {
     button.setAttribute('type', 'button');
