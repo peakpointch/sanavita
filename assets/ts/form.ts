@@ -1,3 +1,4 @@
+(() => {
 const COMPONENT_SELECTOR: string = '[data-form-element="component"]';
 const FORM_SELECTOR: string = 'form';
 const SUCCESS_SELECTOR: string = '[data-form-element="success"]';
@@ -126,3 +127,4 @@ document.addEventListener('DOMContentLoaded', () => {
   const inizialized = initForm(form);
   console.log("Form Initialized:", inizialized)
 });
+})

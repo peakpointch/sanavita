@@ -5,7 +5,8 @@ const files = {
     "webflow.config",
     "banner",
     "iphone-vimeo-player",
-    "form"
+    "form",
+    "sanavita-form",
   ],
   "js": [
     "circle-tabs",
