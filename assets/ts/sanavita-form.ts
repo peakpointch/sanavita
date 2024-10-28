@@ -1,18 +1,18 @@
-const COMPONENT_SELECTOR: string = '[data-form-element="component"]';
+const FORM_COMPONENT_SELECTOR: string = '[data-form-element="component"]';
 const FORM_SELECTOR: string = 'form';
-const SUCCESS_SELECTOR: string = '[data-form-element="success"]';
-const ERROR_SELECTOR: string = '[data-form-element="error"]';
-const SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
-const INPUT_SELECTOR: string = '.w-input, .w-select';
+const FORM_SUCCESS_SELECTOR: string = '[data-form-element="success"]';
+const FORM_ERROR_SELECTOR: string = '[data-form-element="error"]';
+const FORM_SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
+const FORM_INPUT_SELECTOR: string = '.w-input, .w-select';
 
 const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
-const STEP_LIST_SELECTOR: string = '[data-steps-element="list"]';
-const STEP_SELECTOR: string = '[data-steps-element="step"]';
-const STEP_PAGINATION_SELECTOR: string = '[data-steps-element="pagination"]';
-const STEP_PAGINATION_ITEM_SELECTOR: string = 'button[data-step-target]';
-const STEP_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
-const STEP_NEXT_SELECTOR: string = '[data-steps-nav="next"]';
-const STEP_TARGET_SELECTOR: string = '[data-step-target]';
+const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
+const STEPS_SELECTOR: string = '[data-steps-element="step"]';
+const STEPS_PAGINATION_SELECTOR: string = '[data-steps-element="pagination"]';
+const STEPS_PAGINATION_ITEM_SELECTOR: string = 'button[data-step-target]';
+const STEPS_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
+const STEPS_NEXT_SELECTOR: string = '[data-steps-nav="next"]';
+const STEPS_TARGET_SELECTOR: string = '[data-step-target]';
 
 const siteId: string = document.documentElement.dataset.wfSite || '';
 const pageId: string = document.documentElement.dataset.wfPage || '';
@@ -31,7 +31,7 @@ function removeAllEventListeners(element: HTMLElement): HTMLElement {
 
 function initForm(component: HTMLElement | null) {
   if (!component) {
-    console.error('Form component not found:', COMPONENT_SELECTOR)
+    console.error('Form component not found:', FORM_COMPONENT_SELECTOR)
     return false;
   }
 
@@ -40,12 +40,13 @@ function initForm(component: HTMLElement | null) {
 
   const form = component.querySelector(FORM_SELECTOR) as HTMLFormElement | null; // Has to be a HTMLFormElement because its selector is the form tagname
   if (!form) {
-    console.error(`The selected form component does not contain a HTMLFormElement. Perhaps you added ${COMPONENT_SELECTOR} to the form element itself rather than its parent element?\n\nForm Component:`, component);
+    console.error(`The selected form component does not contain a HTMLFormElement. Perhaps you added ${FORM_COMPONENT_SELECTOR} to the form element itself rather than its parent element?\n\nForm Component:`, component);
     return false;
   }
 
   disableButtons(form);
   initFormSteps(component);
+  initFormArray(component);
   initCustomInputs(component);
   initDecisions(component);
 
@@ -101,10 +102,10 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
   let fields = { "customSubmit": true };
 
   // Form elements
-  const allInputs: NodeListOf<FormElement> = form.querySelectorAll(INPUT_SELECTOR);
-  const successElement: HTMLElement | null = component.querySelector(SUCCESS_SELECTOR);
-  const errorElement: HTMLElement | null = component.querySelector(ERROR_SELECTOR);
-  const submitButton: HTMLInputElement | null = component.querySelector(SUBMIT_SELECTOR);
+  const allInputs: NodeListOf<FormElement> = form.querySelectorAll(FORM_INPUT_SELECTOR);
+  const successElement: HTMLElement | null = component.querySelector(FORM_SUCCESS_SELECTOR);
+  const errorElement: HTMLElement | null = component.querySelector(FORM_ERROR_SELECTOR);
+  const submitButton: HTMLInputElement | null = component.querySelector(FORM_SUBMIT_SELECTOR);
 
   if (!(submitButton instanceof HTMLInputElement) || submitButton.type !== 'submit') {
     throw new Error('The submitButton element is not an HTML input element with type="submit".');
@@ -259,21 +260,21 @@ function initFormSteps(component: HTMLElement) {
     console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, component);
     return;
   }
-  const list: HTMLElement | null = component.querySelector(STEP_LIST_SELECTOR);
+  const list: HTMLElement | null = component.querySelector(STEPS_LIST_SELECTOR);
   if (!list) {
-    console.error(`Form Steps: Component does not contain a step list "${STEP_LIST_SELECTOR}"`);
+    console.error(`Form Steps: Component does not contain a step list "${STEPS_LIST_SELECTOR}"`);
     return;
   }
-  const formSteps: NodeListOf<HTMLElement> = component.querySelectorAll(STEP_SELECTOR)!;
+  const formSteps: NodeListOf<HTMLElement> = component.querySelectorAll(STEPS_SELECTOR)!;
   if (!formSteps.length) {
     console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, list);
     return;
   }
 
-  const pagination: HTMLElement = component.querySelector(STEP_PAGINATION_SELECTOR)!;
-  const paginationItems: NodeListOf<HTMLElement> = pagination.querySelectorAll(STEP_PAGINATION_ITEM_SELECTOR)
-  const buttonNext: HTMLElement = component.querySelector(STEP_NEXT_SELECTOR)!;
-  const buttonPrev: HTMLElement = component.querySelector(STEP_PREV_SELECTOR)!;
+  const pagination: HTMLElement = component.querySelector(STEPS_PAGINATION_SELECTOR)!;
+  const paginationItems: NodeListOf<HTMLElement> = pagination.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR)
+  const buttonNext: HTMLElement = component.querySelector(STEPS_NEXT_SELECTOR)!;
+  const buttonPrev: HTMLElement = component.querySelector(STEPS_PREV_SELECTOR)!;
   let currentStep: number = 0;
 
   formSteps.forEach((step, index) => {
@@ -348,8 +349,16 @@ function initFormSteps(component: HTMLElement) {
   });
 }
 
+function initFormArray(component: HTMLElement) {
+  const ARRAY_COMPONENT_SELECTOR: string = '[data-form-array-element="component"]'
+
+  function initSidebar() {
+
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  const form: HTMLElement | null = document.querySelector(COMPONENT_SELECTOR);
+  const form: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
 
   const inizialized = initForm(form);
   console.log("Form initialized:", inizialized)
