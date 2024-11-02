@@ -3,7 +3,7 @@ const FORM_SELECTOR: string = 'form';
 const FORM_SUCCESS_SELECTOR: string = '[data-form-element="success"]';
 const FORM_ERROR_SELECTOR: string = '[data-form-element="error"]';
 const FORM_SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
-const FORM_INPUT_SELECTOR: string = '.w-input, .w-select';
+const FORM_INPUT_SELECTOR: string = '.w-input, .w-select, .w-radio input[type="radio"]';
 
 const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
 const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
@@ -14,19 +14,88 @@ const STEPS_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
 const STEPS_NEXT_SELECTOR: string = '[data-steps-nav="next"]';
 const STEPS_TARGET_SELECTOR: string = '[data-step-target]';
 
+// Unique key to store form data in localStorage
+const STORAGE_KEY = 'person_data';
+
 const siteId: string = document.documentElement.dataset.wfSite || '';
 const pageId: string = document.documentElement.dataset.wfPage || '';
 
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 
-function removeAllEventListeners(element: HTMLElement): HTMLElement {
-  element.style.height = element.offsetHeight.toString(); // Temporarily set height to avoid document reflow
-  const newElement = element.cloneNode(true) as HTMLElement;
-  newElement.dataset.replaced = 'true'; // Make the replace action visible in the browser
+interface Window {
+  PEAKPOINT: any;
+}
 
-  element.parentNode!.replaceChild(newElement, element); // Replace the old element with the new one
-  newElement.style.removeProperty('height');
-  return newElement;
+class FieldGroup {
+  fields: Field[];
+
+  constructor(
+    fields: Field[] = [],
+  ) {
+    this.fields = fields
+  }
+
+  // Method to retrieve a field by its id
+  getField(fieldId: string): Field | undefined {
+    return this.fields.find(field => field.id === fieldId);
+  }
+}
+
+class Person {
+  personalData: FieldGroup;
+  doctor: FieldGroup;
+  health: FieldGroup;
+  relatives: FieldGroup;
+
+  constructor(
+    personalData = new FieldGroup(),
+    doctor = new FieldGroup(),
+    health = new FieldGroup(),
+    relatives = new FieldGroup()
+  ) {
+    this.personalData = personalData;
+    this.doctor = doctor;
+    this.health = health;
+    this.relatives = relatives;
+  }
+}
+
+class Field {
+  id: string;
+  label: string;
+  value: any;
+  required: boolean;
+
+  constructor(input, index) {
+    if (input.type === 'radio' && !(input as HTMLInputElement).checked) {
+      return;
+    }
+
+    this.id = input.id || parameterize(input.dataset.name || `field ${index}`);
+    this.label = input.dataset.name || `field ${index}`;
+    this.value = input.value;
+    this.required = input.required || false;
+  }
+}
+
+function parameterize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")                       // Decompose accented characters
+    .replace(/[\u0300-\u036f]/g, '')        // Remove diacritics (accent marks)
+    .replace(/[^a-z0-9]+/g, '-')            // Replace non-alphanumeric characters with hyphens
+    .replace(/^-+|-+$/g, '')                // Trim hyphens from start and end
+    .replace(/-+/g, '-');                   // Collapse multiple hyphens
+}
+
+function toDashCase(str) {
+  return str
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    .toLowerCase();
+}
+
+function toDataset(str) {
+  return `${str.charAt(0).toUpperCase() + str.slice(1)}`;
 }
 
 function initForm(component: HTMLElement | null) {
@@ -34,9 +103,6 @@ function initForm(component: HTMLElement | null) {
     console.error('Form component not found:', FORM_COMPONENT_SELECTOR)
     return false;
   }
-
-  component = removeAllEventListeners(component);
-  component.classList.remove('w-form');
 
   const form = component.querySelector(FORM_SELECTOR) as HTMLFormElement | null; // Has to be a HTMLFormElement because its selector is the form tagname
   if (!form) {
@@ -56,6 +122,13 @@ function initForm(component: HTMLElement | null) {
     form.dataset.state = 'sending';
     handleSubmit(component, form);
   });
+
+  component.querySelectorAll('h5')
+    .forEach((element) => {
+      element.addEventListener('click', () => {
+        handleSubmit(component, form);
+      });
+    });
 
   return true;
 }
@@ -99,7 +172,14 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
     form.dispatchEvent(new CustomEvent('formError'));
   }
 
-  let fields = { "customSubmit": true };
+  let fields: Array<Field | Array<Person>> = [
+    {
+      id: "custom-submit",
+      label: "Custom Submit",
+      value: true,
+      required: false
+    } as Field
+  ];
 
   // Form elements
   const allInputs: NodeListOf<FormElement> = form.querySelectorAll(FORM_INPUT_SELECTOR);
@@ -115,8 +195,14 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
   submitButton.value = submitButton.dataset.wait || 'Wird gesendet ...';
 
   allInputs.forEach((input, index) => {
-    fields[input.dataset.name || `Field ${index}`] = input.value;
+    const entry = new Field(input, index);
+    fields.push();
   });
+  console.log('FORM FIELDS:', fields);
+  window.PEAKPOINT.fields = fields;
+  fields.push(people);
+
+  const recaptcha = (form.querySelector('#g-recaptcha-response') as FormElement).value;
 
   const formData = {
     name: form.dataset.name,
@@ -124,7 +210,10 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
     elementId: form.dataset.wfElementId,
     source: window.location.href,
     test: false,
-    fields: fields,
+    fields: {
+      fields: JSON.stringify({ fields }),
+      "g-recaptcha-response": recaptcha
+    },
     dolphin: false,
   };
 
@@ -350,16 +439,160 @@ function initFormSteps(component: HTMLElement) {
 }
 
 function initFormArray(component: HTMLElement) {
-  const ARRAY_COMPONENT_SELECTOR: string = '[data-form-array-element="component"]'
+  const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
+  const ARRAY_TEMPLATE_SELECTOR: string = '[data-person-element="template"]';
+  const ARRAY_EMPTY_STATE_SELECTOR: string = '[data-person-element="empty"]';
+  const ARRAY_ADD_SELECTOR: string = '[data-person-element="add"]';
+  const ARRAY_SAVE_SELECTOR: string = '[data-person-element="save"]';
+  const ARRAY_MODAL_SELECTOR: string = '[data-form-element="modal"]';
+  const ARRAY_GROUP_SELECTOR: string = '[data-person-data-group]';
 
-  function initSidebar() {
+  let editingIndex: number | null = null;
 
+  const list: HTMLElement = component.querySelector(ARRAY_LIST_SELECTOR)!;
+  const template: HTMLElement = list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
+  const emptyState: HTMLElement = component.querySelector(ARRAY_EMPTY_STATE_SELECTOR)!;
+  const addButton: HTMLElement = component.querySelector(ARRAY_ADD_SELECTOR)!;
+  const modal: HTMLElement = document.querySelector(ARRAY_MODAL_SELECTOR)!;
+  const modalForm: HTMLFormElement = document.querySelector(FORM_SELECTOR)!;
+  const saveButton: HTMLElement = modal.querySelector(ARRAY_SAVE_SELECTOR)!;
+  const modalInputs: NodeListOf<FormElement> = modal.querySelectorAll(FORM_INPUT_SELECTOR);
+  const groupElements: NodeListOf<FormElement> = modal.querySelectorAll(ARRAY_GROUP_SELECTOR);
+
+  addButton.addEventListener('click', () => {
+    clearModal();
+    openModal();
+    editingIndex = null; // Reset editing state for adding a new person
+  });
+
+  saveButton.addEventListener('click', () => {
+    const person: Person = extractData();
+
+    if (editingIndex !== null) {
+      // Update existing person
+      people[editingIndex] = person;
+    } else {
+      // Add new person
+      people.push(person);
+    }
+
+    renderList();
+    closeModal();
+
+    console.log(`Saved person successfully!`, people);
+
+  });
+
+  function renderList() {
+    list.innerHTML = ''; // Clear the current list
+    if (people.length) {
+      people.forEach((person, index) => renderPerson(person, index));
+      emptyState.classList.add('hide');
+    } else {
+      emptyState.classList.remove('hide');
+    }
   }
+
+  function renderPerson(person: Person, index: number) {
+    const newElement: HTMLElement = template.cloneNode(true) as HTMLElement;
+    const props = ['first-name', 'name', 'phone', 'email', 'street', 'zip', 'city'];
+    newElement.style.removeProperty('display');
+
+    // Add event listeners for editing and deleting
+    const editButton = newElement.querySelector('[data-person-action="edit"]');
+    const deleteButton = newElement.querySelector('[data-person-action="delete"]');
+
+    editButton!.addEventListener('click', () => {
+      openModal();
+      populateModal(person);
+      editingIndex = index; // Set editing index
+    });
+
+    deleteButton!.addEventListener('click', () => {
+      people.splice(index, 1); // Remove the person from the array
+      renderList(); // Re-render the list
+    });
+
+    props.forEach(prop => {
+      const propSelector = `[data-${prop}]`;
+      const el: HTMLElement | null = newElement.querySelector(propSelector);
+      if (el) {
+        const currentField = person.personalData.getField(prop);
+        if (!currentField) { console.error(`Render person: A field for "${prop}" doesn't exist.`); return; }
+        el.innerText = currentField.value || currentField.label;
+      }
+    });
+    list.appendChild(newElement);
+  }
+
+  function populateModal(person: Person) {
+    groupElements.forEach((group) => {
+      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupName = group.dataset.personDataGroup! as keyof Person;
+
+      groupInputs.forEach(input => {
+        const field = person[groupName].getField(input.id);
+        if (field) {
+          input.value = field.value.trim();
+        }
+      });
+    });
+  }
+
+  function openModal() {
+    clearModal();
+    modal.classList.remove('is-closed');
+    modal.dataset.state = 'open';
+  }
+
+  function closeModal() {
+    modal.classList.add('is-closed');
+    modal.dataset.state = 'closed';
+    clearModal();
+  }
+
+  function clearModal() {
+    modalInputs.forEach((input) => {
+      if (input.type !== 'checkbox' && input.type !== 'radio')
+        input.value = '';
+    });
+  }
+
+  function extractData(): Person {
+    const personData = new Person();
+
+    groupElements.forEach((group) => {
+      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupName = group.dataset.personDataGroup! as keyof Person;
+
+      if (!personData[groupName]) {
+        console.error(`The group "${groupName}" doesn't exist.`);
+        return;
+      }
+
+      groupInputs.forEach((input, index) => {
+        const field = new Field(input, index);
+        if (field.id) {
+          personData[groupName].fields.push(field);
+        }
+      });
+    });
+
+    return personData;
+  }
+
+  // Initialize the modal on load
+  closeModal();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const form: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
+window.PEAKPOINT = {}
+let people: Array<Person> = [];
+window.PEAKPOINT.people = people;
 
+const form: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
+form?.classList.remove('w-form');
+
+document.addEventListener('DOMContentLoaded', () => {
   const inizialized = initForm(form);
   console.log("Form initialized:", inizialized)
 });
