@@ -17,12 +17,12 @@
   var pageId = document.documentElement.dataset.wfPage || "";
   var FieldGroup = class {
     fields;
-    constructor(fields = []) {
+    constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
     // Method to retrieve a field by its id
     getField(fieldId) {
-      return this.fields.find((field) => field.id === fieldId);
+      return this.fields.get(fieldId);
     }
   };
   var Person = class {
@@ -35,6 +35,9 @@
       this.doctor = doctor;
       this.health = health;
       this.relatives = relatives;
+    }
+    getFullName() {
+      return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim();
     }
   };
   var Field = class {
@@ -54,6 +57,45 @@
   };
   function parameterize(text) {
     return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+  }
+  function mapToObject(map) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value) : value;
+    }
+    return obj;
+  }
+  function personMapToObject(people2) {
+    const peopleObj = {};
+    for (const [key, person] of people2) {
+      peopleObj[key] = {
+        personalData: {
+          fields: mapToObject(person.personalData.fields)
+        },
+        doctor: {
+          fields: mapToObject(person.doctor.fields)
+        },
+        health: {
+          fields: mapToObject(person.health.fields)
+        },
+        relatives: {
+          fields: mapToObject(person.relatives.fields)
+        }
+      };
+    }
+    return peopleObj;
+  }
+  function reinsertElement(element) {
+    if (!element || !element.firstElementChild) {
+      console.warn("Element or its first element child is not defined.");
+      return;
+    }
+    const childElement = element.firstElementChild;
+    element.removeChild(childElement);
+    setTimeout(() => {
+      element.appendChild(childElement);
+      element.focus();
+    }, 0);
   }
   function initForm(component) {
     if (!component) {
@@ -75,37 +117,11 @@ Form Component:`, component);
     form2.dataset.state = "initialized";
     component.addEventListener("submit", (event) => {
       event.preventDefault();
+      form2.setAttribute("novalidate", "");
       form2.dataset.state = "sending";
       handleSubmit(component, form2);
     });
-    component.querySelectorAll("h5").forEach((element) => {
-      element.addEventListener("click", () => {
-        handleSubmit(component, form2);
-      });
-    });
     return true;
-  }
-  async function sendFormData(formData) {
-    const url = `https://webflow.com/api/v1/form/${siteId}`;
-    const request = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json, text/javascript, */*; q=0.01"
-      },
-      body: JSON.stringify(formData)
-    };
-    try {
-      const response = await fetch(url, request);
-      if (!response.ok) {
-        throw new Error(`Network response "${response.status}" was not okay`);
-      }
-      console.log("Form submission success! Status", response.status);
-      return true;
-    } catch (error) {
-      console.error("Form submission failed:", error);
-      return false;
-    }
   }
   async function handleSubmit(component, form2) {
     function formSuccess() {
@@ -140,9 +156,9 @@ Form Component:`, component);
       const entry = new Field(input, index);
       fields.push();
     });
+    fields["people"] = personMapToObject(people);
     console.log("FORM FIELDS:", fields);
     window.PEAKPOINT.fields = fields;
-    fields.push(people);
     const recaptcha = form2.querySelector("#g-recaptcha-response").value;
     const formData = {
       name: form2.dataset.name,
@@ -156,13 +172,8 @@ Form Component:`, component);
       },
       dolphin: false
     };
-    const success = await sendFormData(formData);
-    if (success) {
-      formSuccess();
-      submitButton.value = submitButton.dataset.defaultText;
-    } else {
-      formError();
-    }
+    submitButton.value = submitButton.dataset.defaultText;
+    form2.removeAttribute("novalidate");
   }
   function initFormButtons(form2) {
     const buttons = form2.querySelectorAll("button");
@@ -257,6 +268,23 @@ Form Component:`, component);
       });
     });
   }
+  function validateFields(inputs) {
+    let valid = true;
+    for (const input of inputs) {
+      if (!input.checkValidity()) {
+        valid = false;
+        input.reportValidity();
+        input.classList.add("has-error");
+        input.addEventListener("change", () => {
+          input.classList.remove("has-error");
+        });
+        break;
+      } else {
+        input.classList.remove("has-error");
+      }
+    }
+    return valid;
+  }
   function initFormSteps(component) {
     const hasSteps = component.getAttribute("data-steps-element") || "";
     if (!hasSteps) {
@@ -296,11 +324,19 @@ Component:`, component);
         });
       });
     }
-    initPagination();
     function changeToStep(target, init = false) {
       if (currentStep === target && !init) {
         console.log("Change Form Step: Target step equals current step.");
         return;
+      }
+      if (target > currentStep && !init) {
+        for (let step = currentStep; step < target; step++) {
+          if (!validateCurrentStep(step)) {
+            console.warn("Validation failed for step:", step);
+            changeToStep(step);
+            return;
+          }
+        }
       }
       if (target === 0) {
         buttonPrev.style.opacity = "0";
@@ -328,7 +364,26 @@ Component:`, component);
       });
       currentStep = target;
     }
-    changeToStep(currentStep, true);
+    function validateCurrentStep(step) {
+      const currentStepElement = formSteps[step];
+      const inputs = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+      let fieldsValid = validateFields(inputs);
+      const formArrayListElement = currentStepElement.querySelector('[data-form-array-element="list"]');
+      if (!formArrayListElement)
+        return fieldsValid;
+      const listLength = parseInt(formArrayListElement.dataset.length);
+      const listValid = listLength > 0;
+      if (!listValid) {
+        console.warn(`Couldn't validate current step. Please add at least one person.`);
+        let errorElement = formArrayListElement.parentElement.querySelector('[data-person-element="empty"]');
+        errorElement.setAttribute("aria-live", "assertive");
+        errorElement.setAttribute("role", "alert");
+        errorElement.setAttribute("tabindex", "-1");
+        errorElement.classList.add("has-error");
+        reinsertElement(errorElement);
+      }
+      return fieldsValid && listValid;
+    }
     buttonNext.addEventListener("click", (event) => {
       event.preventDefault();
       if (currentStep < formSteps.length - 1) {
@@ -341,6 +396,8 @@ Component:`, component);
         changeToStep(currentStep - 1);
       }
     });
+    initPagination();
+    changeToStep(currentStep, true);
   }
   function initFormArray(component) {
     const ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
@@ -348,9 +405,10 @@ Component:`, component);
     const ARRAY_EMPTY_STATE_SELECTOR = '[data-person-element="empty"]';
     const ARRAY_ADD_SELECTOR = '[data-person-element="add"]';
     const ARRAY_SAVE_SELECTOR = '[data-person-element="save"]';
+    const ARRAY_CANCEL_SELECTOR = '[data-person-element="cancel"]';
     const ARRAY_MODAL_SELECTOR = '[data-form-element="modal"]';
     const ARRAY_GROUP_SELECTOR = "[data-person-data-group]";
-    let editingIndex = null;
+    let editingKey = null;
     const list = component.querySelector(ARRAY_LIST_SELECTOR);
     const template = list.querySelector(ARRAY_TEMPLATE_SELECTOR);
     const emptyState = component.querySelector(ARRAY_EMPTY_STATE_SELECTOR);
@@ -358,47 +416,76 @@ Component:`, component);
     const modal = document.querySelector(ARRAY_MODAL_SELECTOR);
     const modalForm = document.querySelector(FORM_SELECTOR);
     const saveButton = modal.querySelector(ARRAY_SAVE_SELECTOR);
+    const cancelButtons = modal.querySelectorAll(ARRAY_CANCEL_SELECTOR);
     const modalInputs = modal.querySelectorAll(FORM_INPUT_SELECTOR);
     const groupElements = modal.querySelectorAll(ARRAY_GROUP_SELECTOR);
+    cancelButtons.forEach((button, index) => {
+      button.addEventListener("click", closeModal);
+    });
     addButton.addEventListener("click", () => {
       clearModal();
+      setLiveText("state", "Hinzuf\xFCgen");
+      setLiveText("full-name", "Neue Person");
       openModal();
-      editingIndex = null;
+      editingKey = null;
     });
-    saveButton.addEventListener("click", () => {
+    saveButton.addEventListener("click", savePerson);
+    function savePerson() {
+      if (!validateModal()) {
+        console.warn(`Couldn't save person. Please fill in all the values correctly.`);
+        return null;
+      }
       const person = extractData();
-      if (editingIndex !== null) {
-        people[editingIndex] = person;
+      if (editingKey !== null) {
+        people.set(editingKey, person);
       } else {
-        people.push(person);
+        const newKey = `person${people.size + 1}`;
+        people.set(newKey, person);
       }
       renderList();
       closeModal();
-      console.log(`Saved person successfully!`, people);
-    });
+      return person;
+    }
+    function setLiveText(element, string) {
+      const liveElements = modal.querySelectorAll(`[data-live-text="${element}"]`);
+      let valid = true;
+      for (const element2 of liveElements) {
+        if (!element2) {
+          valid = false;
+          break;
+        }
+        element2.innerText = string;
+      }
+      return valid;
+    }
     function renderList() {
       list.innerHTML = "";
-      if (people.length) {
-        people.forEach((person, index) => renderPerson(person, index));
+      list.dataset.length = people.size.toString();
+      console.log(people.size.toString());
+      if (people.size) {
+        people.forEach((person, key) => renderPerson(person, key));
         emptyState.classList.add("hide");
       } else {
         emptyState.classList.remove("hide");
       }
     }
-    function renderPerson(person, index) {
+    function renderPerson(person, key) {
       const newElement = template.cloneNode(true);
       const props = ["first-name", "name", "phone", "email", "street", "zip", "city"];
       newElement.style.removeProperty("display");
       const editButton = newElement.querySelector('[data-person-action="edit"]');
       const deleteButton = newElement.querySelector('[data-person-action="delete"]');
       editButton.addEventListener("click", () => {
-        openModal();
+        setLiveText("state", "bearbeiten");
+        setLiveText("full-name", person.getFullName() || "Neue Person");
         populateModal(person);
-        editingIndex = index;
+        openModal();
+        editingKey = key;
       });
       deleteButton.addEventListener("click", () => {
-        people.splice(index, 1);
+        people.delete(key);
         renderList();
+        closeModal();
       });
       props.forEach((prop) => {
         const propSelector = `[data-${prop}]`;
@@ -421,13 +508,24 @@ Component:`, component);
         groupInputs.forEach((input) => {
           const field = person[groupName].getField(input.id);
           if (field) {
+            console.log(input, field.value);
             input.value = field.value.trim();
+          } else {
+            console.warn(`Field not found:`, field, input.id);
           }
         });
       });
     }
     function openModal() {
-      clearModal();
+      const personalDataGroup = modal.querySelector('[data-person-data-group="personalData"]');
+      const nameInputs = personalDataGroup.querySelectorAll("#first-name, #name");
+      nameInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          const editingPerson = extractData();
+          setLiveText("full-name", editingPerson.getFullName() || "Neue Person");
+        });
+      });
+      emptyState.classList.remove("has-error");
       modal.classList.remove("is-closed");
       modal.dataset.state = "open";
     }
@@ -437,10 +535,17 @@ Component:`, component);
       clearModal();
     }
     function clearModal() {
+      setLiveText("state", "hinzuf\xFCgen");
+      setLiveText("full-name", "Neue Person");
       modalInputs.forEach((input) => {
         if (input.type !== "checkbox" && input.type !== "radio")
           input.value = "";
       });
+    }
+    function validateModal() {
+      const allModalFields = modal.querySelectorAll(FORM_INPUT_SELECTOR);
+      const valid = validateFields(allModalFields);
+      return true;
     }
     function extractData() {
       const personData = new Person();
@@ -454,7 +559,7 @@ Component:`, component);
         groupInputs.forEach((input, index) => {
           const field = new Field(input, index);
           if (field.id) {
-            personData[groupName].fields.push(field);
+            personData[groupName].fields.set(field.id, field);
           }
         });
       });
@@ -463,7 +568,7 @@ Component:`, component);
     closeModal();
   }
   window.PEAKPOINT = {};
-  var people = [];
+  var people = /* @__PURE__ */ new Map();
   window.PEAKPOINT.people = people;
   var form = document.querySelector(FORM_COMPONENT_SELECTOR);
   form?.classList.remove("w-form");
