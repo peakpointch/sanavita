@@ -89,6 +89,132 @@ class Field {
   }
 }
 
+class FormSteps {
+  private component: HTMLElement;
+  private formSteps: NodeListOf<HTMLElement>;
+  private paginationItems: NodeListOf<HTMLElement>;
+  private buttonNext: HTMLElement;
+  private buttonPrev: HTMLElement;
+  private currentStep: number = 0;
+
+  constructor(component: HTMLElement) {
+    this.component = component;
+    this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
+    this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
+    this.buttonNext = this.component.querySelector(STEPS_NEXT_SELECTOR)!;
+    this.buttonPrev = this.component.querySelector(STEPS_PREV_SELECTOR)!;
+
+    this.initialize();
+  }
+
+  private initialize(): void {
+    if (!this.component.getAttribute('data-steps-element')) {
+      console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, this.component);
+      return;
+    }
+
+    if (!this.formSteps.length) {
+      console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, this.component.querySelector(STEPS_LIST_SELECTOR));
+      return;
+    }
+
+    this.setupSteps();
+    this.initPagination();
+    this.changeToStep(this.currentStep, true);
+  }
+
+  private setupSteps(): void {
+    this.formSteps.forEach((step, index) => {
+      step.dataset.stepId = index.toString();
+      step.classList.toggle('hide', index !== 0);
+    });
+  }
+
+  private initPagination(): void {
+    this.paginationItems.forEach((item, index) => {
+      item.dataset.stepTarget = index.toString();
+      item.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.changeToStep(index);
+      });
+    });
+
+    this.buttonNext.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (this.currentStep < this.formSteps.length - 1) {
+        this.changeToStep(this.currentStep + 1);
+      }
+    });
+
+    this.buttonPrev.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (this.currentStep > 0) {
+        this.changeToStep(this.currentStep - 1);
+      }
+    });
+  }
+
+  private changeToStep(target: number, init = false): void {
+    if (this.currentStep === target && !init) {
+      console.log('Change Form Step: Target step equals current step.');
+      return;
+    }
+
+    if (target > this.currentStep && !init) {
+      for (let step = this.currentStep; step < target; step++) {
+        if (!this.validateCurrentStep(step)) {
+          console.warn('Validation failed for step:', step + 1);
+          this.changeToStep(step);
+          return;
+        }
+      }
+    }
+
+    this.updateStepVisibility(target);
+    this.updatePagination(target);
+    this.currentStep = target;
+  }
+
+  private updateStepVisibility(target: number): void {
+    this.formSteps[this.currentStep].classList.add('hide');
+    this.formSteps[target].classList.remove('hide');
+  }
+
+  private updatePagination(target: number): void {
+    this.buttonPrev.style.opacity = target === 0 ? '0' : '1';
+    this.buttonNext.style.opacity = target === this.formSteps.length - 1 ? '0' : '1';
+
+    this.paginationItems.forEach((step, index) => {
+      step.classList.toggle('is-done', index < target);
+      step.classList.toggle('is-active', index === target);
+    });
+  }
+
+  private validateCurrentStep(step: number): boolean {
+    const currentStepElement = this.formSteps[step];
+    const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    let fieldsValid = validateFields(inputs);
+
+    const formArrayListElement: HTMLElement | null = currentStepElement.querySelector('[data-form-array-element="list"]');
+    if (!formArrayListElement) return fieldsValid;
+
+    const listLength = parseInt(formArrayListElement.dataset.length!);
+    const listValid = listLength > 0;
+
+    if (!listValid) {
+      console.warn(`Couldn't validate current step. Please add at least one person.`);
+      const errorElement = formArrayListElement.parentElement!.querySelector('[data-person-element="empty"]') as HTMLElement;
+      errorElement.setAttribute('aria-live', 'assertive');
+      errorElement.setAttribute('role', 'alert');
+      errorElement.setAttribute('tabindex', '-1');
+      errorElement.classList.add('has-error');
+      reinsertElement(errorElement);
+    }
+
+    return fieldsValid && listValid;
+  }
+}
+
 function parameterize(text: string): string {
   return text
     .toLowerCase()
@@ -183,10 +309,11 @@ function initForm(component: HTMLElement | null) {
   }
 
   initFormButtons(form);
-  initFormSteps(component);
   initFormArray(component);
   initCustomInputs(component);
   initDecisions(component);
+
+  const formSteps = new FormSteps(component);
 
   form.setAttribute('novalidate', '');
   form.dataset.state = 'initialized';
@@ -436,143 +563,6 @@ function validateFields(inputs: NodeListOf<FormElement>): boolean {
   }
 
   return valid;
-}
-
-function initFormSteps(component: HTMLElement) {
-  const hasSteps = component.getAttribute('data-steps-element') || '';
-  if (!hasSteps) {
-    console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, component);
-    return;
-  }
-  const list: HTMLElement | null = component.querySelector(STEPS_LIST_SELECTOR);
-  if (!list) {
-    console.error(`Form Steps: Component does not contain a step list "${STEPS_LIST_SELECTOR}"`);
-    return;
-  }
-  const formSteps: NodeListOf<HTMLElement> = component.querySelectorAll(STEPS_SELECTOR)!;
-  if (!formSteps.length) {
-    console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, list);
-    return;
-  }
-
-  const pagination: HTMLElement = component.querySelector(STEPS_PAGINATION_SELECTOR)!;
-  const paginationItems: NodeListOf<HTMLElement> = pagination.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR)
-  const buttonNext: HTMLElement = component.querySelector(STEPS_NEXT_SELECTOR)!;
-  const buttonPrev: HTMLElement = component.querySelector(STEPS_PREV_SELECTOR)!;
-  let currentStep: number = 0;
-
-  formSteps.forEach((step, index) => {
-    if (index === 0) {
-      step.classList.remove('hide');
-    } else {
-      step.classList.add('hide');
-    }
-    step.dataset.stepId = index.toString();
-  });
-
-  function initPagination() {
-    paginationItems.forEach((item, index) => {
-      item.dataset.stepTarget = index.toString();
-      item.addEventListener('click', (event) => {
-        event.preventDefault();
-        changeToStep(index);
-      })
-    })
-  }
-
-  function changeToStep(target: number, init = false) {
-    if (currentStep === target && !init) {
-      console.log('Change Form Step: Target step equals current step.');
-      return;
-    }
-
-    // Validation check for steps between current and target
-    if (target > currentStep && !init) {
-      // Validate each step from currentStep + 1 to target - 1
-      for (let step = currentStep; step < target; step++) {
-        if (!validateCurrentStep(step)) {
-          console.warn('Validation failed for step:', step + 1);
-          changeToStep(step);
-          return; // Abort the step change if any validation fails
-        }
-      }
-    }
-
-    if (target === 0) {
-      buttonPrev.style.opacity = '0';
-      buttonNext.style.opacity = '1';
-    } else if (target === formSteps.length - 1) {
-      buttonPrev.style.opacity = '1';
-      buttonNext.style.opacity = '0';
-    } else {
-      buttonPrev.style.opacity = '1';
-      buttonNext.style.opacity = '1';
-    }
-
-    formSteps[currentStep].classList.add('hide');
-    formSteps[target].classList.remove('hide');
-    paginationItems.forEach((step, index) => {
-      if (index < target) {
-        step.classList.add('is-done');
-        step.classList.remove('is-active');
-      } else if (index === target) {
-        step.classList.remove('is-done');
-        step.classList.add('is-active')
-      } else {
-        step.classList.remove('is-done');
-        step.classList.remove('is-active');
-      }
-    })
-    currentStep = target;
-  }
-
-  function validateCurrentStep(step: number): boolean {
-    const currentStepElement = formSteps[step];
-    const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR); // Select all input types
-
-    // Step 1: Validate individual fields
-    let fieldsValid = validateFields(inputs);
-
-    // Step 2: Check if there's a form array element with a length requirement
-    const formArrayListElement: HTMLElement | null = currentStepElement.querySelector('[data-form-array-element="list"]');
-    if (!formArrayListElement) return fieldsValid;
-
-    // Step 3: Validate the list length (required to be greater than 0)
-    const listLength = parseInt(formArrayListElement.dataset.length!);
-    const listValid = listLength > 0;
-
-    if (!listValid) {
-      console.warn(`Couldn't validate current step. Please add at least one person.`);
-      let errorElement = formArrayListElement.parentElement!.querySelector('[data-person-element="empty"]') as HTMLElement;
-      errorElement.setAttribute('aria-live', 'assertive');
-      errorElement.setAttribute('role', 'alert');
-      errorElement.setAttribute('tabindex', '-1');
-      errorElement.classList.add('has-error');
-      // reinsert element to trigger aria live
-      reinsertElement(errorElement);
-    }
-
-    // Step 4: Return true only if both fields and list are valid
-    return fieldsValid && listValid;
-  }
-
-
-  buttonNext.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (currentStep < formSteps.length - 1) {
-      changeToStep(currentStep + 1);
-    }
-  });
-
-  buttonPrev.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (currentStep > 0) {
-      changeToStep(currentStep - 1);
-    }
-  });
-
-  initPagination();
-  changeToStep(currentStep, true);
 }
 
 function initFormArray(component: HTMLElement) {
