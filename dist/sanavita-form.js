@@ -1,11 +1,16 @@
 (() => {
   // assets/ts/sanavita-form.ts
+  var W_CHECKBOX_CLASS = ".w-checkbox-input";
+  var W_RADIO_CLASS = ".w-radio-input";
+  var W_CHECKED_CLASS = "w--redirected-checked";
   var FORM_COMPONENT_SELECTOR = '[data-form-element="component"]';
   var FORM_SELECTOR = "form";
   var FORM_SUCCESS_SELECTOR = '[data-form-element="success"]';
   var FORM_ERROR_SELECTOR = '[data-form-element="error"]';
   var FORM_SUBMIT_SELECTOR = '[data-form-element="submit"]';
-  var FORM_INPUT_SELECTOR = '.w-input, .w-select, .w-radio input[type="radio"]';
+  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
+  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
+  var FORM_INPUT_SELECTOR = `.w-input, .w-select, ${RADIO_INPUT_SELECTOR}, ${CHECKBOX_INPUT_SELECTOR}`;
   var STEPS_COMPONENT_SELECTOR = '[data-steps-element="component"]';
   var STEPS_LIST_SELECTOR = '[data-steps-element="list"]';
   var STEPS_SELECTOR = '[data-steps-element="step"]';
@@ -97,6 +102,12 @@
       element.focus();
     }, 0);
   }
+  function isRadioInput(input) {
+    return input instanceof HTMLInputElement && input.type === "radio";
+  }
+  function isCheckboxInput(input) {
+    return input instanceof HTMLInputElement && input.type === "checkbox";
+  }
   function initForm(component) {
     if (!component) {
       console.error("Form component not found:", FORM_COMPONENT_SELECTOR);
@@ -114,10 +125,10 @@ Form Component:`, component);
     initFormArray(component);
     initCustomInputs(component);
     initDecisions(component);
+    form2.setAttribute("novalidate", "");
     form2.dataset.state = "initialized";
     component.addEventListener("submit", (event) => {
       event.preventDefault();
-      form2.setAttribute("novalidate", "");
       form2.dataset.state = "sending";
       handleSubmit(component, form2);
     });
@@ -173,7 +184,6 @@ Form Component:`, component);
       dolphin: false
     };
     submitButton.value = submitButton.dataset.defaultText;
-    form2.removeAttribute("novalidate");
   }
   function initFormButtons(form2) {
     const buttons = form2.querySelectorAll("button");
@@ -183,23 +193,29 @@ Form Component:`, component);
       });
     });
   }
+  function clearRadioGroup(container, name) {
+    container.querySelectorAll(`${RADIO_INPUT_SELECTOR}[name="${name}"]`).forEach((radio) => {
+      radio.checked = false;
+      const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+      if (customRadio) {
+        customRadio.classList.remove(W_CHECKED_CLASS);
+      }
+    });
+  }
   function initCustomInputs(container) {
-    const checkboxClass = ".w-checkbox-input";
-    const radioClass = ".w-radio-input";
-    const checkedClass = "w--redirected-checked";
     const focusClass = "w--redirected-focus";
     const focusVisibleClass = "w--redirected-focus-visible";
     const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
     const inputTypes = [
-      ["checkbox", checkboxClass],
-      ["radio", radioClass]
+      ["checkbox", W_CHECKBOX_CLASS],
+      ["radio", W_RADIO_CLASS]
     ];
-    container.querySelectorAll('input[type="checkbox"]:not(.w-checkbox-input)').forEach((input) => {
+    container.querySelectorAll(CHECKBOX_INPUT_SELECTOR).forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target;
-        const customCheckbox = target.closest(".w-checkbox")?.querySelector(checkboxClass);
+        const customCheckbox = target.closest(".w-checkbox")?.querySelector(W_CHECKBOX_CLASS);
         if (customCheckbox) {
-          customCheckbox.classList.toggle(checkedClass, target.checked);
+          customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
         }
       });
     });
@@ -210,14 +226,14 @@ Form Component:`, component);
           return;
         const name = target.name;
         container.querySelectorAll(`input[type="radio"][name="${name}"]`).forEach((radio) => {
-          const customRadio = radio.closest(".w-radio")?.querySelector(radioClass);
+          const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
           if (customRadio) {
-            customRadio.classList.remove(checkedClass);
+            customRadio.classList.remove(W_CHECKED_CLASS);
           }
         });
-        const selectedCustomRadio = target.closest(".w-radio")?.querySelector(radioClass);
+        const selectedCustomRadio = target.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
         if (selectedCustomRadio) {
-          selectedCustomRadio.classList.add(checkedClass);
+          selectedCustomRadio.classList.add(W_CHECKED_CLASS);
         }
       });
     });
@@ -332,7 +348,7 @@ Component:`, component);
       if (target > currentStep && !init) {
         for (let step = currentStep; step < target; step++) {
           if (!validateCurrentStep(step)) {
-            console.warn("Validation failed for step:", step);
+            console.warn("Validation failed for step:", step + 1);
             changeToStep(step);
             return;
           }
@@ -507,11 +523,21 @@ Component:`, component);
         const groupName = group.dataset.personDataGroup;
         groupInputs.forEach((input) => {
           const field = person[groupName].getField(input.id);
-          if (field) {
-            console.log(input, field.value);
-            input.value = field.value.trim();
-          } else {
+          if (!field) {
             console.warn(`Field not found:`, field, input.id);
+            return;
+          }
+          if (!isRadioInput(input) && !isCheckboxInput(input)) {
+            input.value = field.value.trim();
+            return;
+          }
+          if (isRadioInput(input) && input.value === field.value) {
+            input.checked = true;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          if (isCheckboxInput(input) && input.value === field.value) {
+            input.checked = true;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
           }
         });
       });
@@ -538,14 +564,21 @@ Component:`, component);
       setLiveText("state", "hinzuf\xFCgen");
       setLiveText("full-name", "Neue Person");
       modalInputs.forEach((input) => {
-        if (input.type !== "checkbox" && input.type !== "radio")
+        if (isRadioInput(input)) {
+          input.checked = false;
+          clearRadioGroup(modal, input.name);
+        } else if (isCheckboxInput(input)) {
+          input.checked = false;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
           input.value = "";
+        }
       });
     }
     function validateModal() {
       const allModalFields = modal.querySelectorAll(FORM_INPUT_SELECTOR);
       const valid = validateFields(allModalFields);
-      return true;
+      return valid;
     }
     function extractData() {
       const personData = new Person();
@@ -563,6 +596,7 @@ Component:`, component);
           }
         });
       });
+      console.log(personData);
       return personData;
     }
     closeModal();

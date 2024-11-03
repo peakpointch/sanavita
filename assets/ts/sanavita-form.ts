@@ -1,9 +1,15 @@
+const W_CHECKBOX_CLASS = ".w-checkbox-input";
+const W_RADIO_CLASS = ".w-radio-input";
+const W_CHECKED_CLASS = "w--redirected-checked";
+
 const FORM_COMPONENT_SELECTOR: string = '[data-form-element="component"]';
 const FORM_SELECTOR: string = 'form';
 const FORM_SUCCESS_SELECTOR: string = '[data-form-element="success"]';
 const FORM_ERROR_SELECTOR: string = '[data-form-element="error"]';
 const FORM_SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
-const FORM_INPUT_SELECTOR: string = '.w-input, .w-select, .w-radio input[type="radio"]';
+const CHECKBOX_INPUT_SELECTOR: string = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
+const RADIO_INPUT_SELECTOR: string = '.w-radio input[type="radio"]';
+const FORM_INPUT_SELECTOR: string = `.w-input, .w-select, ${RADIO_INPUT_SELECTOR}, ${CHECKBOX_INPUT_SELECTOR}`;
 
 const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
 const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
@@ -156,6 +162,14 @@ function reinsertElement(element: HTMLElement): void {
   }, 0);
 }
 
+function isRadioInput(input: FormElement): input is HTMLInputElement {
+  return input instanceof HTMLInputElement && input.type === 'radio';
+}
+
+function isCheckboxInput(input: FormElement): input is HTMLInputElement {
+  return input instanceof HTMLInputElement && input.type === 'checkbox';
+}
+
 function initForm(component: HTMLElement | null) {
   if (!component) {
     console.error('Form component not found:', FORM_COMPONENT_SELECTOR)
@@ -174,40 +188,15 @@ function initForm(component: HTMLElement | null) {
   initCustomInputs(component);
   initDecisions(component);
 
+  form.setAttribute('novalidate', '');
   form.dataset.state = 'initialized';
   component.addEventListener('submit', (event) => {
     event.preventDefault();
-    form.setAttribute('novalidate', '');
     form.dataset.state = 'sending';
     handleSubmit(component, form);
   });
 
   return true;
-}
-
-async function sendFormData(formData): Promise<boolean> {
-  const url = `https://webflow.com/api/v1/form/${siteId}`;
-  const request: RequestInit = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json, text/javascript, */*; q=0.01',
-    },
-    body: JSON.stringify(formData),
-  };
-
-  try {
-    const response = await fetch(url, request);
-
-    if (!response.ok) {
-      throw new Error(`Network response "${response.status}" was not okay`);
-    }
-    console.log('Form submission success! Status', response.status);
-    return true;
-  } catch (error) {
-    console.error('Form submission failed:', error);
-    return false;
-  }
 }
 
 async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
@@ -270,7 +259,6 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
   };
 
   submitButton.value = submitButton.dataset.defaultText;
-  form.removeAttribute('novalidate');
 
   // const success = await sendFormData(formData);
 
@@ -280,6 +268,31 @@ async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
   // } else {
   //   formError();
   // }
+}
+
+async function sendFormData(formData): Promise<boolean> {
+  const url = `https://webflow.com/api/v1/form/${siteId}`;
+  const request: RequestInit = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json, text/javascript, */*; q=0.01',
+    },
+    body: JSON.stringify(formData),
+  };
+
+  try {
+    const response = await fetch(url, request);
+
+    if (!response.ok) {
+      throw new Error(`Network response "${response.status}" was not okay`);
+    }
+    console.log('Form submission success! Status', response.status);
+    return true;
+  } catch (error) {
+    console.error('Form submission failed:', error);
+    return false;
+  }
 }
 
 function initFormButtons(form: HTMLFormElement) {
@@ -292,26 +305,33 @@ function initFormButtons(form: HTMLFormElement) {
   });
 }
 
+function clearRadioGroup(container: HTMLElement, name: string) {
+  container.querySelectorAll<HTMLInputElement>(`${RADIO_INPUT_SELECTOR}[name="${name}"]`).forEach((radio) => {
+    radio.checked = false; // Uncheck all radios in the group
+    const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+    if (customRadio) {
+      customRadio.classList.remove(W_CHECKED_CLASS); // Remove the checked styling
+    }
+  });
+}
+
 function initCustomInputs(container: HTMLElement) {
   // Constants for selectors and classes
-  const checkboxClass = ".w-checkbox-input";
-  const radioClass = ".w-radio-input";
-  const checkedClass = "w--redirected-checked";
   const focusClass = "w--redirected-focus";
   const focusVisibleClass = "w--redirected-focus-visible";
   const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
   const inputTypes = [
-    ["checkbox", checkboxClass],
-    ["radio", radioClass]
+    ["checkbox", W_CHECKBOX_CLASS],
+    ["radio", W_RADIO_CLASS]
   ];
 
   // Add change event listener for checkboxes
-  container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]:not(.w-checkbox-input)').forEach((input) => {
+  container.querySelectorAll<HTMLInputElement>(CHECKBOX_INPUT_SELECTOR).forEach((input) => {
     input.addEventListener("change", (event) => {
       const target = event.target as HTMLInputElement;
-      const customCheckbox = target.closest(".w-checkbox")?.querySelector(checkboxClass);
+      const customCheckbox = target.closest(".w-checkbox")?.querySelector(W_CHECKBOX_CLASS);
       if (customCheckbox) {
-        customCheckbox.classList.toggle(checkedClass, target.checked);
+        customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
       }
     });
   });
@@ -325,16 +345,16 @@ function initCustomInputs(container: HTMLElement) {
       // Deselect other radios in the same group
       const name = target.name;
       container.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${name}"]`).forEach((radio) => {
-        const customRadio = radio.closest(".w-radio")?.querySelector(radioClass);
+        const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
         if (customRadio) {
-          customRadio.classList.remove(checkedClass);
+          customRadio.classList.remove(W_CHECKED_CLASS);
         }
       });
 
       // Add the checked class to the selected radio's custom container
-      const selectedCustomRadio = target.closest(".w-radio")?.querySelector(radioClass);
+      const selectedCustomRadio = target.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
       if (selectedCustomRadio) {
-        selectedCustomRadio.classList.add(checkedClass);
+        selectedCustomRadio.classList.add(W_CHECKED_CLASS);
       }
     });
   });
@@ -471,7 +491,7 @@ function initFormSteps(component: HTMLElement) {
       // Validate each step from currentStep + 1 to target - 1
       for (let step = currentStep; step < target; step++) {
         if (!validateCurrentStep(step)) {
-          console.warn('Validation failed for step:', step);
+          console.warn('Validation failed for step:', step + 1);
           changeToStep(step);
           return; // Abort the step change if any validation fails
         }
@@ -682,12 +702,28 @@ function initFormArray(component: HTMLElement) {
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       groupInputs.forEach(input => {
+        // Get field
         const field = person[groupName].getField(input.id);
-        if (field) {
-          console.log(input, field.value)
-          input.value = field.value.trim();
-        } else {
+
+        if (!field) {
           console.warn(`Field not found:`, field, input.id);
+          return;
+        }
+
+        if (!isRadioInput(input) && !isCheckboxInput(input)) {
+          // For text inputs, trim and set the value
+          input.value = field.value.trim();
+          return;
+        }
+
+        if (isRadioInput(input) && input.value === field.value) {
+          input.checked = true;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (isCheckboxInput(input) && input.value === field.value) {
+          input.checked = true;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
     });
@@ -720,15 +756,22 @@ function initFormArray(component: HTMLElement) {
     setLiveText('state', 'hinzufügen');
     setLiveText('full-name', 'Neue Person');
     modalInputs.forEach((input) => {
-      if (input.type !== 'checkbox' && input.type !== 'radio')
+      if (isRadioInput(input)) {
+        input.checked = false;
+        clearRadioGroup(modal, input.name)
+      } else if (isCheckboxInput(input)) {
+        input.checked = false;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
         input.value = '';
+      }
     });
   }
 
   function validateModal(): boolean {
     const allModalFields: NodeListOf<FormElement> = modal.querySelectorAll(FORM_INPUT_SELECTOR);
     const valid = validateFields(allModalFields);
-    return true; // CHANGE THIS FOR DEV
+    return valid; // CHANGE THIS FOR DEV
   }
 
   function extractData(): Person {
@@ -751,6 +794,7 @@ function initFormArray(component: HTMLElement) {
       });
     });
 
+    console.log(personData);
     return personData;
   }
 
