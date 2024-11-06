@@ -33,6 +33,23 @@ interface Window {
   PEAKPOINT: any;
 }
 
+// class Accordion {
+//   component: HTMLElement | null;
+//   trigger: HTMLElement | null;
+//   target: HTMLElement | null;
+
+//   constructor(component: HTMLElement | null) {
+//     this.component = component;
+
+//     this.initialize();
+//   }
+
+//   private initialize() {
+
+//   }
+
+// }
+
 class FieldGroup {
   fields: Map<string, Field>;
 
@@ -72,10 +89,12 @@ class Person {
 }
 
 class Field {
-  id: string;
-  label: string;
-  value: any;
-  required: boolean;
+  public id: string;
+  public label: string;
+  public value: any;
+  public required: boolean;
+  public type: string;
+  public checked: boolean;
 
   constructor(input, index) {
     if (input.type === 'radio' && !(input as HTMLInputElement).checked) {
@@ -86,16 +105,163 @@ class Field {
     this.label = input.dataset.name || `field ${index}`;
     this.value = input.value;
     this.required = input.required || false;
+    this.type = input.type;
+
+    if (isRadioInput(input) || isCheckboxInput(input)) {
+      this.checked = input.checked;
+    }
+  }
+}
+
+class FormMessage {
+  private container: HTMLElement;
+  private messageFor: string;
+  private messageElement: HTMLElement | null;
+
+  constructor(container: HTMLElement, messageFor: string) {
+    this.container = container;
+    this.messageFor = messageFor;
+    this.messageElement = this.container.querySelector(
+      `[data-message-component="FormGroup"][data-message-for="${messageFor}"]`
+    );
+    this.reset();
+  }
+
+  // Method to display an info message
+  public info(message: string | null = null): void {
+    this.setMessage(message, 'info');
+  }
+
+  // Method to display an error message
+  public error(message: string | null = null): void {
+    this.setMessage(message, 'error');
+  }
+
+  // Method to reset/hide the message
+  public reset(): void {
+    if (this.messageElement) {
+      this.messageElement.classList.remove('info', 'error');
+    } else {
+      console.warn('Message element not found.');
+    }
+  }
+
+  // Private method to set the message and style
+  private setMessage(message: string | null = null, type: 'info' | 'error'): void {
+    if (!this.messageElement) {
+      console.warn('Message element not found.');
+      return;
+    }
+
+    const messageTextElement = this.messageElement.querySelector('[data-message-element="message"]');
+    if (messageTextElement && message) {
+      messageTextElement.textContent = message;
+    } else if (!messageTextElement) {
+      console.warn('Message text element not found.');
+    }
+
+    // Set class based on type
+    this.messageElement.classList.remove('info', 'error');
+    this.messageElement.classList.add(type);
+  }
+}
+
+class FormGroup {
+  private form: HTMLFormElement;
+  private container: HTMLElement;
+  private groupNames: string[];
+  private validationMessage: string;
+  public formMessage: FormMessage;
+
+  constructor(container: HTMLElement, groupNames: string[], validationMessage: string) {
+    this.container = container;
+    this.groupNames = groupNames;
+    this.validationMessage = validationMessage;
+
+    const formElement = this.getAllGroupFields()[0].closest('form');
+    if (!formElement) {
+      console.error(`Cannot construct a FormGroup that is not part of a form.`);
+      return;
+    }
+    this.form = formElement;
+    this.formMessage = new FormMessage(this.form, this.groupNames.join(','));
+
+    // Initialize the form group by setting up event listeners
+    this.initialize();
+  }
+
+  private initialize(): void {
+    const allFields = this.getAllGroupFields();
+
+    allFields.forEach((field) => {
+      field.addEventListener('change', () => this.formMessage.reset());
+    });
+  }
+
+  private getGroupFields(groupName: string): NodeListOf<FormElement> {
+    return this.container.querySelectorAll(
+      `[data-form-group="${groupName}"]`
+    );
+  }
+
+  private getAllGroupFields(): NodeListOf<FormElement> {
+    const selectorList = this.groupNames.map((groupName) => {
+      return `[data-form-group="${groupName}"]`
+    });
+    let selector: string = selectorList.join(', ');
+    return this.container.querySelectorAll(selector);
+  }
+
+  public validate(): boolean {
+    console.log("VALIDATING FORM GROUPS: ", this.groupNames);
+
+    // Validate the groups and get the result
+    const anyGroupValid = this.checkGroupValidity();
+
+    // Handle error messages based on validation result
+    this.handleValidationMessages(anyGroupValid);
+    console.log(anyGroupValid)
+
+    return anyGroupValid;
+  }
+
+  private checkGroupValidity(): boolean {
+    return this.groupNames.some((groupName) => {
+      const groupFields = Array.from(this.getGroupFields(groupName));
+      return groupFields.some((field) => {
+        if (isCheckboxInput(field) || isRadioInput(field)) {
+          return field.checked;
+        }
+        return field.value.trim() !== '';
+      });
+    });
+  }
+
+  private updateRequiredAttributes(anyGroupValid: boolean): void {
+    const allFields = this.getAllGroupFields();
+    allFields.forEach((field) => {
+      field.required = !anyGroupValid;
+    });
+    this.formMessage.reset();
+  }
+
+  private handleValidationMessages(anyGroupValid: boolean): void {
+    if (!anyGroupValid) {
+      this.formMessage.error();
+    } else {
+      this.formMessage.reset();
+    }
   }
 }
 
 class FormSteps {
-  private component: HTMLElement;
+  public component: HTMLElement;
   private formSteps: NodeListOf<HTMLElement>;
   private paginationItems: NodeListOf<HTMLElement>;
   private buttonNext: HTMLElement;
   private buttonPrev: HTMLElement;
   private currentStep: number = 0;
+  private customValidators: Array<Array<() => boolean>> = [];
 
   constructor(component: HTMLElement) {
     this.component = component;
@@ -106,6 +272,14 @@ class FormSteps {
 
     this.initialize();
   }
+
+  public addCustomValidator(step: number, validator: () => boolean): void {
+    if (!this.customValidators[step]) {
+      this.customValidators[step] = [];
+    }
+    this.customValidators[step].push(validator);
+  }
+
 
   private initialize(): void {
     if (!this.component.getAttribute('data-steps-element')) {
@@ -154,7 +328,7 @@ class FormSteps {
     });
   }
 
-  private changeToStep(target: number, init = false): void {
+  public changeToStep(target: number, init = false): void {
     if (this.currentStep === target && !init) {
       console.log('Change Form Step: Target step equals current step.');
       return;
@@ -162,13 +336,22 @@ class FormSteps {
 
     if (target > this.currentStep && !init) {
       for (let step = this.currentStep; step < target; step++) {
+        // Validate standard fields in the current step
         if (!this.validateCurrentStep(step)) {
-          console.warn('Validation failed for step:', step + 1);
+          console.warn('Standard validation failed for step:', step + 1);
           this.changeToStep(step);
           return;
         }
       }
+
+      this.component.scrollIntoView({ behavior: 'smooth' });
     }
+
+    // Fire custom event before updating the visibility
+    const event = new CustomEvent("stepChanged", {
+      detail: { previousStep: this.currentStep, currentStep: target }
+    });
+    this.component.dispatchEvent(event);
 
     this.updateStepVisibility(target);
     this.updatePagination(target);
@@ -190,13 +373,39 @@ class FormSteps {
     });
   }
 
-  private validateCurrentStep(step: number): boolean {
+  public validateAllSteps(): boolean {
+    let allValid = true;
+
+    this.formSteps.forEach((step, index) => {
+      if (!this.validateCurrentStep(index)) {
+        console.warn(`Step ${index + 1} is invalid.`);
+        allValid = false; // Set the flag to false if any step is invalid
+        this.changeToStep(index);
+      }
+    });
+
+    return allValid;
+  }
+
+  public validateCurrentStep(step: number): boolean {
     const currentStepElement = this.formSteps[step];
     const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
     let fieldsValid = validateFields(inputs);
 
+    if (!fieldsValid) {
+      console.warn(`STANDARD VALIDATION: NOT VALID`);
+      return fieldsValid;
+    }
+
+    // Validate custom validators for this step
+    const customValid = this.customValidators[step]?.every((validator) => validator()) ?? true;
+    if (!customValid) {
+      console.warn(`CUSTOM VALIDATION: NOT VALID`);
+      return fieldsValid && customValid;
+    }
+
     const formArrayListElement: HTMLElement | null = currentStepElement.querySelector('[data-form-array-element="list"]');
-    if (!formArrayListElement) return fieldsValid;
+    if (!formArrayListElement) return fieldsValid && customValid;
 
     const listLength = parseInt(formArrayListElement.dataset.length!);
     const listValid = listLength > 0;
@@ -211,7 +420,7 @@ class FormSteps {
       reinsertElement(errorElement);
     }
 
-    return fieldsValid && listValid;
+    return fieldsValid && customValid && listValid;
   }
 }
 
@@ -314,11 +523,16 @@ function initForm(component: HTMLElement | null) {
   initDecisions(component);
 
   const formSteps = new FormSteps(component);
+  const beilagenGroup = new FormGroup(component, ['upload', 'post'], 'validation message');
+  formSteps.addCustomValidator(3 - 1, () => beilagenGroup.validate());
+
 
   form.setAttribute('novalidate', '');
   form.dataset.state = 'initialized';
   component.addEventListener('submit', (event) => {
     event.preventDefault();
+    beilagenGroup.validate();
+    formSteps.validateAllSteps();
     form.dataset.state = 'sending';
     handleSubmit(component, form);
   });
@@ -575,8 +789,6 @@ function initFormArray(component: HTMLElement) {
   const ARRAY_MODAL_SELECTOR: string = '[data-form-element="modal"]';
   const ARRAY_GROUP_SELECTOR: string = '[data-person-data-group]';
 
-  let editingKey: string | null = null;
-
   const list: HTMLElement = component.querySelector(ARRAY_LIST_SELECTOR)!;
   const template: HTMLElement = list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
   const emptyState: HTMLElement = component.querySelector(ARRAY_EMPTY_STATE_SELECTOR)!;
@@ -587,6 +799,8 @@ function initFormArray(component: HTMLElement) {
   const cancelButtons: NodeListOf<HTMLButtonElement> = modal.querySelectorAll(ARRAY_CANCEL_SELECTOR)!;
   const modalInputs: NodeListOf<FormElement> = modal.querySelectorAll(FORM_INPUT_SELECTOR);
   const groupElements: NodeListOf<FormElement> = modal.querySelectorAll(ARRAY_GROUP_SELECTOR);
+
+  let editingKey: string | null = null;
 
   cancelButtons.forEach((button, index) => {
     button.addEventListener('click', closeModal)
@@ -707,12 +921,12 @@ function initFormArray(component: HTMLElement) {
         }
 
         if (isRadioInput(input) && input.value === field.value) {
-          input.checked = true;
+          input.checked = field.checked;
           input.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
-        if (isCheckboxInput(input) && input.value === field.value) {
-          input.checked = true;
+        if (isCheckboxInput(input)) {
+          input.checked = field.checked;
           input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
@@ -732,6 +946,7 @@ function initFormArray(component: HTMLElement) {
     emptyState.classList.remove('has-error');
 
     // Open modal
+    modal.style.removeProperty('display');
     modal.classList.remove('is-closed');
     modal.dataset.state = 'open';
   }
@@ -739,6 +954,9 @@ function initFormArray(component: HTMLElement) {
   function closeModal() {
     modal.classList.add('is-closed');
     modal.dataset.state = 'closed';
+    setTimeout(() => {
+      modal.style.display = 'none';
+    }, 500);
     clearModal();
   }
 
@@ -761,7 +979,7 @@ function initFormArray(component: HTMLElement) {
   function validateModal(): boolean {
     const allModalFields: NodeListOf<FormElement> = modal.querySelectorAll(FORM_INPUT_SELECTOR);
     const valid = validateFields(allModalFields);
-    return valid; // CHANGE THIS FOR DEV
+    return true; // CHANGE THIS FOR DEV
   }
 
   function extractData(): Person {
