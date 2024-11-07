@@ -20,6 +20,15 @@ const STEPS_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
 const STEPS_NEXT_SELECTOR: string = '[data-steps-nav="next"]';
 const STEPS_TARGET_SELECTOR: string = '[data-step-target]';
 
+const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
+const ARRAY_TEMPLATE_SELECTOR: string = '[data-person-element="template"]';
+const ARRAY_EMPTY_STATE_SELECTOR: string = '[data-person-element="empty"]';
+const ARRAY_ADD_SELECTOR: string = '[data-person-element="add"]';
+const ARRAY_SAVE_SELECTOR: string = '[data-person-element="save"]';
+const ARRAY_CANCEL_SELECTOR: string = '[data-person-element="cancel"]';
+const ARRAY_GROUP_SELECTOR: string = '[data-person-data-group]';
+const MODAL_SELECTOR: string = '[data-form-element="modal"]';
+
 // Unique key to store form data in localStorage
 const STORAGE_KEY = 'person_data';
 
@@ -32,23 +41,6 @@ type GroupName = 'personalData' | 'doctor' | 'health' | 'relatives';
 interface Window {
   PEAKPOINT: any;
 }
-
-// class Accordion {
-//   component: HTMLElement | null;
-//   trigger: HTMLElement | null;
-//   target: HTMLElement | null;
-
-//   constructor(component: HTMLElement | null) {
-//     this.component = component;
-
-//     this.initialize();
-//   }
-
-//   private initialize() {
-
-//   }
-
-// }
 
 class FieldGroup {
   fields: Map<string, Field>;
@@ -280,7 +272,6 @@ class FormSteps {
     this.customValidators[step].push(validator);
   }
 
-
   private initialize(): void {
     if (!this.component.getAttribute('data-steps-element')) {
       console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, this.component);
@@ -348,7 +339,7 @@ class FormSteps {
     }
 
     // Fire custom event before updating the visibility
-    const event = new CustomEvent("stepChanged", {
+    const event = new CustomEvent("changeStep", {
       detail: { previousStep: this.currentStep, currentStep: target }
     });
     this.component.dispatchEvent(event);
@@ -421,6 +412,247 @@ class FormSteps {
     }
 
     return fieldsValid && customValid && listValid;
+  }
+}
+
+class FormArrayComponent {
+  private component: HTMLElement;
+  private list: HTMLElement;
+  private template: HTMLElement;
+  private emptyState: HTMLElement;
+  private addButton: HTMLElement;
+  private modal: HTMLElement;
+  private modalForm: HTMLFormElement;
+  private saveButton: HTMLElement;
+  private cancelButtons: NodeListOf<HTMLButtonElement>;
+  private modalInputs: NodeListOf<FormElement>;
+  private groupElements: NodeListOf<FormElement>;
+
+  private editingKey: string | null = null;
+
+  constructor(component: HTMLElement) {
+    this.component = component;
+    this.list = this.component.querySelector(ARRAY_LIST_SELECTOR)!;
+    this.template = this.list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
+    this.emptyState = this.component.querySelector(ARRAY_EMPTY_STATE_SELECTOR)!;
+    this.addButton = this.component.querySelector(ARRAY_ADD_SELECTOR)!;
+    this.modal = document.querySelector(MODAL_SELECTOR)!;
+    this.modalForm = document.querySelector(FORM_SELECTOR)!;
+    this.saveButton = this.modal.querySelector(ARRAY_SAVE_SELECTOR)!;
+    this.cancelButtons = this.modal.querySelectorAll(ARRAY_CANCEL_SELECTOR)!;
+    this.modalInputs = this.modal.querySelectorAll(FORM_INPUT_SELECTOR);
+    this.groupElements = this.modal.querySelectorAll(ARRAY_GROUP_SELECTOR);
+
+    this.initialize();
+  }
+
+  private initialize() {
+    this.cancelButtons.forEach(button => {
+      button.addEventListener('click', this.closeModal.bind(this));
+    });
+
+    this.addButton.addEventListener('click', this.handleAddButtonClick.bind(this));
+    this.saveButton.addEventListener('click', this.savePerson.bind(this));
+
+    this.closeModal();
+  }
+
+  private handleAddButtonClick() {
+    this.clearModal();
+    this.setLiveText("state", "Hinzufügen");
+    this.setLiveText("full-name", "Neue Person");
+    this.openModal();
+    this.editingKey = null; // Reset editing state for adding a new person
+  }
+
+  private savePerson(): Person | null {
+    if (!this.validateModal()) {
+      console.warn(`Couldn't save person. Please fill in all the values correctly.`);
+      return null;
+    }
+
+    const person: Person = this.extractData();
+
+    if (this.editingKey !== null) {
+      // Update existing person
+      people.set(this.editingKey, person);
+    } else {
+      // Generate a unique key for a new person, e.g., "person1", "person2"
+      const newKey = `person${people.size + 1}`;
+      people.set(newKey, person);
+    }
+
+    this.renderList();
+    this.closeModal();
+
+    return person;
+  }
+
+  private setLiveText(element: string, string: string): boolean {
+    const liveElements: NodeListOf<HTMLElement> = this.modal.querySelectorAll(`[data-live-text="${element}"]`);
+    let valid = true;
+    for (const element of liveElements) {
+      if (!element) {
+        valid = false;
+        break;
+      }
+      element.innerText = string;
+    }
+    return valid;
+  }
+
+  private renderList() {
+    this.list.innerHTML = ''; // Clear the current list
+    this.list.dataset.length = people.size.toString();
+    console.log(people.size.toString());
+
+    if (people.size) {
+      people.forEach((person, key) => this.renderPerson(person, key));
+      this.emptyState.classList.add('hide');
+    } else {
+      this.emptyState.classList.remove('hide');
+    }
+  }
+
+  private renderPerson(person: Person, key: string) {
+    const newElement: HTMLElement = this.template.cloneNode(true) as HTMLElement;
+    const props = ['first-name', 'name', 'phone', 'email', 'street', 'zip', 'city'];
+    newElement.style.removeProperty('display');
+
+    // Add event listeners for editing and deleting
+    const editButton = newElement.querySelector('[data-person-action="edit"]');
+    const deleteButton = newElement.querySelector('[data-person-action="delete"]');
+
+    editButton!.addEventListener('click', () => {
+      this.setLiveText("state", "bearbeiten");
+      this.setLiveText("full-name", person.getFullName() || 'Neue Person');
+      this.populateModal(person);
+      this.openModal();
+      this.editingKey = key; // Set editing key
+    });
+
+    deleteButton!.addEventListener('click', () => {
+      people.delete(key); // Remove the person from the map
+      this.renderList(); // Re-render the list
+      this.closeModal();
+    });
+
+    props.forEach(prop => {
+      const propSelector = `[data-${prop}]`;
+      const el: HTMLElement | null = newElement.querySelector(propSelector);
+      if (el) {
+        const currentField = person.personalData.getField(prop);
+        if (!currentField) { console.error(`Render person: A field for "${prop}" doesn't exist.`); return; }
+        el.innerText = currentField.value || currentField.label;
+      }
+    });
+    this.list.appendChild(newElement);
+  }
+
+  private populateModal(person: Person) {
+    this.groupElements.forEach((group) => {
+      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupName = group.dataset.personDataGroup! as GroupName;
+
+      groupInputs.forEach(input => {
+        // Get field
+        const field = person[groupName].getField(input.id);
+
+        if (!field) {
+          console.warn(`Field not found:`, field, input.id);
+          return;
+        }
+
+        if (!isRadioInput(input) && !isCheckboxInput(input)) {
+          // For text inputs, trim and set the value
+          input.value = field.value.trim();
+          return;
+        }
+
+        if (isRadioInput(input) && input.value === field.value) {
+          input.checked = field.checked;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        if (isCheckboxInput(input)) {
+          input.checked = field.checked;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+
+  public openModal() {
+    // Live text for name
+    const personalDataGroup = this.modal.querySelector('[data-person-data-group="personalData"]')!;
+    const nameInputs: NodeListOf<HTMLFormElement> = personalDataGroup.querySelectorAll('#first-name, #name');
+    nameInputs.forEach((input) => {
+      input.addEventListener('input', () => {
+        const editingPerson: Person = this.extractData();
+        this.setLiveText('full-name', editingPerson.getFullName() || 'Neue Person');
+      });
+    });
+    this.emptyState.classList.remove('has-error');
+
+    // Open modal
+    this.modal.style.removeProperty('display');
+    this.modal.classList.remove('is-closed');
+    this.modal.dataset.state = 'open';
+  }
+
+  public closeModal() {
+    this.modal.classList.add('is-closed');
+    this.modal.dataset.state = 'closed';
+    setTimeout(() => {
+      this.modal.style.display = 'none';
+    }, 500);
+    this.clearModal();
+  }
+
+  private clearModal() {
+    this.setLiveText('state', 'hinzufügen');
+    this.setLiveText('full-name', 'Neue Person');
+    this.modalInputs.forEach((input) => {
+      if (isRadioInput(input)) {
+        input.checked = false;
+        clearRadioGroup(this.modal, input.name)
+      } else if (isCheckboxInput(input)) {
+        input.checked = false;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      } else {
+        input.value = '';
+      }
+    });
+  }
+
+  private validateModal(): boolean {
+    const allModalFields: NodeListOf<FormElement> = this.modal.querySelectorAll(FORM_INPUT_SELECTOR);
+    const valid = validateFields(allModalFields);
+    return valid; // CHANGE THIS FOR DEV
+  }
+
+  private extractData(): Person {
+    const personData = new Person();
+
+    this.groupElements.forEach((group) => {
+      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupName = group.dataset.personDataGroup! as GroupName;
+
+      if (!personData[groupName]) {
+        console.error(`The group "${groupName}" doesn't exist.`);
+        return;
+      }
+
+      groupInputs.forEach((input, index) => {
+        const field = new Field(input, index);
+        if (field.id) {
+          personData[groupName].fields.set(field.id, field);
+        }
+      });
+    });
+
+    console.log(personData);
+    return personData;
   }
 }
 
@@ -518,13 +750,14 @@ function initForm(component: HTMLElement | null) {
   }
 
   initFormButtons(form);
-  initFormArray(component);
   initCustomInputs(component);
   initDecisions(component);
 
   const formSteps = new FormSteps(component);
+  const personArray = new FormArrayComponent(component);
   const beilagenGroup = new FormGroup(component, ['upload', 'post'], 'validation message');
   formSteps.addCustomValidator(3 - 1, () => beilagenGroup.validate());
+  formSteps.component.addEventListener('changeStep', () => personArray.closeModal())
 
 
   form.setAttribute('novalidate', '');
@@ -777,237 +1010,6 @@ function validateFields(inputs: NodeListOf<FormElement>): boolean {
   }
 
   return valid;
-}
-
-function initFormArray(component: HTMLElement) {
-  const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
-  const ARRAY_TEMPLATE_SELECTOR: string = '[data-person-element="template"]';
-  const ARRAY_EMPTY_STATE_SELECTOR: string = '[data-person-element="empty"]';
-  const ARRAY_ADD_SELECTOR: string = '[data-person-element="add"]';
-  const ARRAY_SAVE_SELECTOR: string = '[data-person-element="save"]';
-  const ARRAY_CANCEL_SELECTOR: string = '[data-person-element="cancel"]';
-  const ARRAY_MODAL_SELECTOR: string = '[data-form-element="modal"]';
-  const ARRAY_GROUP_SELECTOR: string = '[data-person-data-group]';
-
-  const list: HTMLElement = component.querySelector(ARRAY_LIST_SELECTOR)!;
-  const template: HTMLElement = list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
-  const emptyState: HTMLElement = component.querySelector(ARRAY_EMPTY_STATE_SELECTOR)!;
-  const addButton: HTMLElement = component.querySelector(ARRAY_ADD_SELECTOR)!;
-  const modal: HTMLElement = document.querySelector(ARRAY_MODAL_SELECTOR)!;
-  const modalForm: HTMLFormElement = document.querySelector(FORM_SELECTOR)!;
-  const saveButton: HTMLElement = modal.querySelector(ARRAY_SAVE_SELECTOR)!;
-  const cancelButtons: NodeListOf<HTMLButtonElement> = modal.querySelectorAll(ARRAY_CANCEL_SELECTOR)!;
-  const modalInputs: NodeListOf<FormElement> = modal.querySelectorAll(FORM_INPUT_SELECTOR);
-  const groupElements: NodeListOf<FormElement> = modal.querySelectorAll(ARRAY_GROUP_SELECTOR);
-
-  let editingKey: string | null = null;
-
-  cancelButtons.forEach((button, index) => {
-    button.addEventListener('click', closeModal)
-  })
-
-  addButton.addEventListener('click', () => {
-    clearModal();
-    setLiveText("state", "Hinzufügen");
-    setLiveText("full-name", "Neue Person");
-    openModal();
-    editingKey = null; // Reset editing state for adding a new person
-  });
-
-  saveButton.addEventListener('click', savePerson);
-
-  function savePerson(): Person | null {
-    if (!validateModal()) {
-      console.warn(`Couldn't save person. Please fill in all the values correctly.`);
-      return null;
-    }
-
-    const person: Person = extractData();
-
-    if (editingKey !== null) {
-      // Update existing person
-      people.set(editingKey, person);
-    } else {
-      // Generate a unique key for a new person, e.g., "person1", "person2"
-      const newKey = `person${people.size + 1}`;
-      people.set(newKey, person);
-    }
-
-    renderList();
-    closeModal();
-
-    return person;
-  }
-
-  function setLiveText(element: string, string: string): boolean {
-    const liveElements: NodeListOf<HTMLElement> = modal.querySelectorAll(`[data-live-text="${element}"]`);
-    let valid = true;
-    for (const element of liveElements) {
-      if (!element) {
-        valid = false;
-        break;
-      }
-      element.innerText = string;
-    }
-    return valid;
-  }
-
-  function renderList() {
-    list.innerHTML = ''; // Clear the current list
-    list.dataset.length = people.size.toString();
-    console.log(people.size.toString());
-
-    if (people.size) {
-      people.forEach((person, key) => renderPerson(person, key));
-      emptyState.classList.add('hide');
-    } else {
-      emptyState.classList.remove('hide');
-    }
-  }
-
-  function renderPerson(person: Person, key: string) {
-    const newElement: HTMLElement = template.cloneNode(true) as HTMLElement;
-    const props = ['first-name', 'name', 'phone', 'email', 'street', 'zip', 'city'];
-    newElement.style.removeProperty('display');
-
-    // Add event listeners for editing and deleting
-    const editButton = newElement.querySelector('[data-person-action="edit"]');
-    const deleteButton = newElement.querySelector('[data-person-action="delete"]');
-
-    editButton!.addEventListener('click', () => {
-      setLiveText("state", "bearbeiten");
-      setLiveText("full-name", person.getFullName() || 'Neue Person');
-      populateModal(person);
-      openModal();
-      editingKey = key; // Set editing key
-    });
-
-    deleteButton!.addEventListener('click', () => {
-      people.delete(key); // Remove the person from the map
-      renderList(); // Re-render the list
-      closeModal();
-    });
-
-    props.forEach(prop => {
-      const propSelector = `[data-${prop}]`;
-      const el: HTMLElement | null = newElement.querySelector(propSelector);
-      if (el) {
-        const currentField = person.personalData.getField(prop);
-        if (!currentField) { console.error(`Render person: A field for "${prop}" doesn't exist.`); return; }
-        el.innerText = currentField.value || currentField.label;
-      }
-    });
-    list.appendChild(newElement);
-  }
-
-  function populateModal(person: Person) {
-    groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
-      const groupName = group.dataset.personDataGroup! as GroupName;
-
-      groupInputs.forEach(input => {
-        // Get field
-        const field = person[groupName].getField(input.id);
-
-        if (!field) {
-          console.warn(`Field not found:`, field, input.id);
-          return;
-        }
-
-        if (!isRadioInput(input) && !isCheckboxInput(input)) {
-          // For text inputs, trim and set the value
-          input.value = field.value.trim();
-          return;
-        }
-
-        if (isRadioInput(input) && input.value === field.value) {
-          input.checked = field.checked;
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-
-        if (isCheckboxInput(input)) {
-          input.checked = field.checked;
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      });
-    });
-  }
-
-  function openModal() {
-    // Live text for name
-    const personalDataGroup = modal.querySelector('[data-person-data-group="personalData"]')!;
-    const nameInputs: NodeListOf<HTMLFormElement> = personalDataGroup.querySelectorAll('#first-name, #name');
-    nameInputs.forEach((input) => {
-      input.addEventListener('input', () => {
-        const editingPerson: Person = extractData();
-        setLiveText('full-name', editingPerson.getFullName() || 'Neue Person');
-      });
-    });
-    emptyState.classList.remove('has-error');
-
-    // Open modal
-    modal.style.removeProperty('display');
-    modal.classList.remove('is-closed');
-    modal.dataset.state = 'open';
-  }
-
-  function closeModal() {
-    modal.classList.add('is-closed');
-    modal.dataset.state = 'closed';
-    setTimeout(() => {
-      modal.style.display = 'none';
-    }, 500);
-    clearModal();
-  }
-
-  function clearModal() {
-    setLiveText('state', 'hinzufügen');
-    setLiveText('full-name', 'Neue Person');
-    modalInputs.forEach((input) => {
-      if (isRadioInput(input)) {
-        input.checked = false;
-        clearRadioGroup(modal, input.name)
-      } else if (isCheckboxInput(input)) {
-        input.checked = false;
-        input.dispatchEvent(new Event('change', { bubbles: true }));
-      } else {
-        input.value = '';
-      }
-    });
-  }
-
-  function validateModal(): boolean {
-    const allModalFields: NodeListOf<FormElement> = modal.querySelectorAll(FORM_INPUT_SELECTOR);
-    const valid = validateFields(allModalFields);
-    return true; // CHANGE THIS FOR DEV
-  }
-
-  function extractData(): Person {
-    const personData = new Person();
-
-    groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
-      const groupName = group.dataset.personDataGroup! as GroupName;
-
-      if (!personData[groupName]) {
-        console.error(`The group "${groupName}" doesn't exist.`);
-        return;
-      }
-
-      groupInputs.forEach((input, index) => {
-        const field = new Field(input, index);
-        if (field.id) {
-          personData[groupName].fields.set(field.id, field);
-        }
-      });
-    });
-
-    console.log(personData);
-    return personData;
-  }
-
-  // Initialize the modal on load
-  closeModal();
 }
 
 window.PEAKPOINT = {}
