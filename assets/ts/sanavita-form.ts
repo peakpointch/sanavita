@@ -141,14 +141,13 @@ class Person {
     this.relatives = relatives;
   }
 
-  // This method will now validate the person
   public validate(): boolean {
     let valid = true;
 
     // Loop over the groups within the person object
-    const groups = Object.keys(this) as (keyof Person)[];
+    const groups = Object.keys(this) as GroupName[];
     groups.forEach(groupName => {
-      const group = this[groupName as GroupName];
+      const group = this[groupName];
 
       // Assuming the group has a `fields` property
       if (group.fields) {
@@ -800,8 +799,8 @@ class FormArray {
       // Check if each person in the people collection is valid
       people.forEach((person, key) => {
         if (!person.validate()) {
-          console.warn(`Person with key "${key}" is invalid.`);
-          this.formMessage.error(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);
+          console.warn(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);
+          this.formMessage.error(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);       
 
           // setTimeout(() => {
           //   this.populateModal(person);
