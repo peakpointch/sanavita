@@ -16,6 +16,10 @@ ctxProvider.addEventListener('change', event => {
     return file.cdnUrl;
   });
 
-  document.getElementById(UUID_FIELD_ID).value = uuidArray.join(', ');
-  document.getElementById(URLCDN_FIELD_ID).value = cdnUrlArray.join(', ');
+  const uuidField = document.getElementById(UUID_FIELD_ID)
+  uuidField.value = uuidArray.join(', ');
+  uuidField.dispatchEvent(new Event('change', { bubbles: true }));
+  const urlField = document.getElementById(URLCDN_FIELD_ID)
+  urlField.value = cdnUrlArray.join(', ');
+  urlField.dispatchEvent(new Event('change', { bubbles: true }));
 });
