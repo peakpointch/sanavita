@@ -6,6 +6,7 @@ const files = {
     "banner",
     "iphone-vimeo-player",
     "form",
+    "scroll",
     "sanavita-form",
   ],
   "js": [
@@ -22,7 +23,6 @@ const files = {
     "popup",
     "purecounter",
     "sanavita-video",
-    "scroll",
     "sozjobs",
     "sozjobs-job",
     "swiper",
