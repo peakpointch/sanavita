@@ -821,6 +821,11 @@ class MultiStepForm {
   }
 
   private async submitToWebflow(): Promise<void> {
+    if (this.currentStep !== this.formSteps.length - 1) {
+      console.error("SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step.");
+      return;
+    }
+
     const allStepsValid = this.validateAllSteps();
 
     if (!allStepsValid) {
@@ -838,13 +843,14 @@ class MultiStepForm {
 
     console.log(formData);
 
-    const success = await sendFormData(formData);
+    this.onFormSuccess(); // TEMPORARY ONLY
+    // const success = await sendFormData(formData);
 
-    if (success) {
-      this.onFormSuccess();
-    } else {
-      this.onFormError();
-    }
+    // if (success) {
+    //   this.onFormSuccess();
+    // } else {
+    //   this.onFormError();
+    // }
   }
 
   private buildJsonForWebflow(): any {
@@ -942,6 +948,7 @@ class MultiStepForm {
   public changeToStep(target: number, init = false): void {
     if (this.currentStep === target && !init) {
       console.log('Change Form Step: Target step equals current step.');
+      console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
       return;
     }
 
@@ -949,7 +956,7 @@ class MultiStepForm {
       for (let step = this.currentStep; step < target; step++) {
         // Validate standard fields in the current step
         if (!this.validateCurrentStep(step)) {
-          console.warn('Standard validation failed for step:', step + 1);
+          console.warn(`Standard validation failed for step: ${step + 1}/${this.formSteps.length}`);
           this.changeToStep(step);
           return;
         }
@@ -970,6 +977,7 @@ class MultiStepForm {
     this.updateStepVisibility(target);
     this.updatePagination(target);
     this.currentStep = target;
+    console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
   }
 
   private updateStepVisibility(target: number): void {
