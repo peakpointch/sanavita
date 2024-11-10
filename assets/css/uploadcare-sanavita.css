@@ -40,12 +40,24 @@ uc-upload-list {
 
 /* Hide Uploadcare's default file selector UI */
 uc-drop-area {
-  border: 1px dashed var(--neutral-color--beige-200);
-  background-color: var(--neutral-lightest);
+  color: var(--brand-400);
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid var(--neutral-color--beige-200);
+  background-color: var(--brand-50);
   display: inline-block;
   width: 100%;
   height: auto;
-  padding: 1rem;
+  padding: 1.75rem;
+}
+
+uc-drop-area::after {
+  content: " oder per Drag & Drop";
+  color: var(--brand-950);
+}
+
+[data-name="Online-Bewerbung"] uc-drop-area {
+  background-color: var(--neutral-lightest);
 }
 
 uc-drop-area:hover,
@@ -54,7 +66,7 @@ uc-drop-area[drag-state="over"] {
 }
 
 uc-file-uploader-minimal.my-config button:not(.uc-mini-btn) {
-   padding: 1.25rem 1rem;
+  padding: 1.25rem 1rem;
 }
 
 uc-file-uploader-minimal.my-config .uc-done-btn {
