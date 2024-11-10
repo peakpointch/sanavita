@@ -50,11 +50,13 @@ class Accordion {
   public trigger: HTMLElement;
   public uiTrigger: HTMLElement;
   public isOpen: boolean = false;
+  private icon: HTMLElement;
 
   constructor(component: HTMLElement) {
     this.component = component;
     this.trigger = component.querySelector('[data-animate="trigger"]')!;
     this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]')!;
+    this.icon = component.querySelector('[data-animate="icon"]')!;
 
     this.uiTrigger.addEventListener('click', () => {
       this.toggle();
@@ -65,6 +67,9 @@ class Accordion {
   public open() {
     if (!this.isOpen) {
       this.trigger.click();
+      setTimeout(() => {
+        this.icon.classList.add('is-open');
+      }, 200);
       this.isOpen = true;
     }
   }
@@ -72,6 +77,9 @@ class Accordion {
   public close() {
     if (this.isOpen) {
       this.trigger.click();
+      setTimeout(() => {
+        this.icon.classList.remove('is-open');
+      }, 200);
       this.isOpen = false;
     }
   }
@@ -362,320 +370,6 @@ class FormGroup {
     } else {
       this.formMessage.reset();
     }
-  }
-}
-
-class MultiStepForm {
-  private component: HTMLElement;
-  private formElement: HTMLFormElement;
-  private formSteps: NodeListOf<HTMLElement>;
-  private paginationItems: NodeListOf<HTMLElement>;
-  private buttonNext: HTMLElement;
-  private buttonPrev: HTMLElement;
-  private currentStep: number = 0;
-  private customValidators: Array<Array<() => boolean>> = [];
-  private peopleArray: FormArray;
-  private beilagenGroup: FormGroup;
-  private successElement: HTMLElement | null;
-  private errorElement: HTMLElement | null;
-  private submitButton: HTMLInputElement | null;
-
-  constructor(component: HTMLElement) {
-    this.component = component;
-    this.formElement = this.component.querySelector(FORM_SELECTOR) as HTMLFormElement;
-
-    if (!this.formElement) {
-      throw new Error("Form element not found within the specified component.");
-    }
-
-    this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
-    this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
-    this.buttonNext = this.component.querySelector(STEPS_NEXT_SELECTOR)!;
-    this.buttonPrev = this.component.querySelector(STEPS_PREV_SELECTOR)!;
-    this.peopleArray = new FormArray(this.component, 'personArray');
-    this.beilagenGroup = new FormGroup(this.component, ['upload', 'post'], 'validation message');
-
-    // Handle optional UI elements
-    this.successElement = this.component.querySelector(FORM_SUCCESS_SELECTOR);
-    this.errorElement = this.component.querySelector(FORM_ERROR_SELECTOR);
-    this.submitButton = this.component.querySelector(FORM_SUBMIT_SELECTOR) as HTMLInputElement | null;
-
-    this.initialize();
-  }
-
-  public addCustomValidator(step: number, validator: () => boolean): void {
-    if (!this.customValidators[step]) {
-      this.customValidators[step] = [];
-    }
-    this.customValidators[step].push(validator);
-  }
-
-  private initialize(): void {
-    if (!this.component.getAttribute('data-steps-element')) {
-      console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, this.component);
-      return;
-    }
-
-    if (!this.formSteps.length) {
-      console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, this.component.querySelector(STEPS_LIST_SELECTOR));
-      return;
-    }
-
-    this.setupSteps();
-    this.initPagination();
-    this.changeToStep(this.currentStep, true);
-
-    this.addCustomValidator(3, () => this.beilagenGroup.validate());
-    this.addCustomValidator(2, () => this.peopleArray.validateArray());
-
-    initFormButtons(this.formElement);
-    initCustomInputs(this.component);
-    initDecisions(this.component);
-
-    this.component.addEventListener('changeStep', () => this.peopleArray.closeModal());
-    this.formElement.setAttribute('novalidate', '');
-    this.formElement.dataset.state = 'initialized';
-
-    this.formElement.addEventListener('submit', (event) => {
-      event.preventDefault();
-      this.submitToWebflow();
-    });
-  }
-
-  private async submitToWebflow(): Promise<void> {
-    const allStepsValid = this.validateAllSteps();
-
-    if (!allStepsValid) {
-      console.warn("Form submission blocked: Not all steps are valid.");
-      return;
-    }
-
-    this.formElement.dataset.state = 'sending';
-    if (this.submitButton) {
-      this.submitButton.dataset.defaultText = this.submitButton.value;
-      this.submitButton.value = this.submitButton.dataset.wait || 'Wird gesendet ...';
-    }
-
-    const formData = this.buildJsonForWebflow();
-
-    console.log(formData);
-
-    const success = await sendFormData(formData);
-
-    if (success) {
-      this.onFormSuccess();
-    } else {
-      this.onFormError();
-    }
-  }
-
-  private buildJsonForWebflow(): any {
-    const fields = {
-      ...mapToObject(this.getAllFormData()),
-      people: peopleMapToObject(this.peopleArray.people)
-    };
-
-    const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
-
-    return {
-      name: this.formElement.dataset.name,
-      pageId: pageId,
-      elementId: this.formElement.dataset.wfElementId,
-      source: window.location.href,
-      test: false,
-      fields: {
-        fields: JSON.stringify(fields),
-        "g-recaptcha-response": recaptcha
-      },
-      dolphin: false,
-    };
-  }
-
-  private onFormSuccess(): void {
-    if (this.successElement) this.successElement.style.display = 'block';
-    this.formElement.style.display = 'none';
-    this.formElement.dataset.state = 'success';
-    this.formElement.dispatchEvent(new CustomEvent('formSuccess'));
-
-    if (this.submitButton) {
-      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
-    }
-  }
-
-  private onFormError(): void {
-    if (this.errorElement) this.errorElement.style.display = 'block';
-    this.formElement.dataset.state = 'error';
-    this.formElement.dispatchEvent(new CustomEvent('formError'));
-
-    if (this.submitButton) {
-      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
-    }
-  }
-
-  private setupSteps(): void {
-    this.formSteps.forEach((step, index) => {
-      step.dataset.stepId = index.toString();
-      step.classList.toggle('hide', index !== 0);
-
-      step.querySelectorAll<HTMLInputElement>(FORM_INPUT_SELECTOR) // Type necessary for keydown event
-        .forEach((input) => {
-          input.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              this.changeToNext();
-            }
-          });
-        })
-    });
-  }
-
-  private initPagination(): void {
-    this.paginationItems.forEach((item, index) => {
-      item.dataset.stepTarget = index.toString();
-      item.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.changeToStep(index);
-      });
-    });
-
-    this.buttonNext.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.changeToNext();
-    });
-
-    this.buttonPrev.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.changeToPrevious();
-    });
-  }
-
-  public changeToNext() {
-    if (this.currentStep < this.formSteps.length - 1) {
-      this.changeToStep(this.currentStep + 1);
-    }
-  }
-
-  public changeToPrevious() {
-    if (this.currentStep > 0) {
-      this.changeToStep(this.currentStep - 1);
-    }
-  }
-
-  public changeToStep(target: number, init = false): void {
-    if (this.currentStep === target && !init) {
-      console.log('Change Form Step: Target step equals current step.');
-      return;
-    }
-
-    if (target > this.currentStep && !init) {
-      for (let step = this.currentStep; step < target; step++) {
-        // Validate standard fields in the current step
-        if (!this.validateCurrentStep(step)) {
-          console.warn('Standard validation failed for step:', step + 1);
-          this.changeToStep(step);
-          return;
-        }
-      }
-
-      this.component.scrollIntoView({
-        behavior: 'smooth',
-        block: "start"
-      });
-    }
-
-    // Fire custom event before updating the visibility
-    const event = new CustomEvent("changeStep", {
-      detail: { previousStep: this.currentStep, currentStep: target }
-    });
-    this.component.dispatchEvent(event);
-
-    this.updateStepVisibility(target);
-    this.updatePagination(target);
-    this.currentStep = target;
-  }
-
-  private updateStepVisibility(target: number): void {
-    this.formSteps[this.currentStep].classList.add('hide');
-    this.formSteps[target].classList.remove('hide');
-  }
-
-  private updatePagination(target: number): void {
-    if (target === 0) {
-      this.buttonPrev.style.visibility = 'hidden';
-      this.buttonPrev.style.opacity = '0';
-    } else if (target === this.formSteps.length - 1) {
-      this.buttonNext.style.visibility = 'hidden';
-      this.buttonNext.style.opacity = '0';
-    } else {
-      this.buttonPrev.style.visibility = 'visible';
-      this.buttonPrev.style.opacity = '1';
-      this.buttonNext.style.visibility = 'visible';
-      this.buttonNext.style.opacity = '1';
-    }
-
-    this.paginationItems.forEach((step, index) => {
-      step.classList.toggle('is-done', index < target);
-      step.classList.toggle('is-active', index === target);
-    });
-  }
-
-  public validateAllSteps(): boolean {
-    let allValid = true;
-
-    this.formSteps.forEach((step, index) => {
-      if (!this.validateCurrentStep(index)) {
-        console.warn(`Step ${index + 1} is invalid.`);
-        allValid = false; // Set the flag to false if any step is invalid
-        this.changeToStep(index);
-      }
-    });
-
-    return allValid;
-  }
-
-  public validateCurrentStep(step: number): boolean {
-    const currentStepElement = this.formSteps[step];
-    const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
-    let { valid, invalidField } = validateFields(inputs);
-
-    if (!valid) {
-      console.warn(`STANDARD VALIDATION: NOT VALID`);
-      return valid;
-    }
-
-    // Custom validations
-    const customValid = this.customValidators[step]?.every((validator) => validator()) ?? true;
-    if (!customValid) {
-      console.warn(`CUSTOM VALIDATION: NOT VALID`);
-    }
-
-    return valid && customValid;
-  }
-
-  public getFormDataForStep(step: number): Map<string, Field> {
-    let fields: Map<string, Field> = new Map();
-
-    const stepElement = this.formSteps[step];
-    const stepInputs: NodeListOf<FormElement> = stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
-    stepInputs.forEach((input, inputIndex) => {
-      const entry = new Field(input, inputIndex);
-      if (entry.id) {
-        fields.set(entry.id, entry);
-      }
-    });
-
-    return fields;
-  }
-
-  public getAllFormData(): Map<string, Field> {
-    let fields: Map<string, Field> = new Map();
-
-    this.formSteps.forEach((step, stepIndex) => {
-      const stepData = this.getFormDataForStep(stepIndex);
-      fields = new Map([...fields, ...stepData]);
-    });
-
-    return fields;
   }
 }
 
@@ -1046,6 +740,320 @@ class FormArray {
 
     console.log(personData);
     return personData;
+  }
+}
+
+class MultiStepForm {
+  private component: HTMLElement;
+  private formElement: HTMLFormElement;
+  private formSteps: NodeListOf<HTMLElement>;
+  private paginationItems: NodeListOf<HTMLElement>;
+  private buttonNext: HTMLElement;
+  private buttonPrev: HTMLElement;
+  private currentStep: number = 0;
+  private customValidators: Array<Array<() => boolean>> = [];
+  private peopleArray: FormArray;
+  private beilagenGroup: FormGroup;
+  private successElement: HTMLElement | null;
+  private errorElement: HTMLElement | null;
+  private submitButton: HTMLInputElement | null;
+
+  constructor(component: HTMLElement) {
+    this.component = component;
+    this.formElement = this.component.querySelector(FORM_SELECTOR) as HTMLFormElement;
+
+    if (!this.formElement) {
+      throw new Error("Form element not found within the specified component.");
+    }
+
+    this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
+    this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
+    this.buttonNext = this.component.querySelector(STEPS_NEXT_SELECTOR)!;
+    this.buttonPrev = this.component.querySelector(STEPS_PREV_SELECTOR)!;
+
+    // Handle optional UI elements
+    this.successElement = this.component.querySelector(FORM_SUCCESS_SELECTOR);
+    this.errorElement = this.component.querySelector(FORM_ERROR_SELECTOR);
+    this.submitButton = this.component.querySelector(FORM_SUBMIT_SELECTOR) as HTMLInputElement | null;
+
+    this.initialize();
+  }
+
+  public addCustomValidator(step: number, validator: () => boolean): void {
+    if (!this.customValidators[step]) {
+      this.customValidators[step] = [];
+    }
+    this.customValidators[step].push(validator);
+  }
+
+  private initialize(): void {
+    if (!this.component.getAttribute('data-steps-element')) {
+      console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, this.component);
+      return;
+    }
+
+    if (!this.formSteps.length) {
+      console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, this.component.querySelector(STEPS_LIST_SELECTOR));
+      return;
+    }
+    initFormButtons(this.formElement);
+    initCustomInputs(this.component);
+    initDecisions(this.component);
+
+    this.setupSteps();
+    this.initPagination();
+    this.changeToStep(this.currentStep, true);
+
+    this.peopleArray = new FormArray(this.component, 'personArray');
+    this.beilagenGroup = new FormGroup(this.component, ['upload', 'post'], 'validation message');
+
+    this.addCustomValidator(3, () => this.beilagenGroup.validate());
+    this.addCustomValidator(2, () => this.peopleArray.validateArray());
+
+    this.component.addEventListener('changeStep', () => this.peopleArray.closeModal());
+    this.formElement.setAttribute('novalidate', '');
+    this.formElement.dataset.state = 'initialized';
+
+    this.formElement.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.submitToWebflow();
+    });
+  }
+
+  private async submitToWebflow(): Promise<void> {
+    const allStepsValid = this.validateAllSteps();
+
+    if (!allStepsValid) {
+      console.warn("Form submission blocked: Not all steps are valid.");
+      return;
+    }
+
+    this.formElement.dataset.state = 'sending';
+    if (this.submitButton) {
+      this.submitButton.dataset.defaultText = this.submitButton.value;
+      this.submitButton.value = this.submitButton.dataset.wait || 'Wird gesendet ...';
+    }
+
+    const formData = this.buildJsonForWebflow();
+
+    console.log(formData);
+
+    const success = await sendFormData(formData);
+
+    if (success) {
+      this.onFormSuccess();
+    } else {
+      this.onFormError();
+    }
+  }
+
+  private buildJsonForWebflow(): any {
+    const fields = {
+      ...mapToObject(this.getAllFormData()),
+      people: peopleMapToObject(this.peopleArray.people)
+    };
+
+    const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
+
+    return {
+      name: this.formElement.dataset.name,
+      pageId: pageId,
+      elementId: this.formElement.dataset.wfElementId,
+      source: window.location.href,
+      test: false,
+      fields: {
+        fields: JSON.stringify(fields),
+        "g-recaptcha-response": recaptcha
+      },
+      dolphin: false,
+    };
+  }
+
+  private onFormSuccess(): void {
+    if (this.successElement) this.successElement.style.display = 'block';
+    this.formElement.style.display = 'none';
+    this.formElement.dataset.state = 'success';
+    this.formElement.dispatchEvent(new CustomEvent('formSuccess'));
+
+    if (this.submitButton) {
+      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
+    }
+  }
+
+  private onFormError(): void {
+    if (this.errorElement) this.errorElement.style.display = 'block';
+    this.formElement.dataset.state = 'error';
+    this.formElement.dispatchEvent(new CustomEvent('formError'));
+
+    if (this.submitButton) {
+      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
+    }
+  }
+
+  private setupSteps(): void {
+    this.formSteps.forEach((step, index) => {
+      step.dataset.stepId = index.toString();
+      step.classList.toggle('hide', index !== 0);
+
+      step.querySelectorAll<HTMLInputElement>(FORM_INPUT_SELECTOR) // Type necessary for keydown event
+        .forEach((input) => {
+          input.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              this.changeToNext();
+            }
+          });
+        })
+    });
+  }
+
+  private initPagination(): void {
+    this.paginationItems.forEach((item, index) => {
+      item.dataset.stepTarget = index.toString();
+      item.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.changeToStep(index);
+      });
+    });
+
+    this.buttonNext.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.changeToNext();
+    });
+
+    this.buttonPrev.addEventListener('click', (event) => {
+      event.preventDefault();
+      this.changeToPrevious();
+    });
+  }
+
+  public changeToNext() {
+    if (this.currentStep < this.formSteps.length - 1) {
+      this.changeToStep(this.currentStep + 1);
+    }
+  }
+
+  public changeToPrevious() {
+    if (this.currentStep > 0) {
+      this.changeToStep(this.currentStep - 1);
+    }
+  }
+
+  public changeToStep(target: number, init = false): void {
+    if (this.currentStep === target && !init) {
+      console.log('Change Form Step: Target step equals current step.');
+      return;
+    }
+
+    if (target > this.currentStep && !init) {
+      for (let step = this.currentStep; step < target; step++) {
+        // Validate standard fields in the current step
+        if (!this.validateCurrentStep(step)) {
+          console.warn('Standard validation failed for step:', step + 1);
+          this.changeToStep(step);
+          return;
+        }
+      }
+
+      this.component.scrollIntoView({
+        behavior: 'smooth',
+        block: "start"
+      });
+    }
+
+    // Fire custom event before updating the visibility
+    const event = new CustomEvent("changeStep", {
+      detail: { previousStep: this.currentStep, currentStep: target }
+    });
+    this.component.dispatchEvent(event);
+
+    this.updateStepVisibility(target);
+    this.updatePagination(target);
+    this.currentStep = target;
+  }
+
+  private updateStepVisibility(target: number): void {
+    this.formSteps[this.currentStep].classList.add('hide');
+    this.formSteps[target].classList.remove('hide');
+  }
+
+  private updatePagination(target: number): void {
+    if (target === 0) {
+      this.buttonPrev.style.visibility = 'hidden';
+      this.buttonPrev.style.opacity = '0';
+    } else if (target === this.formSteps.length - 1) {
+      this.buttonNext.style.visibility = 'hidden';
+      this.buttonNext.style.opacity = '0';
+    } else {
+      this.buttonPrev.style.visibility = 'visible';
+      this.buttonPrev.style.opacity = '1';
+      this.buttonNext.style.visibility = 'visible';
+      this.buttonNext.style.opacity = '1';
+    }
+
+    this.paginationItems.forEach((step, index) => {
+      step.classList.toggle('is-done', index < target);
+      step.classList.toggle('is-active', index === target);
+    });
+  }
+
+  public validateAllSteps(): boolean {
+    let allValid = true;
+
+    this.formSteps.forEach((step, index) => {
+      if (!this.validateCurrentStep(index)) {
+        console.warn(`Step ${index + 1} is invalid.`);
+        allValid = false; // Set the flag to false if any step is invalid
+        this.changeToStep(index);
+      }
+    });
+
+    return allValid;
+  }
+
+  public validateCurrentStep(step: number): boolean {
+    const currentStepElement = this.formSteps[step];
+    const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    let { valid, invalidField } = validateFields(inputs);
+
+    if (!valid) {
+      console.warn(`STANDARD VALIDATION: NOT VALID`);
+      return valid;
+    }
+
+    // Custom validations
+    const customValid = this.customValidators[step]?.every((validator) => validator()) ?? true;
+    if (!customValid) {
+      console.warn(`CUSTOM VALIDATION: NOT VALID`);
+    }
+
+    return valid && customValid;
+  }
+
+  public getFormDataForStep(step: number): Map<string, Field> {
+    let fields: Map<string, Field> = new Map();
+
+    const stepElement = this.formSteps[step];
+    const stepInputs: NodeListOf<FormElement> = stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    stepInputs.forEach((input, inputIndex) => {
+      const entry = new Field(input, inputIndex);
+      if (entry.id) {
+        fields.set(entry.id, entry);
+      }
+    });
+
+    return fields;
+  }
+
+  public getAllFormData(): Map<string, Field> {
+    let fields: Map<string, Field> = new Map();
+
+    this.formSteps.forEach((step, stepIndex) => {
+      const stepData = this.getFormDataForStep(stepIndex);
+      fields = new Map([...fields, ...stepData]);
+    });
+
+    return fields;
   }
 }
 
