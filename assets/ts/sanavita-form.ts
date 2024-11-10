@@ -160,7 +160,7 @@ class Person {
       }
     });
 
-    return valid;
+    return valid; // Change this for dev
   }
 
   public getFullName(): string {
@@ -365,21 +365,40 @@ class FormGroup {
   }
 }
 
-class FormSteps {
-  public component: HTMLElement;
+class MultiStepForm {
+  private component: HTMLElement;
+  private formElement: HTMLFormElement;
   private formSteps: NodeListOf<HTMLElement>;
   private paginationItems: NodeListOf<HTMLElement>;
   private buttonNext: HTMLElement;
   private buttonPrev: HTMLElement;
   private currentStep: number = 0;
   private customValidators: Array<Array<() => boolean>> = [];
+  private peopleArray: FormArray;
+  private beilagenGroup: FormGroup;
+  private successElement: HTMLElement | null;
+  private errorElement: HTMLElement | null;
+  private submitButton: HTMLInputElement | null;
 
   constructor(component: HTMLElement) {
     this.component = component;
+    this.formElement = this.component.querySelector(FORM_SELECTOR) as HTMLFormElement;
+
+    if (!this.formElement) {
+      throw new Error("Form element not found within the specified component.");
+    }
+
     this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
     this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
     this.buttonNext = this.component.querySelector(STEPS_NEXT_SELECTOR)!;
     this.buttonPrev = this.component.querySelector(STEPS_PREV_SELECTOR)!;
+    this.peopleArray = new FormArray(this.component, 'personArray');
+    this.beilagenGroup = new FormGroup(this.component, ['upload', 'post'], 'validation message');
+
+    // Handle optional UI elements
+    this.successElement = this.component.querySelector(FORM_SUCCESS_SELECTOR);
+    this.errorElement = this.component.querySelector(FORM_ERROR_SELECTOR);
+    this.submitButton = this.component.querySelector(FORM_SUBMIT_SELECTOR) as HTMLInputElement | null;
 
     this.initialize();
   }
@@ -405,6 +424,92 @@ class FormSteps {
     this.setupSteps();
     this.initPagination();
     this.changeToStep(this.currentStep, true);
+
+    this.addCustomValidator(3, () => this.beilagenGroup.validate());
+    this.addCustomValidator(2, () => this.peopleArray.validateArray());
+
+    initFormButtons(this.formElement);
+    initCustomInputs(this.component);
+    initDecisions(this.component);
+
+    this.component.addEventListener('changeStep', () => this.peopleArray.closeModal());
+    this.formElement.setAttribute('novalidate', '');
+    this.formElement.dataset.state = 'initialized';
+
+    this.formElement.addEventListener('submit', (event) => {
+      event.preventDefault();
+      this.submitToWebflow();
+    });
+  }
+
+  private async submitToWebflow(): Promise<void> {
+    const allStepsValid = this.validateAllSteps();
+
+    if (!allStepsValid) {
+      console.warn("Form submission blocked: Not all steps are valid.");
+      return;
+    }
+
+    this.formElement.dataset.state = 'sending';
+    if (this.submitButton) {
+      this.submitButton.dataset.defaultText = this.submitButton.value;
+      this.submitButton.value = this.submitButton.dataset.wait || 'Wird gesendet ...';
+    }
+
+    const formData = this.buildJsonForWebflow();
+
+    console.log(formData);
+
+    const success = await sendFormData(formData);
+
+    if (success) {
+      this.onFormSuccess();
+    } else {
+      this.onFormError();
+    }
+  }
+
+  private buildJsonForWebflow(): any {
+    const fields = {
+      ...mapToObject(this.getAllFormData()),
+      people: peopleMapToObject(this.peopleArray.people)
+    };
+
+    const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
+
+    return {
+      name: this.formElement.dataset.name,
+      pageId: pageId,
+      elementId: this.formElement.dataset.wfElementId,
+      source: window.location.href,
+      test: false,
+      fields: {
+        fields: JSON.stringify(fields),
+        "g-recaptcha-response": recaptcha
+      },
+      dolphin: false,
+    };
+  }
+
+  private onFormSuccess(): void {
+    if (this.successElement) this.successElement.style.display = 'block';
+    this.formElement.style.display = 'none';
+    this.formElement.dataset.state = 'success';
+    this.formElement.dispatchEvent(new CustomEvent('formSuccess'));
+
+    if (this.submitButton) {
+      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
+    }
+  }
+
+  private onFormError(): void {
+    if (this.errorElement) this.errorElement.style.display = 'block';
+    this.formElement.dataset.state = 'error';
+    this.formElement.dispatchEvent(new CustomEvent('formError'));
+
+    if (this.submitButton) {
+      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
+    }
   }
 
   private setupSteps(): void {
@@ -547,27 +652,27 @@ class FormSteps {
     return valid && customValid;
   }
 
-  public getFormDataForStep(step: number): Array<any> {
-    let fields: Array<Field | Array<Person>> = [];
+  public getFormDataForStep(step: number): Map<string, Field> {
+    let fields: Map<string, Field> = new Map();
 
     const stepElement = this.formSteps[step];
     const stepInputs: NodeListOf<FormElement> = stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
     stepInputs.forEach((input, inputIndex) => {
       const entry = new Field(input, inputIndex);
       if (entry.id) {
-        fields.push(entry);
+        fields.set(entry.id, entry);
       }
     });
 
     return fields;
   }
 
-  public getAllFormData(): Array<any> {
-    let fields: Array<Field | Array<Person>> = [];
+  public getAllFormData(): Map<string, Field> {
+    let fields: Map<string, Field> = new Map();
 
     this.formSteps.forEach((step, stepIndex) => {
       const stepData = this.getFormDataForStep(stepIndex);
-      fields.push(...stepData);
+      fields = new Map([...fields, ...stepData]);
     });
 
     return fields;
@@ -576,6 +681,7 @@ class FormSteps {
 
 class FormArray {
   public id: string | number;
+  public people: Map<string, Person>;
   private container: HTMLElement;
   private list: HTMLElement;
   private template: HTMLElement;
@@ -594,6 +700,7 @@ class FormArray {
   constructor(container: HTMLElement, id: string | number) {
     this.id = id;
     this.container = container;
+    this.people = new Map();
     this.list = this.container.querySelector(ARRAY_LIST_SELECTOR)!;
     this.template = this.list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
     this.addButton = this.container.querySelector(ARRAY_ADD_SELECTOR)!;
@@ -618,16 +725,17 @@ class FormArray {
         input.addEventListener('keydown', (event: KeyboardEvent) => {
           if (event.key === 'Enter') {
             event.preventDefault();
-            this.savePersonFromModal;
+            this.savePersonFromModal();
           }
         });
       })
 
     this.addButton.addEventListener('click', () => this.handleAddButtonClick());
-    this.saveButton.addEventListener('click', () => this.savePersonFromModal(false)); // Change this for dev
+    this.saveButton.addEventListener('click', () => this.savePersonFromModal()); // Change this for dev
 
+    this.renderList();
     this.closeModal();
-    this.savePersonFromModal(false);
+    // this.savePersonFromModal(false); // Add empty person initially
 
     const accordionList: NodeListOf<HTMLElement> = this.container.querySelectorAll(ACCORDION_SELECTOR);
     for (let i = 0; i < accordionList.length; i++) {
@@ -682,12 +790,12 @@ class FormArray {
   private savePerson(person: Person): boolean {
     if (this.editingKey !== null) {
       // Update existing person
-      people.set(this.editingKey, person);
+      this.people.set(this.editingKey, person);
     } else {
       // Generate a truly unique key for a new person
       const uniqueSuffix = crypto.randomUUID();
-      const newKey = `${parameterize(person.getFullName())}-${uniqueSuffix}`;
-      people.set(newKey, person);
+      const newKey = `person${this.people.size + 1}`;
+      this.people.set(newKey, person);
     }
     return true;
   }
@@ -707,13 +815,13 @@ class FormArray {
 
   private renderList() {
     this.list.innerHTML = ''; // Clear the current list
-    this.list.dataset.length = people.size.toString();
+    this.list.dataset.length = this.people.size.toString();
 
-    if (people.size) {
-      people.forEach((person, key) => this.renderPerson(person, key));
+    if (this.people.size) {
+      this.people.forEach((person, key) => this.renderPerson(person, key));
       this.formMessage.reset();
     } else {
-      this.formMessage.info("Bitte fügen Sie die mietenden personen hinzu.");
+      this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.");
     }
   }
 
@@ -735,7 +843,7 @@ class FormArray {
     });
 
     deleteButton!.addEventListener('click', () => {
-      people.delete(key); // Remove the person from the map
+      this.people.delete(key); // Remove the person from the map
       this.renderList(); // Re-render the list
       this.closeModal();
     });
@@ -791,16 +899,17 @@ class FormArray {
     let valid = true;
 
     // Validate if there are any people in the array (check if the `people` map has any entries)
-    if (people.size === 0) {
+    if (this.people.size === 0) {
       console.warn("Bitte fügen Sie mindestens eine mietende Person hinzu.");
       this.formMessage.error(`Bitte fügen Sie mindestens eine mietende Person hinzu.`);
+      setTimeout(() => this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu."), 5000)
       valid = false;
     } else {
       // Check if each person in the people collection is valid
-      people.forEach((person, key) => {
+      this.people.forEach((person, key) => {
         if (!person.validate()) {
           console.warn(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);
-          this.formMessage.error(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);       
+          this.formMessage.error(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);
 
           // setTimeout(() => {
           //   this.populateModal(person);
@@ -969,7 +1078,7 @@ function mapToObject(map: Map<any, any>): any {
   return obj;
 }
 
-function personMapToObject(people: Map<string, Person>): any {
+function peopleMapToObject(people: Map<string, Person>): any {
   // Convert a Person's structure, which contains FieldGroups with fields as Maps
   const peopleObj: any = {};
   for (const [key, person] of people) {
@@ -1019,103 +1128,6 @@ function isRadioInput(input: FormElement): input is HTMLInputElement {
 
 function isCheckboxInput(input: FormElement): input is HTMLInputElement {
   return input instanceof HTMLInputElement && input.type === 'checkbox';
-}
-
-function initForm(formComponent: HTMLElement | null) {
-  if (!formComponent) {
-    console.error('Form component not found:', FORM_COMPONENT_SELECTOR)
-    return false;
-  }
-
-  const form = formComponent.querySelector(FORM_SELECTOR) as HTMLFormElement | null; // Has to be a HTMLFormElement because its selector is the form tagname
-  if (!form) {
-    console.error(`The selected form component does not contain a HTMLFormElement. Perhaps you added ${FORM_COMPONENT_SELECTOR} to the form element itself rather than its parent element?\n\nForm Component:`, formComponent);
-    return false;
-  }
-
-  initFormButtons(form);
-  initCustomInputs(formComponent);
-  initDecisions(formComponent);
-
-  const formSteps = new FormSteps(formComponent);
-  const personArray = new FormArray(formComponent, 'personArray');
-  const beilagenGroup = new FormGroup(formComponent, ['upload', 'post'], 'validation message');
-  formSteps.addCustomValidator(2, () => beilagenGroup.validate());
-  formSteps.addCustomValidator(1, () => personArray.validateArray())
-  formSteps.component.addEventListener('changeStep', () => personArray.closeModal());
-
-  console.log(formSteps.getAllFormData());
-
-  form.setAttribute('novalidate', '');
-  form.dataset.state = 'initialized';
-  formComponent.addEventListener('submit', (event) => {
-    event.preventDefault();
-    beilagenGroup.validate();
-    formSteps.validateAllSteps();
-    form.dataset.state = 'sending';
-    handleSubmit(formComponent, form);
-  });
-
-  return true;
-}
-
-async function handleSubmit(component: HTMLElement, form: HTMLFormElement) {
-  function formSuccess() {
-    successElement ? successElement.style.display = 'block' : null;
-    form.style.display = 'none';
-    form.dataset.state = 'success';
-    form.dispatchEvent(new CustomEvent('formSuccess'));
-  }
-
-  function formError() {
-    errorElement ? errorElement.style.display = 'block' : null;
-    form.dataset.state = 'error';
-    form.dispatchEvent(new CustomEvent('formError'));
-  }
-
-  // Form elements
-  const successElement: HTMLElement | null = component.querySelector(FORM_SUCCESS_SELECTOR);
-  const errorElement: HTMLElement | null = component.querySelector(FORM_ERROR_SELECTOR);
-  const submitButton: HTMLInputElement | null = component.querySelector(FORM_SUBMIT_SELECTOR);
-
-  if (!(submitButton instanceof HTMLInputElement) || submitButton.type !== 'submit') {
-    throw new Error('The submitButton element is not an HTML input element with type="submit".');
-  }
-
-  submitButton.dataset.defaultText = submitButton.value; // save default text
-  submitButton.value = submitButton.dataset.wait || 'Wird gesendet ...';
-
-  const fields = [];
-
-  fields["people"] = personMapToObject(people);
-  console.log('FORM FIELDS:', fields);
-  window.PEAKPOINT.fields = fields;
-
-  const recaptcha = (form.querySelector('#g-recaptcha-response') as FormElement).value;
-
-  const formData = {
-    name: form.dataset.name,
-    pageId: pageId,
-    elementId: form.dataset.wfElementId,
-    source: window.location.href,
-    test: false,
-    fields: {
-      fields: JSON.stringify({ fields }),
-      "g-recaptcha-response": recaptcha
-    },
-    dolphin: false,
-  };
-
-  submitButton.value = submitButton.dataset.defaultText;
-
-  // const success = await sendFormData(formData);
-
-  // if (success) {
-  //   formSuccess();
-  //   submitButton.value = submitButton.dataset.defaultText;
-  // } else {
-  //   formError();
-  // }
 }
 
 async function sendFormData(formData): Promise<boolean> {
@@ -1297,9 +1309,8 @@ function validateFields(
 }
 
 window.PEAKPOINT = {}
-let people: Map<string, Person> = new Map();
 
-window.PEAKPOINT.people = people;
+// window.PEAKPOINT.people = people;
 
 const form: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
 form?.classList.remove('w-form');
@@ -1319,6 +1330,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const inizialized = initForm(form);
+  const inizialized = new MultiStepForm(form!);
   console.log("Form initialized:", inizialized)
 });
