@@ -29,6 +29,8 @@ const ARRAY_CANCEL_SELECTOR: string = '[data-person-element="cancel"]';
 const ARRAY_GROUP_SELECTOR: string = '[data-person-data-group]';
 const MODAL_SELECTOR: string = '[data-form-element="modal"]';
 const MODAL_SCROLL_SELECTOR: string = '[data-modal-element="scroll"]';
+const MODAL_STICKY_TOP_SELECTOR: string = '[data-modal-element="sticky-top"]';
+const MODAL_STICKY_BOTTOM_SELECTOR: string = '[data-modal-element="sticky-bottom"]';
 
 const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
@@ -39,7 +41,7 @@ const siteId: string = document.documentElement.dataset.wfSite || '';
 const pageId: string = document.documentElement.dataset.wfPage || '';
 
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-type GroupName = 'personalData' | 'doctor' | 'health' | 'relatives';
+type GroupName = 'personalData' | 'doctor' | 'health' | 'primaryRelative' | 'secondaryRelative';
 
 interface Window {
   PEAKPOINT: any;
@@ -135,18 +137,21 @@ class Person {
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
-  relatives: FieldGroup;
+  primaryRelative: FieldGroup;
+  secondaryRelative: FieldGroup;
 
   constructor(
     personalData = new FieldGroup(),
     doctor = new FieldGroup(),
     health = new FieldGroup(),
-    relatives = new FieldGroup()
+    primaryRelative = new FieldGroup(),
+    secondaryRelative = new FieldGroup()
   ) {
     this.personalData = personalData;
     this.doctor = doctor;
     this.health = health;
-    this.relatives = relatives;
+    this.primaryRelative = primaryRelative;
+    this.secondaryRelative = secondaryRelative;
   }
 
   public validate(): boolean {
@@ -154,15 +159,23 @@ class Person {
 
     // Loop over the groups within the person object
     const groups = Object.keys(this) as GroupName[];
+    console.log(groups);
+
     groups.forEach(groupName => {
-      const group = this[groupName];
+      const group = this[groupName] as FieldGroup;
+      console.log(group)
 
       // Assuming the group has a `fields` property
       if (group.fields) {
         group.fields.forEach(field => {
-          const fieldValid = field.validate(true);
-          if (!fieldValid) {
-            valid = false;
+          if (!(field instanceof Field)) {
+            console.error()
+            return;
+          } else {
+            const fieldValid = field.validate(true);
+            if (!fieldValid) {
+              valid = false;
+            }
           }
         });
       }
@@ -174,7 +187,65 @@ class Person {
   public getFullName(): string {
     return `${this.personalData.getField('first-name')!.value} ${this.personalData.getField('name')!.value}`.trim() || "Neue Person";
   }
+
+  public serialize(): object {
+    return {
+      personalData: {
+        fields: mapToObject(this.personalData.fields),
+      },
+      doctor: {
+        fields: mapToObject(this.doctor.fields),
+      },
+      health: {
+        fields: mapToObject(this.health.fields),
+      },
+      primaryRelative: {
+        fields: mapToObject(this.primaryRelative.fields),
+      },
+      secondaryRelative: {
+        fields: mapToObject(this.secondaryRelative.fields),
+      },
+    };
+  }
 }
+
+// Helper function to convert an object to a Map of Field instances
+function convertObjectToFields(fieldsObj: any): Map<string, Field> {
+  const fieldsMap = new Map<string, Field>();
+  Object.entries(fieldsObj).forEach(([key, fieldData]) => {
+    const field = new Field(fieldData as FieldData);
+    fieldsMap.set(key, field);
+  });
+  return fieldsMap;
+}
+
+// Helper function to deserialize a FieldGroup
+function deserializeFieldGroup(fieldGroupData: any): FieldGroup {
+  const fieldsMap = convertObjectToFields(fieldGroupData.fields); // Convert object fields to Field instances
+  return new FieldGroup(fieldsMap); // Create a new FieldGroup with the fields
+}
+
+// Main function to deserialize a Person
+function deserializePerson(data: any): Person {
+  return new Person(
+    deserializeFieldGroup(data.personalData),
+    deserializeFieldGroup(data.doctor),
+    deserializeFieldGroup(data.health),
+    deserializeFieldGroup(data.primaryRelative),
+    deserializeFieldGroup(data.secondaryRelative)
+  );
+}
+
+interface FieldData {
+  id: string;
+  label: string;
+  value: any;
+  required?: boolean;
+  type: string;
+  checked?: boolean;
+}
+
+
 
 class Field {
   public id: string;
@@ -184,19 +255,17 @@ class Field {
   public type: string;
   public checked: boolean;
 
-  constructor(input, index) {
-    if (input.type === 'radio' && !(input as HTMLInputElement).checked) {
-      return;
-    }
+  constructor(data: FieldData | null = null) {
+    if (!data) { return }
 
-    this.id = input.id || parameterize(input.dataset.name || `field ${index}`);
-    this.label = input.dataset.name || `field ${index}`;
-    this.value = input.value;
-    this.required = input.required || false;
-    this.type = input.type;
+    this.id = data.id || `field-${Math.random().toString(36).substring(2)}`; // Generating unique id if missing
+    this.label = data.label || `Unnamed Field`;
+    this.value = data.value || '';
+    this.required = data.required || false;
+    this.type = data.type || 'text';
 
-    if (isRadioInput(input) || isCheckboxInput(input)) {
-      this.checked = input.checked;
+    if (this.type === 'radio' || 'checkbox') {
+      this.checked = data.checked || false;
     }
   }
 
@@ -227,6 +296,26 @@ class Field {
   }
 }
 
+function FieldFromInput(input: FormElement, index): Field {
+  if (input.type === 'radio' && !(input as HTMLInputElement).checked) {
+    return new Field();
+  }
+
+  const field = new Field({
+    id: input.id || parameterize(input.dataset.name || `field ${index}`),
+    label: input.dataset.name || `field ${index}`,
+    value: input.value,
+    required: input.required || false,
+    type: input.type,
+  });
+
+  if (isRadioInput(input) || isCheckboxInput(input)) {
+    field.checked = input.checked;
+  }
+
+  return field;
+}
+
 class FormMessage {
   private messageFor: string;
   private component: HTMLElement;
@@ -249,16 +338,20 @@ class FormMessage {
   }
 
   // Method to display an info message
-  public info(message: string | null = null): void {
-    this.component.setAttribute('aria-live', 'polite');
-    this.setMessage(message, 'info');
+  public info(message: string | null = null, silent: boolean = false): void {
+    if (!silent) {
+      this.component.setAttribute('aria-live', 'polite');
+    }
+    this.setMessage(message, 'info', silent);
   }
 
   // Method to display an error message
-  public error(message: string | null = null): void {
-    this.component.setAttribute('role', 'alert');
-    this.component.setAttribute('aria-live', 'assertive');
-    this.setMessage(message, 'error');
+  public error(message: string | null = null, silent: boolean = false): void {
+    if (!silent) {
+      this.component.setAttribute('role', 'alert');
+      this.component.setAttribute('aria-live', 'assertive');
+    }
+    this.setMessage(message, 'error', silent);
   }
 
   // Method to reset/hide the message
@@ -267,7 +360,7 @@ class FormMessage {
   }
 
   // Private method to set the message and style
-  private setMessage(message: string | null = null, type: 'info' | 'error'): void {
+  private setMessage(message: string | null = null, type: 'info' | 'error', silent: boolean = false): void {
     if (this.messageElement && message) {
       this.messageElement.textContent = message;
     } else if (!this.messageElement) {
@@ -278,10 +371,12 @@ class FormMessage {
     this.component.classList.remove('info', 'error');
     this.component.classList.add(type);
 
+    if (silent) return;
+
     this.component.scrollIntoView({
       behavior: "smooth",
       block: "center"
-    })
+    });
   }
 }
 
@@ -411,7 +506,7 @@ class FormArray {
 
   private initialize() {
     this.cancelButtons.forEach(button => {
-      button.addEventListener('click', this.closeModal.bind(this));
+      button.addEventListener('click', () => this.handleCancel());
     });
 
     (this.modalInputs as NodeListOf<HTMLInputElement>)
@@ -425,7 +520,7 @@ class FormArray {
       })
 
     this.addButton.addEventListener('click', () => this.handleAddButtonClick());
-    this.saveButton.addEventListener('click', () => this.savePersonFromModal()); // Change this for dev
+    this.saveButton.addEventListener('click', () => this.savePersonFromModal()); // Change this for dev, validate: false
 
     this.renderList();
     this.closeModal();
@@ -446,6 +541,32 @@ class FormArray {
     }
 
     this.openAccordion(0);
+    this.initModal();
+  }
+
+  private initModal() {
+    const modalContent: HTMLElement = this.modal.querySelector(MODAL_SCROLL_SELECTOR)!;
+    const stickyFooter: HTMLElement | null = this.modal.querySelector(MODAL_STICKY_BOTTOM_SELECTOR);
+
+    if (!modalContent || !stickyFooter) {
+      console.warn('Init modal: required scroll elements not found');
+      return;
+    }
+
+    modalContent.addEventListener('scroll', () => {
+      const scrollHeight = modalContent.scrollHeight;
+      const scrollTop = modalContent.scrollTop;
+      const clientHeight = modalContent.clientHeight;
+
+      const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
+      console.log('Is scrolled to bottom:', isScrolledToBottom);
+
+      if (isScrolledToBottom) {
+        stickyFooter.classList.remove('modal-scroll-shadow');
+      } else {
+        stickyFooter.classList.add('modal-scroll-shadow');
+      }
+    });
   }
 
   private openAccordion(index: number) {
@@ -459,6 +580,14 @@ class FormArray {
     }
   }
 
+  private handleCancel() {
+    const really = new Promise(() => {
+
+    })
+
+    this.closeModal()
+  }
+
   private handleAddButtonClick() {
     this.clearModal();
     this.setLiveText("state", "Hinzufügen");
@@ -468,7 +597,7 @@ class FormArray {
   }
 
   private savePersonFromModal(validate: boolean = true) {
-    const listValid = this.validateModal(validate)
+    const listValid = this.validateModal(validate);
     if (!listValid) {
       console.warn(`Couldn't save person. Please fill in all the values correctly.`);
       if (validate) return null;
@@ -479,6 +608,8 @@ class FormArray {
       this.renderList();
       this.closeModal();
     }
+
+    this.saveProgress();
   }
 
   private savePerson(person: Person): boolean {
@@ -540,6 +671,7 @@ class FormArray {
       this.people.delete(key); // Remove the person from the map
       this.renderList(); // Re-render the list
       this.closeModal();
+      this.saveProgress();
     });
 
     props.forEach(prop => {
@@ -596,7 +728,7 @@ class FormArray {
     if (this.people.size === 0) {
       console.warn("Bitte fügen Sie mindestens eine mietende Person hinzu.");
       this.formMessage.error(`Bitte fügen Sie mindestens eine mietende Person hinzu.`);
-      setTimeout(() => this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu."), 5000)
+      setTimeout(() => this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.", true), 5000);
       valid = false;
     } else {
       // Check if each person in the people collection is valid
@@ -628,7 +760,7 @@ class FormArray {
         this.setLiveText('full-name', editingPerson.getFullName() || 'Neue Person');
       });
     });
-    this.formMessage.info();
+    this.formMessage.info(undefined, true);
 
     this.openAccordion(0);
 
@@ -717,7 +849,6 @@ class FormArray {
     return -1; // Return -1 if no accordion is found
   }
 
-
   private extractData(): Person {
     const personData = new Person();
 
@@ -731,8 +862,8 @@ class FormArray {
       }
 
       groupInputs.forEach((input, index) => {
-        const field = new Field(input, index);
-        if (field.id) {
+        const field = FieldFromInput(input, index);
+        if (field?.id) {
           personData[groupName].fields.set(field.id, field);
         }
       });
@@ -740,6 +871,56 @@ class FormArray {
 
     console.log(personData);
     return personData;
+  }
+
+  /**
+   * Save the progress to localStorage
+   */
+  public saveProgress(): void {
+    // Serialize the people map to an object
+    const serializedPeople = peopleMapToObject(this.people);
+
+
+    // Store the serialized data in localStorage
+    try {
+      localStorage.setItem('formProgress', JSON.stringify(serializedPeople));
+      console.log("Form progress saved.");
+      console.log(serializedPeople);
+    } catch (error) {
+      console.error("Error saving form progress to localStorage:", error);
+    }
+  }
+
+  /**
+   * Load the saved progress from localStorage
+   */
+  public loadProgress(): void {
+    // Check if there's any saved data in localStorage
+    const savedData = localStorage.getItem('formProgress');
+
+    if (savedData) {
+      try {
+        const deserializedData = JSON.parse(savedData);
+
+        // Loop through the deserialized data and create Person instances
+        for (const key in deserializedData) {
+          if (deserializedData.hasOwnProperty(key)) {
+            const personData = deserializedData[key];
+            const person = deserializePerson(personData); // Deserialize the person object
+            if (this.savePerson(person)) {
+              this.renderList();
+              this.closeModal();
+            }
+          }
+        }
+
+        console.log("Form progress loaded.");
+      } catch (error) {
+        console.error("Error loading form progress from localStorage:", error);
+      }
+    } else {
+      console.log("No saved form progress found.");
+    }
   }
 }
 
@@ -806,6 +987,7 @@ class MultiStepForm {
 
     this.peopleArray = new FormArray(this.component, 'personArray');
     this.beilagenGroup = new FormGroup(this.component, ['upload', 'post'], 'validation message');
+    this.peopleArray.loadProgress();
 
     this.addCustomValidator(3, () => this.beilagenGroup.validate());
     this.addCustomValidator(2, () => this.peopleArray.validateArray());
@@ -843,14 +1025,14 @@ class MultiStepForm {
 
     console.log(formData);
 
-    this.onFormSuccess(); // TEMPORARY ONLY
-    // const success = await sendFormData(formData);
+    // this.onFormSuccess(); // TEMPORARY ONLY
+    const success = await sendFormData(formData);
 
-    // if (success) {
-    //   this.onFormSuccess();
-    // } else {
-    //   this.onFormError();
-    // }
+    if (success) {
+      this.onFormSuccess();
+    } else {
+      this.onFormError();
+    }
   }
 
   private buildJsonForWebflow(): any {
@@ -899,7 +1081,7 @@ class MultiStepForm {
   private setupSteps(): void {
     this.formSteps.forEach((step, index) => {
       step.dataset.stepId = index.toString();
-      step.classList.toggle('hide', index !== 0);
+      step.classList.toggle('hide', index !== this.currentStep);
 
       step.querySelectorAll<HTMLInputElement>(FORM_INPUT_SELECTOR) // Type necessary for keydown event
         .forEach((input) => {
@@ -1044,8 +1226,8 @@ class MultiStepForm {
     const stepElement = this.formSteps[step];
     const stepInputs: NodeListOf<FormElement> = stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
     stepInputs.forEach((input, inputIndex) => {
-      const entry = new Field(input, inputIndex);
-      if (entry.id) {
+      const entry = FieldFromInput(input, inputIndex);
+      if (entry?.id) {
         fields.set(entry.id, entry);
       }
     });
@@ -1094,24 +1276,35 @@ function mapToObject(map: Map<any, any>): any {
   return obj;
 }
 
+/**
+ * Converts an object to a `Map`. The function can perform either shallow or deep conversion based on the `deep` argument.
+ * 
+ * @param {any} obj - The object to be converted to a `Map`. It can be any type, including nested objects.
+ * @param {boolean} [deep=false] - A flag that determines whether the conversion should be deep (recursive) or shallow. 
+ * If set to `true`, nested objects will be recursively converted into `Map` objects. If set to `false`, only the top-level
+ * properties will be converted, and nested objects will remain as plain objects.
+ * 
+ * @returns {Map<any, any>} A `Map` object representing the input `obj`, where keys are the same as the object's
+ * properties and values are the corresponding values of those properties.
+ */
+function objectToMap(obj: any, deep: boolean = false): Map<any, any> {
+  const map = new Map();
+  for (const [key, value] of Object.entries(obj)) {
+    // Check if deep conversion is requested
+    if (deep && value instanceof Object && !(value instanceof Map)) {
+      map.set(key, objectToMap(value, true)); // Recursively convert nested objects
+    } else {
+      map.set(key, value); // Set the value as is for shallow conversion or non-objects
+    }
+  }
+  return map;
+}
+
 function peopleMapToObject(people: Map<string, Person>): any {
   // Convert a Person's structure, which contains FieldGroups with fields as Maps
   const peopleObj: any = {};
   for (const [key, person] of people) {
-    peopleObj[key] = {
-      personalData: {
-        fields: mapToObject(person.personalData.fields),
-      },
-      doctor: {
-        fields: mapToObject(person.doctor.fields),
-      },
-      health: {
-        fields: mapToObject(person.health.fields),
-      },
-      relatives: {
-        fields: mapToObject(person.relatives.fields),
-      },
-    };
+    peopleObj[key] = person.serialize();
   }
   return peopleObj;
 }
@@ -1325,8 +1518,6 @@ function validateFields(
 }
 
 window.PEAKPOINT = {}
-
-// window.PEAKPOINT.people = people;
 
 const form: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
 form?.classList.remove('w-form');
