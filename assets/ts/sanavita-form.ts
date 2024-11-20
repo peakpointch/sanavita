@@ -159,17 +159,15 @@ class Person {
 
     // Loop over the groups within the person object
     const groups = Object.keys(this) as GroupName[];
-    console.log(groups);
 
     groups.forEach(groupName => {
       const group = this[groupName] as FieldGroup;
-      console.log(group)
 
       // Assuming the group has a `fields` property
       if (group.fields) {
         group.fields.forEach(field => {
           if (!(field instanceof Field)) {
-            console.error()
+            console.error(`Validate Person: field object is not of instance "Field"`)
             return;
           } else {
             const fieldValid = field.validate(true);
@@ -190,21 +188,11 @@ class Person {
 
   public serialize(): object {
     return {
-      personalData: {
-        fields: mapToObject(this.personalData.fields),
-      },
-      doctor: {
-        fields: mapToObject(this.doctor.fields),
-      },
-      health: {
-        fields: mapToObject(this.health.fields),
-      },
-      primaryRelative: {
-        fields: mapToObject(this.primaryRelative.fields),
-      },
-      secondaryRelative: {
-        fields: mapToObject(this.secondaryRelative.fields),
-      },
+      personalData: mapToObject(this.personalData.fields),
+      doctor: mapToObject(this.doctor.fields),
+      health: mapToObject(this.health.fields),
+      primaryRelative: mapToObject(this.primaryRelative.fields),
+      secondaryRelative: mapToObject(this.secondaryRelative.fields),
     };
   }
 }
@@ -221,7 +209,7 @@ function convertObjectToFields(fieldsObj: any): Map<string, Field> {
 
 // Helper function to deserialize a FieldGroup
 function deserializeFieldGroup(fieldGroupData: any): FieldGroup {
-  const fieldsMap = convertObjectToFields(fieldGroupData.fields); // Convert object fields to Field instances
+  const fieldsMap = convertObjectToFields(fieldGroupData); // Convert object fields to Field instances
   return new FieldGroup(fieldsMap); // Create a new FieldGroup with the fields
 }
 
@@ -245,8 +233,6 @@ interface FieldData {
   checked?: boolean;
 }
 
-
-
 class Field {
   public id: string;
   public label: string;
@@ -265,7 +251,13 @@ class Field {
     this.type = data.type || 'text';
 
     if (this.type === 'radio' || 'checkbox') {
+
       this.checked = data.checked || false;
+    }
+
+    if (this.type === 'checkbox' && !this.checked) {
+      console.log(this.label, this.type, this.checked, data.checked)
+      this.value = "Nicht angewählt";
     }
   }
 
@@ -307,11 +299,8 @@ function FieldFromInput(input: FormElement, index): Field {
     value: input.value,
     required: input.required || false,
     type: input.type,
+    checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : undefined,
   });
-
-  if (isRadioInput(input) || isCheckboxInput(input)) {
-    field.checked = input.checked;
-  }
 
   return field;
 }
@@ -1038,7 +1027,7 @@ class MultiStepForm {
   private buildJsonForWebflow(): any {
     const fields = {
       ...mapToObject(this.getAllFormData()),
-      people: peopleMapToObject(this.peopleArray.people)
+      people: JSON.stringify(peopleMapToObject(this.peopleArray.people))
     };
 
     const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
@@ -1050,7 +1039,7 @@ class MultiStepForm {
       source: window.location.href,
       test: false,
       fields: {
-        fields: JSON.stringify(fields),
+        ...fields,
         "g-recaptcha-response": recaptcha
       },
       dolphin: false,
