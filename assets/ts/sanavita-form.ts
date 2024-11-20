@@ -195,6 +195,22 @@ class Person {
       secondaryRelative: mapToObject(this.secondaryRelative.fields),
     };
   }
+
+  public flatten(prefix: string): object {
+    const fields: any = {};
+
+    const groupNames = Object.keys(this) as GroupName[];
+    for (const groupName of groupNames) {
+      const group = this[groupName];
+
+      group.fields.forEach((field, index) => {
+        const fieldName = `${prefix}_${groupName}_${field.id}`;
+        fields[fieldName] = field.value;
+      });
+    }
+
+    return fields;
+  }
 }
 
 // Helper function to convert an object to a Map of Field instances
@@ -1025,11 +1041,6 @@ class MultiStepForm {
   }
 
   private buildJsonForWebflow(): any {
-    const fields = {
-      ...mapToObject(this.getAllFormData()),
-      people: JSON.stringify(peopleMapToObject(this.peopleArray.people))
-    };
-
     const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
 
     return {
@@ -1039,7 +1050,8 @@ class MultiStepForm {
       source: window.location.href,
       test: false,
       fields: {
-        ...fields,
+        ...mapToObject(this.getAllFormData(), false),
+        ...flattenPeople(this.peopleArray.people),
         "g-recaptcha-response": recaptcha
       },
       dolphin: false,
@@ -1217,7 +1229,7 @@ class MultiStepForm {
     stepInputs.forEach((input, inputIndex) => {
       const entry = FieldFromInput(input, inputIndex);
       if (entry?.id) {
-        fields.set(entry.id, entry);
+        fields.set(entry.id, entry.value);
       }
     });
 
@@ -1256,11 +1268,11 @@ function toDataset(str) {
   return `${str.charAt(0).toUpperCase() + str.slice(1)}`;
 }
 
-function mapToObject(map: Map<any, any>): any {
+function mapToObject(map: Map<any, any>, stringify: boolean = false): any {
   // Convert a Map to a plain object
   const obj: any = {};
   for (const [key, value] of map) {
-    obj[key] = value instanceof Map ? mapToObject(value) : value; // Recursively convert if value is a Map
+    obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value; // Recursively convert if value is a Map
   }
   return obj;
 }
@@ -1296,6 +1308,19 @@ function peopleMapToObject(people: Map<string, Person>): any {
     peopleObj[key] = person.serialize();
   }
   return peopleObj;
+}
+
+function flattenPeople(people: Map<string, Person>): any {
+  let peopleObj: any = {};
+  for (const [key, person] of people) {
+    peopleObj = { ...peopleObj, ...person.flatten(key) }
+  }
+  return peopleObj;
+}
+
+function capitalize(str: string): string {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 function reinsertElement(element: HTMLElement): void {
@@ -1338,6 +1363,8 @@ async function sendFormData(formData): Promise<boolean> {
     },
     body: JSON.stringify(formData),
   };
+
+  // return true;
 
   try {
     const response = await fetch(url, request);
