@@ -14,6 +14,7 @@ const FORM_INPUT_SELECTOR: string = `.w-input, .w-select, ${RADIO_INPUT_SELECTOR
 const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
 const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
 const STEPS_SELECTOR: string = '[data-steps-element="step"]';
+const STEPS_NAVIGATION_SELECTOR: string = '[data-steps-element="navigation"]';
 const STEPS_PAGINATION_SELECTOR: string = '[data-steps-element="pagination"]';
 const STEPS_PAGINATION_ITEM_SELECTOR: string = 'button[data-step-target]';
 const STEPS_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
@@ -42,6 +43,11 @@ const pageId: string = document.documentElement.dataset.wfPage || '';
 
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 type GroupName = 'personalData' | 'doctor' | 'health' | 'primaryRelative' | 'secondaryRelative';
+type MutliStepFormSettings = {
+  navigation: {
+    hideInStep: number
+  }
+};
 
 interface Window {
   PEAKPOINT: any;
@@ -498,8 +504,8 @@ class FormArray {
     this.list = this.container.querySelector(ARRAY_LIST_SELECTOR)!;
     this.template = this.list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
     this.addButton = this.container.querySelector(ARRAY_ADD_SELECTOR)!;
-    this.formMessage = new FormMessage('FormArray', this.id.toString())
-    this.modal = document.querySelector(MODAL_SELECTOR)!;
+    this.formMessage = new FormMessage('FormArray', this.id.toString());
+    this.modal = document.querySelector(MODAL_SELECTOR + `[data-modal-for="person"]`)!;
     this.modalForm = document.querySelector(FORM_SELECTOR)!;
     this.saveButton = this.modal.querySelector(ARRAY_SAVE_SELECTOR)!;
     this.cancelButtons = this.modal.querySelectorAll(ARRAY_CANCEL_SELECTOR)!;
@@ -933,9 +939,10 @@ class MultiStepForm {
   private component: HTMLElement;
   private formElement: HTMLFormElement;
   private formSteps: NodeListOf<HTMLElement>;
+  private navigationElement: HTMLElement;
   private paginationItems: NodeListOf<HTMLElement>;
-  private buttonNext: HTMLElement;
-  private buttonPrev: HTMLElement;
+  private buttonsNext: NodeListOf<HTMLElement>;
+  private buttonsPrev: NodeListOf<HTMLElement>;
   private currentStep: number = 0;
   private customValidators: Array<Array<() => boolean>> = [];
   private peopleArray: FormArray;
@@ -943,10 +950,12 @@ class MultiStepForm {
   private successElement: HTMLElement | null;
   private errorElement: HTMLElement | null;
   private submitButton: HTMLInputElement | null;
+  private settings: MutliStepFormSettings;
 
-  constructor(component: HTMLElement) {
+  constructor(component: HTMLElement, settings: MutliStepFormSettings) {
     this.component = component;
     this.formElement = this.component.querySelector(FORM_SELECTOR) as HTMLFormElement;
+    this.settings = settings;
 
     if (!this.formElement) {
       throw new Error("Form element not found within the specified component.");
@@ -954,8 +963,9 @@ class MultiStepForm {
 
     this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
     this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
-    this.buttonNext = this.component.querySelector(STEPS_NEXT_SELECTOR)!;
-    this.buttonPrev = this.component.querySelector(STEPS_PREV_SELECTOR)!;
+    this.navigationElement = this.component.querySelector(STEPS_NAVIGATION_SELECTOR)!;
+    this.buttonsNext = this.component.querySelectorAll(STEPS_NEXT_SELECTOR);
+    this.buttonsPrev = this.component.querySelectorAll(STEPS_PREV_SELECTOR);
 
     // Handle optional UI elements
     this.successElement = this.component.querySelector(FORM_SUCCESS_SELECTOR);
@@ -1105,14 +1115,18 @@ class MultiStepForm {
       });
     });
 
-    this.buttonNext.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.changeToNext();
+    this.buttonsNext.forEach(button => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.changeToNext();
+      });
     });
 
-    this.buttonPrev.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.changeToPrevious();
+    this.buttonsPrev.forEach(button => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        this.changeToPrevious();
+      });
     });
   }
 
@@ -1169,17 +1183,34 @@ class MultiStepForm {
   }
 
   private updatePagination(target: number): void {
-    if (target === 0) {
-      this.buttonPrev.style.visibility = 'hidden';
-      this.buttonPrev.style.opacity = '0';
-    } else if (target === this.formSteps.length - 1) {
-      this.buttonNext.style.visibility = 'hidden';
-      this.buttonNext.style.opacity = '0';
+    console.log(`UPDATE PAGINATION TARGET = ${target}`);
+
+    this.buttonsPrev.forEach((button) => {
+      if (target === 0) {
+        button.style.visibility = 'hidden';
+        button.style.opacity = '0';
+      } else {
+        button.style.visibility = 'visible';
+        button.style.opacity = '1';
+      }
+    });
+
+    this.buttonsNext.forEach((button) => {
+      if (target === this.formSteps.length - 1) {
+        button.style.visibility = 'hidden';
+        button.style.opacity = '0';
+      } else {
+        button.style.visibility = 'visible';
+        button.style.opacity = '1';
+      }
+    });
+
+    if (target === this.settings.navigation.hideInStep) {
+      this.navigationElement.style.visibility = 'hidden';
+      this.navigationElement.style.opacity = '0';
     } else {
-      this.buttonPrev.style.visibility = 'visible';
-      this.buttonPrev.style.opacity = '1';
-      this.buttonNext.style.visibility = 'visible';
-      this.buttonNext.style.opacity = '1';
+      this.navigationElement.style.removeProperty('visibility');
+      this.navigationElement.style.removeProperty('opacity');
     }
 
     this.paginationItems.forEach((step, index) => {
@@ -1553,6 +1584,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const inizialized = new MultiStepForm(form!);
+  const inizialized = new MultiStepForm(form!, {
+    navigation: {
+      hideInStep: 0,
+    }
+  });
   console.log("Form initialized:", inizialized)
 });
