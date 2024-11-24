@@ -9,7 +9,8 @@ const FORM_ERROR_SELECTOR: string = '[data-form-element="error"]';
 const FORM_SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
 const CHECKBOX_INPUT_SELECTOR: string = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
 const RADIO_INPUT_SELECTOR: string = '.w-radio input[type="radio"]';
-const FORM_INPUT_SELECTOR: string = `.w-input, .w-select, ${RADIO_INPUT_SELECTOR}, ${CHECKBOX_INPUT_SELECTOR}`;
+const FORM_INPUT_SELECTOR_LIST: string[] = ['.w-input', '.w-select', RADIO_INPUT_SELECTOR, CHECKBOX_INPUT_SELECTOR];
+const FORM_INPUT_SELECTOR: string = FORM_INPUT_SELECTOR_LIST.join(', ');
 
 const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
 const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
@@ -43,11 +44,19 @@ const pageId: string = document.documentElement.dataset.wfPage || '';
 
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 type GroupName = 'personalData' | 'doctor' | 'health' | 'primaryRelative' | 'secondaryRelative';
+type Validator = () => boolean;
 type MutliStepFormSettings = {
   navigation: {
     hideInStep: number
-  }
+  },
+  excludeInputSelectors: string[]
 };
+type CustomFormComponent = {
+  step: number,
+  instance: any,
+  validator: Validator;
+  getData?: () => {};
+}
 
 interface Window {
   PEAKPOINT: any;
@@ -331,6 +340,7 @@ class FormMessage {
   private messageFor: string;
   private component: HTMLElement;
   private messageElement: HTMLElement | null;
+  public initialized: boolean = false;
 
   constructor(componentName: string, messageFor: string) {
     this.messageFor = messageFor;
@@ -339,17 +349,19 @@ class FormMessage {
     );
 
     if (!component) {
-      console.warn('No FormMessage component was found.');
+      console.warn(`No FormMessage component was found: ${componentName}, ${this.messageFor}`);
       return;
     }
 
     this.component = component;
     this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
     this.reset();
+    this.initialized = true;
   }
 
   // Method to display an info message
   public info(message: string | null = null, silent: boolean = false): void {
+    if (!this.initialized) return;
     if (!silent) {
       this.component.setAttribute('aria-live', 'polite');
     }
@@ -358,6 +370,7 @@ class FormMessage {
 
   // Method to display an error message
   public error(message: string | null = null, silent: boolean = false): void {
+    if (!this.initialized) return;
     if (!silent) {
       this.component.setAttribute('role', 'alert');
       this.component.setAttribute('aria-live', 'assertive');
@@ -367,11 +380,13 @@ class FormMessage {
 
   // Method to reset/hide the message
   public reset(): void {
+    if (!this.initialized) return;
     this.component.classList.remove('info', 'error');
   }
 
   // Private method to set the message and style
   private setMessage(message: string | null = null, type: 'info' | 'error', silent: boolean = false): void {
+    if (!this.initialized) return;
     if (this.messageElement && message) {
       this.messageElement.textContent = message;
     } else if (!this.messageElement) {
@@ -479,6 +494,147 @@ class FormGroup {
   }
 }
 
+class FormDecision {
+  private component: HTMLElement;
+  private paths: HTMLElement[] = [];
+  private id: string;
+  private formMessage: FormMessage;
+  private decisionInputs: NodeListOf<HTMLInputElement>;
+  private errorMessages: { [key: string]: string } = {};
+  private defaultErrorMessage: string = 'Please complete the required fields.';
+
+  constructor(component: HTMLElement | null, id: string | undefined) {
+    if (!component || !id) {
+      console.error(`FormDecision: Component not found.`);
+      return;
+    } else if (!component.hasAttribute('data-decision-component')) {
+      console.error(`FormDecision: Selected element is not a FormDecision component:`, component);
+      return;
+    }
+
+    this.component = component;
+    this.id = id;
+    this.formMessage = new FormMessage('FormDecision', id); // Assuming you want to initialize a FormMessage
+    this.initialize();
+  }
+
+  private initialize() {
+    // Find the decision element wrapper
+    const decisionFieldsWrapper: HTMLElement = this.component.querySelector('[data-decision-element="decision"]') || this.component;
+    this.decisionInputs = decisionFieldsWrapper.querySelectorAll<HTMLInputElement>('input[data-decision-action]');
+
+    // Ensure there are decision inputs
+    if (this.decisionInputs.length === 0) {
+      console.warn(`Decision component "${this.id}" does not contain any decision input elements.`);
+      return;
+    }
+
+    // Iterate through the decision inputs
+    this.decisionInputs.forEach((input) => {
+      const path: HTMLElement | null = this.component.querySelector(`[data-decision-path="${input.dataset.decisionAction || input.value}"]`);
+      if (path) {
+        path.style.display = 'none';
+        this.paths.push(path);
+      }
+
+      input.addEventListener('change', (event) => {
+        this.handleChange(path, event);
+        this.formMessage.reset();
+      });
+    });
+
+    this.component.addEventListener('change', () => this.formMessage.reset());
+  }
+
+  private handleChange(path: HTMLElement | null, event: Event) {
+    this.paths.forEach((entry) => {
+      entry.style.display = 'none';
+    });
+
+    if (path) {
+      path.style.removeProperty('display');
+    }
+
+    this.updateRequiredAttributes();
+  }
+
+  private getSelectedInput(): HTMLInputElement | undefined {
+    return Array.from(this.decisionInputs).find(input => input.checked);
+  }
+
+  public validate(): boolean {
+    const selectedInput = this.getSelectedInput();
+    const { valid: decisionValid } = validateFields(this.decisionInputs)
+    if (!decisionValid || !selectedInput) {
+      console.warn('No decision selected!');
+      this.handleValidationMessages(false);
+      return false;
+    }
+
+    const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
+    const pathIndex = this.paths.findIndex(path => path.dataset.decisionPath === pathId);
+
+    // If no corresponding path, consider it valid
+    const isValid = pathIndex === -1 || this.checkPathValidity(pathIndex);
+    this.handleValidationMessages(isValid);
+
+    return isValid;
+  }
+
+  public setErrorMessages(messages: { [key: string]: string }, defaultMessage?: string): void {
+    this.errorMessages = messages;
+    if (defaultMessage) {
+      this.defaultErrorMessage = defaultMessage;
+    }
+  }
+
+  private checkPathValidity(pathIndex: number): boolean {
+    // Get the path element and the form inputs inside it
+    const pathElement = this.paths[pathIndex];
+    const inputs: NodeListOf<FormElement> = pathElement.querySelectorAll(FORM_INPUT_SELECTOR);
+
+    // Validate the fields within the path element
+    const { valid, invalidField } = validateFields(inputs, true);
+
+    return valid;
+  }
+
+  private updateRequiredAttributes() {
+    // For all paths, make inputs non-required by default
+    this.paths.forEach((path) => {
+      const inputs: NodeListOf<FormElement> = path.querySelectorAll('input, select, textarea');
+      inputs.forEach((input) => {
+        input.required = false;
+      });
+    });
+
+    // For the currently selected path, set inputs with [data-decision-required="required"] as required
+    const selectedInput = this.component.querySelector<HTMLInputElement>('input[data-decision-action]:checked');
+    if (selectedInput) {
+      const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
+      const selectedPath = this.paths.find((path) => path.dataset.decisionPath === pathId);
+
+      if (selectedPath) {
+        const requiredFields: NodeListOf<FormElement> = selectedPath.querySelectorAll('[data-decision-required="required"], [data-decision-required="true"]');
+        requiredFields.forEach((input) => {
+          input.required = true;
+        });
+      }
+    }
+  }
+
+  private handleValidationMessages(currentGroupValid: boolean): void {
+    if (!currentGroupValid) {
+      const selectedInput = this.getSelectedInput();
+      const pathId = selectedInput?.dataset.decisionAction || selectedInput?.value;
+      const customMessage = this.errorMessages[pathId!] || this.defaultErrorMessage;
+      this.formMessage.error(customMessage);
+    } else {
+      this.formMessage.reset();
+    }
+  }
+}
+
 class FormArray {
   public id: string | number;
   public people: Map<string, Person>;
@@ -487,13 +643,14 @@ class FormArray {
   private template: HTMLElement;
   private formMessage: FormMessage;
   private addButton: HTMLElement;
-  private modal: HTMLElement;
+  public modal: HTMLElement;
   private modalForm: HTMLFormElement;
   private saveButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
   private modalInputs: NodeListOf<FormElement>;
   private groupElements: NodeListOf<FormElement>;
   private accordionList: Accordion[] = [];
+  public initialized: boolean = false;
 
   private editingKey: string | null = null;
 
@@ -553,6 +710,7 @@ class FormArray {
 
     this.openAccordion(0);
     this.initModal();
+    this.initialized = true;
   }
 
   private initModal() {
@@ -570,7 +728,6 @@ class FormArray {
       const clientHeight = modalContent.clientHeight;
 
       const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
-      console.log('Is scrolled to bottom:', isScrolledToBottom);
 
       if (isScrolledToBottom) {
         stickyFooter.classList.remove('modal-scroll-shadow');
@@ -592,10 +749,6 @@ class FormArray {
   }
 
   private handleCancel() {
-    const really = new Promise(() => {
-
-    })
-
     this.closeModal()
   }
 
@@ -657,7 +810,7 @@ class FormArray {
       this.people.forEach((person, key) => this.renderPerson(person, key));
       this.formMessage.reset();
     } else {
-      this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.");
+      this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.", !this.initialized);
     }
   }
 
@@ -732,7 +885,7 @@ class FormArray {
     });
   }
 
-  public validateArray(): boolean {
+  public validate(): boolean {
     let valid = true;
 
     // Validate if there are any people in the array (check if the `people` map has any entries)
@@ -771,7 +924,7 @@ class FormArray {
         this.setLiveText('full-name', editingPerson.getFullName() || 'Neue Person');
       });
     });
-    this.formMessage.info(undefined, true);
+    this.formMessage.reset();
 
     this.openAccordion(0);
 
@@ -786,10 +939,12 @@ class FormArray {
     document.body.style.removeProperty("overflow");
     this.modal.classList.add('is-closed');
     this.modal.dataset.state = 'closed';
-    this.list.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    })
+    if (this.initialized) {
+      this.list.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      })
+    }
     setTimeout(() => {
       this.modal.style.display = 'none';
     }, 500);
@@ -880,7 +1035,6 @@ class FormArray {
       });
     });
 
-    console.log(personData);
     return personData;
   }
 
@@ -936,21 +1090,20 @@ class FormArray {
 }
 
 class MultiStepForm {
-  private component: HTMLElement;
-  private formElement: HTMLFormElement;
-  private formSteps: NodeListOf<HTMLElement>;
+  public component: HTMLElement;
+  public formElement: HTMLFormElement;
+  public formSteps: NodeListOf<HTMLElement>;
   private navigationElement: HTMLElement;
   private paginationItems: NodeListOf<HTMLElement>;
   private buttonsNext: NodeListOf<HTMLElement>;
   private buttonsPrev: NodeListOf<HTMLElement>;
   private currentStep: number = 0;
-  private customValidators: Array<Array<() => boolean>> = [];
-  private peopleArray: FormArray;
-  private beilagenGroup: FormGroup;
+  private customComponents: Array<CustomFormComponent> = [];
   private successElement: HTMLElement | null;
   private errorElement: HTMLElement | null;
   private submitButton: HTMLInputElement | null;
   private settings: MutliStepFormSettings;
+  public initialized: boolean = false;
 
   constructor(component: HTMLElement, settings: MutliStepFormSettings) {
     this.component = component;
@@ -975,13 +1128,6 @@ class MultiStepForm {
     this.initialize();
   }
 
-  public addCustomValidator(step: number, validator: () => boolean): void {
-    if (!this.customValidators[step]) {
-      this.customValidators[step] = [];
-    }
-    this.customValidators[step].push(validator);
-  }
-
   private initialize(): void {
     if (!this.component.getAttribute('data-steps-element')) {
       console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, this.component);
@@ -994,20 +1140,11 @@ class MultiStepForm {
     }
     initFormButtons(this.formElement);
     initCustomInputs(this.component);
-    initDecisions(this.component);
 
     this.setupSteps();
     this.initPagination();
-    this.changeToStep(this.currentStep, true);
+    this.changeToStep(this.currentStep);
 
-    this.peopleArray = new FormArray(this.component, 'personArray');
-    this.beilagenGroup = new FormGroup(this.component, ['upload', 'post'], 'validation message');
-    this.peopleArray.loadProgress();
-
-    this.addCustomValidator(3, () => this.beilagenGroup.validate());
-    this.addCustomValidator(2, () => this.peopleArray.validateArray());
-
-    this.component.addEventListener('changeStep', () => this.peopleArray.closeModal());
     this.formElement.setAttribute('novalidate', '');
     this.formElement.dataset.state = 'initialized';
 
@@ -1015,6 +1152,23 @@ class MultiStepForm {
       event.preventDefault();
       this.submitToWebflow();
     });
+
+    this.initialized = true;
+  }
+
+  public addCustomComponent(
+    step: number,
+    instance: any,
+    validator: () => boolean,
+    getData?: () => any
+  ): void {
+    const customComponent: CustomFormComponent = {
+      step: step,
+      instance: instance,
+      validator: validator,
+      getData: getData,
+    }
+    this.customComponents.push(customComponent);
   }
 
   private async submitToWebflow(): Promise<void> {
@@ -1041,6 +1195,8 @@ class MultiStepForm {
     console.log(formData);
 
     // this.onFormSuccess(); // TEMPORARY ONLY
+    // return;
+
     const success = await sendFormData(formData);
 
     if (success) {
@@ -1052,6 +1208,14 @@ class MultiStepForm {
 
   private buildJsonForWebflow(): any {
     const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
+    let customFields = {};
+    this.customComponents
+      .map(entry => {
+        customFields = {
+          ...customFields,
+          ...(entry.getData ? entry.getData() : {})
+        }
+      });
 
     return {
       name: this.formElement.dataset.name,
@@ -1061,7 +1225,7 @@ class MultiStepForm {
       test: false,
       fields: {
         ...mapToObject(this.getAllFormData(), false),
-        ...flattenPeople(this.peopleArray.people),
+        ...customFields,
         "g-recaptcha-response": recaptcha
       },
       dolphin: false,
@@ -1069,6 +1233,7 @@ class MultiStepForm {
   }
 
   private onFormSuccess(): void {
+    if (this.errorElement) this.errorElement.style.display = 'none';
     if (this.successElement) this.successElement.style.display = 'block';
     this.formElement.style.display = 'none';
     this.formElement.dataset.state = 'success';
@@ -1081,6 +1246,7 @@ class MultiStepForm {
 
   private onFormError(): void {
     if (this.errorElement) this.errorElement.style.display = 'block';
+    if (this.successElement) this.successElement.style.display = 'none';
     this.formElement.dataset.state = 'error';
     this.formElement.dispatchEvent(new CustomEvent('formError'));
 
@@ -1142,18 +1308,17 @@ class MultiStepForm {
     }
   }
 
-  public changeToStep(target: number, init = false): void {
-    if (this.currentStep === target && !init) {
-      console.log('Change Form Step: Target step equals current step.');
-      console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
+  public changeToStep(target: number): void {
+    if (this.currentStep === target && this.initialized) {
+      // console.log('Change Form Step: Target step equals current step.');
+      // console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
       return;
     }
 
-    if (target > this.currentStep && !init) {
+    if (target > this.currentStep && this.initialized) {
       for (let step = this.currentStep; step < target; step++) {
         // Validate standard fields in the current step
         if (!this.validateCurrentStep(step)) {
-          console.warn(`Standard validation failed for step: ${step + 1}/${this.formSteps.length}`);
           this.changeToStep(step);
           return;
         }
@@ -1183,8 +1348,6 @@ class MultiStepForm {
   }
 
   private updatePagination(target: number): void {
-    console.log(`UPDATE PAGINATION TARGET = ${target}`);
-
     this.buttonsPrev.forEach((button) => {
       if (target === 0) {
         button.style.visibility = 'hidden';
@@ -1234,19 +1397,33 @@ class MultiStepForm {
   }
 
   public validateCurrentStep(step: number): boolean {
+    const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
     const currentStepElement = this.formSteps[step];
     const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
-    let { valid, invalidField } = validateFields(inputs);
+
+    const filteredInputs = Array.from(inputs).filter(input => {
+      // Check if the input matches any exclude selectors or is inside an excluded wrapper
+      const isExcluded = this.settings.excludeInputSelectors.some(selector => {
+        return input.closest(`${selector}`) !== null || input.matches(selector);
+      });
+      return !isExcluded;
+    });
+
+    let { valid } = validateFields(filteredInputs);
 
     if (!valid) {
-      console.warn(`STANDARD VALIDATION: NOT VALID`);
+      console.warn(`${basicError}: Standard validation is not valid`);
       return valid;
     }
 
+    const customValidators: Validator[] = this.customComponents
+      .filter(entry => entry.step === step)
+      .map(entry => () => entry.validator());
+
     // Custom validations
-    const customValid = this.customValidators[step]?.every((validator) => validator()) ?? true;
+    const customValid = customValidators?.every((validator) => validator()) ?? true;
     if (!customValid) {
-      console.warn(`CUSTOM VALIDATION: NOT VALID`);
+      console.warn(`${basicError}: Custom validation is not valid`);
     }
 
     return valid && customValid;
@@ -1500,42 +1677,8 @@ function initCustomInputs(container: HTMLElement) {
   });
 }
 
-function initDecisions(component: HTMLElement) {
-  const decisionGroups = component.querySelectorAll<HTMLElement>('[data-decision-group]');
-
-  decisionGroups.forEach(group => {
-    const radios = group.querySelectorAll<HTMLInputElement>('input[data-decision]');
-    const targetGroup = group.dataset.decisionGroup;
-    const extraFieldsWrapper = document.querySelector<HTMLElement>(`[data-decision-extra-fields="${targetGroup}"]`);
-    // const inputs: NodeListOf<FormElement> = group.querySelectorAll('input, textarea, select');
-
-    if (radios.length === 0) {
-      console.error(`Decision group "${targetGroup}" does not contain any decision input elements.`);
-      return;
-    }
-
-    if (!extraFieldsWrapper) {
-      console.error(`Extra fields container for decision group "${targetGroup}" not found.`);
-      return;
-    }
-
-    // Initially hide the extra fields container
-    extraFieldsWrapper.style.display = 'none';
-
-    // Event delegation for all radios within the group
-    group.addEventListener('change', (event) => {
-      const target = event.target as HTMLInputElement;
-      if (target.matches('input[data-decision]') && target.dataset.decision === 'show') {
-        extraFieldsWrapper.style.display = 'block';
-      } else {
-        extraFieldsWrapper.style.display = 'none';
-      }
-    });
-  });
-}
-
 function validateFields(
-  inputs: NodeListOf<FormElement>,
+  inputs: NodeListOf<FormElement> | FormElement[],
   report: boolean = true
 ): {
   valid: boolean,
@@ -1550,8 +1693,14 @@ function validateFields(
       if (report && !invalidField) {
         input.reportValidity();
         input.classList.add('has-error');
+        if (isCheckboxInput(input)) {
+          input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.add('has-error');
+        }
         input.addEventListener('change', () => {
-          input.classList.remove('has-error')
+          input.classList.remove('has-error');
+          if (isCheckboxInput(input)) {
+            input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove('has-error');
+          }
         }, { once: true });
         invalidField = input; // Store the first invalid field
       }
@@ -1564,12 +1713,52 @@ function validateFields(
   return { valid, invalidField }
 }
 
-window.PEAKPOINT = {}
+function decisionSelector(id?: number | string) {
+  return id ? `[data-decision-component="${id}"]` : `[data-decision-component]`;
+}
 
-const form: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
-form?.classList.remove('w-form');
+function initializeFormDecisions(
+  form: MultiStepForm,
+  errorMessages: { [id: string]: { [key: string]: string } },
+  defaultMessages: { [id: string]: string } = {}
+): void {
+  form.formSteps.forEach((step, stepIndex) => {
+    const formDecisions = step.querySelectorAll<HTMLElement>(decisionSelector());
 
-document.addEventListener('DOMContentLoaded', () => {
+    formDecisions.forEach(element => {
+      const id = element.dataset.decisionComponent;
+      const decision = new FormDecision(element, id);
+
+      // Set error messages for this FormDecision if available
+      if (id && errorMessages[id]) {
+        decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
+      }
+
+      // Add the FormDecision as a custom component to the form
+      form.addCustomComponent(stepIndex, decision, () => decision.validate());
+    });
+  });
+}
+
+function initializeOtherFormDecisions(
+  form: HTMLElement,
+  errorMessages: { [id: string]: { [key: string]: string } },
+  defaultMessages: { [id: string]: string } = {}
+): void {
+  const formDecisions = form.querySelectorAll<HTMLElement>(decisionSelector());
+
+  formDecisions.forEach(element => {
+    const id = element.dataset.decisionComponent;
+    const decision = new FormDecision(element, id);
+
+    // Set error messages for this FormDecision if available
+    if (id && errorMessages[id]) {
+      decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
+    }
+  });
+}
+
+function insertSearchParamValues(): void {
   if (window.location.search) {
     const params = new URLSearchParams(window.location.search);
     const selectElement = document.querySelector('#wohnung') as HTMLInputElement;
@@ -1583,11 +1772,47 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn(`No matching option for value: ${wohnungValue}`);
     }
   }
+}
 
-  const inizialized = new MultiStepForm(form!, {
+window.PEAKPOINT = {}
+
+const formElement: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
+formElement?.classList.remove('w-form');
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!formElement) {
+    console.error('Form not found.')
+    return;
+  }
+
+  const peopleArray = new FormArray(formElement, 'personArray');
+  const FORM = new MultiStepForm(formElement, {
     navigation: {
       hideInStep: 0,
-    }
+    },
+    excludeInputSelectors: [
+      '[data-decision-path="upload"]',
+      '[data-decision-component]',
+    ]
   });
-  console.log("Form initialized:", inizialized)
+
+  FORM.addCustomComponent(2, peopleArray, () => peopleArray.validate(), () => flattenPeople(peopleArray.people));
+  FORM.component.addEventListener('changeStep', () => peopleArray.closeModal());
+
+  const errorMessages = {
+    "beilagenSenden": {
+      "upload": "Bitte laden Sie alle Beilagen hoch."
+    }
+  }
+
+  const defaultMessages = {
+    "beilagenSenden": `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
+  }
+
+  initializeOtherFormDecisions(peopleArray.modal, errorMessages, defaultMessages);
+  initializeFormDecisions(FORM, errorMessages, defaultMessages);
+  insertSearchParamValues();
+  peopleArray.loadProgress();
+
+  console.log("Form initialized:", FORM.initialized, FORM)
 });
