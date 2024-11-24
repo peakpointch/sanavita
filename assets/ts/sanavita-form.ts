@@ -1191,12 +1191,9 @@ class MultiStepForm {
     }
 
     const formData = this.buildJsonForWebflow();
-
     console.log(formData);
 
-    // this.onFormSuccess(); // TEMPORARY ONLY
-    // return;
-
+    // Submit form
     const success = await sendFormData(formData);
 
     if (success) {
