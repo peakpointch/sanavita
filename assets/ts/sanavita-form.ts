@@ -112,7 +112,7 @@ class Accordion {
   public scrollIntoView(): void {
     let offset = 0;
     const scrollWrapper: HTMLElement | null = this.component.closest(MODAL_SCROLL_SELECTOR);
-    const elementPosition = this.uiTrigger.getBoundingClientRect().top;
+    const elementPosition = this.component.getBoundingClientRect().top;
 
     // Check if there is a scrollable wrapper (like a modal)
     if (scrollWrapper) {
@@ -683,6 +683,19 @@ class FormArray {
           if (event.key === 'Enter') {
             event.preventDefault();
             this.savePersonFromModal();
+          }
+        });
+        input.addEventListener('focusin', () => {
+          const accordionIndex = this.accordionIndexOf(input);
+          const accordionInstance = this.accordionList[accordionIndex];
+          if (!accordionInstance.isOpen) {
+            this.openAccordion(accordionIndex);
+            setTimeout(() => {
+              input.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+              });
+            }, 500);
           }
         });
       })
