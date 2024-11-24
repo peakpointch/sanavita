@@ -51,6 +51,16 @@ uc-drop-area {
   padding: 1.75rem;
 }
 
+uc-activity-header>button,
+uc-file-item>div>div.uc-file-actions>button.uc-edit-btn.uc-mini-btn,
+uc-upload-list>div.uc-toolbar>button.uc-done-btn.uc-primary-btn {
+  display: none;
+}
+
+uc-upload-list>div.uc-toolbar>button.uc-add-more-btn.uc-secondary-btn {
+  background-color: var(--brand-400);
+}
+
 uc-drop-area::after {
   content: " oder per Drag & Drop";
   color: var(--brand-950);
