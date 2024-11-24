@@ -687,12 +687,11 @@ class FormArray {
         });
       })
 
-    this.addButton.addEventListener('click', () => this.handleAddButtonClick());
+    this.addButton.addEventListener('click', () => this.addPerson());
     this.saveButton.addEventListener('click', () => this.savePersonFromModal()); // Change this for dev, validate: false
 
     this.renderList();
     this.closeModal();
-    // this.savePersonFromModal(false); // Add empty person initially
 
     const accordionList: NodeListOf<HTMLElement> = this.container.querySelectorAll(ACCORDION_SELECTOR);
     for (let i = 0; i < accordionList.length; i++) {
@@ -752,7 +751,12 @@ class FormArray {
     this.closeModal()
   }
 
-  private handleAddButtonClick() {
+  private addPerson() {
+    if (this.people.size === 2) {
+      this.formMessage.error('Sie können nur max. 2 Personen hinzufügen.');
+      setTimeout(() => this.formMessage.reset(), 5000);
+      return;
+    }
     this.clearModal();
     this.setLiveText("state", "Hinzufügen");
     this.setLiveText("full-name", "Neue Person");
