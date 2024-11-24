@@ -252,3 +252,13 @@ body, .main-wrapper {
   /* Default font */
 }
 
+td:last-child, th:last-child {
+  min-width: 50%;
+}
+
+td:first-child,
+th:first-child {
+  width: 32vw;
+  max-width: 20ch;
+}
+
