@@ -1,0 +1,1 @@
+(()=>{var i="a[data-linkbuilder-component]";function d(){let o=document.querySelectorAll(i);for(let n of o){let t=n.dataset.path,e=n.dataset.paramWohnung;if(t&&e){let a=encodeURIComponent(e);n.href=`${t}?wohnung=${a}`}else console.warn("Missing data attributes for link:",n)}}document.addEventListener("DOMContentLoaded",()=>{d()});})();
