@@ -324,7 +324,7 @@
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "",
+        "value": "val1_ang2_vorname",
         "required": false,
         "type": "text",
         "checked": false
@@ -332,7 +332,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "",
+        "value": "val1_ang2_name",
         "required": false,
         "type": "text",
         "checked": false
@@ -340,7 +340,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "",
+        "value": "val1_ang2_street",
         "required": false,
         "type": "text",
         "checked": false
@@ -348,7 +348,7 @@
       "zip": {
         "id": "zip",
         "label": "PLZ",
-        "value": "",
+        "value": "1999",
         "required": false,
         "type": "text",
         "checked": false
@@ -356,7 +356,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "",
+        "value": "val1_ang2_city",
         "required": false,
         "type": "text",
         "checked": false
@@ -364,7 +364,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "",
+        "value": "val1_ang2_tel",
         "required": false,
         "type": "tel",
         "checked": false
@@ -372,7 +372,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "",
+        "value": "val1_ang2_email@email.com",
         "required": false,
         "type": "email",
         "checked": false
@@ -380,7 +380,7 @@
       "degreeOfRelation": {
         "id": "degreeOfRelation",
         "label": "Angehörige Verwandschaftsgrad",
-        "value": "",
+        "value": "val1_ang2_verwandschaftsgrad",
         "required": false,
         "type": "text",
         "checked": false
@@ -392,7 +392,7 @@
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "hello",
+        "value": "Felix",
         "required": true,
         "type": "text",
         "checked": false
@@ -400,7 +400,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "motherfuckers",
+        "value": "Baustein",
         "required": true,
         "type": "text",
         "checked": false
@@ -408,7 +408,7 @@
       "date-of-birth": {
         "id": "date-of-birth",
         "label": "Geburtsdatum",
-        "value": "1999-04-26",
+        "value": "1999-01-12",
         "required": true,
         "type": "date",
         "checked": false
@@ -416,7 +416,7 @@
       "zivilstand": {
         "id": "zivilstand",
         "label": "Zivilstand",
-        "value": "ledig",
+        "value": "in eingetragener Partnerschaft",
         "required": true,
         "type": "select-one",
         "checked": false
@@ -424,7 +424,7 @@
       "religion": {
         "id": "religion",
         "label": "Konfession",
-        "value": "val1_konfession",
+        "value": "val2_konfession",
         "required": false,
         "type": "text",
         "checked": false
@@ -432,7 +432,7 @@
       "formerOccupation": {
         "id": "formerOccupation",
         "label": "Ehemaliger Beruf",
-        "value": "val1_ehemaliger beruf",
+        "value": "val2_ehemaliger beruf",
         "required": false,
         "type": "text",
         "checked": false
@@ -440,7 +440,7 @@
       "heimatort": {
         "id": "heimatort",
         "label": "Heimatort",
-        "value": "val1_heimatort",
+        "value": "val2_heimatort",
         "required": true,
         "type": "text",
         "checked": false
@@ -480,7 +480,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "graflukas218@gmail.com",
+        "value": "bausteinfelix@gmail.com",
         "required": true,
         "type": "email",
         "checked": false
@@ -512,7 +512,7 @@
       "ahvNummer": {
         "id": "ahvNummer",
         "label": "AHV Nummer",
-        "value": "val1_AHV",
+        "value": "val2_AHV",
         "required": true,
         "type": "text",
         "checked": false
@@ -520,7 +520,7 @@
       "krankenkasse": {
         "id": "krankenkasse",
         "label": "Krankenkasse",
-        "value": "val1_Krankenkasse",
+        "value": "val2_Krankenkasse",
         "required": true,
         "type": "text",
         "checked": false
@@ -528,7 +528,7 @@
       "anschriftKrankenkasse": {
         "id": "anschriftKrankenkasse",
         "label": "Anschrift Krankenkasse",
-        "value": "val1_Anschrift Krankenkasse",
+        "value": "val2_Anschrift Krankenkasse",
         "required": true,
         "type": "text",
         "checked": false
@@ -536,7 +536,7 @@
       "mitgliedernummer": {
         "id": "mitgliedernummer",
         "label": "Mitgliedernummer",
-        "value": "val1_mitgliedernummer",
+        "value": "val2_mitgliedernummer",
         "required": true,
         "type": "text",
         "checked": false
@@ -552,7 +552,7 @@
       "haftpflichtversicherung": {
         "id": "haftpflichtversicherung",
         "label": "Haftpflichtversicherung",
-        "value": "val1_haftpflichtversicherung",
+        "value": "val2_haftpflichtversicherung",
         "required": true,
         "type": "text",
         "checked": false
@@ -560,7 +560,7 @@
       "policenNummer": {
         "id": "policenNummer",
         "label": "Policen Nummer",
-        "value": "val1_policen Nummer",
+        "value": "val2_policen Nummer",
         "required": true,
         "type": "text",
         "checked": false
@@ -570,7 +570,7 @@
       "doctorName": {
         "id": "doctorName",
         "label": "Hausarzt",
-        "value": "val1_hausarzt",
+        "value": "val2_hausarzt",
         "required": true,
         "type": "text",
         "checked": false
@@ -578,7 +578,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "val1_ha_strasse",
+        "value": "val2_ha_strasse",
         "required": true,
         "type": "text",
         "checked": false
@@ -594,7 +594,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "val1_ha_ort",
+        "value": "val2_ha_ort",
         "required": true,
         "type": "text",
         "checked": false
@@ -602,7 +602,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "val1_ha_tel",
+        "value": "val2_ha_tel",
         "required": true,
         "type": "tel",
         "checked": false
@@ -610,7 +610,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "val1_ha_email@email.com",
+        "value": "val2_ha_email@email.com",
         "required": true,
         "type": "email",
         "checked": false
@@ -636,7 +636,7 @@
       "careNeeds": {
         "id": "careNeeds",
         "label": "Beschreibung Pflegebedarf",
-        "value": "val1_Pflegebeschrieb",
+        "value": "val2_Pflegebeschrieb",
         "required": true,
         "type": "textarea",
         "checked": false
@@ -646,7 +646,7 @@
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "val1_ang1_vorname",
+        "value": "val2_ang1_vorname",
         "required": true,
         "type": "text",
         "checked": false
@@ -654,7 +654,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "val1_ang1_name",
+        "value": "val2_ang1_name",
         "required": true,
         "type": "text",
         "checked": false
@@ -662,7 +662,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "val1_ang1_street",
+        "value": "val2_ang1_street",
         "required": true,
         "type": "text",
         "checked": false
@@ -678,7 +678,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "val1_ang1_ort",
+        "value": "val2_ang1_ort",
         "required": true,
         "type": "text",
         "checked": false
@@ -686,7 +686,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "val1_ang1_tel",
+        "value": "val2_ang1_tel",
         "required": true,
         "type": "tel",
         "checked": false
@@ -694,7 +694,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "val1_ang1_email@email.com",
+        "value": "val2_ang1_email@email.com",
         "required": true,
         "type": "email",
         "checked": false
@@ -712,7 +712,7 @@
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "",
+        "value": "val2_ang2_vorname",
         "required": false,
         "type": "text",
         "checked": false
@@ -720,7 +720,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "",
+        "value": "val2_ang2_name",
         "required": false,
         "type": "text",
         "checked": false
@@ -728,7 +728,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "",
+        "value": "val2_ang2_street",
         "required": false,
         "type": "text",
         "checked": false
@@ -736,7 +736,7 @@
       "zip": {
         "id": "zip",
         "label": "PLZ",
-        "value": "",
+        "value": "1999",
         "required": false,
         "type": "text",
         "checked": false
@@ -744,7 +744,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "",
+        "value": "val2_ang2_city",
         "required": false,
         "type": "text",
         "checked": false
@@ -752,7 +752,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "",
+        "value": "val2_ang2_tel",
         "required": false,
         "type": "tel",
         "checked": false
@@ -760,7 +760,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "",
+        "value": "val2_ang2_email@email.com",
         "required": false,
         "type": "email",
         "checked": false
@@ -768,7 +768,7 @@
       "degreeOfRelation": {
         "id": "degreeOfRelation",
         "label": "Angehörige Verwandschaftsgrad",
-        "value": "",
+        "value": "val2_ang2_verwandschaftsgrad",
         "required": false,
         "type": "text",
         "checked": false
