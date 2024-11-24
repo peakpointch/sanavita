@@ -5,6 +5,7 @@ const files = {
     "webflow.config",
     "banner",
     "iphone-vimeo-player",
+    "linkbuilder",
     "form",
     "scroll",
     "sanavita-form",
