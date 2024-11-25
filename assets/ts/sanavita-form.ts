@@ -1534,8 +1534,10 @@ function peopleMapToObject(people: Map<string, Person>): any {
 
 function flattenPeople(people: Map<string, Person>): any {
   let peopleObj: any = {};
-  for (const [key, person] of people) {
-    peopleObj = { ...peopleObj, ...person.flatten(key) }
+  let peopleArray = [...people.values()];
+  for (let i = 0; i < peopleArray.length; i++) {
+    let person = peopleArray[i]
+    peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) }
   }
   return peopleObj;
 }
