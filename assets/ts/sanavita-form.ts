@@ -800,7 +800,7 @@ class FormArray {
     } else {
       // Generate a truly unique key for a new person
       const uniqueSuffix = crypto.randomUUID();
-      const newKey = `person${this.people.size + 1}`;
+      const newKey = `person-${uniqueSuffix}`;
       this.people.set(newKey, person);
     }
     return true;
@@ -1065,11 +1065,22 @@ class FormArray {
 
     // Store the serialized data in localStorage
     try {
-      localStorage.setItem('formProgress', JSON.stringify(serializedPeople));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedPeople));
       console.log("Form progress saved.");
       console.log(serializedPeople);
     } catch (error) {
       console.error("Error saving form progress to localStorage:", error);
+    }
+  }
+
+  /**
+   * Clear the saved progress from localStorage
+   */
+  public clearProgress(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error("Error clearing form progress from localStorage:", error);
     }
   }
 
@@ -1829,6 +1840,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeFormDecisions(FORM, errorMessages, defaultMessages);
   insertSearchParamValues();
   peopleArray.loadProgress();
+  FORM.formElement.addEventListener('formSuccess', () => {
+    peopleArray.clearProgress();
+  });
 
   console.log("Form initialized:", FORM.initialized, FORM)
 });
