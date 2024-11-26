@@ -37,7 +37,7 @@ const MODAL_STICKY_BOTTOM_SELECTOR: string = '[data-modal-element="sticky-bottom
 const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
-const STORAGE_KEY = 'person_data';
+const STORAGE_KEY = 'formProgress';
 
 const siteId: string = document.documentElement.dataset.wfSite || '';
 const pageId: string = document.documentElement.dataset.wfPage || '';
@@ -1089,7 +1089,7 @@ class FormArray {
    */
   public loadProgress(): void {
     // Check if there's any saved data in localStorage
-    const savedData = localStorage.getItem('formProgress');
+    const savedData = localStorage.getItem(STORAGE_KEY);
 
     if (savedData) {
       try {
