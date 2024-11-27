@@ -1100,10 +1100,9 @@ class FormArray {
           if (deserializedData.hasOwnProperty(key)) {
             const personData = deserializedData[key];
             const person = deserializePerson(personData); // Deserialize the person object
-            if (this.savePerson(person)) {
-              this.renderList();
-              this.closeModal();
-            }
+            this.people.set(key, person);
+            this.renderList();
+            this.closeModal();
           }
         }
 
