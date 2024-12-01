@@ -3,24 +3,29 @@ const W_RADIO_CLASS = ".w-radio-input";
 const W_CHECKED_CLASS = "w--redirected-checked";
 
 const FORM_COMPONENT_SELECTOR: string = '[data-form-element="component"]';
-const FORM_SELECTOR: string = 'form';
+const FORM_SELECTOR: string = "form";
 const FORM_SUCCESS_SELECTOR: string = '[data-form-element="success"]';
 const FORM_ERROR_SELECTOR: string = '[data-form-element="error"]';
 const FORM_SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
 const CHECKBOX_INPUT_SELECTOR: string = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
 const RADIO_INPUT_SELECTOR: string = '.w-radio input[type="radio"]';
-const FORM_INPUT_SELECTOR_LIST: string[] = ['.w-input', '.w-select', RADIO_INPUT_SELECTOR, CHECKBOX_INPUT_SELECTOR];
-const FORM_INPUT_SELECTOR: string = FORM_INPUT_SELECTOR_LIST.join(', ');
+const FORM_INPUT_SELECTOR_LIST: string[] = [
+  ".w-input",
+  ".w-select",
+  RADIO_INPUT_SELECTOR,
+  CHECKBOX_INPUT_SELECTOR,
+];
+const FORM_INPUT_SELECTOR: string = FORM_INPUT_SELECTOR_LIST.join(", ");
 
 const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
 const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
 const STEPS_SELECTOR: string = '[data-steps-element="step"]';
 const STEPS_NAVIGATION_SELECTOR: string = '[data-steps-element="navigation"]';
 const STEPS_PAGINATION_SELECTOR: string = '[data-steps-element="pagination"]';
-const STEPS_PAGINATION_ITEM_SELECTOR: string = 'button[data-step-target]';
+const STEPS_PAGINATION_ITEM_SELECTOR: string = "button[data-step-target]";
 const STEPS_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
 const STEPS_NEXT_SELECTOR: string = '[data-steps-nav="next"]';
-const STEPS_TARGET_SELECTOR: string = '[data-step-target]';
+const STEPS_TARGET_SELECTOR: string = "[data-step-target]";
 
 const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
 const ARRAY_TEMPLATE_SELECTOR: string = '[data-person-element="template"]';
@@ -28,35 +33,41 @@ const ARRAY_EMPTY_STATE_SELECTOR: string = '[data-person-element="empty"]';
 const ARRAY_ADD_SELECTOR: string = '[data-person-element="add"]';
 const ARRAY_SAVE_SELECTOR: string = '[data-person-element="save"]';
 const ARRAY_CANCEL_SELECTOR: string = '[data-person-element="cancel"]';
-const ARRAY_GROUP_SELECTOR: string = '[data-person-data-group]';
+const ARRAY_GROUP_SELECTOR: string = "[data-person-data-group]";
 const MODAL_SELECTOR: string = '[data-form-element="modal"]';
 const MODAL_SCROLL_SELECTOR: string = '[data-modal-element="scroll"]';
 const MODAL_STICKY_TOP_SELECTOR: string = '[data-modal-element="sticky-top"]';
-const MODAL_STICKY_BOTTOM_SELECTOR: string = '[data-modal-element="sticky-bottom"]';
+const MODAL_STICKY_BOTTOM_SELECTOR: string =
+  '[data-modal-element="sticky-bottom"]';
 
 const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
-const STORAGE_KEY = 'formProgress';
+const STORAGE_KEY = "formProgress";
 
-const siteId: string = document.documentElement.dataset.wfSite || '';
-const pageId: string = document.documentElement.dataset.wfPage || '';
+const siteId: string = document.documentElement.dataset.wfSite || "";
+const pageId: string = document.documentElement.dataset.wfPage || "";
 
 type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-type GroupName = 'personalData' | 'doctor' | 'health' | 'primaryRelative' | 'secondaryRelative';
+type GroupName =
+  | "personalData"
+  | "doctor"
+  | "health"
+  | "primaryRelative"
+  | "secondaryRelative";
 type Validator = () => boolean;
 type MutliStepFormSettings = {
   navigation: {
-    hideInStep: number
-  },
-  excludeInputSelectors: string[]
+    hideInStep: number;
+  };
+  excludeInputSelectors: string[];
 };
 type CustomFormComponent = {
-  step: number,
-  instance: any,
+  step: number;
+  instance: any;
   validator: Validator;
   getData?: () => {};
-}
+};
 
 interface Window {
   PEAKPOINT: any;
@@ -75,7 +86,7 @@ class Accordion {
     this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]')!;
     this.icon = component.querySelector('[data-animate="icon"]')!;
 
-    this.uiTrigger.addEventListener('click', () => {
+    this.uiTrigger.addEventListener("click", () => {
       this.toggle();
       // console.log("ACCORDION TRIGGER; OPEN:", this.isOpen);
     });
@@ -85,7 +96,7 @@ class Accordion {
     if (!this.isOpen) {
       this.trigger.click();
       setTimeout(() => {
-        this.icon.classList.add('is-open');
+        this.icon.classList.add("is-open");
       }, 200);
       this.isOpen = true;
     }
@@ -95,7 +106,7 @@ class Accordion {
     if (this.isOpen) {
       this.trigger.click();
       setTimeout(() => {
-        this.icon.classList.remove('is-open');
+        this.icon.classList.remove("is-open");
       }, 200);
       this.isOpen = false;
     }
@@ -111,13 +122,17 @@ class Accordion {
 
   public scrollIntoView(): void {
     let offset = 0;
-    const scrollWrapper: HTMLElement | null = this.component.closest(MODAL_SCROLL_SELECTOR);
+    const scrollWrapper: HTMLElement | null = this.component.closest(
+      MODAL_SCROLL_SELECTOR
+    );
     const elementPosition = this.component.getBoundingClientRect().top;
 
     // Check if there is a scrollable wrapper (like a modal)
     if (scrollWrapper) {
       const wrapperPosition = scrollWrapper.getBoundingClientRect().top;
-      offset = scrollWrapper.querySelector('[data-scroll-child="sticky"]')!.clientHeight; // Height of sticky element
+      offset = scrollWrapper.querySelector(
+        '[data-scroll-child="sticky"]'
+      )!.clientHeight; // Height of sticky element
 
       scrollWrapper.scrollBy({
         top: (elementPosition - wrapperPosition) - offset - 2,
@@ -127,7 +142,7 @@ class Accordion {
       // If no scrollable wrapper, scroll the window instead
       window.scrollTo({
         top: elementPosition + window.scrollY - offset - 2,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
     }
   }
@@ -136,10 +151,8 @@ class Accordion {
 class FieldGroup {
   fields: Map<string, Field>;
 
-  constructor(
-    fields: Map<string, Field> = new Map(),
-  ) {
-    this.fields = fields
+  constructor(fields: Map<string, Field> = new Map()) {
+    this.fields = fields;
   }
 
   // Method to retrieve a field by its id
@@ -175,14 +188,16 @@ class Person {
     // Loop over the groups within the person object
     const groups = Object.keys(this) as GroupName[];
 
-    groups.forEach(groupName => {
+    groups.forEach((groupName) => {
       const group = this[groupName] as FieldGroup;
 
       // Assuming the group has a `fields` property
       if (group.fields) {
-        group.fields.forEach(field => {
+        group.fields.forEach((field) => {
           if (!(field instanceof Field)) {
-            console.error(`Validate Person: field object is not of instance "Field"`)
+            console.error(
+              `Validate Person: field object is not of instance "Field"`
+            );
             return;
           } else {
             const fieldValid = field.validate(true);
@@ -198,7 +213,11 @@ class Person {
   }
 
   public getFullName(): string {
-    return `${this.personalData.getField('first-name')!.value} ${this.personalData.getField('name')!.value}`.trim() || "Neue Person";
+    return (
+      `${this.personalData.getField("first-name")!.value} ${
+        this.personalData.getField("name")!.value
+      }`.trim() || "Neue Person"
+    );
   }
 
   public serialize(): object {
@@ -273,21 +292,22 @@ class Field {
   public checked: boolean;
 
   constructor(data: FieldData | null = null) {
-    if (!data) { return }
+    if (!data) {
+      return;
+    }
 
     this.id = data.id || `field-${Math.random().toString(36).substring(2)}`; // Generating unique id if missing
     this.label = data.label || `Unnamed Field`;
-    this.value = data.value || '';
+    this.value = data.value || "";
     this.required = data.required || false;
-    this.type = data.type || 'text';
+    this.type = data.type || "text";
 
-    if (this.type === 'radio' || 'checkbox') {
-
+    if (this.type === "radio" || "checkbox") {
       this.checked = data.checked || false;
     }
 
-    if (this.type === 'checkbox' && !this.checked) {
-      console.log(this.label, this.type, this.checked, data.checked)
+    if (this.type === "checkbox" && !this.checked) {
+      console.log(this.label, this.type, this.checked, data.checked);
       this.value = "Nicht angewählt";
     }
   }
@@ -297,7 +317,7 @@ class Field {
 
     // If the field is required, check if it has a valid value
     if (this.required) {
-      if (this.type === 'radio' || this.type === 'checkbox') {
+      if (this.type === "radio" || this.type === "checkbox") {
         // For radio or checkbox, check if it is checked
         if (!this.checked) {
           valid = false;
@@ -320,7 +340,7 @@ class Field {
 }
 
 function FieldFromInput(input: FormElement, index): Field {
-  if (input.type === 'radio' && !(input as HTMLInputElement).checked) {
+  if (input.type === "radio" && !(input as HTMLInputElement).checked) {
     return new Field();
   }
 
@@ -330,7 +350,8 @@ function FieldFromInput(input: FormElement, index): Field {
     value: input.value,
     required: input.required || false,
     type: input.type,
-    checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : undefined,
+    checked:
+      isCheckboxInput(input) || isRadioInput(input) ? input.checked : undefined,
   });
 
   return field;
@@ -349,12 +370,15 @@ class FormMessage {
     );
 
     if (!component) {
-      console.warn(`No FormMessage component was found: ${componentName}, ${this.messageFor}`);
+      console.warn(
+        `No FormMessage component was found: ${componentName}, ${this.messageFor}`
+      );
       return;
     }
 
     this.component = component;
-    this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
+    this.messageElement =
+      this.component?.querySelector('[data-message-element="message"]') || null;
     this.reset();
     this.initialized = true;
   }
@@ -363,45 +387,49 @@ class FormMessage {
   public info(message: string | null = null, silent: boolean = false): void {
     if (!this.initialized) return;
     if (!silent) {
-      this.component.setAttribute('aria-live', 'polite');
+      this.component.setAttribute("aria-live", "polite");
     }
-    this.setMessage(message, 'info', silent);
+    this.setMessage(message, "info", silent);
   }
 
   // Method to display an error message
   public error(message: string | null = null, silent: boolean = false): void {
     if (!this.initialized) return;
     if (!silent) {
-      this.component.setAttribute('role', 'alert');
-      this.component.setAttribute('aria-live', 'assertive');
+      this.component.setAttribute("role", "alert");
+      this.component.setAttribute("aria-live", "assertive");
     }
-    this.setMessage(message, 'error', silent);
+    this.setMessage(message, "error", silent);
   }
 
   // Method to reset/hide the message
   public reset(): void {
     if (!this.initialized) return;
-    this.component.classList.remove('info', 'error');
+    this.component.classList.remove("info", "error");
   }
 
   // Private method to set the message and style
-  private setMessage(message: string | null = null, type: 'info' | 'error', silent: boolean = false): void {
+  private setMessage(
+    message: string | null = null,
+    type: "info" | "error",
+    silent: boolean = false
+  ): void {
     if (!this.initialized) return;
     if (this.messageElement && message) {
       this.messageElement.textContent = message;
     } else if (!this.messageElement) {
-      console.warn('Message text element not found.');
+      console.warn("Message text element not found.");
     }
 
     // Set class based on type
-    this.component.classList.remove('info', 'error');
+    this.component.classList.remove("info", "error");
     this.component.classList.add(type);
 
     if (silent) return;
 
     this.component.scrollIntoView({
       behavior: "smooth",
-      block: "center"
+      block: "center",
     });
   }
 }
@@ -413,18 +441,22 @@ class FormGroup {
   private validationMessage: string;
   public formMessage: FormMessage;
 
-  constructor(container: HTMLElement, groupNames: string[], validationMessage: string) {
+  constructor(
+    container: HTMLElement,
+    groupNames: string[],
+    validationMessage: string
+  ) {
     this.container = container;
     this.groupNames = groupNames;
     this.validationMessage = validationMessage;
 
-    const formElement = this.getAllGroupFields()[0].closest('form');
+    const formElement = this.getAllGroupFields()[0].closest("form");
     if (!formElement) {
       console.error(`Cannot construct a FormGroup that is not part of a form.`);
       return;
     }
     this.form = formElement;
-    this.formMessage = new FormMessage("FormGroup", this.groupNames.join(','));
+    this.formMessage = new FormMessage("FormGroup", this.groupNames.join(","));
 
     // Initialize the form group by setting up event listeners
     this.initialize();
@@ -434,21 +466,19 @@ class FormGroup {
     const allFields = this.getAllGroupFields();
 
     allFields.forEach((field) => {
-      field.addEventListener('change', () => this.formMessage.reset());
+      field.addEventListener("change", () => this.formMessage.reset());
     });
   }
 
   private getGroupFields(groupName: string): NodeListOf<FormElement> {
-    return this.container.querySelectorAll(
-      `[data-form-group="${groupName}"]`
-    );
+    return this.container.querySelectorAll(`[data-form-group="${groupName}"]`);
   }
 
   private getAllGroupFields(): NodeListOf<FormElement> {
     const selectorList = this.groupNames.map((groupName) => {
-      return `[data-form-group="${groupName}"]`
+      return `[data-form-group="${groupName}"]`;
     });
-    let selector: string = selectorList.join(', ');
+    let selector: string = selectorList.join(", ");
     return this.container.querySelectorAll(selector);
   }
 
@@ -460,7 +490,7 @@ class FormGroup {
 
     // Handle error messages based on validation result
     this.handleValidationMessages(anyGroupValid);
-    console.log(anyGroupValid)
+    console.log(anyGroupValid);
 
     return anyGroupValid;
   }
@@ -472,7 +502,7 @@ class FormGroup {
         if (isCheckboxInput(field) || isRadioInput(field)) {
           return field.checked;
         }
-        return field.value.trim() !== '';
+        return field.value.trim() !== "";
       });
     });
   }
@@ -501,78 +531,92 @@ class FormDecision {
   private formMessage: FormMessage;
   private decisionInputs: NodeListOf<HTMLInputElement>;
   private errorMessages: { [key: string]: string } = {};
-  private defaultErrorMessage: string = 'Please complete the required fields.';
+  private defaultErrorMessage: string = "Please complete the required fields.";
 
   constructor(component: HTMLElement | null, id: string | undefined) {
     if (!component || !id) {
       console.error(`FormDecision: Component not found.`);
       return;
-    } else if (!component.hasAttribute('data-decision-component')) {
-      console.error(`FormDecision: Selected element is not a FormDecision component:`, component);
+    } else if (!component.hasAttribute("data-decision-component")) {
+      console.error(
+        `FormDecision: Selected element is not a FormDecision component:`,
+        component
+      );
       return;
     }
 
     this.component = component;
     this.id = id;
-    this.formMessage = new FormMessage('FormDecision', id); // Assuming you want to initialize a FormMessage
+    this.formMessage = new FormMessage("FormDecision", id); // Assuming you want to initialize a FormMessage
     this.initialize();
   }
 
   private initialize() {
     // Find the decision element wrapper
-    const decisionFieldsWrapper: HTMLElement = this.component.querySelector('[data-decision-element="decision"]') || this.component;
-    this.decisionInputs = decisionFieldsWrapper.querySelectorAll<HTMLInputElement>('input[data-decision-action]');
+    const decisionFieldsWrapper: HTMLElement =
+      this.component.querySelector('[data-decision-element="decision"]') ||
+      this.component;
+    this.decisionInputs =
+      decisionFieldsWrapper.querySelectorAll<HTMLInputElement>(
+        "input[data-decision-action]"
+      );
 
     // Ensure there are decision inputs
     if (this.decisionInputs.length === 0) {
-      console.warn(`Decision component "${this.id}" does not contain any decision input elements.`);
+      console.warn(
+        `Decision component "${this.id}" does not contain any decision input elements.`
+      );
       return;
     }
 
     // Iterate through the decision inputs
     this.decisionInputs.forEach((input) => {
-      const path: HTMLElement | null = this.component.querySelector(`[data-decision-path="${input.dataset.decisionAction || input.value}"]`);
+      const path: HTMLElement | null = this.component.querySelector(
+        `[data-decision-path="${input.dataset.decisionAction || input.value}"]`
+      );
       if (path) {
-        path.style.display = 'none';
+        path.style.display = "none";
         this.paths.push(path);
       }
 
-      input.addEventListener('change', (event) => {
+      input.addEventListener("change", (event) => {
         this.handleChange(path, event);
         this.formMessage.reset();
       });
     });
 
-    this.component.addEventListener('change', () => this.formMessage.reset());
+    this.component.addEventListener("change", () => this.formMessage.reset());
   }
 
   private handleChange(path: HTMLElement | null, event: Event) {
     this.paths.forEach((entry) => {
-      entry.style.display = 'none';
+      entry.style.display = "none";
     });
 
     if (path) {
-      path.style.removeProperty('display');
+      path.style.removeProperty("display");
     }
 
     this.updateRequiredAttributes();
   }
 
   private getSelectedInput(): HTMLInputElement | undefined {
-    return Array.from(this.decisionInputs).find(input => input.checked);
+    return Array.from(this.decisionInputs).find((input) => input.checked);
   }
 
   public validate(): boolean {
     const selectedInput = this.getSelectedInput();
-    const { valid: decisionValid } = validateFields(this.decisionInputs)
+    const { valid: decisionValid } = validateFields(this.decisionInputs);
     if (!decisionValid || !selectedInput) {
-      console.warn('No decision selected!');
+      console.warn("No decision selected!");
       this.handleValidationMessages(false);
       return false;
     }
 
     const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
-    const pathIndex = this.paths.findIndex(path => path.dataset.decisionPath === pathId);
+    const pathIndex = this.paths.findIndex(
+      (path) => path.dataset.decisionPath === pathId
+    );
 
     // If no corresponding path, consider it valid
     const isValid = pathIndex === -1 || this.checkPathValidity(pathIndex);
@@ -581,7 +625,10 @@ class FormDecision {
     return isValid;
   }
 
-  public setErrorMessages(messages: { [key: string]: string }, defaultMessage?: string): void {
+  public setErrorMessages(
+    messages: { [key: string]: string },
+    defaultMessage?: string
+  ): void {
     this.errorMessages = messages;
     if (defaultMessage) {
       this.defaultErrorMessage = defaultMessage;
@@ -591,7 +638,8 @@ class FormDecision {
   private checkPathValidity(pathIndex: number): boolean {
     // Get the path element and the form inputs inside it
     const pathElement = this.paths[pathIndex];
-    const inputs: NodeListOf<FormElement> = pathElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const inputs: NodeListOf<FormElement> =
+      pathElement.querySelectorAll(FORM_INPUT_SELECTOR);
 
     // Validate the fields within the path element
     const { valid, invalidField } = validateFields(inputs, true);
@@ -602,20 +650,30 @@ class FormDecision {
   private updateRequiredAttributes() {
     // For all paths, make inputs non-required by default
     this.paths.forEach((path) => {
-      const inputs: NodeListOf<FormElement> = path.querySelectorAll('input, select, textarea');
+      const inputs: NodeListOf<FormElement> = path.querySelectorAll(
+        "input, select, textarea"
+      );
       inputs.forEach((input) => {
         input.required = false;
       });
     });
 
     // For the currently selected path, set inputs with [data-decision-required="required"] as required
-    const selectedInput = this.component.querySelector<HTMLInputElement>('input[data-decision-action]:checked');
+    const selectedInput = this.component.querySelector<HTMLInputElement>(
+      "input[data-decision-action]:checked"
+    );
     if (selectedInput) {
-      const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
-      const selectedPath = this.paths.find((path) => path.dataset.decisionPath === pathId);
+      const pathId =
+        selectedInput.dataset.decisionAction || selectedInput.value;
+      const selectedPath = this.paths.find(
+        (path) => path.dataset.decisionPath === pathId
+      );
 
       if (selectedPath) {
-        const requiredFields: NodeListOf<FormElement> = selectedPath.querySelectorAll('[data-decision-required="required"], [data-decision-required="true"]');
+        const requiredFields: NodeListOf<FormElement> =
+          selectedPath.querySelectorAll(
+            '[data-decision-required="required"], [data-decision-required="true"]'
+          );
         requiredFields.forEach((input) => {
           input.required = true;
         });
@@ -626,8 +684,10 @@ class FormDecision {
   private handleValidationMessages(currentGroupValid: boolean): void {
     if (!currentGroupValid) {
       const selectedInput = this.getSelectedInput();
-      const pathId = selectedInput?.dataset.decisionAction || selectedInput?.value;
-      const customMessage = this.errorMessages[pathId!] || this.defaultErrorMessage;
+      const pathId =
+        selectedInput?.dataset.decisionAction || selectedInput?.value;
+      const customMessage =
+        this.errorMessages[pathId!] || this.defaultErrorMessage;
       this.formMessage.error(customMessage);
     } else {
       this.formMessage.reset();
@@ -661,8 +721,10 @@ class FormArray {
     this.list = this.container.querySelector(ARRAY_LIST_SELECTOR)!;
     this.template = this.list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
     this.addButton = this.container.querySelector(ARRAY_ADD_SELECTOR)!;
-    this.formMessage = new FormMessage('FormArray', this.id.toString());
-    this.modal = document.querySelector(MODAL_SELECTOR + `[data-modal-for="person"]`)!;
+    this.formMessage = new FormMessage("FormArray", this.id.toString());
+    this.modal = document.querySelector(
+      MODAL_SELECTOR + `[data-modal-for="person"]`
+    )!;
     this.modalForm = document.querySelector(FORM_SELECTOR)!;
     this.saveButton = this.modal.querySelector(ARRAY_SAVE_SELECTOR)!;
     this.cancelButtons = this.modal.querySelectorAll(ARRAY_CANCEL_SELECTOR)!;
@@ -673,46 +735,46 @@ class FormArray {
   }
 
   private initialize() {
-    this.cancelButtons.forEach(button => {
-      button.addEventListener('click', () => this.handleCancel());
+    this.cancelButtons.forEach((button) => {
+      button.addEventListener("click", () => this.handleCancel());
     });
 
-    (this.modalInputs as NodeListOf<HTMLInputElement>)
-      .forEach((input) => {
-        input.addEventListener('keydown', (event: KeyboardEvent) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            this.savePersonFromModal();
-          }
-        });
-        input.addEventListener('focusin', () => {
-          const accordionIndex = this.accordionIndexOf(input);
-          const accordionInstance = this.accordionList[accordionIndex];
-          if (!accordionInstance.isOpen) {
-            this.openAccordion(accordionIndex);
-            setTimeout(() => {
-              input.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-              });
-            }, 500);
-          }
-        });
-      })
+    (this.modalInputs as NodeListOf<HTMLInputElement>).forEach((input) => {
+      input.addEventListener("keydown", (event: KeyboardEvent) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          this.savePersonFromModal();
+        }
+      });
+      input.addEventListener("focusin", () => {
+        const accordionIndex = this.accordionIndexOf(input);
+        const accordionInstance = this.accordionList[accordionIndex];
+        if (!accordionInstance.isOpen) {
+          this.openAccordion(accordionIndex);
+          setTimeout(() => {
+            input.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }, 500);
+        }
+      });
+    });
 
-    this.addButton.addEventListener('click', () => this.addPerson());
-    this.saveButton.addEventListener('click', () => this.savePersonFromModal()); // Change this for dev, validate: false
+    this.addButton.addEventListener("click", () => this.addPerson());
+    this.saveButton.addEventListener("click", () => this.savePersonFromModal()); // Change this for dev, validate: false
 
     this.renderList();
     this.closeModal();
 
-    const accordionList: NodeListOf<HTMLElement> = this.container.querySelectorAll(ACCORDION_SELECTOR);
+    const accordionList: NodeListOf<HTMLElement> =
+      this.container.querySelectorAll(ACCORDION_SELECTOR);
     for (let i = 0; i < accordionList.length; i++) {
       const accordionElement = accordionList[i];
       accordionElement.dataset.index = i.toString();
       const accordion = new Accordion(accordionElement);
       this.accordionList.push(accordion);
-      accordion.uiTrigger.addEventListener('click', () => {
+      accordion.uiTrigger.addEventListener("click", () => {
         this.openAccordion(i);
         setTimeout(() => {
           accordion.scrollIntoView();
@@ -726,15 +788,19 @@ class FormArray {
   }
 
   private initModal() {
-    const modalContent: HTMLElement = this.modal.querySelector(MODAL_SCROLL_SELECTOR)!;
-    const stickyFooter: HTMLElement | null = this.modal.querySelector(MODAL_STICKY_BOTTOM_SELECTOR);
+    const modalContent: HTMLElement = this.modal.querySelector(
+      MODAL_SCROLL_SELECTOR
+    )!;
+    const stickyFooter: HTMLElement | null = this.modal.querySelector(
+      MODAL_STICKY_BOTTOM_SELECTOR
+    );
 
     if (!modalContent || !stickyFooter) {
-      console.warn('Init modal: required scroll elements not found');
+      console.warn("Init modal: required scroll elements not found");
       return;
     }
 
-    modalContent.addEventListener('scroll', () => {
+    modalContent.addEventListener("scroll", () => {
       const scrollHeight = modalContent.scrollHeight;
       const scrollTop = modalContent.scrollTop;
       const clientHeight = modalContent.clientHeight;
@@ -742,9 +808,9 @@ class FormArray {
       const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
 
       if (isScrolledToBottom) {
-        stickyFooter.classList.remove('modal-scroll-shadow');
+        stickyFooter.classList.remove("modal-scroll-shadow");
       } else {
-        stickyFooter.classList.add('modal-scroll-shadow');
+        stickyFooter.classList.add("modal-scroll-shadow");
       }
     });
   }
@@ -761,12 +827,12 @@ class FormArray {
   }
 
   private handleCancel() {
-    this.closeModal()
+    this.closeModal();
   }
 
   private addPerson() {
     if (this.people.size === 2) {
-      this.formMessage.error('Sie können nur max. 2 Personen hinzufügen.');
+      this.formMessage.error("Sie können nur max. 2 Personen hinzufügen.");
       setTimeout(() => this.formMessage.reset(), 5000);
       return;
     }
@@ -780,7 +846,9 @@ class FormArray {
   private savePersonFromModal(validate: boolean = true) {
     const listValid = this.validateModal(validate);
     if (!listValid) {
-      console.warn(`Couldn't save person. Please fill in all the values correctly.`);
+      console.warn(
+        `Couldn't save person. Please fill in all the values correctly.`
+      );
       if (validate) return null;
     }
 
@@ -807,7 +875,9 @@ class FormArray {
   }
 
   private setLiveText(element: string, string: string): boolean {
-    const liveElements: NodeListOf<HTMLElement> = this.modal.querySelectorAll(`[data-live-text="${element}"]`);
+    const liveElements: NodeListOf<HTMLElement> = this.modal.querySelectorAll(
+      `[data-live-text="${element}"]`
+    );
     let valid = true;
     for (const element of liveElements) {
       if (!element) {
@@ -820,49 +890,59 @@ class FormArray {
   }
 
   private renderList() {
-    this.list.innerHTML = ''; // Clear the current list
+    this.list.innerHTML = ""; // Clear the current list
     this.list.dataset.length = this.people.size.toString();
 
     if (this.people.size) {
       this.people.forEach((person, key) => this.renderPerson(person, key));
       this.formMessage.reset();
     } else {
-      this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.", !this.initialized);
+      this.formMessage.info(
+        "Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.",
+        !this.initialized
+      );
     }
   }
 
   private renderPerson(person: Person, key: string) {
-    const newElement: HTMLElement = this.template.cloneNode(true) as HTMLElement;
-    const props = ['full-name', 'phone', 'email', 'street', 'zip', 'city'];
-    newElement.style.removeProperty('display');
+    const newElement: HTMLElement = this.template.cloneNode(
+      true
+    ) as HTMLElement;
+    const props = ["full-name", "phone", "email", "street", "zip", "city"];
+    newElement.style.removeProperty("display");
 
     // Add event listeners for editing and deleting
     const editButton = newElement.querySelector('[data-person-action="edit"]');
-    const deleteButton = newElement.querySelector('[data-person-action="delete"]');
+    const deleteButton = newElement.querySelector(
+      '[data-person-action="delete"]'
+    );
 
-    editButton!.addEventListener('click', () => {
+    editButton!.addEventListener("click", () => {
       this.setLiveText("state", "bearbeiten");
-      this.setLiveText("full-name", person.getFullName() || 'Neue Person');
+      this.setLiveText("full-name", person.getFullName() || "Neue Person");
       this.populateModal(person);
       this.openModal();
       this.editingKey = key; // Set editing key
     });
 
-    deleteButton!.addEventListener('click', () => {
+    deleteButton!.addEventListener("click", () => {
       this.people.delete(key); // Remove the person from the map
       this.renderList(); // Re-render the list
       this.closeModal();
       this.saveProgress();
     });
 
-    props.forEach(prop => {
+    props.forEach((prop) => {
       const propSelector = `[data-${prop}]`;
       const el: HTMLElement | null = newElement.querySelector(propSelector);
-      if (el && prop === 'full-name') {
+      if (el && prop === "full-name") {
         el.innerText = person.getFullName();
       } else if (el) {
         const currentField = person.personalData.getField(prop);
-        if (!currentField) { console.error(`Render person: A field for "${prop}" doesn't exist.`); return; }
+        if (!currentField) {
+          console.error(`Render person: A field for "${prop}" doesn't exist.`);
+          return;
+        }
         el.innerText = currentField.value || currentField.label;
       }
     });
@@ -871,10 +951,11 @@ class FormArray {
 
   private populateModal(person: Person) {
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupInputs: NodeListOf<FormElement> =
+        group.querySelectorAll(FORM_INPUT_SELECTOR);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
-      groupInputs.forEach(input => {
+      groupInputs.forEach((input) => {
         // Get field
         const field = person[groupName].getField(input.id);
 
@@ -891,12 +972,12 @@ class FormArray {
 
         if (isRadioInput(input) && input.value === field.value) {
           input.checked = field.checked;
-          input.dispatchEvent(new Event('change', { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
         }
 
         if (isCheckboxInput(input)) {
           input.checked = field.checked;
-          input.dispatchEvent(new Event('change', { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
         }
       });
     });
@@ -908,22 +989,35 @@ class FormArray {
     // Validate if there are any people in the array (check if the `people` map has any entries)
     if (this.people.size === 0) {
       console.warn("Bitte fügen Sie mindestens eine mietende Person hinzu.");
-      this.formMessage.error(`Bitte fügen Sie mindestens eine mietende Person hinzu.`);
-      setTimeout(() => this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.", true), 5000);
+      this.formMessage.error(
+        `Bitte fügen Sie mindestens eine mietende Person hinzu.`
+      );
+      setTimeout(
+        () =>
+          this.formMessage.info(
+            "Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.",
+            true
+          ),
+        5000
+      );
       valid = false;
     } else {
       // Check if each person in the people collection is valid
       this.people.forEach((person, key) => {
         if (!person.validate()) {
-          console.warn(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);
-          this.formMessage.error(`Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`);
+          console.warn(
+            `Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`
+          );
+          this.formMessage.error(
+            `Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`
+          );
 
           // setTimeout(() => {
           //   this.populateModal(person);
           //   this.openModal();
           //   this.validateModal();
           // }, 0);
-          valid = false;  // If any person is invalid, set valid to false
+          valid = false; // If any person is invalid, set valid to false
         }
       });
     }
@@ -933,12 +1027,18 @@ class FormArray {
 
   public openModal() {
     // Live text for name
-    const personalDataGroup = this.modal.querySelector('[data-person-data-group="personalData"]')!;
-    const nameInputs: NodeListOf<HTMLFormElement> = personalDataGroup.querySelectorAll('#first-name, #name');
+    const personalDataGroup = this.modal.querySelector(
+      '[data-person-data-group="personalData"]'
+    )!;
+    const nameInputs: NodeListOf<HTMLFormElement> =
+      personalDataGroup.querySelectorAll("#first-name, #name");
     nameInputs.forEach((input) => {
-      input.addEventListener('input', () => {
+      input.addEventListener("input", () => {
         const editingPerson: Person = this.extractData();
-        this.setLiveText('full-name', editingPerson.getFullName() || 'Neue Person');
+        this.setLiveText(
+          "full-name",
+          editingPerson.getFullName() || "Neue Person"
+        );
       });
     });
     this.formMessage.reset();
@@ -946,46 +1046,47 @@ class FormArray {
     this.openAccordion(0);
 
     // Open modal
-    this.modal.style.removeProperty('display');
-    this.modal.classList.remove('is-closed');
-    this.modal.dataset.state = 'open';
+    this.modal.style.removeProperty("display");
+    this.modal.classList.remove("is-closed");
+    this.modal.dataset.state = "open";
     document.body.style.overflow = "hidden";
   }
 
   public closeModal() {
     document.body.style.removeProperty("overflow");
-    this.modal.classList.add('is-closed');
-    this.modal.dataset.state = 'closed';
+    this.modal.classList.add("is-closed");
+    this.modal.dataset.state = "closed";
     if (this.initialized) {
       this.list.scrollIntoView({
         behavior: "smooth",
-        block: "center"
-      })
+        block: "center",
+      });
     }
     setTimeout(() => {
-      this.modal.style.display = 'none';
+      this.modal.style.display = "none";
     }, 500);
     this.clearModal();
   }
 
   private clearModal() {
-    this.setLiveText('state', 'hinzufügen');
-    this.setLiveText('full-name', 'Neue Person');
+    this.setLiveText("state", "hinzufügen");
+    this.setLiveText("full-name", "Neue Person");
     this.modalInputs.forEach((input) => {
       if (isRadioInput(input)) {
         input.checked = false;
-        clearRadioGroup(this.modal, input.name)
+        clearRadioGroup(this.modal, input.name);
       } else if (isCheckboxInput(input)) {
         input.checked = false;
-        input.dispatchEvent(new Event('change', { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       } else {
-        input.value = '';
+        input.value = "";
       }
     });
   }
 
   private validateModal(report: boolean = true): boolean {
-    const allModalFields: NodeListOf<FormElement> = this.modal.querySelectorAll(FORM_INPUT_SELECTOR);
+    const allModalFields: NodeListOf<FormElement> =
+      this.modal.querySelectorAll(FORM_INPUT_SELECTOR);
     const { valid, invalidField } = validateFields(allModalFields, report);
 
     if (valid === true) {
@@ -1001,8 +1102,8 @@ class FormArray {
         setTimeout(() => {
           invalidField.scrollIntoView({
             behavior: "smooth",
-            block: "center"
-          })
+            block: "center",
+          });
         }, 500);
       }
 
@@ -1016,16 +1117,20 @@ class FormArray {
    * Finds the index of the accordion that contains a specific field element.
    * This method traverses the DOM to locate the accordion that wraps the field
    * and returns its index in the `accordionList`.
-   * 
+   *
    * @param field - The form element (field) to search for within the accordions.
    * @returns The index of the accordion containing the field, or `-1` if no accordion contains the field.
    */
   private accordionIndexOf(field: FormElement): number {
-    let parentElement: HTMLElement | null = field.closest('[data-animate="accordion"]');
+    let parentElement: HTMLElement | null = field.closest(
+      '[data-animate="accordion"]'
+    );
 
     if (parentElement) {
       // Find the index of the accordion in the accordionList based on the component
-      const accordionIndex = this.accordionList.findIndex(accordion => accordion.component === parentElement);
+      const accordionIndex = this.accordionList.findIndex(
+        (accordion) => accordion.component === parentElement
+      );
       return accordionIndex !== -1 ? accordionIndex : -1; // Return the index or -1 if not found
     }
 
@@ -1036,7 +1141,8 @@ class FormArray {
     const personData = new Person();
 
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormElement> = group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupInputs: NodeListOf<FormElement> =
+        group.querySelectorAll(FORM_INPUT_SELECTOR);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       if (!personData[groupName]) {
@@ -1061,7 +1167,6 @@ class FormArray {
   public saveProgress(): void {
     // Serialize the people map to an object
     const serializedPeople = peopleMapToObject(this.people);
-
 
     // Store the serialized data in localStorage
     try {
@@ -1134,7 +1239,9 @@ class MultiStepForm {
 
   constructor(component: HTMLElement, settings: MutliStepFormSettings) {
     this.component = component;
-    this.formElement = this.component.querySelector(FORM_SELECTOR) as HTMLFormElement;
+    this.formElement = this.component.querySelector(
+      FORM_SELECTOR
+    ) as HTMLFormElement;
     this.settings = settings;
 
     if (!this.formElement) {
@@ -1142,27 +1249,39 @@ class MultiStepForm {
     }
 
     this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
-    this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
-    this.navigationElement = this.component.querySelector(STEPS_NAVIGATION_SELECTOR)!;
+    this.paginationItems = this.component.querySelectorAll(
+      STEPS_PAGINATION_ITEM_SELECTOR
+    );
+    this.navigationElement = this.component.querySelector(
+      STEPS_NAVIGATION_SELECTOR
+    )!;
     this.buttonsNext = this.component.querySelectorAll(STEPS_NEXT_SELECTOR);
     this.buttonsPrev = this.component.querySelectorAll(STEPS_PREV_SELECTOR);
 
     // Handle optional UI elements
     this.successElement = this.component.querySelector(FORM_SUCCESS_SELECTOR);
     this.errorElement = this.component.querySelector(FORM_ERROR_SELECTOR);
-    this.submitButton = this.component.querySelector(FORM_SUBMIT_SELECTOR) as HTMLInputElement | null;
+    this.submitButton = this.component.querySelector(
+      FORM_SUBMIT_SELECTOR
+    ) as HTMLInputElement | null;
 
     this.initialize();
   }
 
   private initialize(): void {
-    if (!this.component.getAttribute('data-steps-element')) {
-      console.error(`Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`, this.component);
+    if (!this.component.getAttribute("data-steps-element")) {
+      console.error(
+        `Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`,
+        this.component
+      );
       return;
     }
 
     if (!this.formSteps.length) {
-      console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, this.component.querySelector(STEPS_LIST_SELECTOR));
+      console.warn(
+        `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
+        this.component.querySelector(STEPS_LIST_SELECTOR)
+      );
       return;
     }
     initFormButtons(this.formElement);
@@ -1172,10 +1291,10 @@ class MultiStepForm {
     this.initPagination();
     this.changeToStep(this.currentStep);
 
-    this.formElement.setAttribute('novalidate', '');
-    this.formElement.dataset.state = 'initialized';
+    this.formElement.setAttribute("novalidate", "");
+    this.formElement.dataset.state = "initialized";
 
-    this.formElement.addEventListener('submit', (event) => {
+    this.formElement.addEventListener("submit", (event) => {
       event.preventDefault();
       this.submitToWebflow();
     });
@@ -1194,13 +1313,15 @@ class MultiStepForm {
       instance: instance,
       validator: validator,
       getData: getData,
-    }
+    };
     this.customComponents.push(customComponent);
   }
 
   private async submitToWebflow(): Promise<void> {
     if (this.currentStep !== this.formSteps.length - 1) {
-      console.error("SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step.");
+      console.error(
+        "SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step."
+      );
       return;
     }
 
@@ -1211,10 +1332,11 @@ class MultiStepForm {
       return;
     }
 
-    this.formElement.dataset.state = 'sending';
+    this.formElement.dataset.state = "sending";
     if (this.submitButton) {
       this.submitButton.dataset.defaultText = this.submitButton.value;
-      this.submitButton.value = this.submitButton.dataset.wait || 'Wird gesendet ...';
+      this.submitButton.value =
+        this.submitButton.dataset.wait || "Wird gesendet ...";
     }
 
     const formData = this.buildJsonForWebflow();
@@ -1231,15 +1353,16 @@ class MultiStepForm {
   }
 
   private buildJsonForWebflow(): any {
-    const recaptcha = (this.formElement.querySelector('#g-recaptcha-response') as FormElement).value;
+    const recaptcha = (
+      this.formElement.querySelector("#g-recaptcha-response") as FormElement
+    ).value;
     let customFields = {};
-    this.customComponents
-      .map(entry => {
-        customFields = {
-          ...customFields,
-          ...(entry.getData ? entry.getData() : {})
-        }
-      });
+    this.customComponents.map((entry) => {
+      customFields = {
+        ...customFields,
+        ...(entry.getData ? entry.getData() : {}),
+      };
+    });
 
     return {
       name: this.formElement.dataset.name,
@@ -1250,70 +1373,73 @@ class MultiStepForm {
       fields: {
         ...mapToObject(this.getAllFormData(), false),
         ...customFields,
-        "g-recaptcha-response": recaptcha
+        "g-recaptcha-response": recaptcha,
       },
       dolphin: false,
     };
   }
 
   private onFormSuccess(): void {
-    if (this.errorElement) this.errorElement.style.display = 'none';
-    if (this.successElement) this.successElement.style.display = 'block';
-    this.formElement.style.display = 'none';
-    this.formElement.dataset.state = 'success';
-    this.formElement.dispatchEvent(new CustomEvent('formSuccess'));
+    if (this.errorElement) this.errorElement.style.display = "none";
+    if (this.successElement) this.successElement.style.display = "block";
+    this.formElement.style.display = "none";
+    this.formElement.dataset.state = "success";
+    this.formElement.dispatchEvent(new CustomEvent("formSuccess"));
 
     if (this.submitButton) {
-      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
+      this.submitButton.value =
+        this.submitButton.dataset.defaultText || "Submit";
     }
   }
 
   private onFormError(): void {
-    if (this.errorElement) this.errorElement.style.display = 'block';
-    if (this.successElement) this.successElement.style.display = 'none';
-    this.formElement.dataset.state = 'error';
-    this.formElement.dispatchEvent(new CustomEvent('formError'));
+    if (this.errorElement) this.errorElement.style.display = "block";
+    if (this.successElement) this.successElement.style.display = "none";
+    this.formElement.dataset.state = "error";
+    this.formElement.dispatchEvent(new CustomEvent("formError"));
 
     if (this.submitButton) {
-      this.submitButton.value = this.submitButton.dataset.defaultText || 'Submit';
+      this.submitButton.value =
+        this.submitButton.dataset.defaultText || "Submit";
     }
   }
 
   private setupSteps(): void {
     this.formSteps.forEach((step, index) => {
       step.dataset.stepId = index.toString();
-      step.classList.toggle('hide', index !== this.currentStep);
+      step.classList.toggle("hide", index !== this.currentStep);
 
-      step.querySelectorAll<HTMLInputElement>(FORM_INPUT_SELECTOR) // Type necessary for keydown event
+      step
+        .querySelectorAll<HTMLInputElement>(FORM_INPUT_SELECTOR) // Type necessary for keydown event
         .forEach((input) => {
-          input.addEventListener('keydown', (event: KeyboardEvent) => {
-            if (event.key === 'Enter') {
+          input.addEventListener("keydown", (event: KeyboardEvent) => {
+            if (event.key === "Enter") {
               event.preventDefault();
               this.changeToNext();
             }
           });
-        })
+        });
     });
   }
 
   private initPagination(): void {
     this.paginationItems.forEach((item, index) => {
       item.dataset.stepTarget = index.toString();
-      item.addEventListener('click', (event) => {
+      item.addEventListener("click", (event) => {
         event.preventDefault();
         this.changeToStep(index);
       });
     });
 
-    this.buttonsNext.forEach(button => {
-      button.addEventListener('click', (event) => {
+    this.buttonsNext.forEach((button) => {
+      button.addEventListener("click", (event) => {
         event.preventDefault();
         this.changeToNext();
       });
     });
 
-    this.buttonsPrev.forEach(button => {
-      button.addEventListener('click', (event) => {
+    this.buttonsPrev.forEach((button) => {
+      button.addEventListener("click", (event) => {
         event.preventDefault();
         this.changeToPrevious();
       });
@@ -1349,14 +1475,14 @@ class MultiStepForm {
       }
 
       this.component.scrollIntoView({
-        behavior: 'smooth',
-        block: "start"
+        behavior: "smooth",
+        block: "start",
       });
     }
 
     // Fire custom event before updating the visibility
     const event = new CustomEvent("changeStep", {
-      detail: { previousStep: this.currentStep, currentStep: target }
+      detail: { previousStep: this.currentStep, currentStep: target },
     });
     this.component.dispatchEvent(event);
 
@@ -1367,42 +1493,42 @@ class MultiStepForm {
   }
 
   private updateStepVisibility(target: number): void {
-    this.formSteps[this.currentStep].classList.add('hide');
-    this.formSteps[target].classList.remove('hide');
+    this.formSteps[this.currentStep].classList.add("hide");
+    this.formSteps[target].classList.remove("hide");
   }
 
   private updatePagination(target: number): void {
     this.buttonsPrev.forEach((button) => {
       if (target === 0) {
-        button.style.visibility = 'hidden';
-        button.style.opacity = '0';
+        button.style.visibility = "hidden";
+        button.style.opacity = "0";
       } else {
-        button.style.visibility = 'visible';
-        button.style.opacity = '1';
+        button.style.visibility = "visible";
+        button.style.opacity = "1";
       }
     });
 
     this.buttonsNext.forEach((button) => {
       if (target === this.formSteps.length - 1) {
-        button.style.visibility = 'hidden';
-        button.style.opacity = '0';
+        button.style.visibility = "hidden";
+        button.style.opacity = "0";
       } else {
-        button.style.visibility = 'visible';
-        button.style.opacity = '1';
+        button.style.visibility = "visible";
+        button.style.opacity = "1";
       }
     });
 
     if (target === this.settings.navigation.hideInStep) {
-      this.navigationElement.style.visibility = 'hidden';
-      this.navigationElement.style.opacity = '0';
+      this.navigationElement.style.visibility = "hidden";
+      this.navigationElement.style.opacity = "0";
     } else {
-      this.navigationElement.style.removeProperty('visibility');
-      this.navigationElement.style.removeProperty('opacity');
+      this.navigationElement.style.removeProperty("visibility");
+      this.navigationElement.style.removeProperty("opacity");
     }
 
     this.paginationItems.forEach((step, index) => {
-      step.classList.toggle('is-done', index < target);
-      step.classList.toggle('is-active', index === target);
+      step.classList.toggle("is-done", index < target);
+      step.classList.toggle("is-active", index === target);
     });
   }
 
@@ -1421,15 +1547,22 @@ class MultiStepForm {
   }
 
   public validateCurrentStep(step: number): boolean {
-    const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
+    const basicError = `Validation failed for step: ${step + 1}/${
+      this.formSteps.length
+    }`;
     const currentStepElement = this.formSteps[step];
-    const inputs: NodeListOf<FormElement> = currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const inputs: NodeListOf<FormElement> =
+      currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
 
-    const filteredInputs = Array.from(inputs).filter(input => {
+    const filteredInputs = Array.from(inputs).filter((input) => {
       // Check if the input matches any exclude selectors or is inside an excluded wrapper
-      const isExcluded = this.settings.excludeInputSelectors.some(selector => {
-        return input.closest(`${selector}`) !== null || input.matches(selector);
-      });
+      const isExcluded = this.settings.excludeInputSelectors.some(
+        (selector) => {
+          return (
+            input.closest(`${selector}`) !== null || input.matches(selector)
+          );
+        }
+      );
       return !isExcluded;
     });
 
@@ -1441,11 +1574,12 @@ class MultiStepForm {
     }
 
     const customValidators: Validator[] = this.customComponents
-      .filter(entry => entry.step === step)
-      .map(entry => () => entry.validator());
+      .filter((entry) => entry.step === step)
+      .map((entry) => () => entry.validator());
 
     // Custom validations
-    const customValid = customValidators?.every((validator) => validator()) ?? true;
+    const customValid =
+      customValidators?.every((validator) => validator()) ?? true;
     if (!customValid) {
       console.warn(`${basicError}: Custom validation is not valid`);
     }
@@ -1457,7 +1591,8 @@ class MultiStepForm {
     let fields: Map<string, Field> = new Map();
 
     const stepElement = this.formSteps[step];
-    const stepInputs: NodeListOf<FormElement> = stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const stepInputs: NodeListOf<FormElement> =
+      stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
     stepInputs.forEach((input, inputIndex) => {
       const entry = FieldFromInput(input, inputIndex);
       if (entry?.id) {
@@ -1483,17 +1618,15 @@ class MultiStepForm {
 function parameterize(text: string): string {
   return text
     .toLowerCase()
-    .normalize("NFD")                       // Decompose accented characters
-    .replace(/[\u0300-\u036f]/g, '')        // Remove diacritics (accent marks)
-    .replace(/[^a-z0-9]+/g, '-')            // Replace non-alphanumeric characters with hyphens
-    .replace(/^-+|-+$/g, '')                // Trim hyphens from start and end
-    .replace(/-+/g, '-');                   // Collapse multiple hyphens
+    .normalize("NFD") // Decompose accented characters
+    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics (accent marks)
+    .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric characters with hyphens
+    .replace(/^-+|-+$/g, "") // Trim hyphens from start and end
+    .replace(/-+/g, "-"); // Collapse multiple hyphens
 }
 
 function toDashCase(str) {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .toLowerCase();
+  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
 function toDataset(str) {
@@ -1504,19 +1637,24 @@ function mapToObject(map: Map<any, any>, stringify: boolean = false): any {
   // Convert a Map to a plain object
   const obj: any = {};
   for (const [key, value] of map) {
-    obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value; // Recursively convert if value is a Map
+    obj[key] =
+      value instanceof Map
+        ? mapToObject(value, stringify)
+        : stringify
+        ? JSON.stringify(value)
+        : value; // Recursively convert if value is a Map
   }
   return obj;
 }
 
 /**
  * Converts an object to a `Map`. The function can perform either shallow or deep conversion based on the `deep` argument.
- * 
+ *
  * @param {any} obj - The object to be converted to a `Map`. It can be any type, including nested objects.
- * @param {boolean} [deep=false] - A flag that determines whether the conversion should be deep (recursive) or shallow. 
+ * @param {boolean} [deep=false] - A flag that determines whether the conversion should be deep (recursive) or shallow.
  * If set to `true`, nested objects will be recursively converted into `Map` objects. If set to `false`, only the top-level
  * properties will be converted, and nested objects will remain as plain objects.
- * 
+ *
  * @returns {Map<any, any>} A `Map` object representing the input `obj`, where keys are the same as the object's
  * properties and values are the corresponding values of those properties.
  */
@@ -1546,8 +1684,8 @@ function flattenPeople(people: Map<string, Person>): any {
   let peopleObj: any = {};
   let peopleArray = [...people.values()];
   for (let i = 0; i < peopleArray.length; i++) {
-    let person = peopleArray[i]
-    peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) }
+    let person = peopleArray[i];
+    peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) };
   }
   return peopleObj;
 }
@@ -1560,7 +1698,7 @@ function capitalize(str: string): string {
 function reinsertElement(element: HTMLElement): void {
   // Check if the element and its parent are defined
   if (!element || !element.firstElementChild) {
-    console.warn('Element or its first element child is not defined.');
+    console.warn("Element or its first element child is not defined.");
     return;
   }
 
@@ -1580,20 +1718,20 @@ function reinsertElement(element: HTMLElement): void {
 }
 
 function isRadioInput(input: FormElement): input is HTMLInputElement {
-  return input instanceof HTMLInputElement && input.type === 'radio';
+  return input instanceof HTMLInputElement && input.type === "radio";
 }
 
 function isCheckboxInput(input: FormElement): input is HTMLInputElement {
-  return input instanceof HTMLInputElement && input.type === 'checkbox';
+  return input instanceof HTMLInputElement && input.type === "checkbox";
 }
 
 async function sendFormData(formData): Promise<boolean> {
   const url = `https://webflow.com/api/v1/form/${siteId}`;
   const request: RequestInit = {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json, text/javascript, */*; q=0.01',
+      "Content-Type": "application/json",
+      Accept: "application/json, text/javascript, */*; q=0.01",
     },
     body: JSON.stringify(formData),
   };
@@ -1606,32 +1744,38 @@ async function sendFormData(formData): Promise<boolean> {
     if (!response.ok) {
       throw new Error(`Network response "${response.status}" was not okay`);
     }
-    console.log('Form submission success! Status', response.status);
+    console.log("Form submission success! Status", response.status);
     return true;
   } catch (error) {
-    console.error('Form submission failed:', error);
+    console.error("Form submission failed:", error);
     return false;
   }
 }
 
 function initFormButtons(form: HTMLFormElement) {
-  const buttons = form.querySelectorAll('button');
+  const buttons = form.querySelectorAll("button");
   buttons.forEach((button) => {
-    button.setAttribute('type', 'button');
-    button.addEventListener('click', (event) => {
+    button.setAttribute("type", "button");
+    button.addEventListener("click", (event) => {
       // event.preventDefault();
     });
   });
 }
 
 function clearRadioGroup(container: HTMLElement, name: string) {
-  container.querySelectorAll<HTMLInputElement>(`${RADIO_INPUT_SELECTOR}[name="${name}"]`).forEach((radio) => {
-    radio.checked = false; // Uncheck all radios in the group
-    const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
-    if (customRadio) {
-      customRadio.classList.remove(W_CHECKED_CLASS); // Remove the checked styling
-    }
-  });
+  container
+    .querySelectorAll<HTMLInputElement>(
+      `${RADIO_INPUT_SELECTOR}[name="${name}"]`
+    )
+    .forEach((radio) => {
+      radio.checked = false; // Uncheck all radios in the group
+      const customRadio = radio
+        .closest(".w-radio")
+        ?.querySelector(W_RADIO_CLASS);
+      if (customRadio) {
+        customRadio.classList.remove(W_CHECKED_CLASS); // Remove the checked styling
+      }
+    });
 }
 
 function initCustomInputs(container: HTMLElement) {
@@ -1641,65 +1785,87 @@ function initCustomInputs(container: HTMLElement) {
   const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
   const inputTypes = [
     ["checkbox", W_CHECKBOX_CLASS],
-    ["radio", W_RADIO_CLASS]
+    ["radio", W_RADIO_CLASS],
   ];
 
   // Add change event listener for checkboxes
-  container.querySelectorAll<HTMLInputElement>(CHECKBOX_INPUT_SELECTOR).forEach((input) => {
-    input.addEventListener("change", (event) => {
-      const target = event.target as HTMLInputElement;
-      const customCheckbox = target.closest(".w-checkbox")?.querySelector(W_CHECKBOX_CLASS);
-      if (customCheckbox) {
-        customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
-      }
-    });
-  });
-
-  // Add change event listener for radio buttons
-  container.querySelectorAll<HTMLInputElement>('input[type="radio"]').forEach((input) => {
-    input.addEventListener("change", (event) => {
-      const target = event.target as HTMLInputElement;
-      if (!target.checked) return;
-
-      // Deselect other radios in the same group
-      const name = target.name;
-      container.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${name}"]`).forEach((radio) => {
-        const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
-        if (customRadio) {
-          customRadio.classList.remove(W_CHECKED_CLASS);
+  container
+    .querySelectorAll<HTMLInputElement>(CHECKBOX_INPUT_SELECTOR)
+    .forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const target = event.target as HTMLInputElement;
+        const customCheckbox = target
+          .closest(".w-checkbox")
+          ?.querySelector(W_CHECKBOX_CLASS);
+        if (customCheckbox) {
+          customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
         }
       });
-
-      // Add the checked class to the selected radio's custom container
-      const selectedCustomRadio = target.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
-      if (selectedCustomRadio) {
-        selectedCustomRadio.classList.add(W_CHECKED_CLASS);
-      }
     });
-  });
+
+  // Add change event listener for radio buttons
+  container
+    .querySelectorAll<HTMLInputElement>('input[type="radio"]')
+    .forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const target = event.target as HTMLInputElement;
+        if (!target.checked) return;
+
+        // Deselect other radios in the same group
+        const name = target.name;
+        container
+          .querySelectorAll<HTMLInputElement>(
+            `input[type="radio"][name="${name}"]`
+          )
+          .forEach((radio) => {
+            const customRadio = radio
+              .closest(".w-radio")
+              ?.querySelector(W_RADIO_CLASS);
+            if (customRadio) {
+              customRadio.classList.remove(W_CHECKED_CLASS);
+            }
+          });
+
+        // Add the checked class to the selected radio's custom container
+        const selectedCustomRadio = target
+          .closest(".w-radio")
+          ?.querySelector(W_RADIO_CLASS);
+        if (selectedCustomRadio) {
+          selectedCustomRadio.classList.add(W_CHECKED_CLASS);
+        }
+      });
+    });
 
   // Add focus and blur event listeners for checkboxes and radios
   inputTypes.forEach(([type, customClass]) => {
-    container.querySelectorAll<HTMLInputElement>(`input[type="${type}"]:not(${customClass})`).forEach((input) => {
-      input.addEventListener("focus", (event) => {
-        const target = event.target as HTMLInputElement;
-        const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
-        if (customElement) {
-          customElement.classList.add(focusClass);
-          if (target.matches(focusVisibleSelector)) {
-            customElement.classList.add(focusVisibleClass);
+    container
+      .querySelectorAll<HTMLInputElement>(
+        `input[type="${type}"]:not(${customClass})`
+      )
+      .forEach((input) => {
+        input.addEventListener("focus", (event) => {
+          const target = event.target as HTMLInputElement;
+          const customElement = target
+            .closest(".w-checkbox, .w-radio")
+            ?.querySelector(customClass);
+          if (customElement) {
+            customElement.classList.add(focusClass);
+            if (target.matches(focusVisibleSelector)) {
+              customElement.classList.add(focusVisibleClass);
+            }
           }
-        }
-      });
+        });
 
-      input.addEventListener("blur", (event) => {
-        const target = event.target as HTMLInputElement;
-        const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
-        if (customElement) {
-          customElement.classList.remove(focusClass, focusVisibleClass);
-        }
+        input.addEventListener("blur", (event) => {
+          const target = event.target as HTMLInputElement;
+          const customElement = target
+            .closest(".w-checkbox, .w-radio")
+            ?.querySelector(customClass);
+          if (customElement) {
+            customElement.classList.remove(focusClass, focusVisibleClass);
+          }
+        });
       });
-    });
   });
 }
 
@@ -1707,8 +1873,8 @@ function validateFields(
   inputs: NodeListOf<FormElement> | FormElement[],
   report: boolean = true
 ): {
-  valid: boolean,
-  invalidField: FormElement | null
+  valid: boolean;
+  invalidField: FormElement | null;
 } {
   let valid = true; // Assume the step is valid unless we find a problem
   let invalidField: FormElement | null = null;
@@ -1718,25 +1884,33 @@ function validateFields(
       valid = false;
       if (report && !invalidField) {
         input.reportValidity();
-        input.classList.add('has-error');
+        input.classList.add("has-error");
         if (isCheckboxInput(input)) {
-          input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.add('has-error');
+          input.parentElement
+            ?.querySelector(W_CHECKBOX_CLASS)
+            ?.classList.add("has-error");
         }
-        input.addEventListener('change', () => {
-          input.classList.remove('has-error');
-          if (isCheckboxInput(input)) {
-            input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove('has-error');
-          }
-        }, { once: true });
+        input.addEventListener(
+          "change",
+          () => {
+            input.classList.remove("has-error");
+            if (isCheckboxInput(input)) {
+              input.parentElement
+                ?.querySelector(W_CHECKBOX_CLASS)
+                ?.classList.remove("has-error");
+            }
+          },
+          { once: true }
+        );
         invalidField = input; // Store the first invalid field
       }
       break;
     } else {
-      input.classList.remove('has-error');
+      input.classList.remove("has-error");
     }
   }
 
-  return { valid, invalidField }
+  return { valid, invalidField };
 }
 
 function decisionSelector(id?: number | string) {
@@ -1749,9 +1923,11 @@ function initializeFormDecisions(
   defaultMessages: { [id: string]: string } = {}
 ): void {
   form.formSteps.forEach((step, stepIndex) => {
-    const formDecisions = step.querySelectorAll<HTMLElement>(decisionSelector());
+    const formDecisions = step.querySelectorAll<HTMLElement>(
+      decisionSelector()
+    );
 
-    formDecisions.forEach(element => {
+    formDecisions.forEach((element) => {
       const id = element.dataset.decisionComponent;
       const decision = new FormDecision(element, id);
 
@@ -1773,7 +1949,7 @@ function initializeOtherFormDecisions(
 ): void {
   const formDecisions = form.querySelectorAll<HTMLElement>(decisionSelector());
 
-  formDecisions.forEach(element => {
+  formDecisions.forEach((element) => {
     const id = element.dataset.decisionComponent;
     const decision = new FormDecision(element, id);
 
@@ -1787,10 +1963,14 @@ function initializeOtherFormDecisions(
 function insertSearchParamValues(): void {
   if (window.location.search) {
     const params = new URLSearchParams(window.location.search);
-    const selectElement = document.querySelector('#wohnung') as HTMLInputElement;
+    const selectElement = document.querySelector(
+      "#wohnung"
+    ) as HTMLInputElement;
 
-    const wohnungValue = params.get('wohnung');
-    const option = selectElement.querySelector(`option[value="${wohnungValue}"]`);
+    const wohnungValue = params.get("wohnung");
+    const option = selectElement.querySelector(
+      `option[value="${wohnungValue}"]`
+    );
     if (wohnungValue && option) {
       // If you want to handle cases where the value doesn't exist
       selectElement.value = wohnungValue;
@@ -1800,48 +1980,59 @@ function insertSearchParamValues(): void {
   }
 }
 
-window.PEAKPOINT = {}
+window.PEAKPOINT = {};
 
-const formElement: HTMLElement | null = document.querySelector(FORM_COMPONENT_SELECTOR);
-formElement?.classList.remove('w-form');
+const formElement: HTMLElement | null = document.querySelector(
+  FORM_COMPONENT_SELECTOR
+);
+formElement?.classList.remove("w-form");
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   if (!formElement) {
-    console.error('Form not found.')
+    console.error("Form not found.");
     return;
   }
 
-  const peopleArray = new FormArray(formElement, 'personArray');
+  const peopleArray = new FormArray(formElement, "personArray");
   const FORM = new MultiStepForm(formElement, {
     navigation: {
       hideInStep: 0,
     },
     excludeInputSelectors: [
       '[data-decision-path="upload"]',
-      '[data-decision-component]',
-    ]
+      "[data-decision-component]",
+    ],
   });
 
-  FORM.addCustomComponent(2, peopleArray, () => peopleArray.validate(), () => flattenPeople(peopleArray.people));
-  FORM.component.addEventListener('changeStep', () => peopleArray.closeModal());
+  FORM.addCustomComponent(
+    2,
+    peopleArray,
+    () => peopleArray.validate(),
+    () => flattenPeople(peopleArray.people)
+  );
+  FORM.component.addEventListener("changeStep", () => peopleArray.closeModal());
 
   const errorMessages = {
-    "beilagenSenden": {
-      "upload": "Bitte laden Sie alle Beilagen hoch."
-    }
-  }
+    beilagenSenden: {
+      upload: "Bitte laden Sie alle Beilagen hoch.",
+    },
+  };
 
   const defaultMessages = {
-    "beilagenSenden": `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
-  }
+    beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
+  };
 
-  initializeOtherFormDecisions(peopleArray.modal, errorMessages, defaultMessages);
+  initializeOtherFormDecisions(
+    peopleArray.modal,
+    errorMessages,
+    defaultMessages
+  );
   initializeFormDecisions(FORM, errorMessages, defaultMessages);
   insertSearchParamValues();
   peopleArray.loadProgress();
-  FORM.formElement.addEventListener('formSuccess', () => {
+  FORM.formElement.addEventListener("formSuccess", () => {
     peopleArray.clearProgress();
   });
 
-  console.log("Form initialized:", FORM.initialized, FORM)
+  console.log("Form initialized:", FORM.initialized, FORM);
 });
