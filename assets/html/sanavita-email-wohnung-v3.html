@@ -53,9 +53,24 @@
                   <td class="table_cell">{{1.data.Autokennzeichen}}</td>
                 </tr>
                 <tr class="table_row">
-                  <td class="table_cell">Beilagen</td>
-                  <td class="table_cell">{{1.data.beilagen}}</td>
+                  <td class="table_cell">Akzeptiere Bedingungen</td>
+                  <td class="table_cell">{{1.data.`akzeptiere-bedingungen`}}</td>
                 </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Bemerkung</td>
+                  <td class="table_cell">{{1.data.bemerkung}}</td>
+                </tr>
+              </tbody>
+              <caption class="table_caption">Allgemeine Informationen</caption>
+            </table>
+            <table class="table_component">
+              <thead class="table_head">
+                <tr class="table_row">
+                  <th class="table_header">Feld</th>
+                  <th class="table_header">Wert</th>
+                </tr>
+              </thead>
+              <tbody class="table_body">
                 <tr class="table_row">
                   <td class="table_cell">Übermittlung der Beilagen</td>
                   <td class="table_cell">{{1.data.beilagenSenden}}</td>
@@ -69,15 +84,31 @@
                   <td class="table_cell">{{1.data.`uploadcare-file`}}</td>
                 </tr>
                 <tr class="table_row">
-                  <td class="table_cell">Akzeptiere Bedingungen</td>
-                  <td class="table_cell">{{1.data.`akzeptiere-bedingungen`}}</td>
+                  <td class="table_cell">Police Hausrat- und Haftpflichtvers.</td>
+                  <td class="table_cell">{{1.data.beilagen_versicherungsPolice}}</td>
                 </tr>
                 <tr class="table_row">
-                  <td class="table_cell">Bemerkung</td>
-                  <td class="table_cell">{{1.data.bemerkung}}</td>
+                  <td class="table_cell">Steuerregisterauszug</td>
+                  <td class="table_cell">{{1.data.beilagen_taxRegister}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Pass oder ID</td>
+                  <td class="table_cell">{{1.data.beilagen_passOrId}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Krankenversicherungskarte</td>
+                  <td class="table_cell">{{1.data.beilagen_healthInsuranceCard}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Betreibungsregisterauszug</td>
+                  <td class="table_cell">{{1.data.beilagen_debtRegister}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Pflegebericht</td>
+                  <td class="table_cell">{{1.data.beilagen_pflegebericht}}</td>
                 </tr>
               </tbody>
-              <caption class="table_caption">Allgemeine Informationen</caption>
+              <caption class="table_caption">Beilagen</caption>
             </table>
             <div>
               <h4>Person 1</h4>
@@ -551,4 +582,6 @@
       </div>
     </div>
   </section>
+</main>
+</section>
 </main>
