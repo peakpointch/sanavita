@@ -135,8 +135,8 @@ class Accordion {
       )!.clientHeight; // Height of sticky element
 
       scrollWrapper.scrollBy({
-        top: (elementPosition - wrapperPosition) - offset - 2,
-        behavior: 'smooth',
+        top: elementPosition - wrapperPosition - offset - 2,
+        behavior: "smooth",
       });
     } else {
       // If no scrollable wrapper, scroll the window instead

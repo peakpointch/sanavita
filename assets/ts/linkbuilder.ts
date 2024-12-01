@@ -2,7 +2,8 @@ const LINKBUILDER_SELECTOR: string = `a[data-linkbuilder-component]`;
 
 function initLinkBuilders(): void {
   // Select all matching anchor elements
-  const allLinks: NodeListOf<HTMLAnchorElement> = document.querySelectorAll(LINKBUILDER_SELECTOR);
+  const allLinks: NodeListOf<HTMLAnchorElement> =
+    document.querySelectorAll(LINKBUILDER_SELECTOR);
 
   // Iterate through the list of links
   for (let link of allLinks) {
@@ -15,12 +16,12 @@ function initLinkBuilders(): void {
       const encodedParamWohnung = encodeURIComponent(paramWohnung);
       link.href = `${path}?wohnung=${encodedParamWohnung}`;
     } else {
-      console.warn('Missing data attributes for link:', link);
+      console.warn("Missing data attributes for link:", link);
     }
   }
 }
 
 // Initialize after DOM content is loaded
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   initLinkBuilders();
 });
