@@ -208,8 +208,7 @@ class Person {
         });
       }
     });
-
-    return valid; // Change this for dev
+    return valid;
   }
 
   public getFullName(): string {
@@ -695,6 +694,89 @@ class FormDecision {
   }
 }
 
+class FormModal {
+  public component: HTMLElement;
+  public initialized: boolean = false;
+
+  constructor(component: HTMLElement | null) {
+    if (!component) {
+      return;
+    }
+
+    this.component = component;
+
+    this.initialize();
+  }
+
+  private initialize() {
+    const modalContent = this.getModalContent();
+    const stickyFooter = this.getStickyFooter();
+
+    if (!modalContent || !stickyFooter) {
+      console.warn("Initialize modal: skip sticky footer");
+    } else {
+      this.setupScrollEvent(modalContent, stickyFooter);
+    }
+
+    this.initialized = true;
+  }
+
+  private getModalContent(): HTMLElement | null {
+    return this.component.querySelector(MODAL_SCROLL_SELECTOR);
+  }
+
+  private getStickyFooter(): HTMLElement | null {
+    return this.component.querySelector(MODAL_STICKY_BOTTOM_SELECTOR);
+  }
+
+  private setupScrollEvent(
+    modalContent: HTMLElement,
+    stickyFooter: HTMLElement
+  ): void {
+    modalContent.addEventListener("scroll", () => {
+      const { scrollHeight, scrollTop, clientHeight } = modalContent;
+      const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
+
+      if (isScrolledToBottom) {
+        // Remove scroll shadow
+        stickyFooter.classList.remove("modal-scroll-shadow");
+      } else {
+        // If not scrolled to bottom, add scroll shadow
+        stickyFooter.classList.add("modal-scroll-shadow");
+      }
+    });
+  }
+
+  private showComponent(): void {
+    this.component.style.removeProperty("display");
+    this.component.classList.remove("is-closed");
+    this.component.dataset.state = "open";
+  }
+
+  private hideComponent(): void {
+    this.component.classList.add("is-closed");
+    this.component.dataset.state = "closed";
+    setTimeout(() => {
+      this.component.style.display = "none";
+    }, 500);
+  }
+
+  /**
+   * Opens the modal instance.
+   *
+   * This method calls the `showComponent` method
+   */
+  public open() {
+    this.showComponent();
+    lockBodyScroll();
+  }
+
+  public close() {
+    unlockBodyScroll();
+    this.hideComponent();
+  }
+}
+
 class FormArray {
   public id: string | number;
   public people: Map<string, Person>;
@@ -703,7 +785,8 @@ class FormArray {
   private template: HTMLElement;
   private formMessage: FormMessage;
   private addButton: HTMLElement;
-  public modal: HTMLElement;
+  public modal: FormModal;
+  public modalElement: HTMLElement;
   private modalForm: HTMLFormElement;
   private saveButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
@@ -722,14 +805,20 @@ class FormArray {
     this.template = this.list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
     this.addButton = this.container.querySelector(ARRAY_ADD_SELECTOR)!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
-    this.modal = document.querySelector(
+    this.modalForm = document.querySelector(FORM_SELECTOR)!;
+
+    // Form Modal
+    this.modalElement = document.querySelector(
       MODAL_SELECTOR + `[data-modal-for="person"]`
     )!;
-    this.modalForm = document.querySelector(FORM_SELECTOR)!;
-    this.saveButton = this.modal.querySelector(ARRAY_SAVE_SELECTOR)!;
-    this.cancelButtons = this.modal.querySelectorAll(ARRAY_CANCEL_SELECTOR)!;
-    this.modalInputs = this.modal.querySelectorAll(FORM_INPUT_SELECTOR);
-    this.groupElements = this.modal.querySelectorAll(ARRAY_GROUP_SELECTOR);
+    this.modal = new FormModal(this.modalElement);
+    this.saveButton = this.modalElement.querySelector(ARRAY_SAVE_SELECTOR)!;
+    this.cancelButtons = this.modalElement.querySelectorAll(
+      ARRAY_CANCEL_SELECTOR
+    )!;
+    this.modalInputs = this.modalElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    this.groupElements =
+      this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
 
     this.initialize();
   }
@@ -761,8 +850,8 @@ class FormArray {
       });
     });
 
-    this.addButton.addEventListener("click", () => this.addPerson());
     this.saveButton.addEventListener("click", () => this.savePersonFromModal()); // Change this for dev, validate: false
+    this.addButton.addEventListener("click", () => this.addPerson());
 
     this.renderList();
     this.closeModal();
@@ -783,47 +872,7 @@ class FormArray {
     }
 
     this.openAccordion(0);
-    this.initModal();
     this.initialized = true;
-  }
-
-  private initModal() {
-    const modalContent: HTMLElement = this.modal.querySelector(
-      MODAL_SCROLL_SELECTOR
-    )!;
-    const stickyFooter: HTMLElement | null = this.modal.querySelector(
-      MODAL_STICKY_BOTTOM_SELECTOR
-    );
-
-    if (!modalContent || !stickyFooter) {
-      console.warn("Init modal: required scroll elements not found");
-      return;
-    }
-
-    modalContent.addEventListener("scroll", () => {
-      const scrollHeight = modalContent.scrollHeight;
-      const scrollTop = modalContent.scrollTop;
-      const clientHeight = modalContent.clientHeight;
-
-      const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
-
-      if (isScrolledToBottom) {
-        stickyFooter.classList.remove("modal-scroll-shadow");
-      } else {
-        stickyFooter.classList.add("modal-scroll-shadow");
-      }
-    });
-  }
-
-  private openAccordion(index: number) {
-    for (let i = 0; i < this.accordionList.length; i++) {
-      const accordion = this.accordionList[i];
-      if (i === index && !accordion.isOpen) {
-        accordion.open();
-      } else if (i !== index && accordion.isOpen) {
-        accordion.close();
-      }
-    }
   }
 
   private handleCancel() {
@@ -875,9 +924,8 @@ class FormArray {
   }
 
   private setLiveText(element: string, string: string): boolean {
-    const liveElements: NodeListOf<HTMLElement> = this.modal.querySelectorAll(
-      `[data-live-text="${element}"]`
-    );
+    const liveElements: NodeListOf<HTMLElement> =
+      this.modalElement.querySelectorAll(`[data-live-text="${element}"]`);
     let valid = true;
     for (const element of liveElements) {
       if (!element) {
@@ -1022,12 +1070,12 @@ class FormArray {
       });
     }
 
-    return valid;
+    return valid; // Change this for dev: true | valid
   }
 
-  public openModal() {
+  public openModal(): void {
     // Live text for name
-    const personalDataGroup = this.modal.querySelector(
+    const personalDataGroup = this.modalElement.querySelector(
       '[data-person-data-group="personalData"]'
     )!;
     const nameInputs: NodeListOf<HTMLFormElement> =
@@ -1045,26 +1093,17 @@ class FormArray {
 
     this.openAccordion(0);
 
-    // Open modal
-    this.modal.style.removeProperty("display");
-    this.modal.classList.remove("is-closed");
-    this.modal.dataset.state = "open";
-    document.body.style.overflow = "hidden";
+    this.modal.open();
   }
 
-  public closeModal() {
-    document.body.style.removeProperty("overflow");
-    this.modal.classList.add("is-closed");
-    this.modal.dataset.state = "closed";
+  public closeModal(): void {
+    this.modal.close();
     if (this.initialized) {
       this.list.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     }
-    setTimeout(() => {
-      this.modal.style.display = "none";
-    }, 500);
     this.clearModal();
   }
 
@@ -1074,7 +1113,7 @@ class FormArray {
     this.modalInputs.forEach((input) => {
       if (isRadioInput(input)) {
         input.checked = false;
-        clearRadioGroup(this.modal, input.name);
+        clearRadioGroup(this.modalElement, input.name);
       } else if (isCheckboxInput(input)) {
         input.checked = false;
         input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -1086,7 +1125,7 @@ class FormArray {
 
   private validateModal(report: boolean = true): boolean {
     const allModalFields: NodeListOf<FormElement> =
-      this.modal.querySelectorAll(FORM_INPUT_SELECTOR);
+      this.modalElement.querySelectorAll(FORM_INPUT_SELECTOR);
     const { valid, invalidField } = validateFields(allModalFields, report);
 
     if (valid === true) {
@@ -1111,6 +1150,17 @@ class FormArray {
     }
 
     return false;
+  }
+
+  private openAccordion(index: number) {
+    for (let i = 0; i < this.accordionList.length; i++) {
+      const accordion = this.accordionList[i];
+      if (i === index && !accordion.isOpen) {
+        accordion.open();
+      } else if (i !== index && accordion.isOpen) {
+        accordion.close();
+      }
+    }
   }
 
   /**
@@ -1980,6 +2030,28 @@ function insertSearchParamValues(): void {
   }
 }
 
+/**
+ * Locks the scroll on the document body.
+ *
+ * This function sets the `overflow` style of the `body` element to `"hidden"`,
+ * preventing the user from scrolling the page. Commonly used when displaying
+ * modals, overlays, or other components that require the page to remain static.
+ */
+function lockBodyScroll(): void {
+  document.body.style.overflow = "hidden";
+}
+
+/**
+ * Unlocks the scroll on the document body.
+ *
+ * This function removes the `overflow` style from the `body` element,
+ * allowing the user to scroll the page again. Typically used when hiding
+ * modals, overlays, or other components that previously locked scrolling.
+ */
+function unlockBodyScroll(): void {
+  document.body.style.removeProperty("overflow");
+}
+
 window.PEAKPOINT = {};
 
 const formElement: HTMLElement | null = document.querySelector(
@@ -2023,7 +2095,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   initializeOtherFormDecisions(
-    peopleArray.modal,
+    peopleArray.modalElement,
     errorMessages,
     defaultMessages
   );
