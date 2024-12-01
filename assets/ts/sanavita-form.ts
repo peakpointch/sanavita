@@ -764,13 +764,18 @@ class FormModal {
   /**
    * Opens the modal instance.
    *
-   * This method calls the `showComponent` method
+   * This method calls the `showComponent` method and locks the scroll of the document body.
    */
   public open() {
     this.showComponent();
     lockBodyScroll();
   }
 
+  /**
+   * Closes the modal instance.
+   *
+   * This method calls the `hideComponent` method and unlocks the scroll of the document body.
+   */
   public close() {
     unlockBodyScroll();
     this.hideComponent();
