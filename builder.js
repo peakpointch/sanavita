@@ -49,7 +49,10 @@ function build(files, devFiles) {
         format: "iife",
         minifyIdentifiers: false,
         // keepNames: true,
-      }).catch(() => process.exit(1));
+      }).catch((e) => {
+        // process.exit(1);
+        // console.error(e)
+      });
     });
   }
 
