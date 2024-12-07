@@ -1,73 +1,86 @@
 const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
 
-const files = {
-  "ts": [
-    "webflow.config",
-    "banner",
-    "iphone-vimeo-player",
-    "linkbuilder",
-    "form",
-    "scroll",
-    "sanavita-form",
-  ],
-  "js": [
-    "circle-tabs",
-    "circle",
-    "count-down",
-    "cms-form-select",
-    "cms-group",
-    "copy",
-    "crc",
-    "date",
-    "marquee",
-    "popup-cookie",
-    "popup",
-    "purecounter",
-    "sanavita-video",
-    "sozjobs",
-    "sozjobs-job",
-    "swiper",
-    "timeline",
-    "translate-dates",
-    "uploadcare",
-  ]
+// Function to get all files from a directory with a specific extension
+function getFilesFromDirectory(dir, extension) {
+  const files = fs.readdirSync(dir);
+  return files.filter(file => file.endsWith(`.${extension}`)).map(file => path.basename(file, `.${extension}`));
 }
 
-const devFiles = [
-  "livereload/livereload.js",
-]
+// Function to exclude specific files
+function excludeFiles(files, excludeList) {
+  return files.filter(file => !excludeList.includes(file));
+}
 
-function build(files, devFiles) {
-  for (const [extension, names] of Object.entries(files)) {
-    names.forEach(name => {
-      esbuild.build({
-        entryPoints: [`assets/${extension}/${name}.${extension}`],
-        outfile: `dist/${name}.js`, // Output directly to the dist folder
-        bundle: true,
-        minify: true,
-        sourcemap: false,
-        format: "iife",
-        minifyIdentifiers: false,
-        // keepNames: true,
-      }).catch((e) => {
-        // process.exit(1);
-        // console.error(e)
-      });
+// General build function for both modular and non-modular scripts
+function buildScripts(dir, outDir, excludeList = [], minify = false, format = "esm") {
+  const files = getFilesFromDirectory(dir, 'ts');
+  const filteredFiles = excludeFiles(files, excludeList);
+
+  for (const name of filteredFiles) {
+    esbuild.build({
+      entryPoints: [`${dir}/${name}.ts`],
+      outfile: `${outDir}/${name}.js`,
+      bundle: true,
+      minify: minify,
+      sourcemap: false,
+      format: format,
+      minifyIdentifiers: false,
+    }).catch((e) => {
+      console.error(`Error building ${name}:`, e);
+      process.exit(1);
     });
   }
+}
 
+// Helper function for building development files
+function buildDevFiles(devFiles) {
   esbuild.build({
-    entryPoints: devFiles,
-    outdir: "dist", // Output directly to the dist folder
+    entryPoints: devFiles.map(file => `${file}`),
+    outdir: "dist",
     bundle: true,
     minify: false,
     sourcemap: false,
     format: "esm",
     minifyIdentifiers: false,
-    // keepNames: true,
   }).catch(() => process.exit(1));
 }
 
-build(files, devFiles);
+// Build the library separately
+function buildLibrary(libraryDir, outDir) {
+  const files = getFilesFromDirectory(libraryDir, 'ts');
 
-module.exports = { files, devFiles, build };
+  for (const name of files) {
+    esbuild.build({
+      entryPoints: [`${libraryDir}/${name}.ts`],
+      outfile: `${outDir}/${name}.js`,
+      bundle: true,
+      minify: false, // Keep names for reusability
+      sourcemap: false,
+      format: "esm",
+      minifyIdentifiers: false,
+    }).catch((e) => {
+      console.error(`Error building library ${name}:`, e);
+      process.exit(1);
+    });
+  }
+}
+
+// Define paths
+const libraryDir = 'library';
+const scriptsDir = 'src/ts';
+const devFiles = [
+  "livereload/livereload.js",
+];
+
+// Build the library
+buildLibrary(libraryDir, 'dist/library');
+
+// Build the scripts
+buildScripts(scriptsDir, 'dist', ['webflow.config', 'iphone-vimeo-player'], true, "iife");
+
+// Build development files
+buildDevFiles(devFiles);
+
+module.exports = { buildScripts, buildLibrary, buildDevFiles };
