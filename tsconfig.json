@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@library/*": [ "library/*" ]
+    },
+    "target": "ES2015",
+    "lib": [ "ES2020", "DOM" ]
+  }
+}

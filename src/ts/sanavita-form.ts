@@ -1,3 +1,5 @@
+import { parameterize } from "@library/parameterize";
+
 const W_CHECKBOX_CLASS = ".w-checkbox-input";
 const W_RADIO_CLASS = ".w-radio-input";
 const W_CHECKED_CLASS = "w--redirected-checked";
@@ -777,14 +779,10 @@ class Modal {
     this.hideComponent();
   }
 
-  public addCustomAction(action: () => any): void {
-
-  }
+  public addCustomAction(action: () => any): void {}
 }
 
-class FormModal extends Modal {
-
-}
+class FormModal extends Modal {}
 
 class FormArray {
   public id: string | number;
@@ -936,7 +934,7 @@ class FormArray {
     const liveElements: NodeListOf<HTMLElement> =
       this.modalElement.querySelectorAll(`[data-live-text="${element}"]`);
     let valid = true;
-    for (const element of liveElements) {
+    for (const element of Array.from(liveElements)) {
       if (!element) {
         valid = false;
         break;
@@ -1673,25 +1671,6 @@ class MultiStepForm {
     return fields;
   }
 }
-
-function parameterize(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFD") // Decompose accented characters
-    .replace(/[\u0300-\u036f]/g, "") // Remove diacritics (accent marks)
-    .replace(/[^a-z0-9]+/g, "-") // Replace non-alphanumeric characters with hyphens
-    .replace(/^-+|-+$/g, "") // Trim hyphens from start and end
-    .replace(/-+/g, "-"); // Collapse multiple hyphens
-}
-
-function toDashCase(str) {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
-}
-
-function toDataset(str) {
-  return `${str.charAt(0).toUpperCase() + str.slice(1)}`;
-}
-
 function mapToObject(map: Map<any, any>, stringify: boolean = false): any {
   // Convert a Map to a plain object
   const obj: any = {};
@@ -1938,7 +1917,7 @@ function validateFields(
   let valid = true; // Assume the step is valid unless we find a problem
   let invalidField: FormElement | null = null;
 
-  for (const input of inputs) {
+  for (const input of Array.from(inputs)) {
     if (!input.checkValidity()) {
       valid = false;
       if (report && !invalidField) {
@@ -2060,8 +2039,6 @@ function lockBodyScroll(): void {
 function unlockBodyScroll(): void {
   document.body.style.removeProperty("overflow");
 }
-
-window.PEAKPOINT = {};
 
 const formElement: HTMLElement | null = document.querySelector(
   FORM_COMPONENT_SELECTOR
