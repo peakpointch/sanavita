@@ -694,21 +694,17 @@ class FormDecision {
   }
 }
 
-class FormModal {
+class Modal {
   public component: HTMLElement;
   public initialized: boolean = false;
+  private onOpenFunctions: [() => any];
 
   constructor(component: HTMLElement | null) {
     if (!component) {
-      return;
+      throw new Error(`The passed component doesn't exist.`);
     }
-
     this.component = component;
 
-    this.initialize();
-  }
-
-  private initialize() {
     const modalContent = this.getModalContent();
     const stickyFooter = this.getStickyFooter();
 
@@ -780,6 +776,14 @@ class FormModal {
     unlockBodyScroll();
     this.hideComponent();
   }
+
+  public addCustomAction(action: () => any): void {
+
+  }
+}
+
+class FormModal extends Modal {
+
 }
 
 class FormArray {
@@ -844,7 +848,7 @@ class FormArray {
         const accordionIndex = this.accordionIndexOf(input);
         const accordionInstance = this.accordionList[accordionIndex];
         if (!accordionInstance.isOpen) {
-          this.openAccordion(accordionIndex);
+          this.openAccordion(accordionIndex, this.accordionList);
           setTimeout(() => {
             input.scrollIntoView({
               behavior: "smooth",
@@ -869,14 +873,14 @@ class FormArray {
       const accordion = new Accordion(accordionElement);
       this.accordionList.push(accordion);
       accordion.uiTrigger.addEventListener("click", () => {
-        this.openAccordion(i);
+        this.openAccordion(i, this.accordionList);
         setTimeout(() => {
           accordion.scrollIntoView();
         }, 500);
       });
     }
 
-    this.openAccordion(0);
+    this.openAccordion(0, this.accordionList);
     this.initialized = true;
   }
 
@@ -1096,7 +1100,7 @@ class FormArray {
     });
     this.formMessage.reset();
 
-    this.openAccordion(0);
+    this.openAccordion(0, this.accordionList);
 
     this.modal.open();
   }
@@ -1141,7 +1145,7 @@ class FormArray {
 
       if (accordionIndex !== -1) {
         // Open the accordion containing the invalid field using the index
-        this.openAccordion(accordionIndex);
+        this.openAccordion(accordionIndex, this.accordionList);
         // Optionally, you can scroll the accordion into view
         setTimeout(() => {
           invalidField.scrollIntoView({
@@ -1157,9 +1161,9 @@ class FormArray {
     return false;
   }
 
-  private openAccordion(index: number) {
-    for (let i = 0; i < this.accordionList.length; i++) {
-      const accordion = this.accordionList[i];
+  private openAccordion(index: number, accordionList: Accordion[]) {
+    for (let i = 0; i < accordionList.length; i++) {
+      const accordion = accordionList[i];
       if (i === index && !accordion.isOpen) {
         accordion.open();
       } else if (i !== index && accordion.isOpen) {
