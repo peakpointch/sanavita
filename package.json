@@ -20,6 +20,6 @@
     "chokidar": "^3.6.0",
     "http": "^0.0.1-security",
     "jquery": "^3.7.1",
-    "swiper": "^11.1.9"
+    "swiper": "^11.1.15"
   }
 }
