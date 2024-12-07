@@ -2,4 +2,4 @@
 .DS_STORE
 node_modules
 *.js.map
-/assets/clients/**/*
+/src/clients/**/*
