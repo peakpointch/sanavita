@@ -14,13 +14,13 @@ function excludeFiles(files, excludeList) {
 }
 
 // General build function for both modular and non-modular scripts
-function buildScripts(dir, outDir, excludeList = [], minify = false, format = "esm") {
-  const files = getFilesFromDirectory(dir, 'ts');
+function buildScripts(dir, outDir, extension = 'ts', excludeList = [], minify = false, format = "esm") {
+  const files = getFilesFromDirectory(dir, extension);
   const filteredFiles = excludeFiles(files, excludeList);
 
   for (const name of filteredFiles) {
     esbuild.build({
-      entryPoints: [`${dir}/${name}.ts`],
+      entryPoints: [`${dir}/${name}.${extension}`], // Include both TS and JS entry points
       outfile: `${outDir}/${name}.js`,
       bundle: true,
       minify: minify,
@@ -69,7 +69,6 @@ function buildLibrary(libraryDir, outDir) {
 
 // Define paths
 const libraryDir = 'library';
-const scriptsDir = 'src/ts';
 const devFiles = [
   "livereload/livereload.js",
 ];
@@ -78,7 +77,8 @@ const devFiles = [
 buildLibrary(libraryDir, 'dist/library');
 
 // Build the scripts
-buildScripts(scriptsDir, 'dist', ['webflow.config', 'iphone-vimeo-player'], true, "iife");
+buildScripts('src/ts', 'dist', 'ts', [], true, "iife");
+buildScripts('src/js', 'dist', 'js', ['admin'], true, "iife");
 
 // Build development files
 buildDevFiles(devFiles);
