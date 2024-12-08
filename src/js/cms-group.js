@@ -168,7 +168,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
 
-  console.log("MENUS", menus);
-  console.log("CATEGORIES", categories);
-  console.log("DISHES", dishes);
+  // console.log("MENUS", menus);
+  // console.log("CATEGORIES", categories);
+  // console.log("DISHES", dishes);
 });
