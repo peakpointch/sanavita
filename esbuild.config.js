@@ -1,20 +1,27 @@
 const esbuild = require("esbuild")
 const chokidar = require("chokidar")
-const http = require('http')
+const http = require("http")
 const path = require("path")
-const { files, devFiles, build } = require('./builder');
+const { buildLibrary, buildScripts, buildDevFiles } = require("./builder")
 
-// const isProduction = process.env.RAILS_ENV === "production"
-// const watchMode =
-//     process.argv.includes("--watch") || process.argv.includes("--reload")
-// const reloadMode = process.argv.includes("--reload")
+// Define directories and files
+const libraryDir = "library"
+const scriptsDir = "src"
+const devFiles = ["livereload/livereload.js"]
 const port = 3001
 
-// Start the esbuild build process
-build(files, devFiles)
+// Build all scripts initially
+function build() {
+  buildLibrary(libraryDir, "dist/library")
+  buildScripts(`${scriptsDir}/ts`, "dist")
+  buildScripts(`${scriptsDir}/js`, "dist", [], true, "iife")
+  buildDevFiles(devFiles)
+}
+
+build()
 
 // Set up a simple HTTP server for live reload with CORS headers
-const clients = []
+const clients = [];
 const server = http.createServer((req, res) => {
   // Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -36,14 +43,11 @@ const server = http.createServer((req, res) => {
 
 server.listen(port)
 
-// Watch for file changes 
+// Watch for file changes
 chokidar
-  .watch([
-    "assets/**/*",
-    "assets"
-  ])
+  .watch([libraryDir, `${scriptsDir}/**/*`, ...devFiles])
   .on("all", () => {
-    build(files, devFiles)
+    build()
     clients.forEach((client) => client.write("data: reload\n\n"))
     console.log("CHANGE")
   })

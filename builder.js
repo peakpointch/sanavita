@@ -14,7 +14,7 @@ function excludeFiles(files, excludeList) {
 }
 
 // General build function for both modular and non-modular scripts
-function buildScripts(dir, outDir, extension = 'ts', excludeList = [], minify = false, format = "esm") {
+function buildScripts(dir, outDir, extension = 'ts', excludeList = [], minify = true, format = "iife") {
   const files = getFilesFromDirectory(dir, extension);
   const filteredFiles = excludeFiles(files, excludeList);
 
