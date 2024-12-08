@@ -2,7 +2,7 @@ const esbuild = require("esbuild")
 const chokidar = require("chokidar")
 const http = require("http")
 const path = require("path")
-const { buildLibrary, buildScripts, buildDevFiles } = require("./builder")
+const { build } = require("./builder")
 
 // Define directories and files
 const libraryDir = "library"
@@ -11,13 +11,6 @@ const devFiles = ["livereload/livereload.js"]
 const port = 3001
 
 // Build all scripts initially
-function build() {
-  buildLibrary(libraryDir, "dist/library")
-  buildScripts(`${scriptsDir}/ts`, "dist")
-  buildScripts(`${scriptsDir}/js`, "dist", [], true, "iife")
-  buildDevFiles(devFiles)
-}
-
 build()
 
 // Set up a simple HTTP server for live reload with CORS headers

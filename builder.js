@@ -28,7 +28,6 @@ function buildScripts(dir, outDir, extension = 'ts', excludeList = [], minify = 
       format: format,
       minifyIdentifiers: false,
     }).catch((e) => {
-      console.error(`Error building ${name}:`, e);
       process.exit(1);
     });
   }
@@ -61,26 +60,29 @@ function buildLibrary(libraryDir, outDir) {
       format: "esm",
       minifyIdentifiers: false,
     }).catch((e) => {
-      console.error(`Error building library ${name}:`, e);
       process.exit(1);
     });
   }
 }
 
-// Define paths
-const libraryDir = 'library';
-const devFiles = [
-  "livereload/livereload.js",
-];
+function build() {
+  // Define paths
+  const libraryDir = 'library';
+  const devFiles = [
+    "livereload/livereload.js",
+  ];
 
-// Build the library
-buildLibrary(libraryDir, 'dist/library');
+  // Build the library
+  buildLibrary(libraryDir, 'dist/library');
 
-// Build the scripts
-buildScripts('src/ts', 'dist', 'ts', [], true, "iife");
-buildScripts('src/js', 'dist', 'js', ['admin'], true, "iife");
+  // Build the scripts
+  buildScripts('src/ts', 'dist', 'ts', [], true, "iife");
+  buildScripts('src/js', 'dist', 'js', ['admin'], true, "iife");
 
-// Build development files
-buildDevFiles(devFiles);
+  // Build development files
+  buildDevFiles(devFiles);
+}
 
-module.exports = { buildScripts, buildLibrary, buildDevFiles };
+build();
+
+module.exports = { build, buildScripts, buildLibrary, buildDevFiles };
