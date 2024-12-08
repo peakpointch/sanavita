@@ -56,7 +56,7 @@ function extractTargetFromAttribute(container: HTMLElement): HTMLElement {
  * @param container - CSS selector or HTMLElement(s) for the container(s).
  * @param target - CSS selector or HTMLElement for the target. If omitted, parent of the container is used.
  */
-export function inlineCms(
+export function inlineCmsDev(
   container: string | HTMLElement,
   target?: string | HTMLElement
 ): void {
@@ -85,7 +85,7 @@ export function inlineCms(
  * Each container must have a `data-inlinecms-target` attribute.
  * @param containers - A NodeListOf<HTMLElement> or a CSS selector string for CMS container elements.
  */
-export function inlineCmsWithAutoTarget(
+export function inlineCms(
   containers: string | NodeListOf<HTMLElement>
 ): void {
   let containerElements: HTMLElement[];
@@ -103,8 +103,17 @@ export function inlineCmsWithAutoTarget(
   containerElements.forEach((container) => {
     validateContainer(container);
 
-    // Extract the target from the container's attribute
-    const targetElement = extractTargetFromAttribute(container);
+    let targetElement: HTMLElement;
+    try {
+      // Extract the target from the container's attribute
+      targetElement = extractTargetFromAttribute(container);
+    } catch (e) {
+      console.error(
+        `Inlinecms: Error getting Target element from Attribute.`,
+        e.message
+      );
+      targetElement = container.parentElement;
+    }
 
     // Process the container and append items to the target
     processItems(container, targetElement);

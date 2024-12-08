@@ -44,7 +44,7 @@ function extractTargetFromAttribute(container) {
   }
   return target;
 }
-function inlineCms(container, target) {
+function inlineCmsDev(container, target) {
   const containers = findElements(container, true);
   containers.forEach((containerEl) => {
     validateContainer(containerEl);
@@ -55,7 +55,7 @@ function inlineCms(container, target) {
     processItems(containerEl, targetEl);
   });
 }
-function inlineCmsWithAutoTarget(containers) {
+function inlineCms(containers) {
   let containerElements;
   if (typeof containers === "string") {
     containerElements = findElements(containers, true);
@@ -67,11 +67,20 @@ function inlineCmsWithAutoTarget(containers) {
   }
   containerElements.forEach((container) => {
     validateContainer(container);
-    const targetElement = extractTargetFromAttribute(container);
+    let targetElement;
+    try {
+      targetElement = extractTargetFromAttribute(container);
+    } catch (e) {
+      console.error(
+        `Inlinecms: Error getting Target element from Attribute.`,
+        e.message
+      );
+      targetElement = container.parentElement;
+    }
     processItems(container, targetElement);
   });
 }
 export {
   inlineCms,
-  inlineCmsWithAutoTarget
+  inlineCmsDev
 };
