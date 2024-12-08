@@ -1,0 +1,1 @@
+(()=>{var n=t=>`[data-animate="${t}"]`,o=(t,e)=>`${n(t)}[data-initial-state="${e}"]`;function r(t){t.querySelector(n("trigger")).click()}document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll(o("accordion","toggle")).forEach((e,c)=>{r(e)})});})();
