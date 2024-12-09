@@ -88,6 +88,22 @@ webflowSwipers.forEach((swiperElement) => {
     slidesPerView: slidesPerView,
     debugger: true,
   });
+
+  swiper.autoplay.stop();
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        swiper.autoplay.start();
+      } else {
+        swiper.autoplay.stop();
+      }
+    })
+  }, {
+    threshold: 0.2
+  });
+
+  observer.observe(swiperElement);
 });
 
 defaultSwipers = document.querySelectorAll(`[default-swiper-component]`);
