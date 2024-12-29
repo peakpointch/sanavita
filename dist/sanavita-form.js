@@ -35,7 +35,7 @@
     CHECKBOX_INPUT_SELECTOR
   ];
   var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
-  var FORM_FILTERS_SELECTOR = `${FORM_INPUT_SELECTOR}${filterFormSelector("field")}`;
+  var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
   function isRadioInput(input) {
     return input instanceof HTMLInputElement && input.type === "radio";
   }
