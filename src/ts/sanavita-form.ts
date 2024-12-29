@@ -1,63 +1,25 @@
+// Imports
+import createAttribute from "@library/attributeselector";
 import { parameterize } from "@library/parameterize";
+import {
+  isCheckboxInput,
+  isRadioInput,
+  initCustomInputs,
+  clearRadioGroup,
+  sendFormData,
+  validateFields,
+  formElementSelector
+} from "@library/wfform";
+import { wf, wfclasses, formSelectors } from "@library/wfform";
+import { FormInput, Validator } from "@library/wfform";
 
-const W_CHECKBOX_CLASS = ".w-checkbox-input";
-const W_RADIO_CLASS = ".w-radio-input";
-const W_CHECKED_CLASS = "w--redirected-checked";
-
-const FORM_COMPONENT_SELECTOR: string = '[data-form-element="component"]';
-const FORM_SELECTOR: string = "form";
-const FORM_SUCCESS_SELECTOR: string = '[data-form-element="success"]';
-const FORM_ERROR_SELECTOR: string = '[data-form-element="error"]';
-const FORM_SUBMIT_SELECTOR: string = '[data-form-element="submit"]';
-const CHECKBOX_INPUT_SELECTOR: string = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
-const RADIO_INPUT_SELECTOR: string = '.w-radio input[type="radio"]';
-const FORM_INPUT_SELECTOR_LIST: string[] = [
-  ".w-input",
-  ".w-select",
-  RADIO_INPUT_SELECTOR,
-  CHECKBOX_INPUT_SELECTOR,
-];
-const FORM_INPUT_SELECTOR: string = FORM_INPUT_SELECTOR_LIST.join(", ");
-
-const STEPS_COMPONENT_SELECTOR: string = '[data-steps-element="component"]';
-const STEPS_LIST_SELECTOR: string = '[data-steps-element="list"]';
-const STEPS_SELECTOR: string = '[data-steps-element="step"]';
-const STEPS_NAVIGATION_SELECTOR: string = '[data-steps-element="navigation"]';
-const STEPS_PAGINATION_SELECTOR: string = '[data-steps-element="pagination"]';
-const STEPS_PAGINATION_ITEM_SELECTOR: string = "button[data-step-target]";
-const STEPS_PREV_SELECTOR: string = '[data-steps-nav="prev"]';
-const STEPS_NEXT_SELECTOR: string = '[data-steps-nav="next"]';
-const STEPS_TARGET_SELECTOR: string = "[data-step-target]";
-
-const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
-const ARRAY_TEMPLATE_SELECTOR: string = '[data-person-element="template"]';
-const ARRAY_EMPTY_STATE_SELECTOR: string = '[data-person-element="empty"]';
-const ARRAY_ADD_SELECTOR: string = '[data-person-element="add"]';
-const ARRAY_SAVE_SELECTOR: string = '[data-person-element="save"]';
-const ARRAY_CANCEL_SELECTOR: string = '[data-person-element="cancel"]';
-const ARRAY_GROUP_SELECTOR: string = "[data-person-data-group]";
-const MODAL_SELECTOR: string = '[data-form-element="modal"]';
-const MODAL_SCROLL_SELECTOR: string = '[data-modal-element="scroll"]';
-const MODAL_STICKY_TOP_SELECTOR: string = '[data-modal-element="sticky-top"]';
-const MODAL_STICKY_BOTTOM_SELECTOR: string =
-  '[data-modal-element="sticky-bottom"]';
-
-const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
-
-// Unique key to store form data in localStorage
-const STORAGE_KEY = "formProgress";
-
-const siteId: string = document.documentElement.dataset.wfSite || "";
-const pageId: string = document.documentElement.dataset.wfPage || "";
-
-type FormElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+// Types
 type GroupName =
   | "personalData"
   | "doctor"
   | "health"
   | "primaryRelative"
   | "secondaryRelative";
-type Validator = () => boolean;
 type MutliStepFormSettings = {
   navigation: {
     hideInStep: number;
@@ -70,6 +32,25 @@ type CustomFormComponent = {
   validator: Validator;
   getData?: () => {};
 };
+type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination';
+type StepsNavElement = 'prev' | 'next';
+type ModalElement = 'scroll' | 'sticky-top' | 'sticky-bottom';
+type PersonElement = 'template' | 'empty' | 'add' | 'save' | 'cancel';
+
+// Selector functions
+const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element');
+const stepsTargetSelector = createAttribute<string>('data-step-target');
+const stepsNavSelector = createAttribute<StepsNavElement>('data-steps-nav');
+const modalSelector = createAttribute<ModalElement>('data-modal-element');
+const personSelector = createAttribute<PersonElement>('data-person-element')
+
+const STEPS_PAGINATION_ITEM_SELECTOR: string = `button${stepsTargetSelector()}`;
+const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
+const ARRAY_GROUP_SELECTOR: string = "[data-person-data-group]";
+const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
+
+// Unique key to store form data in localStorage
+const STORAGE_KEY = "formProgress";
 
 interface Window {
   PEAKPOINT: any;
@@ -125,7 +106,7 @@ class Accordion {
   public scrollIntoView(): void {
     let offset = 0;
     const scrollWrapper: HTMLElement | null = this.component.closest(
-      MODAL_SCROLL_SELECTOR
+      modalSelector('scroll')
     );
     const elementPosition = this.component.getBoundingClientRect().top;
 
@@ -215,9 +196,8 @@ class Person {
 
   public getFullName(): string {
     return (
-      `${this.personalData.getField("first-name")!.value} ${
-        this.personalData.getField("name")!.value
-      }`.trim() || "Neue Person"
+      `${this.personalData.getField("first-name")!.value} ${this.personalData.getField("name")!.value
+        }`.trim() || "Neue Person"
     );
   }
 
@@ -340,7 +320,7 @@ class Field {
   }
 }
 
-function FieldFromInput(input: FormElement, index): Field {
+function FieldFromInput(input: FormInput, index): Field {
   if (input.type === "radio" && !(input as HTMLInputElement).checked) {
     return new Field();
   }
@@ -471,11 +451,11 @@ class FormGroup {
     });
   }
 
-  private getGroupFields(groupName: string): NodeListOf<FormElement> {
+  private getGroupFields(groupName: string): NodeListOf<FormInput> {
     return this.container.querySelectorAll(`[data-form-group="${groupName}"]`);
   }
 
-  private getAllGroupFields(): NodeListOf<FormElement> {
+  private getAllGroupFields(): NodeListOf<FormInput> {
     const selectorList = this.groupNames.map((groupName) => {
       return `[data-form-group="${groupName}"]`;
     });
@@ -639,8 +619,8 @@ class FormDecision {
   private checkPathValidity(pathIndex: number): boolean {
     // Get the path element and the form inputs inside it
     const pathElement = this.paths[pathIndex];
-    const inputs: NodeListOf<FormElement> =
-      pathElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const inputs: NodeListOf<FormInput> =
+      pathElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
 
     // Validate the fields within the path element
     const { valid, invalidField } = validateFields(inputs, true);
@@ -651,7 +631,7 @@ class FormDecision {
   private updateRequiredAttributes() {
     // For all paths, make inputs non-required by default
     this.paths.forEach((path) => {
-      const inputs: NodeListOf<FormElement> = path.querySelectorAll(
+      const inputs: NodeListOf<FormInput> = path.querySelectorAll(
         "input, select, textarea"
       );
       inputs.forEach((input) => {
@@ -671,7 +651,7 @@ class FormDecision {
       );
 
       if (selectedPath) {
-        const requiredFields: NodeListOf<FormElement> =
+        const requiredFields: NodeListOf<FormInput> =
           selectedPath.querySelectorAll(
             '[data-decision-required="required"], [data-decision-required="true"]'
           );
@@ -720,11 +700,11 @@ class Modal {
   }
 
   private getModalContent(): HTMLElement | null {
-    return this.component.querySelector(MODAL_SCROLL_SELECTOR);
+    return this.component.querySelector(modalSelector('scroll'));
   }
 
   private getStickyFooter(): HTMLElement | null {
-    return this.component.querySelector(MODAL_STICKY_BOTTOM_SELECTOR);
+    return this.component.querySelector(modalSelector('sticky-bottom'));
   }
 
   private setupScrollEvent(
@@ -779,10 +759,10 @@ class Modal {
     this.hideComponent();
   }
 
-  public addCustomAction(action: () => any): void {}
+  public addCustomAction(action: () => any): void { }
 }
 
-class FormModal extends Modal {}
+class FormModal extends Modal { }
 
 class FormArray {
   public id: string | number;
@@ -797,8 +777,8 @@ class FormArray {
   private modalForm: HTMLFormElement;
   private saveButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
-  private modalInputs: NodeListOf<FormElement>;
-  private groupElements: NodeListOf<FormElement>;
+  private modalInputs: NodeListOf<FormInput>;
+  private groupElements: NodeListOf<FormInput>;
   private accordionList: Accordion[] = [];
   public initialized: boolean = false;
 
@@ -809,21 +789,21 @@ class FormArray {
     this.container = container;
     this.people = new Map();
     this.list = this.container.querySelector(ARRAY_LIST_SELECTOR)!;
-    this.template = this.list.querySelector(ARRAY_TEMPLATE_SELECTOR)!;
-    this.addButton = this.container.querySelector(ARRAY_ADD_SELECTOR)!;
+    this.template = this.list.querySelector(personSelector('template'))!;
+    this.addButton = this.container.querySelector(personSelector('add'))!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
-    this.modalForm = document.querySelector(FORM_SELECTOR)!;
+    this.modalForm = document.querySelector(formSelectors.FORM_SELECTOR)!;
 
     // Form Modal
     this.modalElement = document.querySelector(
-      MODAL_SELECTOR + `[data-modal-for="person"]`
+      formElementSelector('modal') + `[data-modal-for="person"]`
     )!;
     this.modal = new FormModal(this.modalElement);
-    this.saveButton = this.modalElement.querySelector(ARRAY_SAVE_SELECTOR)!;
+    this.saveButton = this.modalElement.querySelector(personSelector('save'))!;
     this.cancelButtons = this.modalElement.querySelectorAll(
-      ARRAY_CANCEL_SELECTOR
+      personSelector('cancel')
     )!;
-    this.modalInputs = this.modalElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    this.modalInputs = this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
     this.groupElements =
       this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
 
@@ -1006,8 +986,8 @@ class FormArray {
 
   private populateModal(person: Person) {
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormElement> =
-        group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupInputs: NodeListOf<FormInput> =
+        group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       groupInputs.forEach((input) => {
@@ -1131,8 +1111,8 @@ class FormArray {
   }
 
   private validateModal(report: boolean = true): boolean {
-    const allModalFields: NodeListOf<FormElement> =
-      this.modalElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const allModalFields: NodeListOf<FormInput> =
+      this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
     const { valid, invalidField } = validateFields(allModalFields, report);
 
     if (valid === true) {
@@ -1178,7 +1158,7 @@ class FormArray {
    * @param field - The form element (field) to search for within the accordions.
    * @returns The index of the accordion containing the field, or `-1` if no accordion contains the field.
    */
-  private accordionIndexOf(field: FormElement): number {
+  private accordionIndexOf(field: FormInput): number {
     let parentElement: HTMLElement | null = field.closest(
       '[data-animate="accordion"]'
     );
@@ -1198,8 +1178,8 @@ class FormArray {
     const personData = new Person();
 
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormElement> =
-        group.querySelectorAll(FORM_INPUT_SELECTOR);
+      const groupInputs: NodeListOf<FormInput> =
+        group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       if (!personData[groupName]) {
@@ -1297,7 +1277,7 @@ class MultiStepForm {
   constructor(component: HTMLElement, settings: MutliStepFormSettings) {
     this.component = component;
     this.formElement = this.component.querySelector(
-      FORM_SELECTOR
+      formSelectors.FORM_SELECTOR
     ) as HTMLFormElement;
     this.settings = settings;
 
@@ -1305,21 +1285,21 @@ class MultiStepForm {
       throw new Error("Form element not found within the specified component.");
     }
 
-    this.formSteps = this.component.querySelectorAll(STEPS_SELECTOR);
+    this.formSteps = this.component.querySelectorAll(stepsElementSelector('step'));
     this.paginationItems = this.component.querySelectorAll(
       STEPS_PAGINATION_ITEM_SELECTOR
     );
     this.navigationElement = this.component.querySelector(
-      STEPS_NAVIGATION_SELECTOR
+      stepsElementSelector('navigation')
     )!;
-    this.buttonsNext = this.component.querySelectorAll(STEPS_NEXT_SELECTOR);
-    this.buttonsPrev = this.component.querySelectorAll(STEPS_PREV_SELECTOR);
+    this.buttonsNext = this.component.querySelectorAll(stepsNavSelector('next'));
+    this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector('prev'));
 
     // Handle optional UI elements
-    this.successElement = this.component.querySelector(FORM_SUCCESS_SELECTOR);
-    this.errorElement = this.component.querySelector(FORM_ERROR_SELECTOR);
+    this.successElement = this.component.querySelector(formElementSelector('success'));
+    this.errorElement = this.component.querySelector(formElementSelector('error'));
     this.submitButton = this.component.querySelector(
-      FORM_SUBMIT_SELECTOR
+      formElementSelector('submit')
     ) as HTMLInputElement | null;
 
     this.initialize();
@@ -1328,7 +1308,7 @@ class MultiStepForm {
   private initialize(): void {
     if (!this.component.getAttribute("data-steps-element")) {
       console.error(
-        `Form Steps: Component is not a steps component or is missing the attribute ${STEPS_COMPONENT_SELECTOR}.\nComponent:`,
+        `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector('component')}.\nComponent:`,
         this.component
       );
       return;
@@ -1337,7 +1317,7 @@ class MultiStepForm {
     if (!this.formSteps.length) {
       console.warn(
         `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
-        this.component.querySelector(STEPS_LIST_SELECTOR)
+        this.component.querySelector(stepsElementSelector('list'))
       );
       return;
     }
@@ -1411,7 +1391,7 @@ class MultiStepForm {
 
   private buildJsonForWebflow(): any {
     const recaptcha = (
-      this.formElement.querySelector("#g-recaptcha-response") as FormElement
+      this.formElement.querySelector("#g-recaptcha-response") as FormInput
     ).value;
     let customFields = {};
     this.customComponents.map((entry) => {
@@ -1423,7 +1403,7 @@ class MultiStepForm {
 
     return {
       name: this.formElement.dataset.name,
-      pageId: pageId,
+      pageId: wf.pageId,
       elementId: this.formElement.dataset.wfElementId,
       source: window.location.href,
       test: false,
@@ -1467,7 +1447,7 @@ class MultiStepForm {
       step.classList.toggle("hide", index !== this.currentStep);
 
       step
-        .querySelectorAll<HTMLInputElement>(FORM_INPUT_SELECTOR) // Type necessary for keydown event
+        .querySelectorAll<HTMLInputElement>(formSelectors.FORM_INPUT_SELECTOR) // Type necessary for keydown event
         .forEach((input) => {
           input.addEventListener("keydown", (event: KeyboardEvent) => {
             if (event.key === "Enter") {
@@ -1604,12 +1584,11 @@ class MultiStepForm {
   }
 
   public validateCurrentStep(step: number): boolean {
-    const basicError = `Validation failed for step: ${step + 1}/${
-      this.formSteps.length
-    }`;
+    const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length
+      }`;
     const currentStepElement = this.formSteps[step];
-    const inputs: NodeListOf<FormElement> =
-      currentStepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const inputs: NodeListOf<FormInput> =
+      currentStepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
 
     const filteredInputs = Array.from(inputs).filter((input) => {
       // Check if the input matches any exclude selectors or is inside an excluded wrapper
@@ -1648,8 +1627,8 @@ class MultiStepForm {
     let fields: Map<string, Field> = new Map();
 
     const stepElement = this.formSteps[step];
-    const stepInputs: NodeListOf<FormElement> =
-      stepElement.querySelectorAll(FORM_INPUT_SELECTOR);
+    const stepInputs: NodeListOf<FormInput> =
+      stepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
     stepInputs.forEach((input, inputIndex) => {
       const entry = FieldFromInput(input, inputIndex);
       if (entry?.id) {
@@ -1679,8 +1658,8 @@ function mapToObject(map: Map<any, any>, stringify: boolean = false): any {
       value instanceof Map
         ? mapToObject(value, stringify)
         : stringify
-        ? JSON.stringify(value)
-        : value; // Recursively convert if value is a Map
+          ? JSON.stringify(value)
+          : value; // Recursively convert if value is a Map
   }
   return obj;
 }
@@ -1755,41 +1734,6 @@ function reinsertElement(element: HTMLElement): void {
   }, 0);
 }
 
-function isRadioInput(input: FormElement): input is HTMLInputElement {
-  return input instanceof HTMLInputElement && input.type === "radio";
-}
-
-function isCheckboxInput(input: FormElement): input is HTMLInputElement {
-  return input instanceof HTMLInputElement && input.type === "checkbox";
-}
-
-async function sendFormData(formData): Promise<boolean> {
-  const url = `https://webflow.com/api/v1/form/${siteId}`;
-  const request: RequestInit = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json, text/javascript, */*; q=0.01",
-    },
-    body: JSON.stringify(formData),
-  };
-
-  // return true;
-
-  try {
-    const response = await fetch(url, request);
-
-    if (!response.ok) {
-      throw new Error(`Network response "${response.status}" was not okay`);
-    }
-    console.log("Form submission success! Status", response.status);
-    return true;
-  } catch (error) {
-    console.error("Form submission failed:", error);
-    return false;
-  }
-}
-
 function initFormButtons(form: HTMLFormElement) {
   const buttons = form.querySelectorAll("button");
   buttons.forEach((button) => {
@@ -1798,157 +1742,6 @@ function initFormButtons(form: HTMLFormElement) {
       // event.preventDefault();
     });
   });
-}
-
-function clearRadioGroup(container: HTMLElement, name: string) {
-  container
-    .querySelectorAll<HTMLInputElement>(
-      `${RADIO_INPUT_SELECTOR}[name="${name}"]`
-    )
-    .forEach((radio) => {
-      radio.checked = false; // Uncheck all radios in the group
-      const customRadio = radio
-        .closest(".w-radio")
-        ?.querySelector(W_RADIO_CLASS);
-      if (customRadio) {
-        customRadio.classList.remove(W_CHECKED_CLASS); // Remove the checked styling
-      }
-    });
-}
-
-function initCustomInputs(container: HTMLElement) {
-  // Constants for selectors and classes
-  const focusClass = "w--redirected-focus";
-  const focusVisibleClass = "w--redirected-focus-visible";
-  const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
-  const inputTypes = [
-    ["checkbox", W_CHECKBOX_CLASS],
-    ["radio", W_RADIO_CLASS],
-  ];
-
-  // Add change event listener for checkboxes
-  container
-    .querySelectorAll<HTMLInputElement>(CHECKBOX_INPUT_SELECTOR)
-    .forEach((input) => {
-      input.addEventListener("change", (event) => {
-        const target = event.target as HTMLInputElement;
-        const customCheckbox = target
-          .closest(".w-checkbox")
-          ?.querySelector(W_CHECKBOX_CLASS);
-        if (customCheckbox) {
-          customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
-        }
-      });
-    });
-
-  // Add change event listener for radio buttons
-  container
-    .querySelectorAll<HTMLInputElement>('input[type="radio"]')
-    .forEach((input) => {
-      input.addEventListener("change", (event) => {
-        const target = event.target as HTMLInputElement;
-        if (!target.checked) return;
-
-        // Deselect other radios in the same group
-        const name = target.name;
-        container
-          .querySelectorAll<HTMLInputElement>(
-            `input[type="radio"][name="${name}"]`
-          )
-          .forEach((radio) => {
-            const customRadio = radio
-              .closest(".w-radio")
-              ?.querySelector(W_RADIO_CLASS);
-            if (customRadio) {
-              customRadio.classList.remove(W_CHECKED_CLASS);
-            }
-          });
-
-        // Add the checked class to the selected radio's custom container
-        const selectedCustomRadio = target
-          .closest(".w-radio")
-          ?.querySelector(W_RADIO_CLASS);
-        if (selectedCustomRadio) {
-          selectedCustomRadio.classList.add(W_CHECKED_CLASS);
-        }
-      });
-    });
-
-  // Add focus and blur event listeners for checkboxes and radios
-  inputTypes.forEach(([type, customClass]) => {
-    container
-      .querySelectorAll<HTMLInputElement>(
-        `input[type="${type}"]:not(${customClass})`
-      )
-      .forEach((input) => {
-        input.addEventListener("focus", (event) => {
-          const target = event.target as HTMLInputElement;
-          const customElement = target
-            .closest(".w-checkbox, .w-radio")
-            ?.querySelector(customClass);
-          if (customElement) {
-            customElement.classList.add(focusClass);
-            if (target.matches(focusVisibleSelector)) {
-              customElement.classList.add(focusVisibleClass);
-            }
-          }
-        });
-
-        input.addEventListener("blur", (event) => {
-          const target = event.target as HTMLInputElement;
-          const customElement = target
-            .closest(".w-checkbox, .w-radio")
-            ?.querySelector(customClass);
-          if (customElement) {
-            customElement.classList.remove(focusClass, focusVisibleClass);
-          }
-        });
-      });
-  });
-}
-
-function validateFields(
-  inputs: NodeListOf<FormElement> | FormElement[],
-  report: boolean = true
-): {
-  valid: boolean;
-  invalidField: FormElement | null;
-} {
-  let valid = true; // Assume the step is valid unless we find a problem
-  let invalidField: FormElement | null = null;
-
-  for (const input of Array.from(inputs)) {
-    if (!input.checkValidity()) {
-      valid = false;
-      if (report && !invalidField) {
-        input.reportValidity();
-        input.classList.add("has-error");
-        if (isCheckboxInput(input)) {
-          input.parentElement
-            ?.querySelector(W_CHECKBOX_CLASS)
-            ?.classList.add("has-error");
-        }
-        input.addEventListener(
-          "change",
-          () => {
-            input.classList.remove("has-error");
-            if (isCheckboxInput(input)) {
-              input.parentElement
-                ?.querySelector(W_CHECKBOX_CLASS)
-                ?.classList.remove("has-error");
-            }
-          },
-          { once: true }
-        );
-        invalidField = input; // Store the first invalid field
-      }
-      break;
-    } else {
-      input.classList.remove("has-error");
-    }
-  }
-
-  return { valid, invalidField };
 }
 
 function decisionSelector(id?: number | string) {
@@ -2041,7 +1834,7 @@ function unlockBodyScroll(): void {
 }
 
 const formElement: HTMLElement | null = document.querySelector(
-  FORM_COMPONENT_SELECTOR
+  formElementSelector('component')
 );
 formElement?.classList.remove("w-form");
 

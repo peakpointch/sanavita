@@ -1,2 +1,1458 @@
-(()=>{function q(o){return o.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").replace(/-+/g,"-")}var v=".w-checkbox-input",S=".w-radio-input",y="w--redirected-checked",z='[data-form-element="component"]',H="form",B='[data-form-element="success"]',$='[data-form-element="error"]',V='[data-form-element="submit"]',R=`.w-checkbox input[type="checkbox"]:not(${v})`,N='.w-radio input[type="radio"]',G=[".w-input",".w-select",N,R],p=G.join(", "),j='[data-steps-element="component"]',K='[data-steps-element="list"]',U='[data-steps-element="step"]',Y='[data-steps-element="navigation"]';var W="button[data-step-target]",J='[data-steps-nav="prev"]',X='[data-steps-nav="next"]';var Z='[data-form-array-element="list"]',Q='[data-person-element="template"]';var ee='[data-person-element="add"]',te='[data-person-element="save"]',se='[data-person-element="cancel"]',ie="[data-person-data-group]",oe='[data-form-element="modal"]',_='[data-modal-element="scroll"]';var ne='[data-modal-element="sticky-bottom"]',re='[data-animate="accordion"]',O="formProgress",ae=document.documentElement.dataset.wfSite||"",le=document.documentElement.dataset.wfPage||"",I=class{constructor(e){this.isOpen=!1;this.component=e,this.trigger=e.querySelector('[data-animate="trigger"]'),this.uiTrigger=e.querySelector('[data-animate="ui-trigger"]'),this.icon=e.querySelector('[data-animate="icon"]'),this.uiTrigger.addEventListener("click",()=>{this.toggle()})}open(){this.isOpen||(this.trigger.click(),setTimeout(()=>{this.icon.classList.add("is-open")},200),this.isOpen=!0)}close(){this.isOpen&&(this.trigger.click(),setTimeout(()=>{this.icon.classList.remove("is-open")},200),this.isOpen=!1)}toggle(){this.isOpen?this.close():this.open()}scrollIntoView(){let e=0,t=this.component.closest(_),s=this.component.getBoundingClientRect().top;if(t){let i=t.getBoundingClientRect().top;e=t.querySelector('[data-scroll-child="sticky"]').clientHeight,t.scrollBy({top:s-i-e-2,behavior:"smooth"})}else window.scrollTo({top:s+window.scrollY-e-2,behavior:"smooth"})}},u=class{constructor(e=new Map){this.fields=e}getField(e){return this.fields.get(e)}},T=class{constructor(e=new u,t=new u,s=new u,i=new u,n=new u){this.personalData=e,this.doctor=t,this.health=s,this.primaryRelative=i,this.secondaryRelative=n}validate(){let e=!0;return Object.keys(this).forEach(s=>{let i=this[s];i.fields&&i.fields.forEach(n=>{if(n instanceof f)n.validate(!0)||(e=!1);else{console.error('Validate Person: field object is not of instance "Field"');return}})}),e}getFullName(){return`${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim()||"Neue Person"}serialize(){return{personalData:m(this.personalData.fields),doctor:m(this.doctor.fields),health:m(this.health.fields),primaryRelative:m(this.primaryRelative.fields),secondaryRelative:m(this.secondaryRelative.fields)}}flatten(e){let t={},s=Object.keys(this);for(let i of s)this[i].fields.forEach((r,a)=>{let c=`${e}_${i}_${r.id}`;t[c]=r.value});return t}};function ce(o){let e=new Map;return Object.entries(o).forEach(([t,s])=>{let i=new f(s);e.set(t,i)}),e}function E(o){let e=ce(o);return new u(e)}function de(o){return new T(E(o.personalData),E(o.doctor),E(o.health),E(o.primaryRelative),E(o.secondaryRelative))}var f=class{constructor(e=null){e&&(this.id=e.id||`field-${Math.random().toString(36).substring(2)}`,this.label=e.label||"Unnamed Field",this.value=e.value||"",this.required=e.required||!1,this.type=e.type||"text",this.type,this.checked=e.checked||!1,this.type==="checkbox"&&!this.checked&&(console.log(this.label,this.type,this.checked,e.checked),this.value="Nicht angew\xE4hlt"))}validate(e=!0){let t=!0;return this.required&&(this.type==="radio"||this.type==="checkbox"?this.checked||(t=!1):this.value.trim()||(t=!1)),!t&&e&&console.warn(`Field "${this.label}" is invalid.`),t}};function D(o,e){return o.type==="radio"&&!o.checked?new f:new f({id:o.id||q(o.dataset.name||`field ${e}`),label:o.dataset.name||`field ${e}`,value:o.value,required:o.required||!1,type:o.type,checked:h(o)||b(o)?o.checked:void 0})}var M=class{constructor(e,t){this.initialized=!1;this.messageFor=t;let s=document.querySelector(`[data-message-component="${e}"][data-message-for="${this.messageFor}"]`);if(!s){console.warn(`No FormMessage component was found: ${e}, ${this.messageFor}`);return}this.component=s,this.messageElement=this.component?.querySelector('[data-message-element="message"]')||null,this.reset(),this.initialized=!0}info(e=null,t=!1){this.initialized&&(t||this.component.setAttribute("aria-live","polite"),this.setMessage(e,"info",t))}error(e=null,t=!1){this.initialized&&(t||(this.component.setAttribute("role","alert"),this.component.setAttribute("aria-live","assertive")),this.setMessage(e,"error",t))}reset(){this.initialized&&this.component.classList.remove("info","error")}setMessage(e=null,t,s=!1){this.initialized&&(this.messageElement&&e?this.messageElement.textContent=e:this.messageElement||console.warn("Message text element not found."),this.component.classList.remove("info","error"),this.component.classList.add(t),!s&&this.component.scrollIntoView({behavior:"smooth",block:"center"}))}};var F=class{constructor(e,t){this.paths=[];this.errorMessages={};this.defaultErrorMessage="Please complete the required fields.";if(!e||!t){console.error("FormDecision: Component not found.");return}else if(!e.hasAttribute("data-decision-component")){console.error("FormDecision: Selected element is not a FormDecision component:",e);return}this.component=e,this.id=t,this.formMessage=new M("FormDecision",t),this.initialize()}initialize(){let e=this.component.querySelector('[data-decision-element="decision"]')||this.component;if(this.decisionInputs=e.querySelectorAll("input[data-decision-action]"),this.decisionInputs.length===0){console.warn(`Decision component "${this.id}" does not contain any decision input elements.`);return}this.decisionInputs.forEach(t=>{let s=this.component.querySelector(`[data-decision-path="${t.dataset.decisionAction||t.value}"]`);s&&(s.style.display="none",this.paths.push(s)),t.addEventListener("change",i=>{this.handleChange(s,i),this.formMessage.reset()})}),this.component.addEventListener("change",()=>this.formMessage.reset())}handleChange(e,t){this.paths.forEach(s=>{s.style.display="none"}),e&&e.style.removeProperty("display"),this.updateRequiredAttributes()}getSelectedInput(){return Array.from(this.decisionInputs).find(e=>e.checked)}validate(){let e=this.getSelectedInput(),{valid:t}=w(this.decisionInputs);if(!t||!e)return console.warn("No decision selected!"),this.handleValidationMessages(!1),!1;let s=e.dataset.decisionAction||e.value,i=this.paths.findIndex(r=>r.dataset.decisionPath===s),n=i===-1||this.checkPathValidity(i);return this.handleValidationMessages(n),n}setErrorMessages(e,t){this.errorMessages=e,t&&(this.defaultErrorMessage=t)}checkPathValidity(e){let s=this.paths[e].querySelectorAll(p),{valid:i,invalidField:n}=w(s,!0);return i}updateRequiredAttributes(){this.paths.forEach(t=>{t.querySelectorAll("input, select, textarea").forEach(i=>{i.required=!1})});let e=this.component.querySelector("input[data-decision-action]:checked");if(e){let t=e.dataset.decisionAction||e.value,s=this.paths.find(i=>i.dataset.decisionPath===t);s&&s.querySelectorAll('[data-decision-required="required"], [data-decision-required="true"]').forEach(n=>{n.required=!0})}}handleValidationMessages(e){if(e)this.formMessage.reset();else{let t=this.getSelectedInput(),s=t?.dataset.decisionAction||t?.value,i=this.errorMessages[s]||this.defaultErrorMessage;this.formMessage.error(i)}}},A=class{constructor(e){this.initialized=!1;if(!e)throw new Error("The passed component doesn't exist.");this.component=e;let t=this.getModalContent(),s=this.getStickyFooter();!t||!s?console.warn("Initialize modal: skip sticky footer"):this.setupScrollEvent(t,s),this.initialized=!0}getModalContent(){return this.component.querySelector(_)}getStickyFooter(){return this.component.querySelector(ne)}setupScrollEvent(e,t){e.addEventListener("scroll",()=>{let{scrollHeight:s,scrollTop:i,clientHeight:n}=e;s-i<=n+1?t.classList.remove("modal-scroll-shadow"):t.classList.add("modal-scroll-shadow")})}showComponent(){this.component.style.removeProperty("display"),this.component.classList.remove("is-closed"),this.component.dataset.state="open"}hideComponent(){this.component.classList.add("is-closed"),this.component.dataset.state="closed",setTimeout(()=>{this.component.style.display="none"},500)}open(){this.showComponent(),ye()}close(){be(),this.hideComponent()}addCustomAction(e){}},C=class extends A{},P=class{constructor(e,t){this.accordionList=[];this.initialized=!1;this.editingKey=null;this.id=t,this.container=e,this.people=new Map,this.list=this.container.querySelector(Z),this.template=this.list.querySelector(Q),this.addButton=this.container.querySelector(ee),this.formMessage=new M("FormArray",this.id.toString()),this.modalForm=document.querySelector(H),this.modalElement=document.querySelector(oe+'[data-modal-for="person"]'),this.modal=new C(this.modalElement),this.saveButton=this.modalElement.querySelector(te),this.cancelButtons=this.modalElement.querySelectorAll(se),this.modalInputs=this.modalElement.querySelectorAll(p),this.groupElements=this.modalElement.querySelectorAll(ie),this.initialize()}initialize(){this.cancelButtons.forEach(t=>{t.addEventListener("click",()=>this.handleCancel())}),this.modalInputs.forEach(t=>{t.addEventListener("keydown",s=>{s.key==="Enter"&&(s.preventDefault(),this.savePersonFromModal())}),t.addEventListener("focusin",()=>{let s=this.accordionIndexOf(t);this.accordionList[s].isOpen||(this.openAccordion(s,this.accordionList),setTimeout(()=>{t.scrollIntoView({behavior:"smooth",block:"center"})},500))})}),this.saveButton.addEventListener("click",()=>this.savePersonFromModal()),this.addButton.addEventListener("click",()=>this.addPerson()),this.renderList(),this.closeModal();let e=this.container.querySelectorAll(re);for(let t=0;t<e.length;t++){let s=e[t];s.dataset.index=t.toString();let i=new I(s);this.accordionList.push(i),i.uiTrigger.addEventListener("click",()=>{this.openAccordion(t,this.accordionList),setTimeout(()=>{i.scrollIntoView()},500)})}this.openAccordion(0,this.accordionList),this.initialized=!0}handleCancel(){this.closeModal()}addPerson(){if(this.people.size===2){this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen."),setTimeout(()=>this.formMessage.reset(),5e3);return}this.clearModal(),this.setLiveText("state","Hinzuf\xFCgen"),this.setLiveText("full-name","Neue Person"),this.openModal(),this.editingKey=null}savePersonFromModal(e=!0){if(!this.validateModal(e)&&(console.warn("Couldn't save person. Please fill in all the values correctly."),e))return null;let s=this.extractData();this.savePerson(s)&&(this.renderList(),this.closeModal()),this.saveProgress()}savePerson(e){if(this.editingKey!==null)this.people.set(this.editingKey,e);else{let s=`person-${crypto.randomUUID()}`;this.people.set(s,e)}return!0}setLiveText(e,t){let s=this.modalElement.querySelectorAll(`[data-live-text="${e}"]`),i=!0;for(let n of Array.from(s)){if(!n){i=!1;break}n.innerText=t}return i}renderList(){this.list.innerHTML="",this.list.dataset.length=this.people.size.toString(),this.people.size?(this.people.forEach((e,t)=>this.renderPerson(e,t)),this.formMessage.reset()):this.formMessage.info("Bitte f\xFCgen Sie die Mieter (max. 2 Personen) hinzu.",!this.initialized)}renderPerson(e,t){let s=this.template.cloneNode(!0),i=["full-name","phone","email","street","zip","city"];s.style.removeProperty("display");let n=s.querySelector('[data-person-action="edit"]'),r=s.querySelector('[data-person-action="delete"]');n.addEventListener("click",()=>{this.setLiveText("state","bearbeiten"),this.setLiveText("full-name",e.getFullName()||"Neue Person"),this.populateModal(e),this.openModal(),this.editingKey=t}),r.addEventListener("click",()=>{this.people.delete(t),this.renderList(),this.closeModal(),this.saveProgress()}),i.forEach(a=>{let c=`[data-${a}]`,l=s.querySelector(c);if(l&&a==="full-name")l.innerText=e.getFullName();else if(l){let d=e.personalData.getField(a);if(!d){console.error(`Render person: A field for "${a}" doesn't exist.`);return}l.innerText=d.value||d.label}}),this.list.appendChild(s)}populateModal(e){this.groupElements.forEach(t=>{let s=t.querySelectorAll(p),i=t.dataset.personDataGroup;s.forEach(n=>{let r=e[i].getField(n.id);if(!r){console.warn("Field not found:",r,n.id);return}if(!b(n)&&!h(n)){n.value=r.value.trim();return}b(n)&&n.value===r.value&&(n.checked=r.checked,n.dispatchEvent(new Event("change",{bubbles:!0}))),h(n)&&(n.checked=r.checked,n.dispatchEvent(new Event("change",{bubbles:!0})))})})}validate(){let e=!0;return this.people.size===0?(console.warn("Bitte f\xFCgen Sie mindestens eine mietende Person hinzu."),this.formMessage.error("Bitte f\xFCgen Sie mindestens eine mietende Person hinzu."),setTimeout(()=>this.formMessage.info("Bitte f\xFCgen Sie die Mieter (max. 2 Personen) hinzu.",!0),5e3),e=!1):this.people.forEach((t,s)=>{t.validate()||(console.warn(`Bitte f\xFCllen Sie alle Felder f\xFCr "${t.getFullName()}" aus.`),this.formMessage.error(`Bitte f\xFCllen Sie alle Felder f\xFCr "${t.getFullName()}" aus.`),e=!1)}),e}openModal(){this.modalElement.querySelector('[data-person-data-group="personalData"]').querySelectorAll("#first-name, #name").forEach(s=>{s.addEventListener("input",()=>{let i=this.extractData();this.setLiveText("full-name",i.getFullName()||"Neue Person")})}),this.formMessage.reset(),this.openAccordion(0,this.accordionList),this.modal.open()}closeModal(){this.modal.close(),this.initialized&&this.list.scrollIntoView({behavior:"smooth",block:"center"}),this.clearModal()}clearModal(){this.setLiveText("state","hinzuf\xFCgen"),this.setLiveText("full-name","Neue Person"),this.modalInputs.forEach(e=>{b(e)?(e.checked=!1,fe(this.modalElement,e.name)):h(e)?(e.checked=!1,e.dispatchEvent(new Event("change",{bubbles:!0}))):e.value=""})}validateModal(e=!0){let t=this.modalElement.querySelectorAll(p),{valid:s,invalidField:i}=w(t,e);if(s===!0)return!0;if(i){let n=this.accordionIndexOf(i);return n!==-1&&(this.openAccordion(n,this.accordionList),setTimeout(()=>{i.scrollIntoView({behavior:"smooth",block:"center"})},500)),!1}return!1}openAccordion(e,t){for(let s=0;s<t.length;s++){let i=t[s];s===e&&!i.isOpen?i.open():s!==e&&i.isOpen&&i.close()}}accordionIndexOf(e){let t=e.closest('[data-animate="accordion"]');if(t){let s=this.accordionList.findIndex(i=>i.component===t);return s!==-1?s:-1}return-1}extractData(){let e=new T;return this.groupElements.forEach(t=>{let s=t.querySelectorAll(p),i=t.dataset.personDataGroup;if(!e[i]){console.error(`The group "${i}" doesn't exist.`);return}s.forEach((n,r)=>{let a=D(n,r);a?.id&&e[i].fields.set(a.id,a)})}),e}saveProgress(){let e=ue(this.people);try{localStorage.setItem(O,JSON.stringify(e)),console.log("Form progress saved."),console.log(e)}catch(t){console.error("Error saving form progress to localStorage:",t)}}clearProgress(){try{localStorage.removeItem(O)}catch(e){console.error("Error clearing form progress from localStorage:",e)}}loadProgress(){let e=localStorage.getItem(O);if(e)try{let t=JSON.parse(e);for(let s in t)if(t.hasOwnProperty(s)){let i=t[s],n=de(i);this.people.set(s,n),this.renderList(),this.closeModal()}console.log("Form progress loaded.")}catch(t){console.error("Error loading form progress from localStorage:",t)}else console.log("No saved form progress found.")}},k=class{constructor(e,t){this.currentStep=0;this.customComponents=[];this.initialized=!1;if(this.component=e,this.formElement=this.component.querySelector(H),this.settings=t,!this.formElement)throw new Error("Form element not found within the specified component.");this.formSteps=this.component.querySelectorAll(U),this.paginationItems=this.component.querySelectorAll(W),this.navigationElement=this.component.querySelector(Y),this.buttonsNext=this.component.querySelectorAll(X),this.buttonsPrev=this.component.querySelectorAll(J),this.successElement=this.component.querySelector(B),this.errorElement=this.component.querySelector($),this.submitButton=this.component.querySelector(V),this.initialize()}initialize(){if(!this.component.getAttribute("data-steps-element")){console.error(`Form Steps: Component is not a steps component or is missing the attribute ${j}.
-Component:`,this.component);return}if(!this.formSteps.length){console.warn("Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:",this.component.querySelector(K));return}he(this.formElement),ge(this.component),this.setupSteps(),this.initPagination(),this.changeToStep(this.currentStep),this.formElement.setAttribute("novalidate",""),this.formElement.dataset.state="initialized",this.formElement.addEventListener("submit",e=>{e.preventDefault(),this.submitToWebflow()}),this.initialized=!0}addCustomComponent(e,t,s,i){let n={step:e,instance:t,validator:s,getData:i};this.customComponents.push(n)}async submitToWebflow(){if(this.currentStep!==this.formSteps.length-1){console.error("SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step.");return}if(!this.validateAllSteps()){console.warn("Form submission blocked: Not all steps are valid.");return}this.formElement.dataset.state="sending",this.submitButton&&(this.submitButton.dataset.defaultText=this.submitButton.value,this.submitButton.value=this.submitButton.dataset.wait||"Wird gesendet ...");let t=this.buildJsonForWebflow();console.log(t),await me(t)?this.onFormSuccess():this.onFormError()}buildJsonForWebflow(){let e=this.formElement.querySelector("#g-recaptcha-response").value,t={};return this.customComponents.map(s=>{t={...t,...s.getData?s.getData():{}}}),{name:this.formElement.dataset.name,pageId:le,elementId:this.formElement.dataset.wfElementId,source:window.location.href,test:!1,fields:{...m(this.getAllFormData(),!1),...t,"g-recaptcha-response":e},dolphin:!1}}onFormSuccess(){this.errorElement&&(this.errorElement.style.display="none"),this.successElement&&(this.successElement.style.display="block"),this.formElement.style.display="none",this.formElement.dataset.state="success",this.formElement.dispatchEvent(new CustomEvent("formSuccess")),this.submitButton&&(this.submitButton.value=this.submitButton.dataset.defaultText||"Submit")}onFormError(){this.errorElement&&(this.errorElement.style.display="block"),this.successElement&&(this.successElement.style.display="none"),this.formElement.dataset.state="error",this.formElement.dispatchEvent(new CustomEvent("formError")),this.submitButton&&(this.submitButton.value=this.submitButton.dataset.defaultText||"Submit")}setupSteps(){this.formSteps.forEach((e,t)=>{e.dataset.stepId=t.toString(),e.classList.toggle("hide",t!==this.currentStep),e.querySelectorAll(p).forEach(s=>{s.addEventListener("keydown",i=>{i.key==="Enter"&&(i.preventDefault(),this.changeToNext())})})})}initPagination(){this.paginationItems.forEach((e,t)=>{e.dataset.stepTarget=t.toString(),e.addEventListener("click",s=>{s.preventDefault(),this.changeToStep(t)})}),this.buttonsNext.forEach(e=>{e.addEventListener("click",t=>{t.preventDefault(),this.changeToNext()})}),this.buttonsPrev.forEach(e=>{e.addEventListener("click",t=>{t.preventDefault(),this.changeToPrevious()})})}changeToNext(){this.currentStep<this.formSteps.length-1&&this.changeToStep(this.currentStep+1)}changeToPrevious(){this.currentStep>0&&this.changeToStep(this.currentStep-1)}changeToStep(e){if(this.currentStep===e&&this.initialized)return;if(e>this.currentStep&&this.initialized){for(let s=this.currentStep;s<e;s++)if(!this.validateCurrentStep(s)){this.changeToStep(s);return}this.component.scrollIntoView({behavior:"smooth",block:"start"})}let t=new CustomEvent("changeStep",{detail:{previousStep:this.currentStep,currentStep:e}});this.component.dispatchEvent(t),this.updateStepVisibility(e),this.updatePagination(e),this.currentStep=e,console.log(`Step ${this.currentStep+1}/${this.formSteps.length}`)}updateStepVisibility(e){this.formSteps[this.currentStep].classList.add("hide"),this.formSteps[e].classList.remove("hide")}updatePagination(e){this.buttonsPrev.forEach(t=>{e===0?(t.style.visibility="hidden",t.style.opacity="0"):(t.style.visibility="visible",t.style.opacity="1")}),this.buttonsNext.forEach(t=>{e===this.formSteps.length-1?(t.style.visibility="hidden",t.style.opacity="0"):(t.style.visibility="visible",t.style.opacity="1")}),e===this.settings.navigation.hideInStep?(this.navigationElement.style.visibility="hidden",this.navigationElement.style.opacity="0"):(this.navigationElement.style.removeProperty("visibility"),this.navigationElement.style.removeProperty("opacity")),this.paginationItems.forEach((t,s)=>{t.classList.toggle("is-done",s<e),t.classList.toggle("is-active",s===e)})}validateAllSteps(){let e=!0;return this.formSteps.forEach((t,s)=>{this.validateCurrentStep(s)||(console.warn(`Step ${s+1} is invalid.`),e=!1,this.changeToStep(s))}),e}validateCurrentStep(e){let t=`Validation failed for step: ${e+1}/${this.formSteps.length}`,i=this.formSteps[e].querySelectorAll(p),n=Array.from(i).filter(l=>!this.settings.excludeInputSelectors.some(g=>l.closest(`${g}`)!==null||l.matches(g))),{valid:r}=w(n);if(!r)return console.warn(`${t}: Standard validation is not valid`),r;let c=this.customComponents.filter(l=>l.step===e).map(l=>()=>l.validator())?.every(l=>l())??!0;return c||console.warn(`${t}: Custom validation is not valid`),r&&c}getFormDataForStep(e){let t=new Map;return this.formSteps[e].querySelectorAll(p).forEach((n,r)=>{let a=D(n,r);a?.id&&t.set(a.id,a.value)}),t}getAllFormData(){let e=new Map;return this.formSteps.forEach((t,s)=>{let i=this.getFormDataForStep(s);e=new Map([...e,...i])}),e}};function m(o,e=!1){let t={};for(let[s,i]of o)t[s]=i instanceof Map?m(i,e):e?JSON.stringify(i):i;return t}function ue(o){let e={};for(let[t,s]of o)e[t]=s.serialize();return e}function pe(o){let e={},t=[...o.values()];for(let s=0;s<t.length;s++){let i=t[s];e={...e,...i.flatten(`person${s+1}`)}}return e}function b(o){return o instanceof HTMLInputElement&&o.type==="radio"}function h(o){return o instanceof HTMLInputElement&&o.type==="checkbox"}async function me(o){let e=`https://webflow.com/api/v1/form/${ae}`,t={method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/javascript, */*; q=0.01"},body:JSON.stringify(o)};try{let s=await fetch(e,t);if(!s.ok)throw new Error(`Network response "${s.status}" was not okay`);return console.log("Form submission success! Status",s.status),!0}catch(s){return console.error("Form submission failed:",s),!1}}function he(o){o.querySelectorAll("button").forEach(t=>{t.setAttribute("type","button"),t.addEventListener("click",s=>{})})}function fe(o,e){o.querySelectorAll(`${N}[name="${e}"]`).forEach(t=>{t.checked=!1;let s=t.closest(".w-radio")?.querySelector(S);s&&s.classList.remove(y)})}function ge(o){let e="w--redirected-focus",t="w--redirected-focus-visible",s=":focus-visible, [data-wf-focus-visible]",i=[["checkbox",v],["radio",S]];o.querySelectorAll(R).forEach(n=>{n.addEventListener("change",r=>{let a=r.target,c=a.closest(".w-checkbox")?.querySelector(v);c&&c.classList.toggle(y,a.checked)})}),o.querySelectorAll('input[type="radio"]').forEach(n=>{n.addEventListener("change",r=>{let a=r.target;if(!a.checked)return;let c=a.name;o.querySelectorAll(`input[type="radio"][name="${c}"]`).forEach(d=>{let g=d.closest(".w-radio")?.querySelector(S);g&&g.classList.remove(y)});let l=a.closest(".w-radio")?.querySelector(S);l&&l.classList.add(y)})}),i.forEach(([n,r])=>{o.querySelectorAll(`input[type="${n}"]:not(${r})`).forEach(a=>{a.addEventListener("focus",c=>{let l=c.target,d=l.closest(".w-checkbox, .w-radio")?.querySelector(r);d&&(d.classList.add(e),l.matches(s)&&d.classList.add(t))}),a.addEventListener("blur",c=>{let d=c.target.closest(".w-checkbox, .w-radio")?.querySelector(r);d&&d.classList.remove(e,t)})})})}function w(o,e=!0){let t=!0,s=null;for(let i of Array.from(o))if(i.checkValidity())i.classList.remove("has-error");else{t=!1,e&&!s&&(i.reportValidity(),i.classList.add("has-error"),h(i)&&i.parentElement?.querySelector(v)?.classList.add("has-error"),i.addEventListener("change",()=>{i.classList.remove("has-error"),h(i)&&i.parentElement?.querySelector(v)?.classList.remove("has-error")},{once:!0}),s=i);break}return{valid:t,invalidField:s}}function x(o){return o?`[data-decision-component="${o}"]`:"[data-decision-component]"}function Ee(o,e,t={}){o.formSteps.forEach((s,i)=>{s.querySelectorAll(x()).forEach(r=>{let a=r.dataset.decisionComponent,c=new F(r,a);a&&e[a]&&c.setErrorMessages(e[a],t[a]),o.addCustomComponent(i,c,()=>c.validate())})})}function ve(o,e,t={}){o.querySelectorAll(x()).forEach(i=>{let n=i.dataset.decisionComponent,r=new F(i,n);n&&e[n]&&r.setErrorMessages(e[n],t[n])})}function Se(){if(window.location.search){let o=new URLSearchParams(window.location.search),e=document.querySelector("#wohnung"),t=o.get("wohnung"),s=e.querySelector(`option[value="${t}"]`);t&&s?e.value=t:console.warn(`No matching option for value: ${t}`)}}function ye(){document.body.style.overflow="hidden"}function be(){document.body.style.removeProperty("overflow")}var L=document.querySelector(z);L?.classList.remove("w-form");document.addEventListener("DOMContentLoaded",()=>{if(!L){console.error("Form not found.");return}let o=new P(L,"personArray"),e=new k(L,{navigation:{hideInStep:0},excludeInputSelectors:['[data-decision-path="upload"]',"[data-decision-component]"]});e.addCustomComponent(2,o,()=>o.validate(),()=>pe(o.people)),e.component.addEventListener("changeStep",()=>o.closeModal());let t={beilagenSenden:{upload:"Bitte laden Sie alle Beilagen hoch."}},s={beilagenSenden:'Bitte laden Sie alle Beilagen hoch oder w\xE4hlen Sie die Option "Beilagen per Post senden".'};ve(o.modalElement,t,s),Ee(e,t,s),Se(),o.loadProgress(),e.formElement.addEventListener("formSuccess",()=>{o.clearProgress()}),console.log("Form initialized:",e.initialized,e)});})();
+(() => {
+  // library/attributeselector.ts
+  var createAttribute = (attrName, defaultValue = null) => {
+    return (name = defaultValue) => {
+      if (!name) {
+        return `[${attrName}]`;
+      }
+      return `[${attrName}="${name}"]`;
+    };
+  };
+  var attributeselector_default = createAttribute;
+
+  // library/parameterize.ts
+  function parameterize(text) {
+    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+  }
+
+  // library/wfform.ts
+  var siteId = document.documentElement.dataset.wfSite || "";
+  var pageId = document.documentElement.dataset.wfPage || "";
+  var W_CHECKBOX_CLASS = ".w-checkbox-input";
+  var W_RADIO_CLASS = ".w-radio-input";
+  var W_CHECKED_CLASS = "w--redirected-checked";
+  var formElementSelector = attributeselector_default("data-form-element");
+  var FORM_SELECTOR = "form";
+  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
+  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
+  var FORM_INPUT_SELECTOR_LIST = [
+    ".w-input",
+    ".w-select",
+    RADIO_INPUT_SELECTOR,
+    CHECKBOX_INPUT_SELECTOR
+  ];
+  var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
+  function isRadioInput(input) {
+    return input instanceof HTMLInputElement && input.type === "radio";
+  }
+  function isCheckboxInput(input) {
+    return input instanceof HTMLInputElement && input.type === "checkbox";
+  }
+  async function sendFormData(formData) {
+    const url = `https://webflow.com/api/v1/form/${siteId}`;
+    const request = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/javascript, */*; q=0.01"
+      },
+      body: JSON.stringify(formData)
+    };
+    try {
+      const response = await fetch(url, request);
+      if (!response.ok) {
+        throw new Error(`Network response "${response.status}" was not okay`);
+      }
+      console.log("Form submission success! Status", response.status);
+      return true;
+    } catch (error) {
+      console.error("Form submission failed:", error);
+      return false;
+    }
+  }
+  function clearRadioGroup(container, name) {
+    container.querySelectorAll(
+      `${RADIO_INPUT_SELECTOR}[name="${name}"]`
+    ).forEach((radio) => {
+      radio.checked = false;
+      const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+      if (customRadio) {
+        customRadio.classList.remove(W_CHECKED_CLASS);
+      }
+    });
+  }
+  function initCustomInputs(container) {
+    const focusClass = "w--redirected-focus";
+    const focusVisibleClass = "w--redirected-focus-visible";
+    const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
+    const inputTypes = [
+      ["checkbox", W_CHECKBOX_CLASS],
+      ["radio", W_RADIO_CLASS]
+    ];
+    container.querySelectorAll(CHECKBOX_INPUT_SELECTOR).forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const target = event.target;
+        const customCheckbox = target.closest(".w-checkbox")?.querySelector(W_CHECKBOX_CLASS);
+        if (customCheckbox) {
+          customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
+        }
+      });
+    });
+    container.querySelectorAll('input[type="radio"]').forEach((input) => {
+      input.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!target.checked)
+          return;
+        const name = target.name;
+        container.querySelectorAll(
+          `input[type="radio"][name="${name}"]`
+        ).forEach((radio) => {
+          const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+          if (customRadio) {
+            customRadio.classList.remove(W_CHECKED_CLASS);
+          }
+        });
+        const selectedCustomRadio = target.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+        if (selectedCustomRadio) {
+          selectedCustomRadio.classList.add(W_CHECKED_CLASS);
+        }
+      });
+    });
+    inputTypes.forEach(([type, customClass]) => {
+      container.querySelectorAll(
+        `input[type="${type}"]:not(${customClass})`
+      ).forEach((input) => {
+        input.addEventListener("focus", (event) => {
+          const target = event.target;
+          const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
+          if (customElement) {
+            customElement.classList.add(focusClass);
+            if (target.matches(focusVisibleSelector)) {
+              customElement.classList.add(focusVisibleClass);
+            }
+          }
+        });
+        input.addEventListener("blur", (event) => {
+          const target = event.target;
+          const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
+          if (customElement) {
+            customElement.classList.remove(focusClass, focusVisibleClass);
+          }
+        });
+      });
+    });
+  }
+  function validateFields(inputs, report = true) {
+    let valid = true;
+    let invalidField = null;
+    for (const input of Array.from(inputs)) {
+      if (!input.checkValidity()) {
+        valid = false;
+        if (report && !invalidField) {
+          input.reportValidity();
+          input.classList.add("has-error");
+          if (isCheckboxInput(input)) {
+            input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.add("has-error");
+          }
+          input.addEventListener(
+            "change",
+            () => {
+              input.classList.remove("has-error");
+              if (isCheckboxInput(input)) {
+                input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove("has-error");
+              }
+            },
+            { once: true }
+          );
+          invalidField = input;
+        }
+        break;
+      } else {
+        input.classList.remove("has-error");
+      }
+    }
+    return { valid, invalidField };
+  }
+  var wf = {
+    siteId,
+    pageId
+  };
+  var formSelectors = {
+    FORM_SELECTOR,
+    CHECKBOX_INPUT_SELECTOR,
+    RADIO_INPUT_SELECTOR,
+    FORM_INPUT_SELECTOR_LIST,
+    FORM_INPUT_SELECTOR
+  };
+
+  // src/ts/sanavita-form.ts
+  var stepsElementSelector = attributeselector_default("data-steps-element");
+  var stepsTargetSelector = attributeselector_default("data-step-target");
+  var stepsNavSelector = attributeselector_default("data-steps-nav");
+  var modalSelector = attributeselector_default("data-modal-element");
+  var personSelector = attributeselector_default("data-person-element");
+  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
+  var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
+  var ARRAY_GROUP_SELECTOR = "[data-person-data-group]";
+  var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
+  var STORAGE_KEY = "formProgress";
+  var Accordion = class {
+    constructor(component) {
+      this.isOpen = false;
+      this.component = component;
+      this.trigger = component.querySelector('[data-animate="trigger"]');
+      this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]');
+      this.icon = component.querySelector('[data-animate="icon"]');
+      this.uiTrigger.addEventListener("click", () => {
+        this.toggle();
+      });
+    }
+    open() {
+      if (!this.isOpen) {
+        this.trigger.click();
+        setTimeout(() => {
+          this.icon.classList.add("is-open");
+        }, 200);
+        this.isOpen = true;
+      }
+    }
+    close() {
+      if (this.isOpen) {
+        this.trigger.click();
+        setTimeout(() => {
+          this.icon.classList.remove("is-open");
+        }, 200);
+        this.isOpen = false;
+      }
+    }
+    toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+    }
+    scrollIntoView() {
+      let offset = 0;
+      const scrollWrapper = this.component.closest(
+        modalSelector("scroll")
+      );
+      const elementPosition = this.component.getBoundingClientRect().top;
+      if (scrollWrapper) {
+        const wrapperPosition = scrollWrapper.getBoundingClientRect().top;
+        offset = scrollWrapper.querySelector(
+          '[data-scroll-child="sticky"]'
+        ).clientHeight;
+        scrollWrapper.scrollBy({
+          top: elementPosition - wrapperPosition - offset - 2,
+          behavior: "smooth"
+        });
+      } else {
+        window.scrollTo({
+          top: elementPosition + window.scrollY - offset - 2,
+          behavior: "smooth"
+        });
+      }
+    }
+  };
+  var FieldGroup = class {
+    constructor(fields = /* @__PURE__ */ new Map()) {
+      this.fields = fields;
+    }
+    // Method to retrieve a field by its id
+    getField(fieldId) {
+      return this.fields.get(fieldId);
+    }
+  };
+  var Person = class {
+    constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
+      this.personalData = personalData;
+      this.doctor = doctor;
+      this.health = health;
+      this.primaryRelative = primaryRelative;
+      this.secondaryRelative = secondaryRelative;
+    }
+    validate() {
+      let valid = true;
+      const groups = Object.keys(this);
+      groups.forEach((groupName) => {
+        const group = this[groupName];
+        if (group.fields) {
+          group.fields.forEach((field) => {
+            if (!(field instanceof Field)) {
+              console.error(
+                `Validate Person: field object is not of instance "Field"`
+              );
+              return;
+            } else {
+              const fieldValid = field.validate(true);
+              if (!fieldValid) {
+                valid = false;
+              }
+            }
+          });
+        }
+      });
+      return valid;
+    }
+    getFullName() {
+      return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
+    }
+    serialize() {
+      return {
+        personalData: mapToObject(this.personalData.fields),
+        doctor: mapToObject(this.doctor.fields),
+        health: mapToObject(this.health.fields),
+        primaryRelative: mapToObject(this.primaryRelative.fields),
+        secondaryRelative: mapToObject(this.secondaryRelative.fields)
+      };
+    }
+    flatten(prefix) {
+      const fields = {};
+      const groupNames = Object.keys(this);
+      for (const groupName of groupNames) {
+        const group = this[groupName];
+        group.fields.forEach((field, index) => {
+          const fieldName = `${prefix}_${groupName}_${field.id}`;
+          fields[fieldName] = field.value;
+        });
+      }
+      return fields;
+    }
+  };
+  function convertObjectToFields(fieldsObj) {
+    const fieldsMap = /* @__PURE__ */ new Map();
+    Object.entries(fieldsObj).forEach(([key, fieldData]) => {
+      const field = new Field(fieldData);
+      fieldsMap.set(key, field);
+    });
+    return fieldsMap;
+  }
+  function deserializeFieldGroup(fieldGroupData) {
+    const fieldsMap = convertObjectToFields(fieldGroupData);
+    return new FieldGroup(fieldsMap);
+  }
+  function deserializePerson(data) {
+    return new Person(
+      deserializeFieldGroup(data.personalData),
+      deserializeFieldGroup(data.doctor),
+      deserializeFieldGroup(data.health),
+      deserializeFieldGroup(data.primaryRelative),
+      deserializeFieldGroup(data.secondaryRelative)
+    );
+  }
+  var Field = class {
+    constructor(data = null) {
+      if (!data) {
+        return;
+      }
+      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
+      this.label = data.label || `Unnamed Field`;
+      this.value = data.value || "";
+      this.required = data.required || false;
+      this.type = data.type || "text";
+      if (this.type === "radio" || "checkbox") {
+        this.checked = data.checked || false;
+      }
+      if (this.type === "checkbox" && !this.checked) {
+        console.log(this.label, this.type, this.checked, data.checked);
+        this.value = "Nicht angew\xE4hlt";
+      }
+    }
+    validate(report = true) {
+      let valid = true;
+      if (this.required) {
+        if (this.type === "radio" || this.type === "checkbox") {
+          if (!this.checked) {
+            valid = false;
+          }
+        } else {
+          if (!this.value.trim()) {
+            valid = false;
+          }
+        }
+      }
+      if (!valid && report) {
+        console.warn(`Field "${this.label}" is invalid.`);
+      }
+      return valid;
+    }
+  };
+  function FieldFromInput(input, index) {
+    if (input.type === "radio" && !input.checked) {
+      return new Field();
+    }
+    const field = new Field({
+      id: input.id || parameterize(input.dataset.name || `field ${index}`),
+      label: input.dataset.name || `field ${index}`,
+      value: input.value,
+      required: input.required || false,
+      type: input.type,
+      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
+    });
+    return field;
+  }
+  var FormMessage = class {
+    constructor(componentName, messageFor) {
+      this.initialized = false;
+      this.messageFor = messageFor;
+      const component = document.querySelector(
+        `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
+      );
+      if (!component) {
+        console.warn(
+          `No FormMessage component was found: ${componentName}, ${this.messageFor}`
+        );
+        return;
+      }
+      this.component = component;
+      this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
+      this.reset();
+      this.initialized = true;
+    }
+    // Method to display an info message
+    info(message = null, silent = false) {
+      if (!this.initialized)
+        return;
+      if (!silent) {
+        this.component.setAttribute("aria-live", "polite");
+      }
+      this.setMessage(message, "info", silent);
+    }
+    // Method to display an error message
+    error(message = null, silent = false) {
+      if (!this.initialized)
+        return;
+      if (!silent) {
+        this.component.setAttribute("role", "alert");
+        this.component.setAttribute("aria-live", "assertive");
+      }
+      this.setMessage(message, "error", silent);
+    }
+    // Method to reset/hide the message
+    reset() {
+      if (!this.initialized)
+        return;
+      this.component.classList.remove("info", "error");
+    }
+    // Private method to set the message and style
+    setMessage(message = null, type, silent = false) {
+      if (!this.initialized)
+        return;
+      if (this.messageElement && message) {
+        this.messageElement.textContent = message;
+      } else if (!this.messageElement) {
+        console.warn("Message text element not found.");
+      }
+      this.component.classList.remove("info", "error");
+      this.component.classList.add(type);
+      if (silent)
+        return;
+      this.component.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  };
+  var FormDecision = class {
+    constructor(component, id) {
+      this.paths = [];
+      this.errorMessages = {};
+      this.defaultErrorMessage = "Please complete the required fields.";
+      if (!component || !id) {
+        console.error(`FormDecision: Component not found.`);
+        return;
+      } else if (!component.hasAttribute("data-decision-component")) {
+        console.error(
+          `FormDecision: Selected element is not a FormDecision component:`,
+          component
+        );
+        return;
+      }
+      this.component = component;
+      this.id = id;
+      this.formMessage = new FormMessage("FormDecision", id);
+      this.initialize();
+    }
+    initialize() {
+      const decisionFieldsWrapper = this.component.querySelector('[data-decision-element="decision"]') || this.component;
+      this.decisionInputs = decisionFieldsWrapper.querySelectorAll(
+        "input[data-decision-action]"
+      );
+      if (this.decisionInputs.length === 0) {
+        console.warn(
+          `Decision component "${this.id}" does not contain any decision input elements.`
+        );
+        return;
+      }
+      this.decisionInputs.forEach((input) => {
+        const path = this.component.querySelector(
+          `[data-decision-path="${input.dataset.decisionAction || input.value}"]`
+        );
+        if (path) {
+          path.style.display = "none";
+          this.paths.push(path);
+        }
+        input.addEventListener("change", (event) => {
+          this.handleChange(path, event);
+          this.formMessage.reset();
+        });
+      });
+      this.component.addEventListener("change", () => this.formMessage.reset());
+    }
+    handleChange(path, event) {
+      this.paths.forEach((entry) => {
+        entry.style.display = "none";
+      });
+      if (path) {
+        path.style.removeProperty("display");
+      }
+      this.updateRequiredAttributes();
+    }
+    getSelectedInput() {
+      return Array.from(this.decisionInputs).find((input) => input.checked);
+    }
+    validate() {
+      const selectedInput = this.getSelectedInput();
+      const { valid: decisionValid } = validateFields(this.decisionInputs);
+      if (!decisionValid || !selectedInput) {
+        console.warn("No decision selected!");
+        this.handleValidationMessages(false);
+        return false;
+      }
+      const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
+      const pathIndex = this.paths.findIndex(
+        (path) => path.dataset.decisionPath === pathId
+      );
+      const isValid = pathIndex === -1 || this.checkPathValidity(pathIndex);
+      this.handleValidationMessages(isValid);
+      return isValid;
+    }
+    setErrorMessages(messages, defaultMessage) {
+      this.errorMessages = messages;
+      if (defaultMessage) {
+        this.defaultErrorMessage = defaultMessage;
+      }
+    }
+    checkPathValidity(pathIndex) {
+      const pathElement = this.paths[pathIndex];
+      const inputs = pathElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const { valid, invalidField } = validateFields(inputs, true);
+      return valid;
+    }
+    updateRequiredAttributes() {
+      this.paths.forEach((path) => {
+        const inputs = path.querySelectorAll(
+          "input, select, textarea"
+        );
+        inputs.forEach((input) => {
+          input.required = false;
+        });
+      });
+      const selectedInput = this.component.querySelector(
+        "input[data-decision-action]:checked"
+      );
+      if (selectedInput) {
+        const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
+        const selectedPath = this.paths.find(
+          (path) => path.dataset.decisionPath === pathId
+        );
+        if (selectedPath) {
+          const requiredFields = selectedPath.querySelectorAll(
+            '[data-decision-required="required"], [data-decision-required="true"]'
+          );
+          requiredFields.forEach((input) => {
+            input.required = true;
+          });
+        }
+      }
+    }
+    handleValidationMessages(currentGroupValid) {
+      if (!currentGroupValid) {
+        const selectedInput = this.getSelectedInput();
+        const pathId = selectedInput?.dataset.decisionAction || selectedInput?.value;
+        const customMessage = this.errorMessages[pathId] || this.defaultErrorMessage;
+        this.formMessage.error(customMessage);
+      } else {
+        this.formMessage.reset();
+      }
+    }
+  };
+  var Modal = class {
+    constructor(component) {
+      this.initialized = false;
+      if (!component) {
+        throw new Error(`The passed component doesn't exist.`);
+      }
+      this.component = component;
+      const modalContent = this.getModalContent();
+      const stickyFooter = this.getStickyFooter();
+      if (!modalContent || !stickyFooter) {
+        console.warn("Initialize modal: skip sticky footer");
+      } else {
+        this.setupScrollEvent(modalContent, stickyFooter);
+      }
+      this.initialized = true;
+    }
+    getModalContent() {
+      return this.component.querySelector(modalSelector("scroll"));
+    }
+    getStickyFooter() {
+      return this.component.querySelector(modalSelector("sticky-bottom"));
+    }
+    setupScrollEvent(modalContent, stickyFooter) {
+      modalContent.addEventListener("scroll", () => {
+        const { scrollHeight, scrollTop, clientHeight } = modalContent;
+        const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
+        if (isScrolledToBottom) {
+          stickyFooter.classList.remove("modal-scroll-shadow");
+        } else {
+          stickyFooter.classList.add("modal-scroll-shadow");
+        }
+      });
+    }
+    showComponent() {
+      this.component.style.removeProperty("display");
+      this.component.classList.remove("is-closed");
+      this.component.dataset.state = "open";
+    }
+    hideComponent() {
+      this.component.classList.add("is-closed");
+      this.component.dataset.state = "closed";
+      setTimeout(() => {
+        this.component.style.display = "none";
+      }, 500);
+    }
+    /**
+     * Opens the modal instance.
+     *
+     * This method calls the `showComponent` method and locks the scroll of the document body.
+     */
+    open() {
+      this.showComponent();
+      lockBodyScroll();
+    }
+    /**
+     * Closes the modal instance.
+     *
+     * This method calls the `hideComponent` method and unlocks the scroll of the document body.
+     */
+    close() {
+      unlockBodyScroll();
+      this.hideComponent();
+    }
+    addCustomAction(action) {
+    }
+  };
+  var FormModal = class extends Modal {
+  };
+  var FormArray = class {
+    constructor(container, id) {
+      this.accordionList = [];
+      this.initialized = false;
+      this.editingKey = null;
+      this.id = id;
+      this.container = container;
+      this.people = /* @__PURE__ */ new Map();
+      this.list = this.container.querySelector(ARRAY_LIST_SELECTOR);
+      this.template = this.list.querySelector(personSelector("template"));
+      this.addButton = this.container.querySelector(personSelector("add"));
+      this.formMessage = new FormMessage("FormArray", this.id.toString());
+      this.modalForm = document.querySelector(formSelectors.FORM_SELECTOR);
+      this.modalElement = document.querySelector(
+        formElementSelector("modal") + `[data-modal-for="person"]`
+      );
+      this.modal = new FormModal(this.modalElement);
+      this.saveButton = this.modalElement.querySelector(personSelector("save"));
+      this.cancelButtons = this.modalElement.querySelectorAll(
+        personSelector("cancel")
+      );
+      this.modalInputs = this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      this.groupElements = this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
+      this.initialize();
+    }
+    initialize() {
+      this.cancelButtons.forEach((button) => {
+        button.addEventListener("click", () => this.handleCancel());
+      });
+      this.modalInputs.forEach((input) => {
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            this.savePersonFromModal();
+          }
+        });
+        input.addEventListener("focusin", () => {
+          const accordionIndex = this.accordionIndexOf(input);
+          const accordionInstance = this.accordionList[accordionIndex];
+          if (!accordionInstance.isOpen) {
+            this.openAccordion(accordionIndex, this.accordionList);
+            setTimeout(() => {
+              input.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+              });
+            }, 500);
+          }
+        });
+      });
+      this.saveButton.addEventListener("click", () => this.savePersonFromModal());
+      this.addButton.addEventListener("click", () => this.addPerson());
+      this.renderList();
+      this.closeModal();
+      const accordionList = this.container.querySelectorAll(ACCORDION_SELECTOR);
+      for (let i = 0; i < accordionList.length; i++) {
+        const accordionElement = accordionList[i];
+        accordionElement.dataset.index = i.toString();
+        const accordion = new Accordion(accordionElement);
+        this.accordionList.push(accordion);
+        accordion.uiTrigger.addEventListener("click", () => {
+          this.openAccordion(i, this.accordionList);
+          setTimeout(() => {
+            accordion.scrollIntoView();
+          }, 500);
+        });
+      }
+      this.openAccordion(0, this.accordionList);
+      this.initialized = true;
+    }
+    handleCancel() {
+      this.closeModal();
+    }
+    addPerson() {
+      if (this.people.size === 2) {
+        this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.");
+        setTimeout(() => this.formMessage.reset(), 5e3);
+        return;
+      }
+      this.clearModal();
+      this.setLiveText("state", "Hinzuf\xFCgen");
+      this.setLiveText("full-name", "Neue Person");
+      this.openModal();
+      this.editingKey = null;
+    }
+    savePersonFromModal(validate = true) {
+      const listValid = this.validateModal(validate);
+      if (!listValid) {
+        console.warn(
+          `Couldn't save person. Please fill in all the values correctly.`
+        );
+        if (validate)
+          return null;
+      }
+      const person = this.extractData();
+      if (this.savePerson(person)) {
+        this.renderList();
+        this.closeModal();
+      }
+      this.saveProgress();
+    }
+    savePerson(person) {
+      if (this.editingKey !== null) {
+        this.people.set(this.editingKey, person);
+      } else {
+        const uniqueSuffix = crypto.randomUUID();
+        const newKey = `person-${uniqueSuffix}`;
+        this.people.set(newKey, person);
+      }
+      return true;
+    }
+    setLiveText(element, string) {
+      const liveElements = this.modalElement.querySelectorAll(`[data-live-text="${element}"]`);
+      let valid = true;
+      for (const element2 of Array.from(liveElements)) {
+        if (!element2) {
+          valid = false;
+          break;
+        }
+        element2.innerText = string;
+      }
+      return valid;
+    }
+    renderList() {
+      this.list.innerHTML = "";
+      this.list.dataset.length = this.people.size.toString();
+      if (this.people.size) {
+        this.people.forEach((person, key) => this.renderPerson(person, key));
+        this.formMessage.reset();
+      } else {
+        this.formMessage.info(
+          "Bitte f\xFCgen Sie die Mieter (max. 2 Personen) hinzu.",
+          !this.initialized
+        );
+      }
+    }
+    renderPerson(person, key) {
+      const newElement = this.template.cloneNode(
+        true
+      );
+      const props = ["full-name", "phone", "email", "street", "zip", "city"];
+      newElement.style.removeProperty("display");
+      const editButton = newElement.querySelector('[data-person-action="edit"]');
+      const deleteButton = newElement.querySelector(
+        '[data-person-action="delete"]'
+      );
+      editButton.addEventListener("click", () => {
+        this.setLiveText("state", "bearbeiten");
+        this.setLiveText("full-name", person.getFullName() || "Neue Person");
+        this.populateModal(person);
+        this.openModal();
+        this.editingKey = key;
+      });
+      deleteButton.addEventListener("click", () => {
+        this.people.delete(key);
+        this.renderList();
+        this.closeModal();
+        this.saveProgress();
+      });
+      props.forEach((prop) => {
+        const propSelector = `[data-${prop}]`;
+        const el = newElement.querySelector(propSelector);
+        if (el && prop === "full-name") {
+          el.innerText = person.getFullName();
+        } else if (el) {
+          const currentField = person.personalData.getField(prop);
+          if (!currentField) {
+            console.error(`Render person: A field for "${prop}" doesn't exist.`);
+            return;
+          }
+          el.innerText = currentField.value || currentField.label;
+        }
+      });
+      this.list.appendChild(newElement);
+    }
+    populateModal(person) {
+      this.groupElements.forEach((group) => {
+        const groupInputs = group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+        const groupName = group.dataset.personDataGroup;
+        groupInputs.forEach((input) => {
+          const field = person[groupName].getField(input.id);
+          if (!field) {
+            console.warn(`Field not found:`, field, input.id);
+            return;
+          }
+          if (!isRadioInput(input) && !isCheckboxInput(input)) {
+            input.value = field.value.trim();
+            return;
+          }
+          if (isRadioInput(input) && input.value === field.value) {
+            input.checked = field.checked;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          if (isCheckboxInput(input)) {
+            input.checked = field.checked;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        });
+      });
+    }
+    validate() {
+      let valid = true;
+      if (this.people.size === 0) {
+        console.warn("Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.");
+        this.formMessage.error(
+          `Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.`
+        );
+        setTimeout(
+          () => this.formMessage.info(
+            "Bitte f\xFCgen Sie die Mieter (max. 2 Personen) hinzu.",
+            true
+          ),
+          5e3
+        );
+        valid = false;
+      } else {
+        this.people.forEach((person, key) => {
+          if (!person.validate()) {
+            console.warn(
+              `Bitte f\xFCllen Sie alle Felder f\xFCr "${person.getFullName()}" aus.`
+            );
+            this.formMessage.error(
+              `Bitte f\xFCllen Sie alle Felder f\xFCr "${person.getFullName()}" aus.`
+            );
+            valid = false;
+          }
+        });
+      }
+      return valid;
+    }
+    openModal() {
+      const personalDataGroup = this.modalElement.querySelector(
+        '[data-person-data-group="personalData"]'
+      );
+      const nameInputs = personalDataGroup.querySelectorAll("#first-name, #name");
+      nameInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          const editingPerson = this.extractData();
+          this.setLiveText(
+            "full-name",
+            editingPerson.getFullName() || "Neue Person"
+          );
+        });
+      });
+      this.formMessage.reset();
+      this.openAccordion(0, this.accordionList);
+      this.modal.open();
+    }
+    closeModal() {
+      this.modal.close();
+      if (this.initialized) {
+        this.list.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }
+      this.clearModal();
+    }
+    clearModal() {
+      this.setLiveText("state", "hinzuf\xFCgen");
+      this.setLiveText("full-name", "Neue Person");
+      this.modalInputs.forEach((input) => {
+        if (isRadioInput(input)) {
+          input.checked = false;
+          clearRadioGroup(this.modalElement, input.name);
+        } else if (isCheckboxInput(input)) {
+          input.checked = false;
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        } else {
+          input.value = "";
+        }
+      });
+    }
+    validateModal(report = true) {
+      const allModalFields = this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const { valid, invalidField } = validateFields(allModalFields, report);
+      if (valid === true) {
+        return true;
+      } else if (invalidField) {
+        const accordionIndex = this.accordionIndexOf(invalidField);
+        if (accordionIndex !== -1) {
+          this.openAccordion(accordionIndex, this.accordionList);
+          setTimeout(() => {
+            invalidField.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          }, 500);
+        }
+        return false;
+      }
+      return false;
+    }
+    openAccordion(index, accordionList) {
+      for (let i = 0; i < accordionList.length; i++) {
+        const accordion = accordionList[i];
+        if (i === index && !accordion.isOpen) {
+          accordion.open();
+        } else if (i !== index && accordion.isOpen) {
+          accordion.close();
+        }
+      }
+    }
+    /**
+     * Finds the index of the accordion that contains a specific field element.
+     * This method traverses the DOM to locate the accordion that wraps the field
+     * and returns its index in the `accordionList`.
+     *
+     * @param field - The form element (field) to search for within the accordions.
+     * @returns The index of the accordion containing the field, or `-1` if no accordion contains the field.
+     */
+    accordionIndexOf(field) {
+      let parentElement = field.closest(
+        '[data-animate="accordion"]'
+      );
+      if (parentElement) {
+        const accordionIndex = this.accordionList.findIndex(
+          (accordion) => accordion.component === parentElement
+        );
+        return accordionIndex !== -1 ? accordionIndex : -1;
+      }
+      return -1;
+    }
+    extractData() {
+      const personData = new Person();
+      this.groupElements.forEach((group) => {
+        const groupInputs = group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+        const groupName = group.dataset.personDataGroup;
+        if (!personData[groupName]) {
+          console.error(`The group "${groupName}" doesn't exist.`);
+          return;
+        }
+        groupInputs.forEach((input, index) => {
+          const field = FieldFromInput(input, index);
+          if (field?.id) {
+            personData[groupName].fields.set(field.id, field);
+          }
+        });
+      });
+      return personData;
+    }
+    /**
+     * Save the progress to localStorage
+     */
+    saveProgress() {
+      const serializedPeople = peopleMapToObject(this.people);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedPeople));
+        console.log("Form progress saved.");
+        console.log(serializedPeople);
+      } catch (error) {
+        console.error("Error saving form progress to localStorage:", error);
+      }
+    }
+    /**
+     * Clear the saved progress from localStorage
+     */
+    clearProgress() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+      } catch (error) {
+        console.error("Error clearing form progress from localStorage:", error);
+      }
+    }
+    /**
+     * Load the saved progress from localStorage
+     */
+    loadProgress() {
+      const savedData = localStorage.getItem(STORAGE_KEY);
+      if (savedData) {
+        try {
+          const deserializedData = JSON.parse(savedData);
+          for (const key in deserializedData) {
+            if (deserializedData.hasOwnProperty(key)) {
+              const personData = deserializedData[key];
+              const person = deserializePerson(personData);
+              this.people.set(key, person);
+              this.renderList();
+              this.closeModal();
+            }
+          }
+          console.log("Form progress loaded.");
+        } catch (error) {
+          console.error("Error loading form progress from localStorage:", error);
+        }
+      } else {
+        console.log("No saved form progress found.");
+      }
+    }
+  };
+  var MultiStepForm = class {
+    constructor(component, settings) {
+      this.currentStep = 0;
+      this.customComponents = [];
+      this.initialized = false;
+      this.component = component;
+      this.formElement = this.component.querySelector(
+        formSelectors.FORM_SELECTOR
+      );
+      this.settings = settings;
+      if (!this.formElement) {
+        throw new Error("Form element not found within the specified component.");
+      }
+      this.formSteps = this.component.querySelectorAll(stepsElementSelector("step"));
+      this.paginationItems = this.component.querySelectorAll(
+        STEPS_PAGINATION_ITEM_SELECTOR
+      );
+      this.navigationElement = this.component.querySelector(
+        stepsElementSelector("navigation")
+      );
+      this.buttonsNext = this.component.querySelectorAll(stepsNavSelector("next"));
+      this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector("prev"));
+      this.successElement = this.component.querySelector(formElementSelector("success"));
+      this.errorElement = this.component.querySelector(formElementSelector("error"));
+      this.submitButton = this.component.querySelector(
+        formElementSelector("submit")
+      );
+      this.initialize();
+    }
+    initialize() {
+      if (!this.component.getAttribute("data-steps-element")) {
+        console.error(
+          `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector("component")}.
+Component:`,
+          this.component
+        );
+        return;
+      }
+      if (!this.formSteps.length) {
+        console.warn(
+          `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
+          this.component.querySelector(stepsElementSelector("list"))
+        );
+        return;
+      }
+      initFormButtons(this.formElement);
+      initCustomInputs(this.component);
+      this.setupSteps();
+      this.initPagination();
+      this.changeToStep(this.currentStep);
+      this.formElement.setAttribute("novalidate", "");
+      this.formElement.dataset.state = "initialized";
+      this.formElement.addEventListener("submit", (event) => {
+        event.preventDefault();
+        this.submitToWebflow();
+      });
+      this.initialized = true;
+    }
+    addCustomComponent(step, instance, validator, getData) {
+      const customComponent = {
+        step,
+        instance,
+        validator,
+        getData
+      };
+      this.customComponents.push(customComponent);
+    }
+    async submitToWebflow() {
+      if (this.currentStep !== this.formSteps.length - 1) {
+        console.error(
+          "SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step."
+        );
+        return;
+      }
+      const allStepsValid = this.validateAllSteps();
+      if (!allStepsValid) {
+        console.warn("Form submission blocked: Not all steps are valid.");
+        return;
+      }
+      this.formElement.dataset.state = "sending";
+      if (this.submitButton) {
+        this.submitButton.dataset.defaultText = this.submitButton.value;
+        this.submitButton.value = this.submitButton.dataset.wait || "Wird gesendet ...";
+      }
+      const formData = this.buildJsonForWebflow();
+      console.log(formData);
+      const success = await sendFormData(formData);
+      if (success) {
+        this.onFormSuccess();
+      } else {
+        this.onFormError();
+      }
+    }
+    buildJsonForWebflow() {
+      const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
+      let customFields = {};
+      this.customComponents.map((entry) => {
+        customFields = {
+          ...customFields,
+          ...entry.getData ? entry.getData() : {}
+        };
+      });
+      return {
+        name: this.formElement.dataset.name,
+        pageId: wf.pageId,
+        elementId: this.formElement.dataset.wfElementId,
+        source: window.location.href,
+        test: false,
+        fields: {
+          ...mapToObject(this.getAllFormData(), false),
+          ...customFields,
+          "g-recaptcha-response": recaptcha
+        },
+        dolphin: false
+      };
+    }
+    onFormSuccess() {
+      if (this.errorElement)
+        this.errorElement.style.display = "none";
+      if (this.successElement)
+        this.successElement.style.display = "block";
+      this.formElement.style.display = "none";
+      this.formElement.dataset.state = "success";
+      this.formElement.dispatchEvent(new CustomEvent("formSuccess"));
+      if (this.submitButton) {
+        this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
+      }
+    }
+    onFormError() {
+      if (this.errorElement)
+        this.errorElement.style.display = "block";
+      if (this.successElement)
+        this.successElement.style.display = "none";
+      this.formElement.dataset.state = "error";
+      this.formElement.dispatchEvent(new CustomEvent("formError"));
+      if (this.submitButton) {
+        this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
+      }
+    }
+    setupSteps() {
+      this.formSteps.forEach((step, index) => {
+        step.dataset.stepId = index.toString();
+        step.classList.toggle("hide", index !== this.currentStep);
+        step.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR).forEach((input) => {
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              this.changeToNext();
+            }
+          });
+        });
+      });
+    }
+    initPagination() {
+      this.paginationItems.forEach((item, index) => {
+        item.dataset.stepTarget = index.toString();
+        item.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.changeToStep(index);
+        });
+      });
+      this.buttonsNext.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.changeToNext();
+        });
+      });
+      this.buttonsPrev.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.changeToPrevious();
+        });
+      });
+    }
+    changeToNext() {
+      if (this.currentStep < this.formSteps.length - 1) {
+        this.changeToStep(this.currentStep + 1);
+      }
+    }
+    changeToPrevious() {
+      if (this.currentStep > 0) {
+        this.changeToStep(this.currentStep - 1);
+      }
+    }
+    changeToStep(target) {
+      if (this.currentStep === target && this.initialized) {
+        return;
+      }
+      if (target > this.currentStep && this.initialized) {
+        for (let step = this.currentStep; step < target; step++) {
+          if (!this.validateCurrentStep(step)) {
+            this.changeToStep(step);
+            return;
+          }
+        }
+        this.component.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+      const event = new CustomEvent("changeStep", {
+        detail: { previousStep: this.currentStep, currentStep: target }
+      });
+      this.component.dispatchEvent(event);
+      this.updateStepVisibility(target);
+      this.updatePagination(target);
+      this.currentStep = target;
+      console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
+    }
+    updateStepVisibility(target) {
+      this.formSteps[this.currentStep].classList.add("hide");
+      this.formSteps[target].classList.remove("hide");
+    }
+    updatePagination(target) {
+      this.buttonsPrev.forEach((button) => {
+        if (target === 0) {
+          button.style.visibility = "hidden";
+          button.style.opacity = "0";
+        } else {
+          button.style.visibility = "visible";
+          button.style.opacity = "1";
+        }
+      });
+      this.buttonsNext.forEach((button) => {
+        if (target === this.formSteps.length - 1) {
+          button.style.visibility = "hidden";
+          button.style.opacity = "0";
+        } else {
+          button.style.visibility = "visible";
+          button.style.opacity = "1";
+        }
+      });
+      if (target === this.settings.navigation.hideInStep) {
+        this.navigationElement.style.visibility = "hidden";
+        this.navigationElement.style.opacity = "0";
+      } else {
+        this.navigationElement.style.removeProperty("visibility");
+        this.navigationElement.style.removeProperty("opacity");
+      }
+      this.paginationItems.forEach((step, index) => {
+        step.classList.toggle("is-done", index < target);
+        step.classList.toggle("is-active", index === target);
+      });
+    }
+    validateAllSteps() {
+      let allValid = true;
+      this.formSteps.forEach((step, index) => {
+        if (!this.validateCurrentStep(index)) {
+          console.warn(`Step ${index + 1} is invalid.`);
+          allValid = false;
+          this.changeToStep(index);
+        }
+      });
+      return allValid;
+    }
+    validateCurrentStep(step) {
+      const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
+      const currentStepElement = this.formSteps[step];
+      const inputs = currentStepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const filteredInputs = Array.from(inputs).filter((input) => {
+        const isExcluded = this.settings.excludeInputSelectors.some(
+          (selector) => {
+            return input.closest(`${selector}`) !== null || input.matches(selector);
+          }
+        );
+        return !isExcluded;
+      });
+      let { valid } = validateFields(filteredInputs);
+      if (!valid) {
+        console.warn(`${basicError}: Standard validation is not valid`);
+        return valid;
+      }
+      const customValidators = this.customComponents.filter((entry) => entry.step === step).map((entry) => () => entry.validator());
+      const customValid = customValidators?.every((validator) => validator()) ?? true;
+      if (!customValid) {
+        console.warn(`${basicError}: Custom validation is not valid`);
+      }
+      return valid && customValid;
+    }
+    getFormDataForStep(step) {
+      let fields = /* @__PURE__ */ new Map();
+      const stepElement = this.formSteps[step];
+      const stepInputs = stepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      stepInputs.forEach((input, inputIndex) => {
+        const entry = FieldFromInput(input, inputIndex);
+        if (entry?.id) {
+          fields.set(entry.id, entry.value);
+        }
+      });
+      return fields;
+    }
+    getAllFormData() {
+      let fields = /* @__PURE__ */ new Map();
+      this.formSteps.forEach((step, stepIndex) => {
+        const stepData = this.getFormDataForStep(stepIndex);
+        fields = new Map([...fields, ...stepData]);
+      });
+      return fields;
+    }
+  };
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+  function peopleMapToObject(people) {
+    const peopleObj = {};
+    for (const [key, person] of people) {
+      peopleObj[key] = person.serialize();
+    }
+    return peopleObj;
+  }
+  function flattenPeople(people) {
+    let peopleObj = {};
+    let peopleArray = [...people.values()];
+    for (let i = 0; i < peopleArray.length; i++) {
+      let person = peopleArray[i];
+      peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) };
+    }
+    return peopleObj;
+  }
+  function initFormButtons(form) {
+    const buttons = form.querySelectorAll("button");
+    buttons.forEach((button) => {
+      button.setAttribute("type", "button");
+      button.addEventListener("click", (event) => {
+      });
+    });
+  }
+  function decisionSelector(id) {
+    return id ? `[data-decision-component="${id}"]` : `[data-decision-component]`;
+  }
+  function initializeFormDecisions(form, errorMessages, defaultMessages = {}) {
+    form.formSteps.forEach((step, stepIndex) => {
+      const formDecisions = step.querySelectorAll(
+        decisionSelector()
+      );
+      formDecisions.forEach((element) => {
+        const id = element.dataset.decisionComponent;
+        const decision = new FormDecision(element, id);
+        if (id && errorMessages[id]) {
+          decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
+        }
+        form.addCustomComponent(stepIndex, decision, () => decision.validate());
+      });
+    });
+  }
+  function initializeOtherFormDecisions(form, errorMessages, defaultMessages = {}) {
+    const formDecisions = form.querySelectorAll(decisionSelector());
+    formDecisions.forEach((element) => {
+      const id = element.dataset.decisionComponent;
+      const decision = new FormDecision(element, id);
+      if (id && errorMessages[id]) {
+        decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
+      }
+    });
+  }
+  function insertSearchParamValues() {
+    if (window.location.search) {
+      const params = new URLSearchParams(window.location.search);
+      const selectElement = document.querySelector(
+        "#wohnung"
+      );
+      const wohnungValue = params.get("wohnung");
+      const option = selectElement.querySelector(
+        `option[value="${wohnungValue}"]`
+      );
+      if (wohnungValue && option) {
+        selectElement.value = wohnungValue;
+      } else {
+        console.warn(`No matching option for value: ${wohnungValue}`);
+      }
+    }
+  }
+  function lockBodyScroll() {
+    document.body.style.overflow = "hidden";
+  }
+  function unlockBodyScroll() {
+    document.body.style.removeProperty("overflow");
+  }
+  var formElement = document.querySelector(
+    formElementSelector("component")
+  );
+  formElement?.classList.remove("w-form");
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!formElement) {
+      console.error("Form not found.");
+      return;
+    }
+    const peopleArray = new FormArray(formElement, "personArray");
+    const FORM = new MultiStepForm(formElement, {
+      navigation: {
+        hideInStep: 0
+      },
+      excludeInputSelectors: [
+        '[data-decision-path="upload"]',
+        "[data-decision-component]"
+      ]
+    });
+    FORM.addCustomComponent(
+      2,
+      peopleArray,
+      () => peopleArray.validate(),
+      () => flattenPeople(peopleArray.people)
+    );
+    FORM.component.addEventListener("changeStep", () => peopleArray.closeModal());
+    const errorMessages = {
+      beilagenSenden: {
+        upload: "Bitte laden Sie alle Beilagen hoch."
+      }
+    };
+    const defaultMessages = {
+      beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder w\xE4hlen Sie die Option "Beilagen per Post senden".`
+    };
+    initializeOtherFormDecisions(
+      peopleArray.modalElement,
+      errorMessages,
+      defaultMessages
+    );
+    initializeFormDecisions(FORM, errorMessages, defaultMessages);
+    insertSearchParamValues();
+    peopleArray.loadProgress();
+    FORM.formElement.addEventListener("formSuccess", () => {
+      peopleArray.clearProgress();
+    });
+    console.log("Form initialized:", FORM.initialized, FORM);
+  });
+})();
