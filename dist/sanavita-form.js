@@ -24,6 +24,7 @@
   var W_INPUT = ".w-input";
   var W_SELECT = ".w-select";
   var formElementSelector = attributeselector_default("data-form-element");
+  var filterFormSelector = attributeselector_default("data-filter-form");
   var FORM_SELECTOR = "form";
   var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
   var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
@@ -34,6 +35,7 @@
     CHECKBOX_INPUT_SELECTOR
   ];
   var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
+  var FORM_FILTERS_SELECTOR = `${FORM_INPUT_SELECTOR}${filterFormSelector("field")}`;
   function isRadioInput(input) {
     return input instanceof HTMLInputElement && input.type === "radio";
   }
@@ -169,14 +171,15 @@
     siteId,
     pageId
   };
-  var formSelectors = {
+  var formQuery = {
     form: FORM_SELECTOR,
     checkbox: CHECKBOX_INPUT_SELECTOR,
     radio: RADIO_INPUT_SELECTOR,
     select: W_SELECT,
     input: FORM_INPUT_SELECTOR,
     inputOnly: W_INPUT,
-    inputSelectorList: FORM_INPUT_SELECTOR_LIST
+    inputSelectorList: FORM_INPUT_SELECTOR_LIST,
+    filters: FORM_FILTERS_SELECTOR
   };
 
   // src/ts/sanavita-form.ts
@@ -530,7 +533,7 @@
     }
     checkPathValidity(pathIndex) {
       const pathElement = this.paths[pathIndex];
-      const inputs = pathElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const inputs = pathElement.querySelectorAll(formQuery.input);
       const { valid, invalidField } = validateFields(inputs, true);
       return valid;
     }
@@ -652,7 +655,7 @@
       this.template = this.list.querySelector(personSelector("template"));
       this.addButton = this.container.querySelector(personSelector("add"));
       this.formMessage = new FormMessage("FormArray", this.id.toString());
-      this.modalForm = document.querySelector(formSelectors.FORM_SELECTOR);
+      this.modalForm = document.querySelector(formQuery.form);
       this.modalElement = document.querySelector(
         formElementSelector("modal") + `[data-modal-for="person"]`
       );
@@ -661,7 +664,7 @@
       this.cancelButtons = this.modalElement.querySelectorAll(
         personSelector("cancel")
       );
-      this.modalInputs = this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      this.modalInputs = this.modalElement.querySelectorAll(formQuery.input);
       this.groupElements = this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
       this.initialize();
     }
@@ -817,7 +820,7 @@
     }
     populateModal(person) {
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+        const groupInputs = group.querySelectorAll(formQuery.input);
         const groupName = group.dataset.personDataGroup;
         groupInputs.forEach((input) => {
           const field = person[groupName].getField(input.id);
@@ -914,7 +917,7 @@
       });
     }
     validateModal(report = true) {
-      const allModalFields = this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const allModalFields = this.modalElement.querySelectorAll(formQuery.input);
       const { valid, invalidField } = validateFields(allModalFields, report);
       if (valid === true) {
         return true;
@@ -966,7 +969,7 @@
     extractData() {
       const personData = new Person();
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+        const groupInputs = group.querySelectorAll(formQuery.input);
         const groupName = group.dataset.personDataGroup;
         if (!personData[groupName]) {
           console.error(`The group "${groupName}" doesn't exist.`);
@@ -1037,7 +1040,7 @@
       this.initialized = false;
       this.component = component;
       this.formElement = this.component.querySelector(
-        formSelectors.FORM_SELECTOR
+        formQuery.form
       );
       this.settings = settings;
       if (!this.formElement) {
@@ -1173,7 +1176,7 @@ Component:`,
       this.formSteps.forEach((step, index) => {
         step.dataset.stepId = index.toString();
         step.classList.toggle("hide", index !== this.currentStep);
-        step.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR).forEach((input) => {
+        step.querySelectorAll(formQuery.input).forEach((input) => {
           input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -1288,7 +1291,7 @@ Component:`,
     validateCurrentStep(step) {
       const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
       const currentStepElement = this.formSteps[step];
-      const inputs = currentStepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const inputs = currentStepElement.querySelectorAll(formQuery.input);
       const filteredInputs = Array.from(inputs).filter((input) => {
         const isExcluded = this.settings.excludeInputSelectors.some(
           (selector) => {
@@ -1312,7 +1315,7 @@ Component:`,
     getFormDataForStep(step) {
       let fields = /* @__PURE__ */ new Map();
       const stepElement = this.formSteps[step];
-      const stepInputs = stepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      const stepInputs = stepElement.querySelectorAll(formQuery.input);
       stepInputs.forEach((input, inputIndex) => {
         const entry = FieldFromInput(input, inputIndex);
         if (entry?.id) {
