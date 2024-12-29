@@ -1,8 +1,8 @@
 // Imports
-import CollectionList from '@library/wfcollection'
+import CollectionList from '@library/wfcollection';
 import createAttribute from '@library/attributeselector';
-import html2canvas from 'node_modules/html2canvas/dist/html2canvas.min.js';
-import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import jsPDF, { Html2CanvasOptions } from 'jspdf';
 
 // Types
 type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
@@ -106,8 +106,9 @@ class PDF {
     }
     filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
     try {
+      const options: Html2CanvasOptions = { scale: 4 };
       // Convert HTML element to canvas
-      const canvas = await html2canvas(this.canvas, { scale: 6 });
+      const canvas = await html2canvas(this.canvas, options);
 
       // Generate the PDF
       const pdf = new jsPDF('portrait', 'mm', 'a4');
