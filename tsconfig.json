@@ -2,9 +2,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@library/*": [ "library/*" ]
+      "@library/*": [ "library/*" ],
+      "html2pdf.js": [ "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js" ]
     },
     "target": "ES2015",
-    "lib": [ "ES2020", "DOM" ]
+    "lib": [ "ES2020", "DOM" ],
+    "esModuleInterop": true,
+    "moduleResolution": "node"
   }
 }
