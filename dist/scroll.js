@@ -1,1 +1,54 @@
-(()=>{function s(l,c=0,e="id"){console.log("SCROLLING"),setTimeout(()=>{let t=e==="id"?`#${l}`:l,o=document.querySelector(t);if(o){let n=o.getBoundingClientRect().top+window.scrollY-c;window.scrollTo({top:n,behavior:"smooth"})}else console.error(`Section with id '${l}' not found.`)},10)}document.addEventListener("DOMContentLoaded",()=>{if(document.querySelectorAll("a[data-href-scroll]").forEach(e=>{let t=e.dataset.hrefPrefix||"",o=e.dataset.hrefScroll||"";e.href=`${t}#${o}`}),location.pathname!=="/"){let e=document.querySelectorAll('a[data-global-scroll="true"]');Array.from(e).filter(o=>o.href.includes(location.pathname)).forEach(o=>{let r=new URL(o.href);o.href=r.hash})}document.querySelectorAll('a[href^="#"], [scroll-to]').forEach(e=>{e.addEventListener("click",t=>{t.preventDefault();let o=e.getAttribute("href")?.slice(1)||e.getAttribute("scroll-to")||"";console.log(o);let r=parseInt(e.getAttribute("scroll-offset")||"88",10);s(o,r)})})});})();
+(() => {
+  // src/ts/scroll.ts
+  function scrollToSection(id, offset = 0, selectorType = "id") {
+    console.log("SCROLLING");
+    setTimeout(() => {
+      const selector = selectorType === "id" ? `#${id}` : id;
+      const section = document.querySelector(selector);
+      if (section) {
+        const elementPosition = section.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.scrollY - offset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      } else {
+        console.error(`Section with id '${id}' not found.`);
+      }
+    }, 10);
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    const cmsScrollLinks = document.querySelectorAll(
+      "a[data-href-scroll]"
+    );
+    cmsScrollLinks.forEach((link) => {
+      const hrefPrefix = link.dataset.hrefPrefix || "";
+      const hrefScroll = link.dataset.hrefScroll || "";
+      link.href = `${hrefPrefix}#${hrefScroll}`;
+    });
+    if (location.pathname !== "/") {
+      const globalScrollLinks = document.querySelectorAll(
+        'a[data-global-scroll="true"]'
+      );
+      const globalFiltered = Array.from(globalScrollLinks).filter(
+        (link) => link.href.includes(location.pathname)
+      );
+      globalFiltered.forEach((link) => {
+        const url = new URL(link.href);
+        link.href = url.hash;
+      });
+    }
+    const allScrollLinks = document.querySelectorAll(
+      'a[href^="#"], [scroll-to]'
+    );
+    allScrollLinks.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        const scrollId = link.getAttribute("href")?.slice(1) || link.getAttribute("scroll-to") || "";
+        console.log(scrollId);
+        const offset = parseInt(link.getAttribute("scroll-offset") || "88", 10);
+        scrollToSection(scrollId, offset);
+      });
+    });
+  });
+})();

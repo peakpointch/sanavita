@@ -1,1 +1,20 @@
-(()=>{var i="a[data-linkbuilder-component]";function d(){let o=document.querySelectorAll(i);for(let n of o){let t=n.dataset.path,e=n.dataset.paramWohnung;if(t&&e){let a=encodeURIComponent(e);n.href=`${t}?wohnung=${a}`}else console.warn("Missing data attributes for link:",n)}}document.addEventListener("DOMContentLoaded",()=>{d()});})();
+(() => {
+  // src/ts/linkbuilder.ts
+  var LINKBUILDER_SELECTOR = `a[data-linkbuilder-component]`;
+  function initLinkBuilders() {
+    const allLinks = document.querySelectorAll(LINKBUILDER_SELECTOR);
+    for (let link of allLinks) {
+      const path = link.dataset.path;
+      const paramWohnung = link.dataset.paramWohnung;
+      if (path && paramWohnung) {
+        const encodedParamWohnung = encodeURIComponent(paramWohnung);
+        link.href = `${path}?wohnung=${encodedParamWohnung}`;
+      } else {
+        console.warn("Missing data attributes for link:", link);
+      }
+    }
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    initLinkBuilders();
+  });
+})();

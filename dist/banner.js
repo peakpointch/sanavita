@@ -1,1 +1,70 @@
-(()=>{function i(t,n){if(!t)return;let s=t.querySelectorAll("[banner-type]:not(:has(.w-dyn-empty))");if(!s.length)return;let r=!1,l=Object.values(window.bannerType).some(e=>n.includes(e));s.forEach(e=>{let a=e.getAttribute("banner-type");a&&n.includes(window.bannerType[a])&&(r=!0)}),s.forEach(e=>{let a=e.getAttribute("banner-type")||"";a&&(a==="default"?!l||!r?(e.classList.add("show"),o(e)):e.classList.add("hide"):n.includes(window.bannerType[a])?(e.classList.add("show"),o(e)):e.classList.add("hide"))})}function o(t){let n=t.querySelector(".marquee_track");if(!n)return 0;let l=n.offsetWidth/100;return n.style.animationDuration=`${l}s`,l}function c(t){t.querySelectorAll(".marquee_component").forEach(s=>o(s))}window.addEventListener("DOMContentLoaded",()=>{let t=document.querySelector("main"),s=document.querySelector('[pp-type="nav-wrapper"]')?.querySelector('[pp-type="infobanner-component"]'),r=window.location.pathname;i(s,r),c(t)});})();
+(() => {
+  // src/ts/banner.ts
+  function manageBanners(bannerWrapper, path) {
+    if (!bannerWrapper) {
+      return;
+    }
+    const allBanners = bannerWrapper.querySelectorAll(
+      "[banner-type]:not(:has(.w-dyn-empty))"
+    );
+    if (!allBanners.length) {
+      return;
+    }
+    let hasExpectedBanner = false;
+    const hasSpecialBannerPath = Object.values(window.bannerType).some(
+      (bannerPath) => path.includes(bannerPath)
+    );
+    allBanners.forEach((banner) => {
+      const existingBanner = banner.getAttribute("banner-type");
+      if (existingBanner && path.includes(window.bannerType[existingBanner])) {
+        hasExpectedBanner = true;
+      }
+    });
+    allBanners.forEach((banner) => {
+      const currentBannerType = banner.getAttribute("banner-type") || "";
+      if (!currentBannerType) {
+        return;
+      }
+      if (currentBannerType === "default") {
+        if (!hasSpecialBannerPath || !hasExpectedBanner) {
+          banner.classList.add("show");
+          setBannerSpeed(banner);
+        } else {
+          banner.classList.add("hide");
+        }
+      } else if (path.includes(window.bannerType[currentBannerType])) {
+        banner.classList.add("show");
+        setBannerSpeed(banner);
+      } else {
+        banner.classList.add("hide");
+      }
+    });
+  }
+  function setBannerSpeed(track) {
+    const marqueeTrack = track.querySelector(".marquee_track");
+    if (!marqueeTrack) {
+      return 0;
+    }
+    const distance = marqueeTrack.offsetWidth;
+    const pixelsPerSecond = 100;
+    const duration = distance / pixelsPerSecond;
+    marqueeTrack.style.animationDuration = `${duration}s`;
+    return duration;
+  }
+  function setAllSpeeds(main) {
+    const allMarquees = main.querySelectorAll(".marquee_component");
+    allMarquees.forEach((marquee) => setBannerSpeed(marquee));
+  }
+  window.addEventListener("DOMContentLoaded", () => {
+    const main = document.querySelector("main");
+    const nav = document.querySelector(
+      '[pp-type="nav-wrapper"]'
+    );
+    const bannerWrapper = nav?.querySelector(
+      '[pp-type="infobanner-component"]'
+    );
+    const path = window.location.pathname;
+    manageBanners(bannerWrapper, path);
+    setAllSpeeds(main);
+  });
+})();

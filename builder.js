@@ -76,7 +76,7 @@ function build() {
   buildLibrary(libraryDir, 'dist/library');
 
   // Build the scripts
-  buildScripts('src/ts', 'dist', 'ts', [], true, "iife");
+  buildScripts('src/ts', 'dist', 'ts', [], false, "iife");
   buildScripts('src/js', 'dist', 'js', ['admin'], true, "iife");
 
   // Build development files
