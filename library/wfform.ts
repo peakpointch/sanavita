@@ -4,6 +4,7 @@ import createAttribute from "./attributeselector";
 type FormInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 type Validator = () => boolean;
 type FormComponentElement = 'component' | 'success' | 'error' | 'submit' | 'modal';
+type FilterFormElement = 'field' | '';
 
 // Webflow environment
 const siteId: string = document.documentElement.dataset.wfSite || "";
@@ -18,6 +19,7 @@ const W_SELECT = ".w-select"
 
 // Form selector functions
 const formElementSelector = createAttribute<FormComponentElement>('data-form-element');
+const filterFormSelector = createAttribute<FilterFormElement>('data-filter-form');
 
 // Form selectors
 const FORM_SELECTOR: string = "form";
@@ -30,6 +32,7 @@ const FORM_INPUT_SELECTOR_LIST: string[] = [
   CHECKBOX_INPUT_SELECTOR,
 ];
 const FORM_INPUT_SELECTOR: string = FORM_INPUT_SELECTOR_LIST.join(", ");
+const FORM_FILTERS_SELECTOR: string = `${FORM_INPUT_SELECTOR}${filterFormSelector('field')}`;
 
 /**
  * Check if a FormElement is a radio input.
@@ -252,10 +255,12 @@ export const formQuery = {
   input: FORM_INPUT_SELECTOR,
   inputOnly: W_INPUT,
   inputSelectorList: FORM_INPUT_SELECTOR_LIST,
+  filters: FORM_FILTERS_SELECTOR,
 };
 
 export {
   formElementSelector,
+  filterFormSelector,
 }
 
 export type { FormInput, FormComponentElement, Validator };

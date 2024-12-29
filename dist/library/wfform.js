@@ -18,6 +18,7 @@ var W_CHECKED_CLASS = "w--redirected-checked";
 var W_INPUT = ".w-input";
 var W_SELECT = ".w-select";
 var formElementSelector = attributeselector_default("data-form-element");
+var filterFormSelector = attributeselector_default("data-filter-form");
 var FORM_SELECTOR = "form";
 var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
 var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
@@ -28,6 +29,7 @@ var FORM_INPUT_SELECTOR_LIST = [
   CHECKBOX_INPUT_SELECTOR
 ];
 var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
+var FORM_FILTERS_SELECTOR = `${FORM_INPUT_SELECTOR}${filterFormSelector("field")}`;
 function isRadioInput(input) {
   return input instanceof HTMLInputElement && input.type === "radio";
 }
@@ -163,10 +165,12 @@ var wf = {
   siteId,
   pageId
 };
-var wfclasses = {
-  W_CHECKBOX_CLASS,
-  W_RADIO_CLASS,
-  W_CHECKED_CLASS
+var wfclass = {
+  input: W_INPUT,
+  select: W_SELECT,
+  radio: W_RADIO_CLASS,
+  checkbox: W_CHECKBOX_CLASS,
+  checked: W_CHECKED_CLASS
 };
 var formQuery = {
   form: FORM_SELECTOR,
@@ -175,10 +179,12 @@ var formQuery = {
   select: W_SELECT,
   input: FORM_INPUT_SELECTOR,
   inputOnly: W_INPUT,
-  inputSelectorList: FORM_INPUT_SELECTOR_LIST
+  inputSelectorList: FORM_INPUT_SELECTOR_LIST,
+  filters: FORM_FILTERS_SELECTOR
 };
 export {
   clearRadioGroup,
+  filterFormSelector,
   formElementSelector,
   formQuery,
   initCustomInputs,
@@ -187,5 +193,5 @@ export {
   sendFormData,
   validateFields,
   wf,
-  wfclasses
+  wfclass
 };
