@@ -31811,15 +31811,10 @@
   var jspdf_es_min_default = E;
 
   // src/ts/sanavitapdf.ts
-  var PDF_PAGE_SELECTOR = `[data-pdf-element="page"]`;
-  var PDF_FIELD_ATTR = "data-pdf-field";
-  var PDF_ELEMENT_ATTR = "data-pdf-element";
-  var WF_COLLECTION_ATTR = "wf-collection";
-  var ACTION_ATTR = "data-action";
-  var pdfFieldSelector = attributeselector_default(PDF_FIELD_ATTR);
-  var pdfElementSelector = attributeselector_default(PDF_ELEMENT_ATTR);
-  var wfCollectionSelector = attributeselector_default(WF_COLLECTION_ATTR);
-  var actionSelector = attributeselector_default(ACTION_ATTR);
+  var pdfFieldSelector = attributeselector_default("data-pdf-field");
+  var pdfElementSelector = attributeselector_default("data-pdf-element");
+  var wfCollectionSelector = attributeselector_default("wf-collection");
+  var actionSelector = attributeselector_default("data-action");
   var DailyMenuData = class {
     constructor(date, courses) {
       this.date = date;
@@ -31920,7 +31915,7 @@
   }
   function initialize() {
     const pdfDataList = document.querySelector(wfCollectionSelector("pdf"));
-    const pdfElement = document.querySelector(PDF_PAGE_SELECTOR);
+    const pdfElement = document.querySelector(pdfElementSelector("page"));
     const cmsList = new DailyMenuCollection(pdfDataList);
     const pdf = new PDF(pdfElement);
     const startDate = /* @__PURE__ */ new Date("2024-12-31");

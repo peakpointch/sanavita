@@ -7,19 +7,14 @@ import jsPDF from 'jspdf';
 // Types
 type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
 type DailyMenuCollectionData = Array<DailyMenuData>;
-
-// Selector constants
-const PDF_PAGE_SELECTOR = `[data-pdf-element="page"]`;
-const PDF_FIELD_ATTR = 'data-pdf-field';
-const PDF_ELEMENT_ATTR = 'data-pdf-element';
-const WF_COLLECTION_ATTR = 'wf-collection';
-const ACTION_ATTR = 'data-action'
+type PdfElement = 'dish' | 'page';
+type ActionElement = 'download' | 'save';
 
 // Selector functions
-const pdfFieldSelector = createAttribute<PdfFieldName>(PDF_FIELD_ATTR);
-const pdfElementSelector = createAttribute(PDF_ELEMENT_ATTR);
-const wfCollectionSelector = createAttribute(WF_COLLECTION_ATTR);
-const actionSelector = createAttribute(ACTION_ATTR);
+const pdfFieldSelector = createAttribute<PdfFieldName>('data-pdf-field');
+const pdfElementSelector = createAttribute<PdfElement>('data-pdf-element');
+const wfCollectionSelector = createAttribute<string>('wf-collection');
+const actionSelector = createAttribute<ActionElement>('data-action');
 
 class DailyMenuData {
   date: Date;
@@ -75,7 +70,7 @@ class DailyMenuCollection extends CollectionList {
       const courseData: { [key: string]: any } = {};
       const fields: PdfFieldName[] = ['dishName', 'dishDescription'];
       fields.forEach((field) => {
-        const pdfFieldElement = dish.querySelector(pdfFieldSelector(field));
+        const pdfFieldElement: HTMLElement | null = dish.querySelector(pdfFieldSelector(field));
         courseData[field] = pdfFieldElement?.innerHTML || pdfFieldElement?.innerText || '';
       });
       menuData[dish.dataset.dishCourse || 'default'] = courseData;
@@ -181,7 +176,7 @@ function initSave(): void {
 
 function initialize(): void {
   const pdfDataList: HTMLElement | null = document.querySelector(wfCollectionSelector('pdf'));
-  const pdfElement: HTMLElement | null = document.querySelector(PDF_PAGE_SELECTOR);
+  const pdfElement: HTMLElement | null = document.querySelector(pdfElementSelector('page'));
 
   const cmsList = new DailyMenuCollection(pdfDataList);
   const pdf = new PDF(pdfElement);
