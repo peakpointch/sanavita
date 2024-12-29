@@ -10,7 +10,7 @@ import {
   validateFields,
   formElementSelector
 } from "@library/wfform";
-import { wf, wfclasses, formSelectors } from "@library/wfform";
+import { wf, wfclass, formQuery } from "@library/wfform";
 import { FormInput, Validator } from "@library/wfform";
 
 // Types
@@ -620,7 +620,7 @@ class FormDecision {
     // Get the path element and the form inputs inside it
     const pathElement = this.paths[pathIndex];
     const inputs: NodeListOf<FormInput> =
-      pathElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      pathElement.querySelectorAll(formQuery.input);
 
     // Validate the fields within the path element
     const { valid, invalidField } = validateFields(inputs, true);
@@ -792,7 +792,7 @@ class FormArray {
     this.template = this.list.querySelector(personSelector('template'))!;
     this.addButton = this.container.querySelector(personSelector('add'))!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
-    this.modalForm = document.querySelector(formSelectors.FORM_SELECTOR)!;
+    this.modalForm = document.querySelector(formQuery.form)!;
 
     // Form Modal
     this.modalElement = document.querySelector(
@@ -803,7 +803,7 @@ class FormArray {
     this.cancelButtons = this.modalElement.querySelectorAll(
       personSelector('cancel')
     )!;
-    this.modalInputs = this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+    this.modalInputs = this.modalElement.querySelectorAll(formQuery.input);
     this.groupElements =
       this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
 
@@ -987,7 +987,7 @@ class FormArray {
   private populateModal(person: Person) {
     this.groupElements.forEach((group) => {
       const groupInputs: NodeListOf<FormInput> =
-        group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+        group.querySelectorAll(formQuery.input);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       groupInputs.forEach((input) => {
@@ -1112,7 +1112,7 @@ class FormArray {
 
   private validateModal(report: boolean = true): boolean {
     const allModalFields: NodeListOf<FormInput> =
-      this.modalElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      this.modalElement.querySelectorAll(formQuery.input);
     const { valid, invalidField } = validateFields(allModalFields, report);
 
     if (valid === true) {
@@ -1179,7 +1179,7 @@ class FormArray {
 
     this.groupElements.forEach((group) => {
       const groupInputs: NodeListOf<FormInput> =
-        group.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+        group.querySelectorAll(formQuery.input);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       if (!personData[groupName]) {
@@ -1277,7 +1277,7 @@ class MultiStepForm {
   constructor(component: HTMLElement, settings: MutliStepFormSettings) {
     this.component = component;
     this.formElement = this.component.querySelector(
-      formSelectors.FORM_SELECTOR
+      formQuery.form
     ) as HTMLFormElement;
     this.settings = settings;
 
@@ -1447,7 +1447,7 @@ class MultiStepForm {
       step.classList.toggle("hide", index !== this.currentStep);
 
       step
-        .querySelectorAll<HTMLInputElement>(formSelectors.FORM_INPUT_SELECTOR) // Type necessary for keydown event
+        .querySelectorAll<HTMLInputElement>(formQuery.input) // Type necessary for keydown event
         .forEach((input) => {
           input.addEventListener("keydown", (event: KeyboardEvent) => {
             if (event.key === "Enter") {
@@ -1588,7 +1588,7 @@ class MultiStepForm {
       }`;
     const currentStepElement = this.formSteps[step];
     const inputs: NodeListOf<FormInput> =
-      currentStepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      currentStepElement.querySelectorAll(formQuery.input);
 
     const filteredInputs = Array.from(inputs).filter((input) => {
       // Check if the input matches any exclude selectors or is inside an excluded wrapper
@@ -1628,7 +1628,7 @@ class MultiStepForm {
 
     const stepElement = this.formSteps[step];
     const stepInputs: NodeListOf<FormInput> =
-      stepElement.querySelectorAll(formSelectors.FORM_INPUT_SELECTOR);
+      stepElement.querySelectorAll(formQuery.input);
     stepInputs.forEach((input, inputIndex) => {
       const entry = FieldFromInput(input, inputIndex);
       if (entry?.id) {

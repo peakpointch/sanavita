@@ -21,13 +21,15 @@
   var W_CHECKBOX_CLASS = ".w-checkbox-input";
   var W_RADIO_CLASS = ".w-radio-input";
   var W_CHECKED_CLASS = "w--redirected-checked";
+  var W_INPUT = ".w-input";
+  var W_SELECT = ".w-select";
   var formElementSelector = attributeselector_default("data-form-element");
   var FORM_SELECTOR = "form";
   var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
   var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
   var FORM_INPUT_SELECTOR_LIST = [
-    ".w-input",
-    ".w-select",
+    W_INPUT,
+    W_SELECT,
     RADIO_INPUT_SELECTOR,
     CHECKBOX_INPUT_SELECTOR
   ];
@@ -168,11 +170,13 @@
     pageId
   };
   var formSelectors = {
-    FORM_SELECTOR,
-    CHECKBOX_INPUT_SELECTOR,
-    RADIO_INPUT_SELECTOR,
-    FORM_INPUT_SELECTOR_LIST,
-    FORM_INPUT_SELECTOR
+    form: FORM_SELECTOR,
+    checkbox: CHECKBOX_INPUT_SELECTOR,
+    radio: RADIO_INPUT_SELECTOR,
+    select: W_SELECT,
+    input: FORM_INPUT_SELECTOR,
+    inputOnly: W_INPUT,
+    inputSelectorList: FORM_INPUT_SELECTOR_LIST
   };
 
   // src/ts/sanavita-form.ts

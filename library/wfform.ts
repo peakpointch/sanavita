@@ -13,6 +13,8 @@ const pageId: string = document.documentElement.dataset.wfPage || "";
 const W_CHECKBOX_CLASS = ".w-checkbox-input";
 const W_RADIO_CLASS = ".w-radio-input";
 const W_CHECKED_CLASS = "w--redirected-checked";
+const W_INPUT = ".w-input"
+const W_SELECT = ".w-select"
 
 // Form selector functions
 const formElementSelector = createAttribute<FormComponentElement>('data-form-element');
@@ -22,8 +24,8 @@ const FORM_SELECTOR: string = "form";
 const CHECKBOX_INPUT_SELECTOR: string = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
 const RADIO_INPUT_SELECTOR: string = '.w-radio input[type="radio"]';
 const FORM_INPUT_SELECTOR_LIST: string[] = [
-  ".w-input",
-  ".w-select",
+  W_INPUT,
+  W_SELECT,
   RADIO_INPUT_SELECTOR,
   CHECKBOX_INPUT_SELECTOR,
 ];
@@ -234,18 +236,22 @@ export const wf = {
   pageId: pageId
 };
 
-export const wfclasses = {
-  W_CHECKBOX_CLASS: W_CHECKBOX_CLASS,
-  W_RADIO_CLASS: W_RADIO_CLASS,
-  W_CHECKED_CLASS: W_CHECKED_CLASS,
+export const wfclass = {
+  input: W_INPUT,
+  select: W_SELECT,
+  radio: W_RADIO_CLASS,
+  checkbox: W_CHECKBOX_CLASS,
+  checked: W_CHECKED_CLASS,
 };
 
-export const formSelectors = {
-  FORM_SELECTOR: FORM_SELECTOR,
-  CHECKBOX_INPUT_SELECTOR: CHECKBOX_INPUT_SELECTOR,
-  RADIO_INPUT_SELECTOR: RADIO_INPUT_SELECTOR,
-  FORM_INPUT_SELECTOR_LIST: FORM_INPUT_SELECTOR_LIST,
-  FORM_INPUT_SELECTOR: FORM_INPUT_SELECTOR,
+export const formQuery = {
+  form: FORM_SELECTOR,
+  checkbox: CHECKBOX_INPUT_SELECTOR,
+  radio: RADIO_INPUT_SELECTOR,
+  select: W_SELECT,
+  input: FORM_INPUT_SELECTOR,
+  inputOnly: W_INPUT,
+  inputSelectorList: FORM_INPUT_SELECTOR_LIST,
 };
 
 export {
