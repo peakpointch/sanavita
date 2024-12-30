@@ -235,6 +235,17 @@
     return field;
   }
 
+  // library/form/fieldgroup.ts
+  var FieldGroup = class {
+    constructor(fields = /* @__PURE__ */ new Map()) {
+      this.fields = fields;
+    }
+    // Method to retrieve a field by its id
+    getField(fieldId) {
+      return this.fields.get(fieldId);
+    }
+  };
+
   // src/ts/sanavita-form.ts
   var stepsElementSelector = attributeselector_default("data-steps-element");
   var stepsTargetSelector = attributeselector_default("data-step-target");
@@ -303,15 +314,6 @@
           behavior: "smooth"
         });
       }
-    }
-  };
-  var FieldGroup = class {
-    constructor(fields = /* @__PURE__ */ new Map()) {
-      this.fields = fields;
-    }
-    // Method to retrieve a field by its id
-    getField(fieldId) {
-      return this.fields.get(fieldId);
     }
   };
   var Person = class {

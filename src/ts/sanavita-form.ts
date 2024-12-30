@@ -13,6 +13,7 @@ import {
 import { wf, wfclass, formQuery } from "@library/form";
 import { FormInput, Validator } from "@library/form";
 import { FormField, FieldData, FieldFromInput } from "@library/form";
+import FieldGroup from "@library/form/fieldgroup";
 
 // Types
 type GroupName =
@@ -129,19 +130,6 @@ class Accordion {
         behavior: "smooth",
       });
     }
-  }
-}
-
-class FieldGroup {
-  fields: Map<string, FormField>;
-
-  constructor(fields: Map<string, FormField> = new Map()) {
-    this.fields = fields;
-  }
-
-  // Method to retrieve a field by its id
-  getField(fieldId: string): FormField | undefined {
-    return this.fields.get(fieldId);
   }
 }
 
