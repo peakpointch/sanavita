@@ -1,15 +1,9 @@
-declare global {
-  interface Window {
-    wfCollection: WfCollectionGlobal;
-  }
-}
-
-type WfCollectionGlobal = {
+type GlobalWfCollections = {
   initialized: boolean;
-  [key: string]: WindowCollection | boolean;  // Enforces array values for all other keys
+  [key: string]: GlobalCollection | boolean;  // Enforces array values for all other keys
 };
 
-type WindowCollection = Array<object>;
+type GlobalCollection = Array<object>;
 
 class CollectionList {
   public container: HTMLElement;
@@ -46,16 +40,19 @@ class CollectionList {
   }
 }
 
-function initWfCollections(collections: Set<string>): void {
-  if (!window) return;
-  if (window.wfCollection.initialized) return;
-  window.wfCollection = {
-    initialized: true
-  }
-  collections.forEach(collection => {
-    window.wfCollection[collection] = [] as WindowCollection;
-  })
-}
+var wfCollections: GlobalWfCollections = {
+  initialized: false,
+};
 
-export { CollectionList, initWfCollections };
-export type { WindowCollection, WfCollectionGlobal };
+var initWfCollections = (collections: Set<string>): void => {
+  if (wfCollections.initialized) return;
+
+  wfCollections.initialized = true;
+
+  collections.forEach((collection) => {
+    wfCollections[collection] = [] as GlobalCollection;
+  });
+};
+
+export { CollectionList, initWfCollections, wfCollections };
+export type { GlobalCollection, GlobalWfCollections };

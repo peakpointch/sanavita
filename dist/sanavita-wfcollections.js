@@ -1,17 +1,16 @@
 (() => {
   // library/wfcollection.ts
-  function initWfCollections(collections) {
-    if (!window)
+  var wfCollections = {
+    initialized: false
+  };
+  var initWfCollections = (collections) => {
+    if (wfCollections.initialized)
       return;
-    if (window.wfCollection.initialized)
-      return;
-    window.wfCollection = {
-      initialized: true
-    };
+    wfCollections.initialized = true;
     collections.forEach((collection) => {
-      window.wfCollection[collection] = [];
+      wfCollections[collection] = [];
     });
-  }
+  };
 
   // src/ts/sanavita-wfcollections.ts
   var sanavitaCollections = /* @__PURE__ */ new Set([

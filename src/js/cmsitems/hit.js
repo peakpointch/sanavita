@@ -25,5 +25,4 @@ const data = {
   dishes: dishes,
 }
 
-window.wfCollections.hit = [];
 window.wfCollections.hit.push(data);
