@@ -19567,7 +19567,6 @@
       return data;
     }
   };
-  var wfcollection_default = CollectionList;
 
   // library/attributeselector.ts
   var createAttribute = (attrName, defaultValue = null) => {
@@ -28716,7 +28715,7 @@
       };
     }
   };
-  var DailyMenuCollection = class extends wfcollection_default {
+  var DailyMenuCollection = class extends CollectionList {
     constructor(container) {
       super(container);
       this.collectionData = [];

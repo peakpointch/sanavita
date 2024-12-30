@@ -1,5 +1,5 @@
 // Imports
-import CollectionList from '@library/wfcollection';
+import { CollectionList } from '@library/wfcollection';
 import createAttribute from '@library/attributeselector';
 import html2canvas from 'html2canvas';
 import jsPDF, { Html2CanvasOptions } from 'jspdf';
