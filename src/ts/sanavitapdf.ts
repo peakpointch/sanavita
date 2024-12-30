@@ -3,14 +3,15 @@ import CollectionList from '@library/wfcollection';
 import createAttribute from '@library/attributeselector';
 import html2canvas from 'html2canvas';
 import jsPDF, { Html2CanvasOptions } from 'jspdf';
-import { filterFormSelector, formQuery } from '@library/form';
+import { FieldFromInput, filterFormSelector, FormField, FormInput, formQuery } from '@library/form';
+import FieldGroup from '@library/form/fieldgroup';
 
 // Types
 type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
 type DailyMenuCollectionData = Array<DailyMenuData>;
 type PdfElement = 'dish' | 'page';
 type ActionElement = 'download' | 'save';
-type Action = (data: any) => any;
+type Action = (data: FieldGroup) => any;
 
 // Selector functions
 const pdfFieldSelector = createAttribute<PdfFieldName>('data-pdf-field');
@@ -64,6 +65,15 @@ class DailyMenuCollection extends CollectionList {
     return this.collectionData;
   }
 
+  /**
+   * Get the courses from a daily menu / collection item / from one day.
+   * Courses: starter, main, mainVegetarian, dessert.
+   *
+   * Parameters:
+   * @param menuElement The Daily Menu - This element contains all the courses from a specific day.
+   *
+   * @returns The courses as an object.
+   * */
   public getCourses(menuElement: HTMLElement): { [key: string]: any } {
     const courses: NodeListOf<HTMLElement> = menuElement.querySelectorAll(pdfElementSelector('dish'));
     const menuData: { [key: string]: any } = {};
@@ -81,7 +91,7 @@ class DailyMenuCollection extends CollectionList {
     return menuData;
   }
 
-  private filterByDate(startDate: Date, endDate: Date): DailyMenuData[] {
+  public filterByDate(startDate: Date, endDate: Date): DailyMenuData[] {
     return this.collectionData.filter(
       (menuData) => menuData.date >= startDate && menuData.date <= endDate
     );
@@ -96,10 +106,20 @@ class DailyMenuCollection extends CollectionList {
 
 class PDF {
   private canvas: HTMLElement;
+  private renderer: Renderer;
 
   constructor(canvas: HTMLElement | null) {
     if (!canvas) throw new Error('PDF Element not found.');
     this.canvas = canvas;
+    this.renderer = new Renderer(canvas);
+  }
+
+  public render(
+    data: any,
+    attributePrefix: string,
+    options: { useINnerHTML?: boolean; nestedKeySeparator?: string } = {}
+  ): void {
+    this.renderer.render(data, attributePrefix, options);
   }
 
   public async create(filename?: string | undefined): Promise<void> {
@@ -132,8 +152,9 @@ class PDF {
 
 class FilterForm {
   public container: HTMLElement;
-  private filterFields: NodeListOf<HTMLElement>;
-  private formFields: NodeListOf<HTMLElement>;
+  private data: FieldGroup;
+  private filterFields: NodeListOf<FormInput>;
+  private formFields: NodeListOf<FormInput>;
   private changeActions: Action[] = [];
 
   constructor(container: HTMLElement | null) {
@@ -143,6 +164,29 @@ class FilterForm {
     this.formFields = container.querySelectorAll(formQuery.input);
 
     this.attachChangeListeners();
+  }
+
+  public getFilterInput(fieldId: string): FormInput {
+    const existingFields = this.getFieldIds(this.filterFields)
+    if (!this.fieldExists(fieldId, existingFields)) {
+      throw new Error(`Field with ID ${fieldId} was not found`);
+    }
+
+    return Array.from(this.filterFields).find(field => field.id === fieldId);
+  }
+
+  private getFieldIds(fields: NodeListOf<FormInput>): string[] {
+    return Array.from(fields).map(input => input.id);
+  }
+
+  private fieldExists(fieldId: string, fieldIds: string[]): boolean {
+    const matches = fieldIds.filter(id => id === fieldId);
+    if (matches.length === 1) {
+      return true;
+    } else if (matches.length > 1) {
+      throw new Error(`FieldId ${fieldId} was found more than once!`)
+    }
+    return false;
   }
 
   private attachChangeListeners(): void {
@@ -159,10 +203,24 @@ class FilterForm {
     const data = {};
     this.changeActions.forEach(action => action(data));
   }
+
+  private extractData(fields: NodeListOf<FormInput> | FormInput[]): FieldGroup {
+    this.data = new FieldGroup();
+    fields = fields as NodeListOf<FormInput>;
+    fields.forEach((input, index) => {
+      const field = FieldFromInput(input, index);
+      if (field?.id) {
+        this.data.fields.set(field.id, field);
+      }
+    });
+    return this.data;
+  }
 }
 
-function getpreviousMonday(): Date {
-  return getMondayFrom(new Date());
+function addDays(date: Date = new Date(), days: number): Date {
+  date.setDate(date.getDate() + days);
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
 
 function getMondayFrom(date: Date): Date {
@@ -198,20 +256,22 @@ function initSave(): void {
 }
 
 function initialize(): void {
-  const pdfDataList: HTMLElement | null = document.querySelector(wfCollectionSelector('pdf'));
+  const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
+  const hitMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('hit'))
   const pdfElement: HTMLElement | null = document.querySelector(pdfElementSelector('page'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
-  const cmsList = new DailyMenuCollection(pdfDataList);
+  const dailyMenuList = new DailyMenuCollection(dailyMenuListElement);
+  const hitMenuList = new DailyMenuCollection(hitMenuListElement);
   const pdf = new PDF(pdfElement);
   const filterForm = new FilterForm(filterFormElement);
 
 
   // Example: Filter the data
   const startDate = new Date('2024-12-31');
-  const filteredData = cmsList.filterByRange(startDate, 4);
+  const filteredData = dailyMenuList.filterByRange(startDate, 4);
 
-  console.log("Collection Data:", cmsList.getCollectionData());
+  console.log("Collection Data:", dailyMenuList.getCollectionData());
   console.log("Filtered Data:", filteredData);
 
   initDownload(pdf);
