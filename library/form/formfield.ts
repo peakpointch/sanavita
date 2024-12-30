@@ -1,6 +1,6 @@
-import { FormComponentElement, FormInput, Validator } from "@library/wfform";
-import { parameterize } from "./parameterize";
-import { isCheckboxInput, isRadioInput } from "@library/wfform";
+import { FormComponentElement, FormInput, Validator } from "@library/form";
+import { isCheckboxInput, isRadioInput } from "@library/form";
+import { parameterize } from "@library/parameterize";
 
 interface FieldData {
   id: string;

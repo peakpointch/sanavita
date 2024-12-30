@@ -3,12 +3,14 @@ import CollectionList from '@library/wfcollection';
 import createAttribute from '@library/attributeselector';
 import html2canvas from 'html2canvas';
 import jsPDF, { Html2CanvasOptions } from 'jspdf';
+import { filterFormSelector, formQuery } from '@library/form';
 
 // Types
 type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
 type DailyMenuCollectionData = Array<DailyMenuData>;
 type PdfElement = 'dish' | 'page';
 type ActionElement = 'download' | 'save';
+type Action = (data: any) => any;
 
 // Selector functions
 const pdfFieldSelector = createAttribute<PdfFieldName>('data-pdf-field');
@@ -130,13 +132,33 @@ class PDF {
 
 class FilterForm {
   public container: HTMLElement;
+  private filterFields: NodeListOf<HTMLElement>;
+  private formFields: NodeListOf<HTMLElement>;
+  private changeActions: Action[] = [];
 
-  construcor(container: HTMLElement | null) {
+  constructor(container: HTMLElement | null) {
     if (!container) throw new Error(`FilterForm container can't be null`)
     this.container = container;
+    this.filterFields = container.querySelectorAll(formQuery.filters);
+    this.formFields = container.querySelectorAll(formQuery.input);
+
+    this.attachChangeListeners();
   }
 
+  private attachChangeListeners(): void {
+    this.formFields.forEach(field => {
+      field.addEventListener("input", this.onChange.bind(this));
+    });
+  }
 
+  public addOnChange(action: Action) {
+    this.changeActions.push(action);
+  }
+
+  private onChange(): void {
+    const data = {};
+    this.changeActions.forEach(action => action(data));
+  }
 }
 
 function getpreviousMonday(): Date {
@@ -178,9 +200,11 @@ function initSave(): void {
 function initialize(): void {
   const pdfDataList: HTMLElement | null = document.querySelector(wfCollectionSelector('pdf'));
   const pdfElement: HTMLElement | null = document.querySelector(pdfElementSelector('page'));
+  const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
   const cmsList = new DailyMenuCollection(pdfDataList);
   const pdf = new PDF(pdfElement);
+  const filterForm = new FilterForm(filterFormElement);
 
 
   // Example: Filter the data
@@ -199,6 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     initialize();
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 });

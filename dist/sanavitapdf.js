@@ -28589,6 +28589,36 @@
   }();
   var jspdf_es_min_default = E;
 
+  // library/form/form.ts
+  var siteId = document.documentElement.dataset.wfSite || "";
+  var pageId = document.documentElement.dataset.wfPage || "";
+  var W_CHECKBOX_CLASS = ".w-checkbox-input";
+  var W_INPUT = ".w-input";
+  var W_SELECT = ".w-select";
+  var formElementSelector = attributeselector_default("data-form-element");
+  var filterFormSelector = attributeselector_default("data-filter-form");
+  var FORM_SELECTOR = "form";
+  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
+  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
+  var FORM_INPUT_SELECTOR_LIST = [
+    W_INPUT,
+    W_SELECT,
+    RADIO_INPUT_SELECTOR,
+    CHECKBOX_INPUT_SELECTOR
+  ];
+  var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
+  var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
+  var formQuery = {
+    form: FORM_SELECTOR,
+    checkbox: CHECKBOX_INPUT_SELECTOR,
+    radio: RADIO_INPUT_SELECTOR,
+    select: W_SELECT,
+    input: FORM_INPUT_SELECTOR,
+    inputOnly: W_INPUT,
+    inputSelectorList: FORM_INPUT_SELECTOR_LIST,
+    filters: FORM_FILTERS_SELECTOR
+  };
+
   // src/ts/sanavitapdf.ts
   var pdfFieldSelector = attributeselector_default("data-pdf-field");
   var pdfElementSelector = attributeselector_default("data-pdf-element");
@@ -28677,6 +28707,29 @@
       }
     }
   };
+  var FilterForm = class {
+    constructor(container) {
+      this.changeActions = [];
+      if (!container)
+        throw new Error(`FilterForm container can't be null`);
+      this.container = container;
+      this.filterFields = container.querySelectorAll(formQuery.filters);
+      this.formFields = container.querySelectorAll(formQuery.input);
+      this.attachChangeListeners();
+    }
+    attachChangeListeners() {
+      this.formFields.forEach((field) => {
+        field.addEventListener("input", this.onChange.bind(this));
+      });
+    }
+    addOnChange(action) {
+      this.changeActions.push(action);
+    }
+    onChange() {
+      const data = {};
+      this.changeActions.forEach((action) => action(data));
+    }
+  };
   function onSave() {
   }
   function initDownload(pdf) {
@@ -28696,8 +28749,10 @@
   function initialize() {
     const pdfDataList = document.querySelector(wfCollectionSelector("pdf"));
     const pdfElement = document.querySelector(pdfElementSelector("page"));
+    const filterFormElement = document.querySelector(filterFormSelector("component"));
     const cmsList = new DailyMenuCollection(pdfDataList);
     const pdf = new PDF(pdfElement);
+    const filterForm = new FilterForm(filterFormElement);
     const startDate = /* @__PURE__ */ new Date("2024-12-31");
     const filteredData = cmsList.filterByRange(startDate, 4);
     console.log("Collection Data:", cmsList.getCollectionData());
@@ -28709,7 +28764,7 @@
     try {
       initialize();
     } catch (e2) {
-      console.log(e2);
+      console.error(e2);
     }
   });
 })();

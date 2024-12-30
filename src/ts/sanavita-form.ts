@@ -9,10 +9,10 @@ import {
   sendFormData,
   validateFields,
   formElementSelector
-} from "@library/wfform";
-import { wf, wfclass, formQuery } from "@library/wfform";
-import { FormInput, Validator } from "@library/wfform";
-import { FormField, FieldData, FieldFromInput } from "@library/formfield";
+} from "@library/form";
+import { wf, wfclass, formQuery } from "@library/form";
+import { FormInput, Validator } from "@library/form";
+import { FormField, FieldData, FieldFromInput } from "@library/form";
 
 // Types
 type GroupName =

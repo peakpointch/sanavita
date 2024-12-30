@@ -10,7 +10,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // library/wfform.ts
+  // library/form/form.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var W_CHECKBOX_CLASS = ".w-checkbox-input";
@@ -182,7 +182,7 @@
     return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
   }
 
-  // library/formfield.ts
+  // library/form/formfield.ts
   var FormField = class {
     constructor(data = null) {
       if (!data) {

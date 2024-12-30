@@ -1,4 +1,4 @@
-import createAttribute from "./attributeselector";
+import createAttribute from "@library/attributeselector";
 
 // Types
 type FormInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
