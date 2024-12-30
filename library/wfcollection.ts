@@ -1,3 +1,16 @@
+declare global {
+  interface Window {
+    wfCollection: WfCollectionGlobal;
+  }
+}
+
+type WfCollectionGlobal = {
+  initialized: boolean;
+  [key: string]: WindowCollection | boolean;  // Enforces array values for all other keys
+};
+
+type WindowCollection = Array<object>;
+
 class CollectionList {
   public container: HTMLElement;
   private listElement: HTMLElement;
@@ -33,4 +46,16 @@ class CollectionList {
   }
 }
 
-export default CollectionList;
+function initWfCollections(collections: Set<string>): void {
+  if (!window) return;
+  if (window.wfCollection.initialized) return;
+  window.wfCollection = {
+    initialized: true
+  }
+  collections.forEach(collection => {
+    window.wfCollection[collection] = [] as WindowCollection;
+  })
+}
+
+export { CollectionList, initWfCollections };
+export type { WindowCollection, WfCollectionGlobal };

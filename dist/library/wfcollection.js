@@ -24,7 +24,19 @@ var CollectionList = class {
     return data;
   }
 };
-var wfcollection_default = CollectionList;
+function initWfCollections(collections) {
+  if (!window)
+    return;
+  if (window.wfCollection.initialized)
+    return;
+  window.wfCollection = {
+    initialized: true
+  };
+  collections.forEach((collection) => {
+    window.wfCollection[collection] = [];
+  });
+}
 export {
-  wfcollection_default as default
+  CollectionList,
+  initWfCollections
 };
