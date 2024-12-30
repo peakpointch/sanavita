@@ -200,7 +200,7 @@ class FilterForm {
   }
 
   private onChange(): void {
-    const data = {};
+    const data: FieldGroup = this.extractData(this.filterFields);
     this.changeActions.forEach(action => action(data));
   }
 
@@ -223,12 +223,15 @@ function addDays(date: Date = new Date(), days: number): Date {
   return date;
 }
 
-function getMondayFrom(date: Date): Date {
-  if (date.getDay() != 1) {
-    return new Date(date.setDate(date.getDate() - (date.getDay() + 6) % 7));
-  } else {
-    return date;
-  }
+function getMonday(date: Date = new Date(), week: number = 0): Date {
+  let dayOfWeek = date.getDay();
+  let daysToMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+
+  date.setDate(date.getDate() - daysToMonday);
+  date.setDate(date.getDate() + week * 7);
+  date.setHours(0, 0, 0, 0);
+
+  return date;
 }
 
 function filterDailyMenuCollection(collectionData: DailyMenuCollectionData) {
@@ -255,6 +258,12 @@ function initSave(): void {
   button.addEventListener('click', () => onSave());
 }
 
+function setDefaultFilters(form: FilterForm): void {
+  const nextMonday: Date = getMonday(new Date(), 1);
+  form.getFilterInput('startDate').value = nextMonday.toLocaleDateString('en-CA');
+  form.getFilterInput('endDate').value = addDays(nextMonday, 6).toLocaleDateString('en-CA');
+}
+
 function initialize(): void {
   const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
   const hitMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('hit'))
@@ -265,7 +274,17 @@ function initialize(): void {
   const hitMenuList = new DailyMenuCollection(hitMenuListElement);
   const pdf = new PDF(pdfElement);
   const filterForm = new FilterForm(filterFormElement);
+  setDefaultFilters(filterForm);
+  filterForm.addOnChange((data) => {
+    const startDateValue: string = data.getField('startDate').value;
+    const startDate: Date = new Date(startDateValue);
+    const endDateValue: string = data.getField('endDate').value;
+    const endDate: Date = new Date(endDateValue);
+    const filterResult = dailyMenuList.filterByDate(startDate, endDate);
+    pdf.render(data, 'data-pdf-field', { useINnerHTML: true });
 
+    console.log("Filtered Data:", filterResult);
+  });
 
   // Example: Filter the data
   const startDate = new Date('2024-12-31');

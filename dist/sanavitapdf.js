@@ -6590,14 +6590,14 @@
             return FontMetrics2;
           }()
         );
-        var Renderer = (
+        var Renderer2 = (
           /** @class */
           /* @__PURE__ */ function() {
-            function Renderer2(context, options) {
+            function Renderer3(context, options) {
               this.context = context;
               this.options = options;
             }
-            return Renderer2;
+            return Renderer3;
           }()
         );
         var MASK_OFFSET = 1e4;
@@ -7573,7 +7573,7 @@
               });
             };
             return CanvasRenderer2;
-          }(Renderer)
+          }(Renderer2)
         );
         var isTextInputElement = function(container) {
           if (container instanceof TextareaElementContainer) {
@@ -7652,7 +7652,7 @@
               });
             };
             return ForeignObjectRenderer2;
-          }(Renderer)
+          }(Renderer2)
         );
         var loadSerializedSVG = function(svg) {
           return new Promise(function(resolve, reject) {
@@ -28608,6 +28608,12 @@
   ];
   var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
   var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
+  function isRadioInput(input) {
+    return input instanceof HTMLInputElement && input.type === "radio";
+  }
+  function isCheckboxInput(input) {
+    return input instanceof HTMLInputElement && input.type === "checkbox";
+  }
   var formQuery = {
     form: FORM_SELECTOR,
     checkbox: CHECKBOX_INPUT_SELECTOR,
@@ -28617,6 +28623,75 @@
     inputOnly: W_INPUT,
     inputSelectorList: FORM_INPUT_SELECTOR_LIST,
     filters: FORM_FILTERS_SELECTOR
+  };
+
+  // library/parameterize.ts
+  function parameterize(text) {
+    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+  }
+
+  // library/form/formfield.ts
+  var FormField = class {
+    constructor(data = null) {
+      if (!data) {
+        return;
+      }
+      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
+      this.label = data.label || `Unnamed Field`;
+      this.value = data.value || "";
+      this.required = data.required || false;
+      this.type = data.type || "text";
+      if (this.type === "radio" || "checkbox") {
+        this.checked = data.checked || false;
+      }
+      if (this.type === "checkbox" && !this.checked) {
+        console.log(this.label, this.type, this.checked, data.checked);
+        this.value = "Nicht angew\xE4hlt";
+      }
+    }
+    validate(report = true) {
+      let valid = true;
+      if (this.required) {
+        if (this.type === "radio" || this.type === "checkbox") {
+          if (!this.checked) {
+            valid = false;
+          }
+        } else {
+          if (!this.value.trim()) {
+            valid = false;
+          }
+        }
+      }
+      if (!valid && report) {
+        console.warn(`Field "${this.label}" is invalid.`);
+      }
+      return valid;
+    }
+  };
+  function FieldFromInput(input, index2) {
+    if (input.type === "radio" && !input.checked) {
+      return new FormField();
+    }
+    const field = new FormField({
+      id: input.id || parameterize(input.dataset.name || `field ${index2}`),
+      label: input.dataset.name || `field ${index2}`,
+      value: input.value,
+      required: input.required || false,
+      type: input.type,
+      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
+    });
+    return field;
+  }
+
+  // library/form/fieldgroup.ts
+  var FieldGroup = class {
+    constructor(fields = /* @__PURE__ */ new Map()) {
+      this.fields = fields;
+    }
+    // Method to retrieve a field by its id
+    getField(fieldId) {
+      return this.fields.get(fieldId);
+    }
   };
 
   // src/ts/sanavitapdf.ts
@@ -28657,6 +28732,15 @@
       });
       return this.collectionData;
     }
+    /**
+     * Get the courses from a daily menu / collection item / from one day.
+     * Courses: starter, main, mainVegetarian, dessert.
+     *
+     * Parameters:
+     * @param menuElement The Daily Menu - This element contains all the courses from a specific day.
+     *
+     * @returns The courses as an object.
+     * */
     getCourses(menuElement) {
       const courses = menuElement.querySelectorAll(pdfElementSelector("dish"));
       const menuData = {};
@@ -28687,6 +28771,10 @@
       if (!canvas)
         throw new Error("PDF Element not found.");
       this.canvas = canvas;
+      this.renderer = new Renderer(canvas);
+    }
+    render(data, attributePrefix, options = {}) {
+      this.renderer.render(data, attributePrefix, options);
     }
     async create(filename) {
       if (!filename || typeof filename !== "string") {
@@ -28717,6 +28805,25 @@
       this.formFields = container.querySelectorAll(formQuery.input);
       this.attachChangeListeners();
     }
+    getFilterInput(fieldId) {
+      const existingFields = this.getFieldIds(this.filterFields);
+      if (!this.fieldExists(fieldId, existingFields)) {
+        throw new Error(`Field with ID ${fieldId} was not found`);
+      }
+      return Array.from(this.filterFields).find((field) => field.id === fieldId);
+    }
+    getFieldIds(fields) {
+      return Array.from(fields).map((input) => input.id);
+    }
+    fieldExists(fieldId, fieldIds) {
+      const matches = fieldIds.filter((id) => id === fieldId);
+      if (matches.length === 1) {
+        return true;
+      } else if (matches.length > 1) {
+        throw new Error(`FieldId ${fieldId} was found more than once!`);
+      }
+      return false;
+    }
     attachChangeListeners() {
       this.formFields.forEach((field) => {
         field.addEventListener("input", this.onChange.bind(this));
@@ -28726,10 +28833,34 @@
       this.changeActions.push(action);
     }
     onChange() {
-      const data = {};
+      const data = this.extractData(this.filterFields);
       this.changeActions.forEach((action) => action(data));
     }
+    extractData(fields) {
+      this.data = new FieldGroup();
+      fields = fields;
+      fields.forEach((input, index2) => {
+        const field = FieldFromInput(input, index2);
+        if (field?.id) {
+          this.data.fields.set(field.id, field);
+        }
+      });
+      return this.data;
+    }
   };
+  function addDays(date = /* @__PURE__ */ new Date(), days) {
+    date.setDate(date.getDate() + days);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+  function getMonday(date = /* @__PURE__ */ new Date(), week = 0) {
+    let dayOfWeek = date.getDay();
+    let daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    date.setDate(date.getDate() - daysToMonday);
+    date.setDate(date.getDate() + week * 7);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
   function onSave() {
   }
   function initDownload(pdf) {
@@ -28746,16 +28877,33 @@
       throw new Error("Save button does not exist");
     button.addEventListener("click", () => onSave());
   }
+  function setDefaultFilters(form) {
+    const nextMonday = getMonday(/* @__PURE__ */ new Date(), 1);
+    form.getFilterInput("startDate").value = nextMonday.toLocaleDateString("en-CA");
+    form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
+  }
   function initialize() {
-    const pdfDataList = document.querySelector(wfCollectionSelector("pdf"));
+    const dailyMenuListElement = document.querySelector(wfCollectionSelector("daily"));
+    const hitMenuListElement = document.querySelector(wfCollectionSelector("hit"));
     const pdfElement = document.querySelector(pdfElementSelector("page"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
-    const cmsList = new DailyMenuCollection(pdfDataList);
+    const dailyMenuList = new DailyMenuCollection(dailyMenuListElement);
+    const hitMenuList = new DailyMenuCollection(hitMenuListElement);
     const pdf = new PDF(pdfElement);
     const filterForm = new FilterForm(filterFormElement);
+    setDefaultFilters(filterForm);
+    filterForm.addOnChange((data) => {
+      const startDateValue = data.getField("startDate").value;
+      const startDate2 = new Date(startDateValue);
+      const endDateValue = data.getField("endDate").value;
+      const endDate = new Date(endDateValue);
+      const filterResult = dailyMenuList.filterByDate(startDate2, endDate);
+      pdf.render(data, "data-pdf-field", { useINnerHTML: true });
+      console.log("Filtered Data:", filterResult);
+    });
     const startDate = /* @__PURE__ */ new Date("2024-12-31");
-    const filteredData = cmsList.filterByRange(startDate, 4);
-    console.log("Collection Data:", cmsList.getCollectionData());
+    const filteredData = dailyMenuList.filterByRange(startDate, 4);
+    console.log("Collection Data:", dailyMenuList.getCollectionData());
     console.log("Filtered Data:", filteredData);
     initDownload(pdf);
     initSave();
