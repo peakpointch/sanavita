@@ -9,7 +9,7 @@ type RenderField = {
   element: string;
   instance?: string;
   value: string;
-  type: 'text' | 'html';
+  type?: 'text' | 'html';
   hideControl?: HideControl;
 };
 
@@ -67,6 +67,65 @@ class Renderer {
       }
     });
   }
+
+  /**
+   * Recursively reads the DOM node and its descendants to build a structured RenderData.
+   * It identifies elements with `data-${elementAttr}-element` and `data-${fieldAttr}-field` attributes,
+   * and processes them into RenderElement and RenderField objects.
+   *
+   * @param {HTMLElement} node - The root node to start reading from.
+   * @returns {RenderData} An array of RenderElement and RenderField objects representing the node structure.
+   */
+  public read(node: HTMLElement): RenderData {
+    const renderData: RenderData = [];
+
+    Array.from(node.children).forEach((child) => {
+      // If it's a RenderElement
+      if (child.hasAttribute(this.elementAttr)) {
+        const elementName = child.getAttribute(this.elementAttr);
+        const instance = child.getAttribute(`data-${elementName}-instance`);
+        const fields = this.read(child as HTMLElement); // Recurse on children
+
+        const element: RenderElement = {
+          element: elementName!,
+          instance: instance || undefined,
+          fields,
+        };
+
+        renderData.push(element);
+      }
+      // If it's a RenderField
+      else if (child.hasAttribute(this.fieldAttr)) {
+        const fieldName = child.getAttribute(this.fieldAttr);
+        const instance = child.getAttribute(`data-${fieldName}-instance`);
+
+        // Determine field type
+        const value = child.innerHTML.trim();
+        const type = child.children.length > 0 ? 'html' : 'text';
+
+        const field: RenderField = {
+          element: fieldName!,
+          instance: instance || undefined,
+          value,
+          type,
+        };
+
+        renderData.push(field);
+      }
+      // If the child doesn't have the attribute, check its descendants
+      else {
+        // Look ahead: check if any of its descendants have the attribute
+        const hasRenderableChild = child.querySelectorAll(`[${this.elementAttr}], [${this.fieldAttr}]`).length > 0;
+
+        // If there are renderable children, recurse on this child
+        if (hasRenderableChild) {
+          renderData.push(...this.read(child as HTMLElement));
+        }
+      }
+    });
+
+    return renderData;
+  };
 
   private renderField(field: RenderField, canvas: HTMLElement) {
     const selector = this.fieldSelector(field);
