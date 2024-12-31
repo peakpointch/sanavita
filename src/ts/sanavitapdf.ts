@@ -11,7 +11,8 @@ type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSm
 type DailyMenuCollectionData = Array<DailyMenuData>;
 type PdfElement = 'dish' | 'page';
 type ActionElement = 'download' | 'save';
-type Action = (data: FieldGroup) => any;
+type Action = (filters: FieldGroup) => any;
+type MenuDataCondition = ((menuData: DailyMenuData) => boolean);
 
 // Selector functions
 const pdfFieldSelector = createAttribute<PdfFieldName>('data-pdf-field');
@@ -205,8 +206,8 @@ class FilterForm {
   }
 
   private onChange(): void {
-    const data: FieldGroup = this.extractData(this.filterFields);
-    this.changeActions.forEach(action => action(data));
+    const filters: FieldGroup = this.extractData(this.filterFields);
+    this.changeActions.forEach(action => action(filters));
   }
 
   /**
