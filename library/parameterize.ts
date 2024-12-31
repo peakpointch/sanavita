@@ -25,6 +25,17 @@ export function toDashCase(str: string): string {
 }
 
 /**
+ * Converts a kebab-case string to camelCase.
+ *
+ * @param {string} str - The input kebab-case string.
+ * @returns {string} - The resulting string in camelCase format.
+ */
+export function toCamelCase(str: string): string {
+  return str
+    .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+}
+
+/**
  * Capitalizes the first character of a string while leaving the rest unchanged.
  *
  * @param {string} str - The input string to be modified.

@@ -5,11 +5,15 @@ function parameterize(text) {
 function toDashCase(str) {
   return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
+function toCamelCase(str) {
+  return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+}
 function toDataset(str) {
   return `${str.charAt(0).toUpperCase() + str.slice(1)}`;
 }
 export {
   parameterize,
+  toCamelCase,
   toDashCase,
   toDataset
 };
