@@ -197,6 +197,9 @@ class FilterForm {
     saveBtn.addEventListener('click', this.onChange.bind(this));
   }
 
+  /**
+   * Add an action to be executed when the filters change.
+   */
   public addOnChange(action: Action) {
     this.changeActions.push(action);
   }
@@ -206,7 +209,16 @@ class FilterForm {
     this.changeActions.forEach(action => action(data));
   }
 
-  private extractData(fields: NodeListOf<FormInput> | FormInput[]): FieldGroup {
+  /**
+   * Simulate an onChange event by invoking all the changeActions.
+   * Use this method to trigger the filter logic and initialize rendering 
+   * based on pre-defined or externally set default values.
+   */
+  public invokeOnChange(): void {
+    this.onChange();
+  }
+
+  public extractData(fields: NodeListOf<FormInput> | FormInput[]): FieldGroup {
     this.data = new FieldGroup();
     fields = fields as NodeListOf<FormInput>;
     fields.forEach((input, index) => {
