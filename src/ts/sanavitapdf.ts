@@ -146,7 +146,7 @@ class DailyMenuCollection extends CollectionList {
 
 class PDF {
   private canvas: HTMLElement;
-  private renderer: Renderer;
+  public renderer: Renderer;
 
   constructor(canvas: HTMLElement | null) {
     if (!canvas) throw new Error('PDF Element not found.');
@@ -424,6 +424,10 @@ function initialize(): void {
   filterForm.invokeOnChange(); // Initialize the filter with it's default values
 
   //console.log("Collection Data:", dailyMenuList.getCollectionData());
+
+  pdf.renderer.addFilterAttributes(['wf-date', 'wf-end-date', 'weekly-hit-boolean']);
+  const read = pdf.renderer.read(dailyMenuListElement, []);
+  console.log("READ", read);
 
   initDownload(pdf);
   initSave();
