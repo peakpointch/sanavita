@@ -193,6 +193,8 @@ class FilterForm {
     this.formFields.forEach(field => {
       field.addEventListener("input", this.onChange.bind(this));
     });
+    const saveBtn = this.container.querySelector(actionSelector('save'));
+    saveBtn.addEventListener('click', this.onChange.bind(this));
   }
 
   public addOnChange(action: Action) {
