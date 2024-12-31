@@ -19582,6 +19582,31 @@
   // src/ts/sanavitapdf.ts
   var import_html2canvas = __toESM(require_html2canvas());
 
+  // library/canvas.ts
+  var EditableCanvas = class {
+    constructor(canvas) {
+      if (!canvas)
+        throw new Error(`Canvas can't be undefined.`);
+      this.canvas = canvas;
+      this.editableElements = this.canvas.querySelectorAll('[data-canvas-editable="true"]');
+      this.initialize();
+    }
+    initialize() {
+      this.editableElements.forEach((element) => {
+        element.addEventListener("click", () => {
+          element.contentEditable = "true";
+        });
+      });
+      document.addEventListener("click", (event) => {
+        if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest('[data-canvas-editable="true"]')) {
+          this.editableElements.forEach((element) => {
+            element.contentEditable = "false";
+          });
+        }
+      });
+    }
+  };
+
   // node_modules/jspdf/dist/jspdf.es.min.js
   init_typeof();
 
@@ -28693,16 +28718,121 @@
     }
   };
 
+  // library/renderer.ts
+  var Renderer = class _Renderer {
+    constructor(canvas, attributeName = "render") {
+      if (!canvas)
+        throw new Error(`Canvas can't be undefined.`);
+      this.canvas = canvas;
+      this.elementAttr = `data-${attributeName}-element`;
+      this.fieldAttr = `data-${attributeName}-field`;
+    }
+    render(data, canvas = this.canvas) {
+      this.data = data;
+      this.data.forEach((renderItem) => {
+        if (_Renderer.isRenderElement(renderItem)) {
+          const selector = this.elementSelector(renderItem);
+          const newCanvases = canvas.querySelectorAll(selector);
+          if (!newCanvases.length) {
+            console.warn(`Element "${selector}" was not found.`);
+            return;
+          }
+          newCanvases.forEach((newCanvas) => {
+            const shouldHide = this.shouldHideElement(renderItem);
+            if (shouldHide) {
+              this.hideElement(newCanvas, renderItem.hideControl);
+            } else {
+              this.render(renderItem.fields, newCanvas);
+            }
+          });
+        }
+        if (_Renderer.isRenderField(renderItem)) {
+          this.renderField(renderItem, canvas);
+        }
+      });
+    }
+    renderField(field, canvas) {
+      const selector = this.fieldSelector(field);
+      const fields = canvas.querySelectorAll(selector);
+      fields.forEach((fieldElement) => {
+        if (!field.value.trim()) {
+          this.hideElement(fieldElement, field.hideControl);
+        } else {
+          switch (field.type) {
+            case "html":
+              fieldElement.innerHTML = field.value;
+              break;
+            default:
+              fieldElement.innerText = field.value;
+          }
+        }
+      });
+    }
+    shouldHideElement(element) {
+      return element.fields.every((child) => {
+        if (_Renderer.isRenderField(child)) {
+          return !child.value.trim();
+        }
+        if (_Renderer.isRenderElement(child)) {
+          return this.shouldHideElement(child);
+        }
+        return false;
+      });
+    }
+    hideElement(element, hideControl) {
+      if (!hideControl || hideControl.hideSelf) {
+        element.style.display = "none";
+      } else if (hideControl.ancestorToHide) {
+        const ancestor = element.closest(hideControl.ancestorToHide);
+        if (ancestor) {
+          ancestor.style.display = "none";
+        } else {
+          console.warn(`Ancestor "${hideControl.ancestorToHide}" not found for element.`);
+        }
+      }
+    }
+    elementSelector(element) {
+      const elementAttrSelector = attributeselector_default(this.elementAttr);
+      let selectorString = elementAttrSelector(element.element);
+      if (element.instance) {
+        selectorString += this.instanceSelector(element.element, element.instance);
+      }
+      return selectorString;
+    }
+    fieldSelector(field) {
+      const fieldAttrSelector = attributeselector_default(this.fieldAttr);
+      let selectorString = fieldAttrSelector(field.element);
+      if (field.instance) {
+        selectorString += this.instanceSelector(field.element, field.instance);
+      }
+      return selectorString;
+    }
+    instanceSelector(element, instanceId) {
+      return `[data-${element}-instance="${instanceId}"]`;
+    }
+    // Type Guard for RenderElement
+    static isRenderElement(item) {
+      return item.fields !== void 0;
+    }
+    // Type Guard for RenderField
+    static isRenderField(item) {
+      return item.value !== void 0;
+    }
+  };
+  var renderer_default = Renderer;
+
   // src/ts/sanavitapdf.ts
   var pdfFieldSelector = attributeselector_default("data-pdf-field");
   var pdfElementSelector = attributeselector_default("data-pdf-element");
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector = attributeselector_default("data-action");
   var DailyMenuData = class {
-    constructor(date, courses) {
+    constructor(date, endDate, weeklyHit, courses) {
       this.date = date;
-      this.weekday = date.toLocaleDateString("de-DE", { weekday: "long" });
+      this.endDate = weeklyHit ? endDate : null;
+      this.weekday = this.getWeekdayEn();
       this.courses = courses;
+      this.weeklyHit = weeklyHit;
     }
     getWeekdayEn() {
       return this.date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
@@ -28710,7 +28840,9 @@
     toJSON() {
       return {
         date: this.date,
-        weekday: this.weekday,
+        endDate: this.endDate,
+        weeklyHit: this.weeklyHit,
+        weekday: this.getWeekdayEn(),
         courses: this.courses
       };
     }
@@ -28723,13 +28855,24 @@
     }
     getCollectionData() {
       const listItems = this.getListItems();
+      let weeklyHit = false;
       this.collectionData = Array.from(listItems).map((menuElement) => {
-        const courses = this.getCourses(menuElement);
         const dateString = menuElement.dataset.wfDate || "";
         const date = new Date(dateString);
-        return new DailyMenuData(date, courses);
+        const endDateString = menuElement.dataset.wfEndDate || "";
+        const endDate = new Date(endDateString);
+        const courses = this.getCourses(menuElement);
+        weeklyHit = JSON.parse(this.getConditionalValue("weekly-hit", menuElement).toString());
+        return new DailyMenuData(date, endDate, weeklyHit, courses);
       });
       return this.collectionData;
+    }
+    getConditionalValue(name, container = this.container) {
+      const conditionalElement = container.querySelector(`[data-wf-${name}]`);
+      if (!conditionalElement)
+        return false;
+      const attributeValue = conditionalElement.getAttribute(`data-wf-${name}`);
+      return attributeValue;
     }
     /**
      * Get the courses from a daily menu / collection item / from one day.
@@ -28739,7 +28882,7 @@
      * @param menuElement The Daily Menu - This element contains all the courses from a specific day.
      *
      * @returns The courses as an object.
-     * */
+     */
     getCourses(menuElement) {
       const courses = menuElement.querySelectorAll(pdfElementSelector("dish"));
       const menuData = {};
@@ -28754,15 +28897,19 @@
       });
       return menuData;
     }
-    filterByDate(startDate, endDate) {
+    filterByDate(startDate, endDate, ...additionalConditions) {
       return this.collectionData.filter(
-        (menuData) => menuData.date >= startDate && menuData.date <= endDate
+        (menuData) => {
+          const baseCondition = menuData.date >= startDate && menuData.date <= endDate;
+          const allAdditionalConditions = additionalConditions.every((condition) => condition(menuData));
+          return baseCondition && allAdditionalConditions;
+        }
       );
     }
-    filterByRange(startDate, dayRange = 7) {
+    filterByRange(startDate, dayRange = 7, ...conditions) {
       const endDate = new Date(startDate);
       endDate.setDate(startDate.getDate() + dayRange - 1);
-      return this.filterByDate(startDate, endDate);
+      return this.filterByDate(startDate, endDate, ...conditions);
     }
   };
   var PDF = class {
@@ -28770,10 +28917,11 @@
       if (!canvas)
         throw new Error("PDF Element not found.");
       this.canvas = canvas;
-      this.renderer = new Renderer(canvas);
+      this.renderer = new renderer_default(canvas, "pdf");
     }
-    render(data, attributePrefix, options = {}) {
-      this.renderer.render(data, attributePrefix, options);
+    render(data) {
+      console.log("Render Pdf");
+      this.renderer.render(data);
     }
     async create(filename) {
       if (!filename || typeof filename !== "string") {
@@ -28827,13 +28975,26 @@
       this.formFields.forEach((field) => {
         field.addEventListener("input", this.onChange.bind(this));
       });
+      const saveBtn = this.container.querySelector(actionSelector("save"));
+      saveBtn.addEventListener("click", this.onChange.bind(this));
     }
+    /**
+     * Add an action to be executed when the filters change.
+     */
     addOnChange(action) {
       this.changeActions.push(action);
     }
     onChange() {
-      const data = this.extractData(this.filterFields);
-      this.changeActions.forEach((action) => action(data));
+      const filters = this.extractData(this.filterFields);
+      this.changeActions.forEach((action) => action(filters));
+    }
+    /**
+     * Simulate an onChange event by invoking all the changeActions.
+     * Use this method to trigger the filter logic and initialize rendering 
+     * based on pre-defined or externally set default values.
+     */
+    invokeOnChange() {
+      this.onChange();
     }
     extractData(fields) {
       this.data = new FieldGroup();
@@ -28846,6 +29007,16 @@
       });
       return this.data;
     }
+  };
+  var filterMenuData = (filters, menuList) => {
+    const startDateValue = filters.getField("startDate").value;
+    const startDate = new Date(startDateValue);
+    const endDateValue = filters.getField("endDate").value;
+    const endDate = new Date(endDateValue);
+    const filteredDays = menuList.filterByDate(startDate, endDate);
+    console.log(`Filtered Data:
+`, filteredDays);
+    return filteredDays;
   };
   function addDays(date = /* @__PURE__ */ new Date(), days) {
     date.setDate(date.getDate() + days);
@@ -28881,29 +29052,96 @@
     form.getFilterInput("startDate").value = nextMonday.toLocaleDateString("en-CA");
     form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
   }
+  function formatDate(date, options) {
+    return new Date(date).toLocaleDateString("de-CH", options);
+  }
+  function parseDailyMenuData(data) {
+    const renderElements = data.map((day) => {
+      const fields = Object.entries(day.courses).map(([course, courseValue]) => ({
+        element: "dish",
+        instance: course,
+        // e.g., "starter", "main", etc.
+        hideControl: {
+          hideSelf: true
+        },
+        fields: [
+          {
+            element: "dishName",
+            value: courseValue.dishName || ""
+            // Default to empty string if no value
+          },
+          {
+            element: "dishDescription",
+            value: courseValue.dishDescription || "",
+            type: "html",
+            hideControl: {
+              hideSelf: false,
+              ancestorToHide: ".conditional-visibility"
+            }
+          }
+        ]
+      }));
+      return {
+        element: "weekday",
+        instance: day.weekday,
+        // e.g., "monday", "tuesday", etc.
+        fields: [
+          ...fields,
+          {
+            element: "day",
+            value: `${formatDate(day.date, dateOptions.weekday)}, ${formatDate(day.date, { day: "numeric", month: "long" })}`
+          }
+        ]
+        // All the courses for the day
+      };
+    });
+    return [
+      {
+        element: "dish-list",
+        fields: renderElements
+      }
+    ];
+  }
+  var dateOptions = {
+    day: {
+      day: "numeric"
+    },
+    weekday: {
+      weekday: "long"
+    },
+    title: {
+      month: "long",
+      year: "numeric"
+    }
+  };
   function initialize() {
     const dailyMenuListElement = document.querySelector(wfCollectionSelector("daily"));
-    const hitMenuListElement = document.querySelector(wfCollectionSelector("hit"));
     const pdfElement = document.querySelector(pdfElementSelector("page"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
-    const dailyMenuList = new DailyMenuCollection(dailyMenuListElement);
-    const hitMenuList = new DailyMenuCollection(hitMenuListElement);
+    const menuList = new DailyMenuCollection(dailyMenuListElement);
     const pdf = new PDF(pdfElement);
+    const canvas = new EditableCanvas(pdfElement);
     const filterForm = new FilterForm(filterFormElement);
     setDefaultFilters(filterForm);
-    filterForm.addOnChange((data) => {
-      const startDateValue = data.getField("startDate").value;
-      const startDate2 = new Date(startDateValue);
-      const endDateValue = data.getField("endDate").value;
-      const endDate = new Date(endDateValue);
-      const filterResult = dailyMenuList.filterByDate(startDate2, endDate);
-      pdf.render(data, "data-pdf-field", { useINnerHTML: true });
-      console.log("Filtered Data:", filterResult);
+    filterForm.addOnChange((filters) => {
+      const result = filterMenuData(filters, menuList);
+      const startDate = getMonday(new Date(filters.getField("startDate").value));
+      const endDate = filters.getField("endDate").value;
+      const renderFields = [
+        {
+          element: "title",
+          value: `Men\xFCplan ${formatDate(startDate, dateOptions.day)}.\u2013${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`
+        }
+      ];
+      const renderElements = parseDailyMenuData(result);
+      const data = [
+        ...renderFields,
+        ...renderElements
+      ];
+      console.log("RENDER DATA", data);
+      pdf.render(data);
     });
-    const startDate = /* @__PURE__ */ new Date("2024-12-31");
-    const filteredData = dailyMenuList.filterByRange(startDate, 4);
-    console.log("Collection Data:", dailyMenuList.getCollectionData());
-    console.log("Filtered Data:", filteredData);
+    filterForm.invokeOnChange();
     initDownload(pdf);
     initSave();
   }

@@ -1,10 +1,13 @@
 // Imports
 import { CollectionList } from '@library/wfcollection';
-import createAttribute from '@library/attributeselector';
+import createAttribute, { AttributeSelector } from '@library/attributeselector';
 import html2canvas from 'html2canvas';
+import EditableCanvas from '@library/canvas';
 import jsPDF, { Html2CanvasOptions } from 'jspdf';
 import { FieldFromInput, filterFormSelector, FormField, FormInput, formQuery } from '@library/form';
 import FieldGroup from '@library/form/fieldgroup';
+import Renderer from '@library/renderer';
+import { RenderData, RenderElement, RenderField } from '@library/renderer';
 
 // Types
 type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
@@ -22,13 +25,17 @@ const actionSelector = createAttribute<ActionElement>('data-action');
 
 class DailyMenuData {
   date: Date;
+  endDate: Date | null;
   weekday: string;
+  weeklyHit: boolean;
   courses: { [key: string]: any };
 
-  constructor(date: Date, courses: { [key: string]: any }) {
+  constructor(date: Date, endDate: Date, weeklyHit: boolean, courses: { [key: string]: any }) {
     this.date = date;
-    this.weekday = date.toLocaleDateString('de-DE', { weekday: 'long' });
+    this.endDate = weeklyHit ? endDate : null;
+    this.weekday = this.getWeekdayEn();
     this.courses = courses;
+    this.weeklyHit = weeklyHit;
   }
 
   getWeekdayEn(): string {
@@ -38,7 +45,9 @@ class DailyMenuData {
   toJSON() {
     return {
       date: this.date,
-      weekday: this.weekday,
+      endDate: this.endDate,
+      weeklyHit: this.weeklyHit,
+      weekday: this.getWeekdayEn(),
       courses: this.courses,
     };
   }
@@ -56,14 +65,26 @@ class DailyMenuCollection extends CollectionList {
 
   public getCollectionData(): DailyMenuData[] {
     const listItems: NodeListOf<HTMLElement> = this.getListItems();
+    let weeklyHit: boolean = false;
     this.collectionData = Array.from(listItems).map((menuElement) => {
-      const courses = this.getCourses(menuElement);
       const dateString = menuElement.dataset.wfDate || '';
       const date = new Date(dateString);
-      return new DailyMenuData(date, courses);
+      const endDateString = menuElement.dataset.wfEndDate || '';
+      const endDate = new Date(endDateString);
+      const courses = this.getCourses(menuElement);
+      weeklyHit = JSON.parse(this.getConditionalValue('weekly-hit', menuElement).toString());
+
+      return new DailyMenuData(date, endDate, weeklyHit, courses);
     });
 
     return this.collectionData;
+  }
+
+  private getConditionalValue(name: string, container: HTMLElement = this.container): Boolean | string {
+    const conditionalElement: HTMLElement | null = container.querySelector(`[data-wf-${name}]`);
+    if (!conditionalElement) return false;
+    const attributeValue = conditionalElement.getAttribute(`data-wf-${name}`);
+    return attributeValue;
   }
 
   /**
@@ -74,7 +95,7 @@ class DailyMenuCollection extends CollectionList {
    * @param menuElement The Daily Menu - This element contains all the courses from a specific day.
    *
    * @returns The courses as an object.
-   * */
+   */
   public getCourses(menuElement: HTMLElement): { [key: string]: any } {
     const courses: NodeListOf<HTMLElement> = menuElement.querySelectorAll(pdfElementSelector('dish'));
     const menuData: { [key: string]: any } = {};
@@ -92,16 +113,34 @@ class DailyMenuCollection extends CollectionList {
     return menuData;
   }
 
-  public filterByDate(startDate: Date, endDate: Date): DailyMenuData[] {
+  public filterByDate(
+    startDate: Date,
+    endDate: Date,
+    ...additionalConditions: MenuDataCondition[]
+  ): DailyMenuData[] {
     return this.collectionData.filter(
-      (menuData) => menuData.date >= startDate && menuData.date <= endDate
+      (menuData) => {
+        // Base conditions
+        const baseCondition =
+          menuData.date >= startDate &&
+          menuData.date <= endDate;
+
+        // Check all additional conditions
+        const allAdditionalConditions = additionalConditions.every((condition) => condition(menuData));
+
+        return baseCondition && allAdditionalConditions;
+      }
     );
   }
 
-  public filterByRange(startDate: Date, dayRange: number = 7): DailyMenuData[] {
+  public filterByRange(
+    startDate: Date,
+    dayRange: number = 7,
+    ...conditions: MenuDataCondition[]
+  ): DailyMenuData[] {
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + dayRange - 1);
-    return this.filterByDate(startDate, endDate);
+    return this.filterByDate(startDate, endDate, ...conditions);
   }
 }
 
@@ -112,15 +151,12 @@ class PDF {
   constructor(canvas: HTMLElement | null) {
     if (!canvas) throw new Error('PDF Element not found.');
     this.canvas = canvas;
-    this.renderer = new Renderer(canvas);
+    this.renderer = new Renderer(canvas, 'pdf');
   }
 
-  public render(
-    data: any,
-    attributePrefix: string,
-    options: { useINnerHTML?: boolean; nestedKeySeparator?: string } = {}
-  ): void {
-    this.renderer.render(data, attributePrefix, options);
+  public render(data: RenderData): void {
+    console.log("Render Pdf");
+    this.renderer.render(data);
   }
 
   public async create(filename?: string | undefined): Promise<void> {
@@ -232,6 +268,17 @@ class FilterForm {
   }
 }
 
+const filterMenuData = (filters: FieldGroup, menuList: DailyMenuCollection): DailyMenuData[] => {
+  const startDateValue: string = filters.getField('startDate').value;
+  const startDate: Date = new Date(startDateValue);
+  const endDateValue: string = filters.getField('endDate').value;
+  const endDate: Date = new Date(endDateValue);
+  const filteredDays: DailyMenuData[] = menuList.filterByDate(startDate, endDate);
+
+  console.log(`Filtered Data:\n`, filteredDays);
+  return filteredDays;
+}
+
 function addDays(date: Date = new Date(), days: number): Date {
   date.setDate(date.getDate() + days);
   date.setHours(0, 0, 0, 0);
@@ -247,12 +294,6 @@ function getMonday(date: Date = new Date(), week: number = 0): Date {
   date.setHours(0, 0, 0, 0);
 
   return date;
-}
-
-function filterDailyMenuCollection(collectionData: DailyMenuCollectionData) {
-  const startDate = new Date('2024-12-30');
-  const endDate = new Date('2025-01-05');
-  return collectionData.filter(dailyMenu => startDate <= dailyMenu.date && dailyMenu.date <= endDate);
 }
 
 function onSave(): void {
@@ -279,39 +320,114 @@ function setDefaultFilters(form: FilterForm): void {
   form.getFilterInput('endDate').value = addDays(nextMonday, 6).toLocaleDateString('en-CA');
 }
 
+const isWeeklyHit: MenuDataCondition = (menuData) => {
+  return menuData.weeklyHit;
+}
+
+function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions): string {
+  return new Date(date).toLocaleDateString('de-CH', options);
+}
+
+type DateOptionsObject = {
+  [key: string]: Intl.DateTimeFormatOptions;
+}
+
+function parseDailyMenuData(data: DailyMenuData[]): RenderData {
+  const renderElements: RenderElement[] = data.map(day => {
+    const fields: RenderElement[] = Object.entries(day.courses).map(([course, courseValue]) => ({
+      element: 'dish',
+      instance: course, // e.g., "starter", "main", etc.
+      hideControl: {
+        hideSelf: true
+      },
+      fields: [
+        {
+          element: 'dishName',
+          value: courseValue.dishName || '', // Default to empty string if no value
+        },
+        {
+          element: 'dishDescription',
+          value: courseValue.dishDescription || '',
+          type: 'html',
+          hideControl: {
+            hideSelf: false,
+            ancestorToHide: '.conditional-visibility'
+          }
+        },
+      ],
+    }));
+
+    return {
+      element: 'weekday',
+      instance: day.weekday, // e.g., "monday", "tuesday", etc.
+      fields: [
+        ...fields,
+        {
+          element: 'day',
+          value: `${formatDate(day.date, dateOptions.weekday)}, ${formatDate(day.date, { day: "numeric", month: "long" })}`,
+        }
+      ], // All the courses for the day
+    };
+  });
+
+  return [
+    {
+      element: 'dish-list',
+      fields: renderElements,
+    },
+  ];
+}
+
+const dateOptions: DateOptionsObject = {
+  day: {
+    day: "numeric"
+  },
+  weekday: {
+    weekday: "long"
+  },
+  title: {
+    month: "long",
+    year: "numeric"
+  }
+}
+
 function initialize(): void {
   const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
-  const hitMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('hit'))
   const pdfElement: HTMLElement | null = document.querySelector(pdfElementSelector('page'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
-  const dailyMenuList = new DailyMenuCollection(dailyMenuListElement);
-  const hitMenuList = new DailyMenuCollection(hitMenuListElement);
+  const menuList = new DailyMenuCollection(dailyMenuListElement);
   const pdf = new PDF(pdfElement);
+  const canvas = new EditableCanvas(pdfElement);
   const filterForm = new FilterForm(filterFormElement);
   setDefaultFilters(filterForm);
-  filterForm.addOnChange((data) => {
-    const startDateValue: string = data.getField('startDate').value;
-    const startDate: Date = new Date(startDateValue);
-    const endDateValue: string = data.getField('endDate').value;
-    const endDate: Date = new Date(endDateValue);
-    const filterResult = dailyMenuList.filterByDate(startDate, endDate);
-    pdf.render(data, 'data-pdf-field', { useINnerHTML: true });
+  filterForm.addOnChange((filters) => {
+    const result = filterMenuData(filters, menuList);
+    const startDate = getMonday(new Date(filters.getField('startDate').value));
+    const endDate = filters.getField('endDate').value;
 
-    console.log("Filtered Data:", filterResult);
+    const renderFields: RenderField[] = [
+      {
+        element: 'title',
+        value: `Menüplan ${formatDate(startDate, dateOptions.day)}.–${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
+      } as RenderField,
+    ];
+
+    const renderElements: RenderData = parseDailyMenuData(result);
+    const data: RenderData = [
+      ...renderFields,
+      ...renderElements,
+    ];
+    console.log("RENDER DATA", data);
+    pdf.render(data);
   });
+  filterForm.invokeOnChange(); // Initialize the filter with it's default values
 
-  // Example: Filter the data
-  const startDate = new Date('2024-12-31');
-  const filteredData = dailyMenuList.filterByRange(startDate, 4);
-
-  console.log("Collection Data:", dailyMenuList.getCollectionData());
-  console.log("Filtered Data:", filteredData);
+  //console.log("Collection Data:", dailyMenuList.getCollectionData());
 
   initDownload(pdf);
   initSave();
 }
-
 
 document.addEventListener('DOMContentLoaded', () => {
   try {
