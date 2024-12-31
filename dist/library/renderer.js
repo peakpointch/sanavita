@@ -9,9 +9,20 @@ var createAttribute = (attrName, defaultValue = null) => {
 };
 var attributeselector_default = createAttribute;
 
+// library/parameterize.ts
+function toCamelCase(str) {
+  return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+}
+
 // library/renderer.ts
 var Renderer = class _Renderer {
   constructor(canvas, attributeName = "render") {
+    this.attributeName = attributeName;
+    this.filterAttributes = /* @__PURE__ */ new Set([
+      "data-filter",
+      "data-category",
+      "data-visibility"
+    ]);
     if (!canvas)
       throw new Error(`Canvas can't be undefined.`);
     this.canvas = canvas;
@@ -29,9 +40,8 @@ var Renderer = class _Renderer {
           return;
         }
         newCanvases.forEach((newCanvas) => {
-          const shouldHide = this.shouldHideElement(renderItem);
-          if (shouldHide) {
-            this.hideElement(newCanvas, renderItem.hideControl);
+          if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
+            this.hideElement(newCanvas, renderItem.visibilityControl);
           } else {
             this.render(renderItem.fields, newCanvas);
           }
@@ -50,46 +60,87 @@ var Renderer = class _Renderer {
    * @param {HTMLElement} node - The root node to start reading from.
    * @returns {RenderData} An array of RenderElement and RenderField objects representing the node structure.
    */
-  read(node) {
+  read(node, stopRecursionMatches = []) {
     const renderData = [];
     Array.from(node.children).forEach((child) => {
+      if (stopRecursionMatches.some((selector) => child.matches(selector))) {
+        return;
+      }
       if (child.hasAttribute(this.elementAttr)) {
-        const elementName = child.getAttribute(this.elementAttr);
-        const instance = child.getAttribute(`data-${elementName}-instance`);
-        const fields = this.read(child);
-        const element = {
-          element: elementName,
-          instance: instance || void 0,
-          fields
-        };
-        renderData.push(element);
+        renderData.push(this.readRenderElement(child, stopRecursionMatches));
       } else if (child.hasAttribute(this.fieldAttr)) {
-        const fieldName = child.getAttribute(this.fieldAttr);
-        const instance = child.getAttribute(`data-${fieldName}-instance`);
-        const value = child.innerHTML.trim();
-        const type = child.children.length > 0 ? "html" : "text";
-        const field = {
-          element: fieldName,
-          instance: instance || void 0,
-          value,
-          type
-        };
-        renderData.push(field);
+        renderData.push(this.readRenderField(child));
       } else {
         const hasRenderableChild = child.querySelectorAll(`[${this.elementAttr}], [${this.fieldAttr}]`).length > 0;
         if (hasRenderableChild) {
-          renderData.push(...this.read(child));
+          renderData.push(...this.read(child, stopRecursionMatches));
         }
       }
     });
     return renderData;
+  }
+  readRenderElement(child, stopRecursionAttributes) {
+    const elementName = child.getAttribute(this.elementAttr);
+    const instance = child.getAttribute(`data-${elementName}-instance`);
+    const fields = this.read(child, stopRecursionAttributes);
+    const element = {
+      element: elementName,
+      instance: instance || void 0,
+      fields
+    };
+    this.readFilteringProperties(child, element);
+    this.readVisibilityControl(child, element);
+    return element;
+  }
+  readRenderField(child) {
+    const fieldName = child.getAttribute(this.fieldAttr);
+    const instance = child.getAttribute(`data-${fieldName}-instance`);
+    const value = child.innerHTML.trim();
+    const type = child.children.length > 0 ? "html" : child.hasAttribute("data-date") ? "date" : "text";
+    const field = {
+      element: fieldName,
+      instance: instance || void 0,
+      value,
+      type
+    };
+    this.readFilteringProperties(child, field);
+    this.readVisibilityControl(child, field);
+    return field;
+  }
+  readFilteringProperties(child, field) {
+    this.filterAttributes.forEach((attr) => {
+      if (!child.hasAttribute(attr)) {
+        return;
+      }
+      let value = child.getAttribute(attr);
+      if (!value) {
+        return;
+      }
+      if (attr.toLowerCase().includes("date")) {
+        const parsedDate = new Date(value);
+        value = isNaN(parsedDate.getTime()) ? null : parsedDate;
+      }
+      if (attr.toLowerCase().includes("boolean")) {
+        if (value === "select") {
+          const booleanValue = child.querySelector(value);
+          value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || "false") : false;
+        } else {
+          value = JSON.parse(value);
+        }
+      }
+      field[toCamelCase(attr)] = value;
+    });
+  }
+  readVisibilityControl(child, elementOrField) {
+    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`);
+    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr || "false");
   }
   renderField(field, canvas) {
     const selector = this.fieldSelector(field);
     const fields = canvas.querySelectorAll(selector);
     fields.forEach((fieldElement) => {
       if (!field.value.trim()) {
-        this.hideElement(fieldElement, field.hideControl);
+        this.hideElement(fieldElement, field.visibilityControl);
       } else {
         switch (field.type) {
           case "html":
@@ -113,16 +164,30 @@ var Renderer = class _Renderer {
     });
   }
   hideElement(element, hideControl) {
-    if (!hideControl || hideControl.hideSelf) {
+    const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || "false");
+    const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
+    if (hideControl || hideSelf) {
       element.style.display = "none";
-    } else if (hideControl.ancestorToHide) {
-      const ancestor = element.closest(hideControl.ancestorToHide);
+    } else if (ancestorToHide) {
+      const ancestor = element.closest(ancestorToHide);
       if (ancestor) {
         ancestor.style.display = "none";
       } else {
-        console.warn(`Ancestor "${hideControl.ancestorToHide}" not found for element.`);
+        console.warn(`Ancestor "${ancestorToHide}" not found for element.`);
       }
     }
+  }
+  // Method to add filter attributes
+  addFilterAttributes(newAttributes) {
+    newAttributes.forEach((attr) => {
+      this.filterAttributes.add(attr);
+    });
+  }
+  // Method to remove filter attributes
+  removeFilterAttributes(attributesToRemove) {
+    attributesToRemove.forEach((attr) => {
+      this.filterAttributes.delete(attr);
+    });
   }
   elementSelector(element) {
     const elementAttrSelector = attributeselector_default(this.elementAttr);

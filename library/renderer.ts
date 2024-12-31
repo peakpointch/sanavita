@@ -1,23 +1,21 @@
 import createAttribute from "@library/attributeselector";
+import { toCamelCase } from "./parameterize";
 
-type HideControl = {
-  hideSelf: boolean; // Whether to hide the element itself
-  ancestorToHide?: string; // Specify the ancestor to hide (identified by an attribute selector or tag)
-};
+type VisibilityControl = boolean;
 
 type RenderField = {
   element: string;
   instance?: string;
   value: string;
-  type?: 'text' | 'html';
-  hideControl?: HideControl;
+  type?: 'text' | 'html' | 'date';
+  visibilityControl?: VisibilityControl;
 };
 
 type RenderElement = {
   element: string;
   instance?: string;
   fields: RenderData;
-  hideControl?: HideControl;
+  visibilityControl?: VisibilityControl;
 };
 
 type RenderData = Array<RenderElement | RenderField>;
@@ -27,8 +25,13 @@ class Renderer {
   private data: RenderData;
   private fieldAttr: string;
   private elementAttr: string;
+  private filterAttributes: Set<string> = new Set([
+    'data-filter',
+    'data-category',
+    'data-visibility'
+  ]);
 
-  constructor(canvas: HTMLElement | null, attributeName: string = 'render') {
+  constructor(canvas: HTMLElement | null, private attributeName: string = 'render') {
     if (!canvas) throw new Error(`Canvas can't be undefined.`);
     this.canvas = canvas;
     this.elementAttr = `data-${attributeName}-element`;
@@ -52,9 +55,8 @@ class Renderer {
 
         // Recursion with visibility check
         newCanvases.forEach((newCanvas) => {
-          const shouldHide = this.shouldHideElement(renderItem);
-          if (shouldHide) {
-            this.hideElement(newCanvas, renderItem.hideControl);
+          if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
+            this.hideElement(newCanvas, renderItem.visibilityControl);
           } else {
             this.render(renderItem.fields, newCanvas); // Recursively render children
           }
@@ -76,63 +78,117 @@ class Renderer {
    * @param {HTMLElement} node - The root node to start reading from.
    * @returns {RenderData} An array of RenderElement and RenderField objects representing the node structure.
    */
-  public read(node: HTMLElement): RenderData {
+  public read(node: HTMLElement, stopRecursionMatches: string[] = []): RenderData {
     const renderData: RenderData = [];
 
     Array.from(node.children).forEach((child) => {
+      if (stopRecursionMatches.some(selector => child.matches(selector))) {
+        return; // Stop recursion for this element
+      }
+
       // If it's a RenderElement
       if (child.hasAttribute(this.elementAttr)) {
-        const elementName = child.getAttribute(this.elementAttr);
-        const instance = child.getAttribute(`data-${elementName}-instance`);
-        const fields = this.read(child as HTMLElement); // Recurse on children
-
-        const element: RenderElement = {
-          element: elementName!,
-          instance: instance || undefined,
-          fields,
-        };
-
-        renderData.push(element);
+        renderData.push(this.readRenderElement(child as HTMLElement, stopRecursionMatches));
       }
       // If it's a RenderField
       else if (child.hasAttribute(this.fieldAttr)) {
-        const fieldName = child.getAttribute(this.fieldAttr);
-        const instance = child.getAttribute(`data-${fieldName}-instance`);
-
-        // Determine field type
-        const value = child.innerHTML.trim();
-        const type = child.children.length > 0 ? 'html' : 'text';
-
-        const field: RenderField = {
-          element: fieldName!,
-          instance: instance || undefined,
-          value,
-          type,
-        };
-
-        renderData.push(field);
+        renderData.push(this.readRenderField(child as HTMLElement));
       }
-      // If the child doesn't have the attribute, check its descendants
+      // If it's neither, check if any descendants are renderable
       else {
-        // Look ahead: check if any of its descendants have the attribute
         const hasRenderableChild = child.querySelectorAll(`[${this.elementAttr}], [${this.fieldAttr}]`).length > 0;
 
         // If there are renderable children, recurse on this child
         if (hasRenderableChild) {
-          renderData.push(...this.read(child as HTMLElement));
+          renderData.push(...this.read(child as HTMLElement, stopRecursionMatches));
         }
       }
     });
 
     return renderData;
-  };
+  }
+
+  private readRenderElement(child: HTMLElement, stopRecursionAttributes: string[]): RenderElement {
+    const elementName = child.getAttribute(this.elementAttr);
+    const instance = child.getAttribute(`data-${elementName}-instance`);
+
+    // Recursively read child elements
+    const fields = this.read(child as HTMLElement, stopRecursionAttributes); // Recurse on children
+
+    const element: RenderElement = {
+      element: elementName!,
+      instance: instance || undefined,
+      fields,
+    };
+
+    this.readFilteringProperties(child, element);
+    this.readVisibilityControl(child, element);
+
+    return element;
+  }
+
+  private readRenderField(child: HTMLElement): RenderField {
+    const fieldName = child.getAttribute(this.fieldAttr);
+    const instance = child.getAttribute(`data-${fieldName}-instance`);
+
+    // Determine field type (handle date, text, html)
+    const value = child.innerHTML.trim();
+    const type = child.children.length > 0 ? 'html' : (child.hasAttribute('data-date') ? 'date' : 'text');
+
+    const field: RenderField = {
+      element: fieldName!,
+      instance: instance || undefined,
+      value,
+      type,
+    };
+
+    // Optionally, handle additional properties for filtering purposes
+    this.readFilteringProperties(child, field);
+    this.readVisibilityControl(child, field);
+
+    return field;
+  }
+
+  private readFilteringProperties(child: HTMLElement, field: RenderField | RenderElement): void {
+    this.filterAttributes.forEach(attr => {
+      if (!child.hasAttribute(attr)) { return }
+
+      let value: any = child.getAttribute(attr);
+      if (!value) { return }
+
+      // Handle Date attributes
+      if (attr.toLowerCase().includes('date')) {
+        const parsedDate = new Date(value);
+        value = isNaN(parsedDate.getTime()) ? null : parsedDate;  // Ensure valid date
+      }
+
+      // Handle Boolean attributes
+      if (attr.toLowerCase().includes('boolean')) {
+        if (value === 'select') {
+          // If value is 'select', attempt to parse a child element's attribute as boolean
+          const booleanValue = child.querySelector(value);
+          value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || 'false') : false;
+        } else {
+          value = JSON.parse(value);
+        }
+      }
+
+      field[toCamelCase(attr)] = value;
+    });
+  }
+
+
+  private readVisibilityControl(child: HTMLElement, elementOrField: RenderField | RenderElement): void {
+    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`);
+    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr || 'false');
+  }
 
   private renderField(field: RenderField, canvas: HTMLElement) {
     const selector = this.fieldSelector(field);
     const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
     fields.forEach((fieldElement) => {
       if (!field.value.trim()) {
-        this.hideElement(fieldElement, field.hideControl); // Hide empty field
+        this.hideElement(fieldElement, field.visibilityControl); // Hide empty field
       } else {
         switch (field.type) {
           case 'html':
@@ -158,19 +214,35 @@ class Renderer {
     });
   }
 
-  private hideElement(element: HTMLElement, hideControl?: HideControl): void {
-    if (!hideControl || hideControl.hideSelf) {
+  private hideElement(element: HTMLElement, hideControl?: VisibilityControl): void {
+    const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || 'false');
+    const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
+    if (hideControl || hideSelf) {
       // Hide the element itself
       element.style.display = 'none';
-    } else if (hideControl.ancestorToHide) {
+    } else if (ancestorToHide) {
       // Hide the specified ancestor
-      const ancestor: HTMLElement = element.closest(hideControl.ancestorToHide);
+      const ancestor: HTMLElement = element.closest(ancestorToHide);
       if (ancestor) {
         ancestor.style.display = 'none';
       } else {
-        console.warn(`Ancestor "${hideControl.ancestorToHide}" not found for element.`);
+        console.warn(`Ancestor "${ancestorToHide}" not found for element.`);
       }
     }
+  }
+
+  // Method to add filter attributes
+  public addFilterAttributes(newAttributes: string[]): void {
+    newAttributes.forEach(attr => {
+      this.filterAttributes.add(attr);
+    });
+  }
+
+  // Method to remove filter attributes
+  public removeFilterAttributes(attributesToRemove: string[]): void {
+    attributesToRemove.forEach(attr => {
+      this.filterAttributes.delete(attr);
+    });
   }
 
   private elementSelector(element: RenderElement): string {
