@@ -1,3 +1,5 @@
+type AttributeSelector = (name: string | null) => string;
+
 /**
  * Creates a selector function based on the provided attribute name.
  * The returned selector function can be used to generate a string selector for the given name.
@@ -18,3 +20,4 @@ const createAttribute = <T>(attrName: string, defaultValue: T | null = null) => 
 }
 
 export default createAttribute;
+export type { AttributeSelector };
