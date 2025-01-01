@@ -95,8 +95,15 @@ var Renderer = class _Renderer {
   readRenderField(child) {
     const fieldName = child.getAttribute(this.fieldAttr);
     const instance = child.getAttribute(`data-${fieldName}-instance`);
-    const value = child.innerHTML.trim();
+    let value = child.innerHTML.trim();
     const type = child.children.length > 0 ? "html" : child.hasAttribute("data-date") ? "date" : "text";
+    switch (type) {
+      case "date":
+        value = value;
+        break;
+      default:
+        break;
+    }
     const field = {
       element: fieldName,
       instance: instance || void 0,

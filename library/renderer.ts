@@ -9,6 +9,7 @@ type RenderField = {
   value: string;
   type?: 'text' | 'html' | 'date';
   visibilityControl?: VisibilityControl;
+  [key: string]: any;
 };
 
 type RenderElement = {
@@ -16,6 +17,7 @@ type RenderElement = {
   instance?: string;
   fields: RenderData;
   visibilityControl?: VisibilityControl;
+  [key: string]: any;
 };
 
 type RenderData = Array<RenderElement | RenderField>;
@@ -132,8 +134,16 @@ class Renderer {
     const instance = child.getAttribute(`data-${fieldName}-instance`);
 
     // Determine field type (handle date, text, html)
-    const value = child.innerHTML.trim();
+    let value: string = child.innerHTML.trim();
     const type = child.children.length > 0 ? 'html' : (child.hasAttribute('data-date') ? 'date' : 'text');
+
+    switch (type) {
+      case 'date':
+        value = value;
+        break;
+      default:
+        break;
+    }
 
     const field: RenderField = {
       element: fieldName!,
