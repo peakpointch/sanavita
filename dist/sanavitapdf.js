@@ -19560,6 +19560,23 @@
     return str.replace(/-([a-z])/g, (_3, char) => char.toUpperCase());
   }
 
+  // library/date.ts
+  function formatDate(date, format, locale = "de-CH") {
+    const tokens = {
+      "DDDD": date.toLocaleDateString(locale, { weekday: "long" }),
+      "DDD": date.toLocaleDateString(locale, { weekday: "short" }),
+      "dd": date.getDate().toLocaleString(locale, { minimumIntegerDigits: 2 }),
+      "d": date.getDate().toLocaleString(locale, { minimumIntegerDigits: 1 }),
+      "MMMM": date.toLocaleDateString(locale, { month: "long" }),
+      "MMM": date.toLocaleDateString(locale, { month: "short" }),
+      "MM": date.toLocaleDateString(locale, { month: "2-digit" }),
+      "m": date.toLocaleDateString(locale, { month: "numeric" }),
+      "YYYY": date.toLocaleDateString(locale, { year: "numeric" }),
+      "YY": date.toLocaleDateString(locale, { year: "2-digit" })
+    };
+    return format.replace(/DDDD|DDD|dd|d|MMMM|MMM|MM|m|YYYY|YY/g, (match) => tokens[match]);
+  }
+
   // library/renderer.ts
   var Renderer = class _Renderer {
     constructor(canvas, attributeName = "render") {
@@ -19698,6 +19715,9 @@
           switch (field.type) {
             case "html":
               fieldElement.innerHTML = field.value;
+              break;
+            case "date":
+              fieldElement.innerText = formatDate(new Date(field.value), fieldElement.dataset.dateFormat || "d.m.YYYY");
               break;
             default:
               fieldElement.innerText = field.value;
@@ -29005,6 +29025,7 @@
   var FilterForm = class {
     constructor(container) {
       this.changeActions = [];
+      this.defaultDayRange = 7;
       if (!container)
         throw new Error(`FilterForm container can't be null`);
       this.container = container;
@@ -29034,6 +29055,9 @@
     attachChangeListeners() {
       this.formFields.forEach((field) => {
         field.addEventListener("input", this.onChange.bind(this));
+        if (field.id === "startDate" || field.id === "endDate") {
+          field.addEventListener("input", () => this.validateDateRange());
+        }
       });
       const saveBtn = this.container.querySelector(actionSelector("save"));
       saveBtn.addEventListener("click", this.onChange.bind(this));
@@ -29066,6 +29090,39 @@
         }
       });
       return this.data;
+    }
+    /**
+     * Validate the date range between startDate and endDate.
+     * Ensure they remain within the chosen day range.
+     */
+    validateDateRange(customDayRange = 7) {
+      const startDateInput = this.getFilterInput("startDate");
+      const endDateInput = this.getFilterInput("endDate");
+      const startDate = new Date(startDateInput.value);
+      const endDate = new Date(endDateInput.value);
+      const activeRange = customDayRange;
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        const diffInDays = (endDate.getTime() - startDate.getTime()) / (1e3 * 60 * 60 * 24);
+        const activeField = document.activeElement === startDateInput ? "startDate" : "endDate";
+        if (activeField === "startDate") {
+          if (diffInDays > activeRange) {
+            const newEndDate = new Date(startDate);
+            newEndDate.setDate(startDate.getDate() + activeRange);
+            endDateInput.value = newEndDate.toISOString().split("T")[0];
+          } else if (diffInDays < 0) {
+            endDateInput.value = startDate.toISOString().split("T")[0];
+          }
+        } else if (activeField === "endDate") {
+          if (diffInDays > activeRange) {
+            const newStartDate = new Date(endDate);
+            newStartDate.setDate(endDate.getDate() - activeRange);
+            startDateInput.value = newStartDate.toISOString().split("T")[0];
+          } else if (diffInDays < 0) {
+            startDateInput.value = endDate.toISOString().split("T")[0];
+          }
+        }
+        this.onChange();
+      }
     }
   };
   var filterMenuData = (filters, menuList) => {
@@ -29112,7 +29169,7 @@
     form.getFilterInput("startDate").value = nextMonday.toLocaleDateString("en-CA");
     form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
   }
-  function formatDate(date, options) {
+  function formatDate2(date, options) {
     return new Date(date).toLocaleDateString("de-CH", options);
   }
   var dateOptions = {
@@ -29138,12 +29195,12 @@
     const filterForm = new FilterForm(filterFormElement);
     setDefaultFilters(filterForm);
     filterForm.addOnChange((filters) => {
-      const startDate = getMonday(new Date(filters.getField("startDate").value));
+      const startDate = new Date(filters.getField("startDate").value);
       const endDate = filters.getField("endDate").value;
       const renderFields = [
         {
           element: "title",
-          value: `Men\xFCplan ${formatDate(startDate, dateOptions.day)}.\u2013${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`
+          value: `Men\xFCplan ${formatDate2(startDate, dateOptions.day)}.\u2013${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
         }
       ];
       const renderElements = filterMenuData(filters, menuList);

@@ -112,6 +112,7 @@ class FilterForm {
   private filterFields: NodeListOf<FormInput>;
   private formFields: NodeListOf<FormInput>;
   private changeActions: Action[] = [];
+  private defaultDayRange: number = 7;
 
   constructor(container: HTMLElement | null) {
     if (!container) throw new Error(`FilterForm container can't be null`)
@@ -148,6 +149,10 @@ class FilterForm {
   private attachChangeListeners(): void {
     this.formFields.forEach(field => {
       field.addEventListener("input", this.onChange.bind(this));
+
+      if (field.id === 'startDate' || field.id === 'endDate') {
+        field.addEventListener("input", () => this.validateDateRange());
+      }
     });
     const saveBtn = this.container.querySelector(actionSelector('save'));
     saveBtn.addEventListener('click', this.onChange.bind(this));
@@ -184,6 +189,50 @@ class FilterForm {
       }
     });
     return this.data;
+  }
+
+  /**
+   * Validate the date range between startDate and endDate.
+   * Ensure they remain within the chosen day range.
+   */
+  private validateDateRange(customDayRange: number = 7): void {
+    const startDateInput = this.getFilterInput('startDate') as HTMLInputElement;
+    const endDateInput = this.getFilterInput('endDate') as HTMLInputElement;
+
+    const startDate = new Date(startDateInput.value);
+    const endDate = new Date(endDateInput.value);
+
+    const activeRange: number = customDayRange;
+
+    if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+      const diffInDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      // Determine which field was changed (by checking focus or value)
+      const activeField = document.activeElement === startDateInput ? 'startDate' : 'endDate';
+
+      if (activeField === 'startDate') {
+        // Adjust `endDate` based on `startDate`
+        if (diffInDays > activeRange) {
+          const newEndDate = new Date(startDate);
+          newEndDate.setDate(startDate.getDate() + activeRange);
+          endDateInput.value = newEndDate.toISOString().split('T')[0];
+        } else if (diffInDays < 0) {
+          endDateInput.value = startDate.toISOString().split('T')[0];
+        }
+      } else if (activeField === 'endDate') {
+        // Adjust `startDate` based on `endDate`
+        if (diffInDays > activeRange) {
+          const newStartDate = new Date(endDate);
+          newStartDate.setDate(endDate.getDate() - activeRange);
+          startDateInput.value = newStartDate.toISOString().split('T')[0];
+        } else if (diffInDays < 0) {
+          startDateInput.value = endDate.toISOString().split('T')[0];
+        }
+      }
+
+      // Trigger a change event to update the UI and filters
+      this.onChange();
+    }
   }
 }
 
@@ -276,7 +325,7 @@ function initialize(): void {
   const filterForm = new FilterForm(filterFormElement);
   setDefaultFilters(filterForm);
   filterForm.addOnChange((filters) => {
-    const startDate = getMonday(new Date(filters.getField('startDate').value));
+    const startDate = new Date(filters.getField('startDate').value);
     const endDate = filters.getField('endDate').value;
 
     const renderFields: RenderField[] = [
