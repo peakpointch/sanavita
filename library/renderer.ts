@@ -1,5 +1,6 @@
 import createAttribute from "@library/attributeselector";
 import { toCamelCase } from "./parameterize";
+import formatDate from "./date";
 
 type VisibilityControl = boolean;
 
@@ -203,6 +204,9 @@ class Renderer {
         switch (field.type) {
           case 'html':
             fieldElement.innerHTML = field.value;
+            break;
+          case 'date':
+            fieldElement.innerText = formatDate(new Date(field.value), fieldElement.dataset.dateFormat || 'd.m.YYYY');
             break;
           default:
             fieldElement.innerText = field.value;
