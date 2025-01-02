@@ -19593,6 +19593,10 @@
       this.fieldAttr = `data-${attributeName}-field`;
     }
     render(data, canvas = this.canvas) {
+      this.clear();
+      this.renderRecursive(data, canvas);
+    }
+    renderRecursive(data, canvas = this.canvas) {
       this.data = data;
       this.data.forEach((renderItem) => {
         if (_Renderer.isRenderElement(renderItem)) {
@@ -19606,7 +19610,7 @@
             if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
               this.hideElement(newCanvas, renderItem.visibilityControl);
             } else {
-              this.render(renderItem.fields, newCanvas);
+              this.renderRecursive(renderItem.fields, newCanvas);
             }
           });
         }
@@ -19642,15 +19646,18 @@
       });
       return renderData;
     }
+    clear(node2 = this.canvas) {
+      node2.querySelectorAll(this.fieldSelector()).forEach((field) => field.innerText = "");
+    }
     readRenderElement(child, stopRecursionAttributes) {
       const elementName = child.getAttribute(this.elementAttr);
       const instance = child.getAttribute(`data-${elementName}-instance`);
       const fields = this.read(child, stopRecursionAttributes);
       const element = {
         element: elementName,
-        instance: instance || void 0,
         fields
       };
+      element.instance = instance || void 0;
       this.readFilteringProperties(child, element);
       this.readVisibilityControl(child, element);
       return element;
@@ -19669,10 +19676,10 @@
       }
       const field = {
         element: fieldName,
-        instance: instance || void 0,
         value,
         type
       };
+      field.instance = instance || void 0;
       this.readFilteringProperties(child, field);
       this.readVisibilityControl(child, field);
       return field;
@@ -19702,8 +19709,8 @@
       });
     }
     readVisibilityControl(child, elementOrField) {
-      const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`);
-      elementOrField.visibilityControl = JSON.parse(visibilityControlAttr || "false");
+      const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim();
+      elementOrField.visibilityControl = JSON.parse(visibilityControlAttr ?? "false") || false;
     }
     renderField(field, canvas) {
       const selector = this.fieldSelector(field);
@@ -19739,7 +19746,10 @@
     hideElement(element, hideControl) {
       const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || "false");
       const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
-      if (hideControl || hideSelf) {
+      if (!hideControl) {
+        return;
+      }
+      if (hideSelf) {
         element.style.display = "none";
       } else if (ancestorToHide) {
         const ancestor = element.closest(ancestorToHide);
@@ -19772,6 +19782,9 @@
     }
     fieldSelector(field) {
       const fieldAttrSelector = attributeselector_default(this.fieldAttr);
+      if (!field) {
+        return fieldAttrSelector();
+      }
       let selectorString = fieldAttrSelector(field.element);
       if (field.instance) {
         selectorString += this.instanceSelector(field.element, field.instance);
@@ -19828,35 +19841,92 @@
       return data;
     }
   };
-  var wfCollections = {
-    initialized: false
-  };
 
   // src/ts/sanavitapdf.ts
   var import_html2canvas = __toESM(require_html2canvas());
 
   // library/canvas.ts
   var EditableCanvas = class {
-    constructor(canvas) {
+    constructor(canvas, ...customSelectors) {
+      this.defaultSelector = '[data-canvas-editable="true"]';
+      this.selectAll = this.defaultSelector;
       if (!canvas)
         throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
-      this.editableElements = this.canvas.querySelectorAll('[data-canvas-editable="true"]');
+      if (customSelectors && customSelectors.length) {
+        this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
+      }
+      this.editableElements = this.canvas.querySelectorAll(this.selectAll);
+      this.canvas.querySelectorAll(`[data-canvas-editable]:not(${this.defaultSelector})`).forEach((element) => element.classList.remove("canvas-editable"));
       this.initialize();
     }
     initialize() {
       this.editableElements.forEach((element) => {
-        element.addEventListener("click", () => {
-          element.contentEditable = "true";
-        });
+        element.classList.add("canvas-editable");
+        this.attachEditListener(element);
       });
-      document.addEventListener("click", (event) => {
-        if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest('[data-canvas-editable="true"]')) {
-          this.editableElements.forEach((element) => {
-            element.contentEditable = "false";
-          });
+      this.attachDocumentListener();
+    }
+    /**
+     * Enable editing for a specific element.
+     */
+    enableEditing(element) {
+      element.contentEditable = "true";
+      const handleEscape = (event) => {
+        if (event.key === "Escape") {
+          this.disableEditing(element);
         }
+      };
+      element.addEventListener("keydown", handleEscape, { once: true });
+      element._escapeListener = handleEscape;
+    }
+    /**
+     * Disable editing for a specific element.
+     */
+    disableEditing(element) {
+      element.contentEditable = "false";
+      const handleEscape = element._escapeListener;
+      if (handleEscape) {
+        element.removeEventListener("keydown", handleEscape);
+        delete element._escapeListener;
+      }
+    }
+    /**
+     * Attach a click listener to enable editing for an element.
+     */
+    attachEditListener(element) {
+      const handleClick = () => this.enableEditing(element);
+      element.addEventListener("click", handleClick);
+      element._clickListener = handleClick;
+    }
+    /**
+     * Attach a document-wide listener to disable editing when clicking outside editable elements.
+     */
+    attachDocumentListener() {
+      const handleDocumentClick = (event) => {
+        if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest(this.selectAll)) {
+          this.editableElements.forEach((element) => this.disableEditing(element));
+        }
+      };
+      document.addEventListener("click", handleDocumentClick);
+      this._documentClickListener = handleDocumentClick;
+    }
+    /**
+     * Cleanup method to remove all dynamically added listeners.
+     * Call this method if the instance is being destroyed.
+     */
+    cleanupListeners() {
+      this.editableElements.forEach((element) => {
+        const clickListener = element._clickListener;
+        const escapeListener = element._escapeListener;
+        if (clickListener)
+          element.removeEventListener("click", clickListener);
+        if (escapeListener)
+          element.removeEventListener("keydown", escapeListener);
       });
+      const documentClickListener = this._documentClickListener;
+      if (documentClickListener)
+        document.removeEventListener("click", documentClickListener);
     }
   };
 
@@ -29003,7 +29073,43 @@
       console.log("Render Pdf");
       this.renderer.render(data);
     }
+    scale() {
+      console.log("SCALE");
+    }
+    freeze() {
+      this.freezeSelector = '*:not([pdf-freeze="exclude"], svg)';
+      const children = this.canvas.querySelectorAll(this.freezeSelector);
+      children.forEach((child) => {
+        this.freezeElement(child);
+      });
+    }
+    freezeElement(element, canvas = this.canvas) {
+      if (element.tagName === "svg")
+        return;
+      const elementRect = element.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const x2 = elementRect.left - canvasRect.left;
+      const y3 = elementRect.top - canvasRect.top;
+      element.style.width = `${elementRect.width}px`;
+      element.style.height = `${elementRect.height}px`;
+      element.style.margin = "0";
+    }
+    unFreeze() {
+      const children = this.canvas.querySelectorAll(this.freezeSelector);
+      children.forEach((child) => {
+        this.unFreezeElement(child);
+      });
+    }
+    unFreezeElement(element) {
+      element.style.removeProperty("width");
+      element.style.removeProperty("height");
+      element.style.removeProperty("position");
+      element.style.removeProperty("left");
+      element.style.removeProperty("top");
+      element.style.removeProperty("margin");
+    }
     async create(filename) {
+      this.freeze();
       if (!filename || typeof filename !== "string") {
         filename = `Menuplan generiert am ${(/* @__PURE__ */ new Date()).toLocaleDateString("de-DE")}`;
       }
@@ -29020,6 +29126,7 @@
       } catch (error) {
         console.error("Error creating PDF:", error);
       }
+      this.unFreeze();
     }
   };
   var FilterForm = class {
@@ -29028,6 +29135,17 @@
       this.defaultDayRange = 7;
       if (!container)
         throw new Error(`FilterForm container can't be null`);
+      container = container;
+      if (container.tagName === "form") {
+        container = container.querySelector("form");
+      }
+      if (!container) {
+        throw new Error(`Form cannot be undefined.`);
+      }
+      container.classList.remove("w-form");
+      container.addEventListener("submit", (event) => {
+        event.preventDefault();
+      });
       this.container = container;
       this.filterFields = container.querySelectorAll(formQuery.filters);
       this.formFields = container.querySelectorAll(formQuery.input);
@@ -29092,15 +29210,26 @@
       return this.data;
     }
     /**
+     * Set a custom day range for validation.
+     * If no custom range is needed, revert to default.
+     */
+    setDayRange(dayRange) {
+      if (dayRange <= 0) {
+        throw new Error(`Day range must be at least "1".`);
+      }
+      this.defaultDayRange = dayRange;
+      return this.defaultDayRange;
+    }
+    /**
      * Validate the date range between startDate and endDate.
      * Ensure they remain within the chosen day range.
      */
-    validateDateRange(customDayRange = 7) {
+    validateDateRange(customDayRange) {
       const startDateInput = this.getFilterInput("startDate");
       const endDateInput = this.getFilterInput("endDate");
       const startDate = new Date(startDateInput.value);
       const endDate = new Date(endDateInput.value);
-      const activeRange = customDayRange;
+      const activeRange = customDayRange ?? this.defaultDayRange;
       if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
         const diffInDays = (endDate.getTime() - startDate.getTime()) / (1e3 * 60 * 60 * 24);
         const activeField = document.activeElement === startDateInput ? "startDate" : "endDate";
@@ -29164,10 +29293,21 @@
       throw new Error("Save button does not exist");
     button.addEventListener("click", () => onSave());
   }
-  function setDefaultFilters(form) {
-    const nextMonday = getMonday(/* @__PURE__ */ new Date(), 0);
-    form.getFilterInput("startDate").value = nextMonday.toLocaleDateString("en-CA");
-    form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
+  function setDefaultFilters(form, data) {
+    const nextMonday = getMonday(/* @__PURE__ */ new Date(), 1);
+    const startDateInput = form.getFilterInput("startDate");
+    const endDateInput = form.getFilterInput("endDate");
+    const dayRangeInput = form.getFilterInput("dayRange");
+    startDateInput.value = nextMonday.toLocaleDateString("en-CA");
+    endDateInput.value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
+    dayRangeInput.value = form.setDayRange(7).toString();
+    const dates = data.map((weekday) => weekday.date.getTime());
+    const minDate = new Date(Math.min(...dates)).toISOString().split("T")[0];
+    const maxDate = new Date(Math.max(...dates)).toISOString().split("T")[0];
+    startDateInput.setAttribute("min", minDate);
+    startDateInput.setAttribute("max", maxDate);
+    endDateInput.setAttribute("min", minDate);
+    endDateInput.setAttribute("max", maxDate);
   }
   function formatDate2(date, options) {
     return new Date(date).toLocaleDateString("de-CH", options);
@@ -29184,23 +29324,28 @@
       year: "numeric"
     }
   };
+  function tagWeeklyHit(list) {
+    const weeklyHitElements = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
+    weeklyHitElements.forEach((hit) => {
+      hit.setAttribute("data-pdf-element", "weekly-hit");
+    });
+  }
   function initialize() {
     const dailyMenuListElement = document.querySelector(wfCollectionSelector("daily"));
     const pdfElement = document.querySelector(pdfElementSelector("page"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
+    tagWeeklyHit(dailyMenuListElement);
     const menuList = new DailyMenuCollection(dailyMenuListElement);
-    wfCollections.menuList = menuList;
     const pdf = new PDF(pdfElement);
-    const canvas = new EditableCanvas(pdfElement);
     const filterForm = new FilterForm(filterFormElement);
-    setDefaultFilters(filterForm);
+    setDefaultFilters(filterForm, menuList.getCollectionData());
     filterForm.addOnChange((filters) => {
       const startDate = new Date(filters.getField("startDate").value);
       const endDate = filters.getField("endDate").value;
       const renderFields = [
         {
           element: "title",
-          value: `Men\xFCplan ${formatDate2(startDate, dateOptions.day)}.\u2013${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
+          value: `Men\xFCplan ${formatDate2(startDate, dateOptions.day)}. \u2013 ${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
         }
       ];
       const renderElements = filterMenuData(filters, menuList);
@@ -29212,6 +29357,7 @@
       pdf.render(data);
     });
     filterForm.invokeOnChange();
+    const canvas = new EditableCanvas(pdfElement, ".pdf-h3");
     initDownload(pdf);
     initSave();
   }

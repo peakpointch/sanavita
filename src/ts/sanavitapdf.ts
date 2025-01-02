@@ -64,8 +64,9 @@ class DailyMenuCollection extends CollectionList {
 }
 
 class PDF {
-  private canvas: HTMLElement;
+  public canvas: HTMLElement;
   public renderer: Renderer;
+  private freezeSelector: string;
 
   constructor(canvas: HTMLElement | null) {
     if (!canvas) throw new Error('PDF Element not found.');
@@ -78,7 +79,60 @@ class PDF {
     this.renderer.render(data);
   }
 
+  public scale() {
+    console.log("SCALE")
+  }
+
+  public freeze(): void {
+    this.freezeSelector = '*:not([pdf-freeze="exclude"], svg)';
+    const children: NodeListOf<HTMLElement> = this.canvas.querySelectorAll(this.freezeSelector);
+    children.forEach(child => {
+      this.freezeElement(child);
+    });
+  }
+
+  private freezeElement(element: HTMLElement, canvas: HTMLElement = this.canvas): void {
+    if (element.tagName === 'svg') return;
+    // Get the bounding rectangle of the element relative to the canvas
+    const elementRect = element.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+
+    // Calculate the position relative to the canvas
+    const x = elementRect.left - canvasRect.left;
+    const y = elementRect.top - canvasRect.top;
+
+    // Set the element's width and height as fixed pixel values
+    element.style.width = `${elementRect.width}px`;
+    element.style.height = `${elementRect.height}px`;
+
+    // Set the element's position as absolute, relative to the canvas
+    //element.style.position = 'absolute';
+    //element.style.left = `${x}px`;
+    //element.style.top = `${y}px`;
+
+    // Optionally, you can lock other styles such as margin and padding if needed
+    element.style.margin = '0';
+  }
+
+  public unFreeze(): void {
+    const children: NodeListOf<HTMLElement> = this.canvas.querySelectorAll(this.freezeSelector);
+    children.forEach(child => {
+      this.unFreezeElement(child);
+    });
+  }
+
+  private unFreezeElement(element: HTMLElement): void {
+    // Reset the inline styles to allow for dynamic layout adjustments
+    element.style.removeProperty('width');
+    element.style.removeProperty('height');
+    element.style.removeProperty('position');
+    element.style.removeProperty('left');
+    element.style.removeProperty('top');
+    element.style.removeProperty('margin');
+  }
+
   public async create(filename?: string | undefined): Promise<void> {
+    this.freeze();
     if (!filename || typeof filename !== 'string') {
       filename = `Menuplan generiert am ${new Date().toLocaleDateString('de-DE')}`;
     }
@@ -103,6 +157,7 @@ class PDF {
     } catch (error) {
       console.error('Error creating PDF:', error);
     }
+    this.unFreeze();
   }
 }
 
