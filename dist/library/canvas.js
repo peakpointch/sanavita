@@ -1,25 +1,85 @@
 // library/canvas.ts
 var EditableCanvas = class {
-  constructor(canvas) {
+  constructor(canvas, ...customSelectors) {
+    this.defaultSelector = '[data-canvas-editable="true"]';
+    this.selectAll = this.defaultSelector;
     if (!canvas)
       throw new Error(`Canvas can't be undefined.`);
     this.canvas = canvas;
-    this.editableElements = this.canvas.querySelectorAll('[data-canvas-editable="true"]');
+    if (customSelectors && customSelectors.length) {
+      this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
+    }
+    this.editableElements = this.canvas.querySelectorAll(this.selectAll);
+    this.canvas.querySelectorAll(`[data-canvas-editable]:not(${this.defaultSelector})`).forEach((element) => element.classList.remove("canvas-editable"));
     this.initialize();
   }
   initialize() {
     this.editableElements.forEach((element) => {
-      element.addEventListener("click", () => {
-        element.contentEditable = "true";
-      });
+      element.classList.add("canvas-editable");
+      this.attachEditListener(element);
     });
-    document.addEventListener("click", (event) => {
-      if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest('[data-canvas-editable="true"]')) {
-        this.editableElements.forEach((element) => {
-          element.contentEditable = "false";
-        });
+    this.attachDocumentListener();
+  }
+  /**
+   * Enable editing for a specific element.
+   */
+  enableEditing(element) {
+    element.contentEditable = "true";
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        this.disableEditing(element);
       }
+    };
+    element.addEventListener("keydown", handleEscape, { once: true });
+    element._escapeListener = handleEscape;
+  }
+  /**
+   * Disable editing for a specific element.
+   */
+  disableEditing(element) {
+    element.contentEditable = "false";
+    const handleEscape = element._escapeListener;
+    if (handleEscape) {
+      element.removeEventListener("keydown", handleEscape);
+      delete element._escapeListener;
+    }
+  }
+  /**
+   * Attach a click listener to enable editing for an element.
+   */
+  attachEditListener(element) {
+    const handleClick = () => this.enableEditing(element);
+    element.addEventListener("click", handleClick);
+    element._clickListener = handleClick;
+  }
+  /**
+   * Attach a document-wide listener to disable editing when clicking outside editable elements.
+   */
+  attachDocumentListener() {
+    const handleDocumentClick = (event) => {
+      if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest(this.selectAll)) {
+        this.editableElements.forEach((element) => this.disableEditing(element));
+      }
+    };
+    document.addEventListener("click", handleDocumentClick);
+    this._documentClickListener = handleDocumentClick;
+  }
+  /**
+   * Cleanup method to remove all dynamically added listeners.
+   * Call this method if the instance is being destroyed.
+   */
+  cleanupListeners() {
+    this.editableElements.forEach((element) => {
+      const clickListener = element._clickListener;
+      const escapeListener = element._escapeListener;
+      if (clickListener)
+        element.removeEventListener("click", clickListener);
+      if (escapeListener)
+        element.removeEventListener("keydown", escapeListener);
     });
+    const documentClickListener = this._documentClickListener;
+    if (documentClickListener)
+      document.removeEventListener("click", documentClickListener);
   }
 };
 export {
