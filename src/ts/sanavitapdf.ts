@@ -351,10 +351,19 @@ const dateOptions: DateOptionsObject = {
   }
 }
 
+function tagWeeklyHit(list: HTMLElement): void {
+  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
+  weeklyHitElements.forEach(hit => {
+    hit.setAttribute("data-pdf-element", "weekly-hit");
+  });
+}
+
 function initialize(): void {
   const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
   const pdfElement: HTMLElement | null = document.querySelector(pdfElementSelector('page'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
+
+  tagWeeklyHit(dailyMenuListElement);
 
   const menuList = new DailyMenuCollection(dailyMenuListElement);
   const pdf = new PDF(pdfElement);
