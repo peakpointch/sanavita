@@ -47,6 +47,10 @@ var Renderer = class _Renderer {
     this.fieldAttr = `data-${attributeName}-field`;
   }
   render(data, canvas = this.canvas) {
+    this.clear();
+    this.renderRecursive(data, canvas);
+  }
+  renderRecursive(data, canvas = this.canvas) {
     this.data = data;
     this.data.forEach((renderItem) => {
       if (_Renderer.isRenderElement(renderItem)) {
@@ -60,7 +64,7 @@ var Renderer = class _Renderer {
           if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
             this.hideElement(newCanvas, renderItem.visibilityControl);
           } else {
-            this.render(renderItem.fields, newCanvas);
+            this.renderRecursive(renderItem.fields, newCanvas);
           }
         });
       }
@@ -96,15 +100,18 @@ var Renderer = class _Renderer {
     });
     return renderData;
   }
+  clear(node = this.canvas) {
+    node.querySelectorAll(this.fieldSelector()).forEach((field) => field.innerText = "");
+  }
   readRenderElement(child, stopRecursionAttributes) {
     const elementName = child.getAttribute(this.elementAttr);
     const instance = child.getAttribute(`data-${elementName}-instance`);
     const fields = this.read(child, stopRecursionAttributes);
     const element = {
       element: elementName,
-      instance: instance || void 0,
       fields
     };
+    element.instance = instance || void 0;
     this.readFilteringProperties(child, element);
     this.readVisibilityControl(child, element);
     return element;
@@ -123,10 +130,10 @@ var Renderer = class _Renderer {
     }
     const field = {
       element: fieldName,
-      instance: instance || void 0,
       value,
       type
     };
+    field.instance = instance || void 0;
     this.readFilteringProperties(child, field);
     this.readVisibilityControl(child, field);
     return field;
@@ -156,8 +163,8 @@ var Renderer = class _Renderer {
     });
   }
   readVisibilityControl(child, elementOrField) {
-    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`);
-    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr || "false");
+    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim();
+    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr ?? "false") || false;
   }
   renderField(field, canvas) {
     const selector = this.fieldSelector(field);
@@ -193,7 +200,10 @@ var Renderer = class _Renderer {
   hideElement(element, hideControl) {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || "false");
     const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
-    if (hideControl || hideSelf) {
+    if (!hideControl) {
+      return;
+    }
+    if (hideSelf) {
       element.style.display = "none";
     } else if (ancestorToHide) {
       const ancestor = element.closest(ancestorToHide);
@@ -226,6 +236,9 @@ var Renderer = class _Renderer {
   }
   fieldSelector(field) {
     const fieldAttrSelector = attributeselector_default(this.fieldAttr);
+    if (!field) {
+      return fieldAttrSelector();
+    }
     let selectorString = fieldAttrSelector(field.element);
     if (field.instance) {
       selectorString += this.instanceSelector(field.element, field.instance);

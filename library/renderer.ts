@@ -42,6 +42,11 @@ class Renderer {
   }
 
   public render(data: RenderData, canvas: HTMLElement = this.canvas): void {
+    this.clear();
+    this.renderRecursive(data, canvas);
+  }
+
+  private renderRecursive(data: RenderData, canvas: HTMLElement = this.canvas): void {
     this.data = data;
 
     this.data.forEach((renderItem) => {
@@ -61,7 +66,7 @@ class Renderer {
           if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
             this.hideElement(newCanvas, renderItem.visibilityControl);
           } else {
-            this.render(renderItem.fields, newCanvas); // Recursively render children
+            this.renderRecursive(renderItem.fields, newCanvas); // Recursively render children
           }
         });
       }
@@ -111,6 +116,11 @@ class Renderer {
     return renderData;
   }
 
+  public clear(node: HTMLElement = this.canvas): void {
+    node.querySelectorAll<HTMLElement>(this.fieldSelector())
+      .forEach(field => field.innerText = "");
+  }
+
   private readRenderElement(child: HTMLElement, stopRecursionAttributes: string[]): RenderElement {
     const elementName = child.getAttribute(this.elementAttr);
     const instance = child.getAttribute(`data-${elementName}-instance`);
@@ -120,9 +130,10 @@ class Renderer {
 
     const element: RenderElement = {
       element: elementName!,
-      instance: instance || undefined,
       fields,
     };
+
+    element.instance = instance || undefined;
 
     this.readFilteringProperties(child, element);
     this.readVisibilityControl(child, element);
@@ -148,10 +159,11 @@ class Renderer {
 
     const field: RenderField = {
       element: fieldName!,
-      instance: instance || undefined,
       value,
       type,
     };
+
+    field.instance = instance || undefined;
 
     // Optionally, handle additional properties for filtering purposes
     this.readFilteringProperties(child, field);
@@ -190,8 +202,8 @@ class Renderer {
 
 
   private readVisibilityControl(child: HTMLElement, elementOrField: RenderField | RenderElement): void {
-    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`);
-    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr || 'false');
+    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim();
+    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr ?? 'false') || false;
   }
 
   private renderField(field: RenderField, canvas: HTMLElement) {
@@ -231,7 +243,11 @@ class Renderer {
   private hideElement(element: HTMLElement, hideControl?: VisibilityControl): void {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || 'false');
     const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
-    if (hideControl || hideSelf) {
+    if (!hideControl) {
+      return
+    }
+
+    if (hideSelf) {
       // Hide the element itself
       element.style.display = 'none';
     } else if (ancestorToHide) {
@@ -268,8 +284,12 @@ class Renderer {
     return selectorString;
   }
 
-  private fieldSelector(field: RenderField): string {
+  private fieldSelector(field?: RenderField): string {
     const fieldAttrSelector = createAttribute(this.fieldAttr);
+    if (!field) {
+      return fieldAttrSelector();
+    }
+
     let selectorString = fieldAttrSelector(field.element);
     if (field.instance) {
       selectorString += this.instanceSelector(field.element, field.instance);
