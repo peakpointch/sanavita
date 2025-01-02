@@ -115,9 +115,7 @@ class Accordion {
     // Check if there is a scrollable wrapper (like a modal)
     if (scrollWrapper) {
       const wrapperPosition = scrollWrapper.getBoundingClientRect().top;
-      offset = scrollWrapper.querySelector(
-        '[data-scroll-child="sticky"]'
-      )!.clientHeight; // Height of sticky element
+      offset = scrollWrapper.querySelector('[data-scroll-child="sticky"]')!.clientHeight; // Height of sticky element
 
       scrollWrapper.scrollBy({
         top: elementPosition - wrapperPosition - offset - 2,

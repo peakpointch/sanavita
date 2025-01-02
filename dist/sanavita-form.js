@@ -301,9 +301,7 @@
       const elementPosition = this.component.getBoundingClientRect().top;
       if (scrollWrapper) {
         const wrapperPosition = scrollWrapper.getBoundingClientRect().top;
-        offset = scrollWrapper.querySelector(
-          '[data-scroll-child="sticky"]'
-        ).clientHeight;
+        offset = scrollWrapper.querySelector('[data-scroll-child="sticky"]').clientHeight;
         scrollWrapper.scrollBy({
           top: elementPosition - wrapperPosition - offset - 2,
           behavior: "smooth"
