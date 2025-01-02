@@ -116,6 +116,18 @@ class FilterForm {
 
   constructor(container: HTMLElement | null) {
     if (!container) throw new Error(`FilterForm container can't be null`)
+    container = container;
+    if (container.tagName === 'form') {
+      container = container.querySelector('form');
+    }
+    if (!container) {
+      throw new Error(`Form cannot be undefined.`);
+    }
+    container.classList.remove("w-form");
+    container.addEventListener('submit', (event) => {
+      event.preventDefault();
+    })
+
     this.container = container;
     this.filterFields = container.querySelectorAll(formQuery.filters);
     this.formFields = container.querySelectorAll(formQuery.input);
@@ -192,17 +204,29 @@ class FilterForm {
   }
 
   /**
+   * Set a custom day range for validation.
+   * If no custom range is needed, revert to default.
+   */
+  public setDayRange(dayRange: number): number {
+    if (dayRange <= 0) {
+      throw new Error(`Day range must be at least "1".`);
+    }
+    this.defaultDayRange = dayRange;
+    return this.defaultDayRange;
+  }
+
+  /**
    * Validate the date range between startDate and endDate.
    * Ensure they remain within the chosen day range.
    */
-  private validateDateRange(customDayRange: number = 7): void {
+  private validateDateRange(customDayRange?: number): void {
     const startDateInput = this.getFilterInput('startDate') as HTMLInputElement;
     const endDateInput = this.getFilterInput('endDate') as HTMLInputElement;
 
     const startDate = new Date(startDateInput.value);
     const endDate = new Date(endDateInput.value);
 
-    const activeRange: number = customDayRange;
+    const activeRange: number = customDayRange ?? this.defaultDayRange;
 
     if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
       const diffInDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -282,10 +306,24 @@ function initSave(): void {
   button.addEventListener('click', () => onSave());
 }
 
-function setDefaultFilters(form: FilterForm): void {
-  const nextMonday: Date = getMonday(new Date(), 0);
-  form.getFilterInput('startDate').value = nextMonday.toLocaleDateString('en-CA');
-  form.getFilterInput('endDate').value = addDays(nextMonday, 6).toLocaleDateString('en-CA');
+function setDefaultFilters(form: FilterForm, data: RenderData): void {
+  const nextMonday: Date = getMonday(new Date(), 1);
+  const startDateInput = form.getFilterInput('startDate')
+  const endDateInput = form.getFilterInput('endDate')
+  const dayRangeInput = form.getFilterInput('dayRange')
+
+  startDateInput.value = nextMonday.toLocaleDateString('en-CA');
+  endDateInput.value = addDays(nextMonday, 6).toLocaleDateString('en-CA');
+  dayRangeInput.value = form.setDayRange(7).toString();
+
+  const dates = data.map(weekday => weekday.date.getTime());
+  const minDate = new Date(Math.min(...dates)).toISOString().split('T')[0];
+  const maxDate = new Date(Math.max(...dates)).toISOString().split('T')[0];
+
+  startDateInput.setAttribute('min', minDate)
+  startDateInput.setAttribute('max', maxDate)
+  endDateInput.setAttribute('min', minDate)
+  endDateInput.setAttribute('max', maxDate)
 }
 
 const isWeeklyHit: MenuDataCondition = (menuData) => {
@@ -319,11 +357,11 @@ function initialize(): void {
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
   const menuList = new DailyMenuCollection(dailyMenuListElement);
-  wfCollections.menuList = menuList;
   const pdf = new PDF(pdfElement);
-  const canvas = new EditableCanvas(pdfElement);
   const filterForm = new FilterForm(filterFormElement);
-  setDefaultFilters(filterForm);
+
+  setDefaultFilters(filterForm, menuList.getCollectionData());
+
   filterForm.addOnChange((filters) => {
     const startDate = new Date(filters.getField('startDate').value);
     const endDate = filters.getField('endDate').value;
@@ -331,7 +369,7 @@ function initialize(): void {
     const renderFields: RenderField[] = [
       {
         element: 'title',
-        value: `Menüplan ${formatDate(startDate, dateOptions.day)}.–${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
+        value: `Menüplan ${formatDate(startDate, dateOptions.day)}. – ${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
       } as RenderField,
     ];
 
@@ -345,8 +383,7 @@ function initialize(): void {
   });
   filterForm.invokeOnChange(); // Initialize the filter with it's default values
 
-  //console.log("Collection Data:", dailyMenuList.getCollectionData());
-
+  const canvas = new EditableCanvas(pdfElement, '.pdf-h3');
 
   initDownload(pdf);
   initSave();
