@@ -478,7 +478,7 @@ function initialize(): void {
     const renderFields: RenderField[] = [
       {
         element: 'title',
-        value: `Menüplan ${formatDate(startDate, dateOptions.day)}. – ${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
+        value: `${formatDate(startDate, dateOptions.day)}. – ${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
       } as RenderField,
     ];
 

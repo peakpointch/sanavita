@@ -19877,7 +19877,7 @@
           this.disableEditing(element);
         }
       };
-      element.addEventListener("keydown", handleEscape, { once: true });
+      element.addEventListener("keydown", handleEscape);
       element._escapeListener = handleEscape;
     }
     /**
@@ -29063,41 +29063,69 @@
     }
   };
   var PDF = class {
-    constructor(canvas) {
-      if (!canvas)
+    constructor(container) {
+      if (!container)
         throw new Error("PDF Element not found.");
-      this.canvas = canvas;
-      this.renderer = new renderer_default(canvas, "pdf");
+      this.canvas = container;
+      this.renderer = new renderer_default(container, "pdf");
+      this.getPages();
+      this.getScaleElement();
     }
+    getScaleElement() {
+      const scale = this.canvas.querySelector(pdfElementSelector("scale"));
+      if (!scale) {
+        console.warn(`Scale element ${pdfElementSelector("scale")} is undefined.`);
+        return;
+      }
+      this.scaleElement = scale;
+      return this.scaleElement;
+    }
+    getPages() {
+      const pages = this.canvas.querySelectorAll(pdfElementSelector("page"));
+      this.pages = Array.from(pages);
+      return this.pages;
+    }
+    /**
+     * Render any data of type `RenderData` on the pdf canvas.
+     *
+     * @param data Data of type `RenderData`. This data will be given to the Renderer instance to render it.
+     */
     render(data) {
-      console.log("Render Pdf");
       this.renderer.render(data);
     }
-    scale() {
-      console.log("SCALE");
+    /**
+     * Scales the PDF to the given value.
+     *
+     * @param scale Scale value in `em`, e.g. `0.3` will scale the canvas to `0.3em`.
+     */
+    scale(scale) {
+      this.scaleElement.style.fontSize = `${scale}em`;
+    }
+    resetScale() {
+      this.scaleElement.style.removeProperty("font-size");
     }
     freeze() {
-      this.freezeSelector = '*:not([pdf-freeze="exclude"], svg)';
-      const children = this.canvas.querySelectorAll(this.freezeSelector);
-      children.forEach((child) => {
-        this.freezeElement(child);
+      this.pages.forEach((page) => {
+        this.freezeSelector = '*:not([pdf-freeze="exclude"], [pdf-freeze="exclude"] *, svg, svg *)';
+        const children = page.querySelectorAll(this.freezeSelector);
+        children.forEach((child) => {
+          this.freezeElement(child, page);
+        });
       });
     }
-    freezeElement(element, canvas = this.canvas) {
+    freezeElement(element, canvas) {
       if (element.tagName === "svg")
         return;
       const elementRect = element.getBoundingClientRect();
-      const canvasRect = canvas.getBoundingClientRect();
-      const x2 = elementRect.left - canvasRect.left;
-      const y3 = elementRect.top - canvasRect.top;
       element.style.width = `${elementRect.width}px`;
       element.style.height = `${elementRect.height}px`;
-      element.style.margin = "0";
     }
     unFreeze() {
-      const children = this.canvas.querySelectorAll(this.freezeSelector);
-      children.forEach((child) => {
-        this.unFreezeElement(child);
+      this.pages.forEach((page) => {
+        const children = page.querySelectorAll(this.freezeSelector);
+        children.forEach((child) => {
+          this.unFreezeElement(child);
+        });
       });
     }
     unFreezeElement(element) {
@@ -29115,18 +29143,30 @@
       }
       filename = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
       try {
-        const options = { scale: 4 };
-        const canvas = await (0, import_html2canvas.default)(this.canvas, options);
         const pdf = new jspdf_es_min_default("portrait", "mm", "a4");
-        const imgData = canvas.toDataURL("image/png");
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = canvas.height * pdfWidth / canvas.width;
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+        const zoom = 0.1;
+        const options = {
+          scale: 2,
+          useCORS: true
+        };
+        for (let i3 = 0; i3 < this.pages.length; i3++) {
+          const page = this.pages[i3];
+          const canvas = await (0, import_html2canvas.default)(page, options);
+          const imgData = canvas.toDataURL("image/jpeg");
+          const adjustedWidth = pdfWidth + 2 * zoom;
+          const adjustedHeight = canvas.height * adjustedWidth / canvas.width;
+          if (i3 > 0) {
+            pdf.addPage();
+          }
+          pdf.addImage(imgData, "PNG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
+        }
         pdf.save(filename);
       } catch (error) {
         console.error("Error creating PDF:", error);
+      } finally {
+        this.unFreeze();
       }
-      this.unFreeze();
     }
   };
   var FilterForm = class {
@@ -29154,7 +29194,7 @@
     getFilterInput(fieldId) {
       const existingFields = this.getFieldIds(this.filterFields);
       if (!this.fieldExists(fieldId, existingFields)) {
-        throw new Error(`Field with ID ${fieldId} was not found`);
+        throw new Error(`Field with ID "${fieldId}" was not found`);
       }
       return Array.from(this.filterFields).find((field) => field.id === fieldId);
     }
@@ -29283,8 +29323,12 @@
     const button = document.querySelector(actionSelector("download"));
     if (!button)
       throw new Error("Download button does not exist");
-    button.addEventListener("click", () => {
-      pdf.create();
+    button.addEventListener("click", async () => {
+      pdf.scale(1);
+      setTimeout(async () => {
+        await pdf.create();
+        pdf.resetScale();
+      }, 0);
     });
   }
   function initSave() {
@@ -29332,20 +29376,22 @@
   }
   function initialize() {
     const dailyMenuListElement = document.querySelector(wfCollectionSelector("daily"));
-    const pdfElement = document.querySelector(pdfElementSelector("page"));
+    const pdfContainer = document.querySelector(pdfElementSelector("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     tagWeeklyHit(dailyMenuListElement);
     const menuList = new DailyMenuCollection(dailyMenuListElement);
-    const pdf = new PDF(pdfElement);
+    const pdf = new PDF(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     setDefaultFilters(filterForm, menuList.getCollectionData());
     filterForm.addOnChange((filters) => {
       const startDate = new Date(filters.getField("startDate").value);
       const endDate = filters.getField("endDate").value;
+      const scale = parseFloat(filters.getField("scale").value);
+      pdf.scale(scale);
       const renderFields = [
         {
           element: "title",
-          value: `Men\xFCplan ${formatDate2(startDate, dateOptions.day)}. \u2013 ${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
+          value: `${formatDate2(startDate, dateOptions.day)}. \u2013 ${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
         }
       ];
       const renderElements = filterMenuData(filters, menuList);
@@ -29357,7 +29403,8 @@
       pdf.render(data);
     });
     filterForm.invokeOnChange();
-    const canvas = new EditableCanvas(pdfElement, ".pdf-h3");
+    pdf.defaultScale = parseFloat(filterForm.getFilterInput("scale").value);
+    const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
     initDownload(pdf);
     initSave();
   }
