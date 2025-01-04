@@ -67,57 +67,81 @@ class PDF {
   public canvas: HTMLElement;
   public renderer: Renderer;
   private freezeSelector: string;
+  private scaleElement: HTMLElement;
+  public defaultScale: number;
+  private pages: HTMLElement[];
 
-  constructor(canvas: HTMLElement | null) {
-    if (!canvas) throw new Error('PDF Element not found.');
-    this.canvas = canvas;
-    this.renderer = new Renderer(canvas, 'pdf');
+  constructor(container: HTMLElement | null) {
+    if (!container) throw new Error('PDF Element not found.');
+    this.canvas = container;
+    this.renderer = new Renderer(container, 'pdf');
+    this.getPages();
+    this.getScaleElement();
   }
 
+  private getScaleElement(): HTMLElement {
+    const scale = this.canvas.querySelector<HTMLElement>(pdfElementSelector('scale'));
+    if (!scale) {
+      console.warn(`Scale element ${pdfElementSelector('scale')} is undefined.`)
+      return;
+    }
+    this.scaleElement = scale;
+    return this.scaleElement;
+  }
+
+  private getPages(): HTMLElement[] {
+    const pages = this.canvas.querySelectorAll<HTMLElement>(pdfElementSelector('page'));
+    this.pages = Array.from(pages);
+    return this.pages;
+  }
+
+  /**
+   * Render any data of type `RenderData` on the pdf canvas.
+   *
+   * @param data Data of type `RenderData`. This data will be given to the Renderer instance to render it.
+   */
   public render(data: RenderData): void {
-    console.log("Render Pdf");
     this.renderer.render(data);
   }
 
-  public scale() {
-    console.log("SCALE")
+  /**
+   * Scales the PDF to the given value.
+   *
+   * @param scale Scale value in `em`, e.g. `0.3` will scale the canvas to `0.3em`.
+   */
+  public scale(scale: number): void {
+    this.scaleElement.style.fontSize = `${scale}em`;
+  }
+
+  public resetScale(): void {
+    this.scaleElement.style.removeProperty('font-size');
   }
 
   public freeze(): void {
-    this.freezeSelector = '*:not([pdf-freeze="exclude"], svg)';
-    const children: NodeListOf<HTMLElement> = this.canvas.querySelectorAll(this.freezeSelector);
-    children.forEach(child => {
-      this.freezeElement(child);
+    this.pages.forEach(page => {
+      this.freezeSelector = '*:not([pdf-freeze="exclude"], [pdf-freeze="exclude"] *, svg, svg *)';
+      const children: NodeListOf<HTMLElement> = page.querySelectorAll(this.freezeSelector);
+      children.forEach(child => {
+        this.freezeElement(child, page);
+      });
     });
   }
 
-  private freezeElement(element: HTMLElement, canvas: HTMLElement = this.canvas): void {
+  private freezeElement(element: HTMLElement, canvas: HTMLElement): void {
     if (element.tagName === 'svg') return;
-    // Get the bounding rectangle of the element relative to the canvas
+
     const elementRect = element.getBoundingClientRect();
-    const canvasRect = canvas.getBoundingClientRect();
 
-    // Calculate the position relative to the canvas
-    const x = elementRect.left - canvasRect.left;
-    const y = elementRect.top - canvasRect.top;
-
-    // Set the element's width and height as fixed pixel values
     element.style.width = `${elementRect.width}px`;
     element.style.height = `${elementRect.height}px`;
-
-    // Set the element's position as absolute, relative to the canvas
-    //element.style.position = 'absolute';
-    //element.style.left = `${x}px`;
-    //element.style.top = `${y}px`;
-
-    // Optionally, you can lock other styles such as margin and padding if needed
-    element.style.margin = '0';
   }
 
   public unFreeze(): void {
-    const children: NodeListOf<HTMLElement> = this.canvas.querySelectorAll(this.freezeSelector);
-    children.forEach(child => {
-      this.unFreezeElement(child);
+    this.pages.forEach(page => {
+      const children: NodeListOf<HTMLElement> = page.querySelectorAll(this.freezeSelector);
+      children.forEach(child => {
+        this.unFreezeElement(child);
+      });
     });
   }
 
