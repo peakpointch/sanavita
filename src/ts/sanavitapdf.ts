@@ -233,7 +233,7 @@ class FilterForm {
   public getFilterInput(fieldId: string): FormInput {
     const existingFields = this.getFieldIds(this.filterFields)
     if (!this.fieldExists(fieldId, existingFields)) {
-      throw new Error(`Field with ID ${fieldId} was not found`);
+      throw new Error(`Field with ID "${fieldId}" was not found`);
     }
 
     return Array.from(this.filterFields).find(field => field.id === fieldId);
@@ -390,8 +390,12 @@ function onSave(): void {
 function initDownload(pdf: PDF): void {
   const button = document.querySelector(actionSelector('download'));
   if (!button) throw new Error('Download button does not exist');
-  button.addEventListener('click', () => {
-    pdf.create();
+  button.addEventListener('click', async () => {
+    pdf.scale(1);
+    setTimeout(async () => {
+      await pdf.create();
+      pdf.resetScale();
+    }, 0);
   });
 }
 
@@ -455,20 +459,21 @@ function tagWeeklyHit(list: HTMLElement): void {
 
 function initialize(): void {
   const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
-  const pdfElement: HTMLElement | null = document.querySelector(pdfElementSelector('page'));
+  const pdfContainer: HTMLElement | null = document.querySelector(pdfElementSelector('container'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
   tagWeeklyHit(dailyMenuListElement);
 
   const menuList = new DailyMenuCollection(dailyMenuListElement);
-  const pdf = new PDF(pdfElement);
+  const pdf = new PDF(pdfContainer);
+
   const filterForm = new FilterForm(filterFormElement);
-
   setDefaultFilters(filterForm, menuList.getCollectionData());
-
   filterForm.addOnChange((filters) => {
     const startDate = new Date(filters.getField('startDate').value);
     const endDate = filters.getField('endDate').value;
+    const scale = parseFloat(filters.getField('scale').value)
+    pdf.scale(scale);
 
     const renderFields: RenderField[] = [
       {
@@ -486,8 +491,10 @@ function initialize(): void {
     pdf.render(data);
   });
   filterForm.invokeOnChange(); // Initialize the filter with it's default values
+  pdf.defaultScale = parseFloat(filterForm.getFilterInput('scale').value);
 
-  const canvas = new EditableCanvas(pdfElement, '.pdf-h3');
+
+  const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
 
   initDownload(pdf);
   initSave();
