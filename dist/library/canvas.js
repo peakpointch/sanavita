@@ -30,7 +30,7 @@ var EditableCanvas = class {
         this.disableEditing(element);
       }
     };
-    element.addEventListener("keydown", handleEscape, { once: true });
+    element.addEventListener("keydown", handleEscape);
     element._escapeListener = handleEscape;
   }
   /**

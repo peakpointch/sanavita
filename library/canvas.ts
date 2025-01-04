@@ -44,7 +44,7 @@ export default class EditableCanvas {
       }
     };
 
-    element.addEventListener('keydown', handleEscape, { once: true });
+    element.addEventListener('keydown', handleEscape);
 
     // Store the handleEscape function for later removal
     (element as any)._escapeListener = handleEscape;
