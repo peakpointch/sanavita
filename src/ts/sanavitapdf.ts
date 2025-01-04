@@ -11,7 +11,7 @@ import { RenderData, RenderElement, RenderField } from '@library/renderer';
 
 // Types
 type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
-type PdfElement = 'dish' | 'page';
+type PdfElement = 'container' | 'scale' | 'page' | 'weekday' | 'dish';
 type ActionElement = 'download' | 'save';
 type Action = (filters: FieldGroup) => any;
 type MenuDataCondition = ((menuData: RenderElement | RenderField) => boolean);
@@ -162,26 +162,42 @@ class PDF {
     }
     filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
     try {
-      const options: Html2CanvasOptions = { scale: 4 };
-      // Convert HTML element to canvas
-      const canvas = await html2canvas(this.canvas, options);
-
       // Generate the PDF
       const pdf = new jsPDF('portrait', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
 
       // Calculate dimensions to fit the A4 page
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const zoom = 0.1; // crop 0.1mm on each side
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const options: Html2CanvasOptions = {
+        scale: 2,
+        useCORS: true
+      };
+
+      for (let i = 0; i < this.pages.length; i++) {
+        const page = this.pages[i];
+
+        // Convert HTML element to canvas
+        const canvas = await html2canvas(page, options);
+        const imgData = canvas.toDataURL('image/jpeg');
+
+        const adjustedWidth = pdfWidth + 2 * zoom;
+        const adjustedHeight = (canvas.height * adjustedWidth) / canvas.width;
+
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, 'PNG', -zoom, -zoom, adjustedWidth, adjustedHeight, undefined, 'SLOW');
+      }
 
       // Save the PDF
       pdf.save(filename);
     } catch (error) {
       console.error('Error creating PDF:', error);
+    } finally {
+      this.unFreeze();
     }
-    this.unFreeze();
   }
 }
 
