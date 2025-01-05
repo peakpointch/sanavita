@@ -29109,11 +29109,11 @@
         this.freezeSelector = '*:not([pdf-freeze="exclude"], [pdf-freeze="exclude"] *, svg, svg *)';
         const children = page.querySelectorAll(this.freezeSelector);
         children.forEach((child) => {
-          this.freezeElement(child, page);
+          this.freezeElement(child);
         });
       });
     }
-    freezeElement(element, canvas) {
+    freezeElement(element) {
       if (element.tagName === "svg")
         return;
       const elementRect = element.getBoundingClientRect();
