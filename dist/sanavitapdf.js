@@ -29146,13 +29146,36 @@
         const pdf = new jspdf_es_min_default("portrait", "mm", "a4");
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const zoom = 0.1;
-        const options = {
-          scale: 2,
-          useCORS: true
+        const canvasScale = 1;
+        const getHtml2CanvasOptions = (canvas) => {
+          return {
+            scale: canvasScale,
+            useCORS: true,
+            canvas
+          };
         };
         for (let i3 = 0; i3 < this.pages.length; i3++) {
           const page = this.pages[i3];
-          const canvas = await (0, import_html2canvas.default)(page, options);
+          const customCanvas = document.createElement("canvas");
+          customCanvas.width = page.offsetWidth * canvasScale;
+          customCanvas.height = page.offsetHeight * canvasScale;
+          const ctx = customCanvas.getContext("2d");
+          const originalDrawImage = ctx.drawImage;
+          ctx.drawImage = function(image, sx, sy, sw, sh, dx, dy, dw, dh) {
+            if (image instanceof HTMLImageElement) {
+              if (sw / dw < sh / dh) {
+                const _dh = dh;
+                dh = sh * (dw / sw);
+                dy = dy + (_dh - dh) / 2;
+              } else {
+                const _dw = dw;
+                dw = sw * (dh / sh);
+                dx = dx + (_dw - dw) / 2;
+              }
+            }
+            return originalDrawImage.call(ctx, image, sx, sy, sw, sh, dx, dy, dw, dh);
+          };
+          const canvas = await (0, import_html2canvas.default)(page, getHtml2CanvasOptions(customCanvas));
           const imgData = canvas.toDataURL("image/jpeg");
           const adjustedWidth = pdfWidth + 2 * zoom;
           const adjustedHeight = canvas.height * adjustedWidth / canvas.width;
@@ -29213,7 +29236,7 @@
     attachChangeListeners() {
       this.formFields.forEach((field) => {
         field.addEventListener("input", this.onChange.bind(this));
-        if (field.id === "startDate" || field.id === "endDate") {
+        if (field.id === "startDate" || field.id === "endDate" || field.id === "dayRange") {
           field.addEventListener("input", () => this.validateDateRange());
         }
       });
@@ -29269,12 +29292,18 @@
       const endDateInput = this.getFilterInput("endDate");
       const startDate = new Date(startDateInput.value);
       const endDate = new Date(endDateInput.value);
-      const activeRange = customDayRange ?? this.defaultDayRange;
+      let activeRange = customDayRange ?? this.defaultDayRange;
+      activeRange -= 1;
       if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
         const diffInDays = (endDate.getTime() - startDate.getTime()) / (1e3 * 60 * 60 * 24);
-        const activeField = document.activeElement === startDateInput ? "startDate" : "endDate";
-        if (activeField === "startDate") {
-          if (diffInDays > activeRange) {
+        let activeField = "other";
+        if (document.activeElement === startDateInput) {
+          activeField = "startDate";
+        } else if (document.activeElement === endDateInput) {
+          activeField = "endDate";
+        }
+        if (activeField === "startDate" || activeField === "other") {
+          if (diffInDays !== activeRange) {
             const newEndDate = new Date(startDate);
             newEndDate.setDate(startDate.getDate() + activeRange);
             endDateInput.value = newEndDate.toISOString().split("T")[0];
@@ -29282,7 +29311,7 @@
             endDateInput.value = startDate.toISOString().split("T")[0];
           }
         } else if (activeField === "endDate") {
-          if (diffInDays > activeRange) {
+          if (diffInDays !== activeRange) {
             const newStartDate = new Date(endDate);
             newStartDate.setDate(endDate.getDate() - activeRange);
             startDateInput.value = newStartDate.toISOString().split("T")[0];
@@ -29388,6 +29417,7 @@
       const endDate = filters.getField("endDate").value;
       const scale = parseFloat(filters.getField("scale").value);
       pdf.scale(scale);
+      filterForm.setDayRange(parseFloat(filters.getField("dayRange").value));
       const renderFields = [
         {
           element: "title",

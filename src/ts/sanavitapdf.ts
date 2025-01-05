@@ -168,17 +168,45 @@ class PDF {
 
       // Calculate dimensions to fit the A4 page
       const zoom = 0.1; // crop 0.1mm on each side
+      const canvasScale = 1;
 
-      const options: Html2CanvasOptions = {
-        scale: 2,
-        useCORS: true
-      };
+      const getHtml2CanvasOptions = (canvas?: HTMLCanvasElement): Html2CanvasOptions => {
+        return {
+          scale: canvasScale,
+          useCORS: true,
+          canvas: canvas
+        }
+      }
 
       for (let i = 0; i < this.pages.length; i++) {
         const page = this.pages[i];
 
+        const customCanvas = document.createElement("canvas");
+        customCanvas.width = page.offsetWidth * canvasScale;
+        customCanvas.height = page.offsetHeight * canvasScale;
+
+        const ctx = customCanvas.getContext("2d");
+        const originalDrawImage = ctx.drawImage;
+
+        // @ts-ignore
+        ctx.drawImage = function (image: CanvasImageSource, sx: number, sy: number, sw: number, sh, dx, dy, dw, dh): void {
+          if (image instanceof HTMLImageElement) {
+            if (sw / dw < sh / dh) {
+              const _dh = dh
+              dh = sh * (dw / sw)
+              dy = dy + (_dh - dh) / 2
+            } else {
+              const _dw = dw
+              dw = sw * (dh / sh)
+              dx = dx + (_dw - dw) / 2
+            }
+          }
+
+          return originalDrawImage.call(ctx, image, sx, sy, sw, sh, dx, dy, dw, dh)
+        };
+
         // Convert HTML element to canvas
-        const canvas = await html2canvas(page, options);
+        const canvas = await html2canvas(page, getHtml2CanvasOptions(customCanvas));
         const imgData = canvas.toDataURL('image/jpeg');
 
         const adjustedWidth = pdfWidth + 2 * zoom;
