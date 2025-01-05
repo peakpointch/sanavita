@@ -257,7 +257,7 @@ class FilterForm {
     this.formFields.forEach(field => {
       field.addEventListener("input", this.onChange.bind(this));
 
-      if (field.id === 'startDate' || field.id === 'endDate') {
+      if (field.id === 'startDate' || field.id === 'endDate' || field.id === 'dayRange') {
         field.addEventListener("input", () => this.validateDateRange());
       }
     });
@@ -321,17 +321,23 @@ class FilterForm {
     const startDate = new Date(startDateInput.value);
     const endDate = new Date(endDateInput.value);
 
-    const activeRange: number = customDayRange ?? this.defaultDayRange;
+    let activeRange: number = customDayRange ?? this.defaultDayRange;
+    activeRange -= 1;
 
     if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
       const diffInDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
 
       // Determine which field was changed (by checking focus or value)
-      const activeField = document.activeElement === startDateInput ? 'startDate' : 'endDate';
+      let activeField = 'other';
+      if (document.activeElement === startDateInput) {
+        activeField = 'startDate';
+      } else if (document.activeElement === endDateInput) {
+        activeField = 'endDate';
+      }
 
-      if (activeField === 'startDate') {
+      if (activeField === 'startDate' || activeField === 'other') {
         // Adjust `endDate` based on `startDate`
-        if (diffInDays > activeRange) {
+        if (diffInDays !== activeRange) {
           const newEndDate = new Date(startDate);
           newEndDate.setDate(startDate.getDate() + activeRange);
           endDateInput.value = newEndDate.toISOString().split('T')[0];
@@ -340,7 +346,7 @@ class FilterForm {
         }
       } else if (activeField === 'endDate') {
         // Adjust `startDate` based on `endDate`
-        if (diffInDays > activeRange) {
+        if (diffInDays !== activeRange) {
           const newStartDate = new Date(endDate);
           newStartDate.setDate(endDate.getDate() - activeRange);
           startDateInput.value = newStartDate.toISOString().split('T')[0];
@@ -474,6 +480,7 @@ function initialize(): void {
     const endDate = filters.getField('endDate').value;
     const scale = parseFloat(filters.getField('scale').value)
     pdf.scale(scale);
+    filterForm.setDayRange(parseFloat(filters.getField('dayRange').value));
 
     const renderFields: RenderField[] = [
       {
