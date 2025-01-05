@@ -29080,6 +29080,21 @@
       this.scaleElement = scale;
       return this.scaleElement;
     }
+    getDefaultScale() {
+      this.scaleElement.style.removeProperty("font-size");
+      const elements2 = {
+        "container": this.canvas,
+        "scale": this.scaleElement
+      };
+      let scaleValues = {};
+      for (let key in elements2) {
+        const scaleStyles = getComputedStyle(elements2[key]);
+        const scaleValue = parseFloat(scaleStyles.getPropertyValue("font-size"));
+        scaleValues[key] = scaleValue;
+      }
+      this.defaultScale = scaleValues.scale / scaleValues.container;
+      return this.defaultScale;
+    }
     getPages() {
       const pages = this.canvas.querySelectorAll(pdfElementSelector("page"));
       this.pages = Array.from(pages);
@@ -29098,11 +29113,17 @@
      *
      * @param scale Scale value in `em`, e.g. `0.3` will scale the canvas to `0.3em`.
      */
-    scale(scale) {
+    scale(scale, store = true) {
+      if (store)
+        this.customScale = scale;
       this.scaleElement.style.fontSize = `${scale}em`;
     }
     resetScale() {
-      this.scaleElement.style.removeProperty("font-size");
+      this.scale(this.customScale);
+    }
+    resetDefaultScale() {
+      const defaultScale = this.getDefaultScale();
+      return this.scale(defaultScale);
     }
     freeze() {
       this.pages.forEach((page) => {
@@ -29146,7 +29167,7 @@
         const pdf = new jspdf_es_min_default("portrait", "mm", "a4");
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const zoom = 0.1;
-        const canvasScale = 1;
+        const canvasScale = 2;
         const getHtml2CanvasOptions = (canvas) => {
           return {
             scale: canvasScale,
@@ -29329,8 +29350,6 @@
     const endDateValue = filters.getField("endDate").value;
     const endDate = new Date(endDateValue);
     const filteredDays = menuList.filterByDate(startDate, endDate);
-    console.log(startDateValue, endDateValue, `Filtered Data:
-`, filteredDays);
     return filteredDays;
   };
   function addDays(date = /* @__PURE__ */ new Date(), days) {
@@ -29353,7 +29372,7 @@
     if (!button)
       throw new Error("Download button does not exist");
     button.addEventListener("click", async () => {
-      pdf.scale(1);
+      pdf.scale(1, false);
       setTimeout(async () => {
         await pdf.create();
         pdf.resetScale();
@@ -29429,12 +29448,19 @@
         ...renderFields,
         ...renderElements
       ];
-      console.log("RENDER DATA", data);
       pdf.render(data);
     });
-    filterForm.invokeOnChange();
-    pdf.defaultScale = parseFloat(filterForm.getFilterInput("scale").value);
+    const resetScaleToBreakpointDefault = () => {
+      const defaultScale = pdf.getDefaultScale();
+      filterForm.getFilterInput("scale").value = defaultScale.toString();
+      pdf.scale(defaultScale);
+    };
+    resetScaleToBreakpointDefault();
+    window.addEventListener("resize", () => {
+      resetScaleToBreakpointDefault();
+    });
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
+    filterForm.invokeOnChange();
     initDownload(pdf);
     initSave();
   }

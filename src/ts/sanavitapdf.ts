@@ -66,9 +66,10 @@ class DailyMenuCollection extends CollectionList {
 class PDF {
   public canvas: HTMLElement;
   public renderer: Renderer;
+  public defaultScale: number;
+  public customScale: number;
   private freezeSelector: string;
   private scaleElement: HTMLElement;
-  public defaultScale: number;
   private pages: HTMLElement[];
 
   constructor(container: HTMLElement | null) {
@@ -86,7 +87,26 @@ class PDF {
       return;
     }
     this.scaleElement = scale;
+
     return this.scaleElement;
+  }
+
+  public getDefaultScale(): number {
+    this.scaleElement.style.removeProperty('font-size');
+    const elements: any = {
+      "container": this.canvas,
+      "scale": this.scaleElement,
+    }
+    let scaleValues: any = {};
+
+    for (let key in elements) {
+      const scaleStyles = getComputedStyle(elements[key]);
+      const scaleValue = parseFloat(scaleStyles.getPropertyValue('font-size'));
+      scaleValues[key] = scaleValue;
+    }
+
+    this.defaultScale = scaleValues.scale / scaleValues.container;
+    return this.defaultScale;
   }
 
   private getPages(): HTMLElement[] {
@@ -109,12 +129,18 @@ class PDF {
    *
    * @param scale Scale value in `em`, e.g. `0.3` will scale the canvas to `0.3em`.
    */
-  public scale(scale: number): void {
+  public scale(scale: number, store: boolean = true): void {
+    if (store) this.customScale = scale;
     this.scaleElement.style.fontSize = `${scale}em`;
   }
 
   public resetScale(): void {
-    this.scaleElement.style.removeProperty('font-size');
+    this.scale(this.customScale);
+  }
+
+  public resetDefaultScale(): void {
+    const defaultScale = this.getDefaultScale();
+    return this.scale(defaultScale);
   }
 
   public freeze(): void {
@@ -168,7 +194,7 @@ class PDF {
 
       // Calculate dimensions to fit the A4 page
       const zoom = 0.1; // crop 0.1mm on each side
-      const canvasScale = 1;
+      const canvasScale = 2;
 
       const getHtml2CanvasOptions = (canvas?: HTMLCanvasElement): Html2CanvasOptions => {
         return {
@@ -396,7 +422,6 @@ const filterMenuData = (filters: FieldGroup, menuList: DailyMenuCollection): Ren
   const endDate: Date = new Date(endDateValue);
   const filteredDays: RenderData = menuList.filterByDate(startDate, endDate);
 
-  console.log(startDateValue, endDateValue, `Filtered Data:\n`, filteredDays);
   return filteredDays;
 }
 
@@ -425,7 +450,7 @@ function initDownload(pdf: PDF): void {
   const button = document.querySelector(actionSelector('download'));
   if (!button) throw new Error('Download button does not exist');
   button.addEventListener('click', async () => {
-    pdf.scale(1);
+    pdf.scale(1, false);
     setTimeout(async () => {
       await pdf.create();
       pdf.resetScale();
@@ -522,14 +547,23 @@ function initialize(): void {
       ...renderFields,
       ...renderElements,
     ];
-    console.log("RENDER DATA", data);
     pdf.render(data);
   });
-  filterForm.invokeOnChange(); // Initialize the filter with it's default values
-  pdf.defaultScale = parseFloat(filterForm.getFilterInput('scale').value);
 
+  const resetScaleToBreakpointDefault = (): void => {
+    const defaultScale = pdf.getDefaultScale();
+    filterForm.getFilterInput('scale').value = defaultScale.toString();
+    pdf.scale(defaultScale);
+  };
+  resetScaleToBreakpointDefault();
+
+  window.addEventListener('resize', () => {
+    resetScaleToBreakpointDefault();
+  })
 
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
+
+  filterForm.invokeOnChange(); // Initialize the filter with it's default values
 
   initDownload(pdf);
   initSave();
