@@ -19541,6 +19541,91 @@
     }
   });
 
+  // library/canvas.ts
+  var EditableCanvas = class {
+    constructor(canvas, ...customSelectors) {
+      this.defaultSelector = '[data-canvas-editable="true"]';
+      this.selectAll = this.defaultSelector;
+      if (!canvas)
+        throw new Error(`Canvas can't be undefined.`);
+      this.canvas = canvas;
+      if (customSelectors && customSelectors.length) {
+        this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
+      }
+      this.editableElements = this.canvas.querySelectorAll(this.selectAll);
+      this.canvas.querySelectorAll(`[data-canvas-editable]:not(${this.defaultSelector})`).forEach((element) => element.classList.remove("canvas-editable"));
+      this.initialize();
+    }
+    initialize() {
+      this.editableElements.forEach((element) => {
+        element.classList.add("canvas-editable");
+        this.attachEditListener(element);
+      });
+      this.attachDocumentListener();
+    }
+    /**
+     * Enable editing for a specific element.
+     */
+    enableEditing(element) {
+      element.contentEditable = "true";
+      const handleEscape = (event) => {
+        if (event.key === "Escape") {
+          this.disableEditing(element);
+        }
+      };
+      element.addEventListener("keydown", handleEscape);
+      element._escapeListener = handleEscape;
+    }
+    /**
+     * Disable editing for a specific element.
+     */
+    disableEditing(element) {
+      element.contentEditable = "false";
+      const handleEscape = element._escapeListener;
+      if (handleEscape) {
+        element.removeEventListener("keydown", handleEscape);
+        delete element._escapeListener;
+      }
+    }
+    /**
+     * Attach a click listener to enable editing for an element.
+     */
+    attachEditListener(element) {
+      const handleClick = () => this.enableEditing(element);
+      element.addEventListener("click", handleClick);
+      element._clickListener = handleClick;
+    }
+    /**
+     * Attach a document-wide listener to disable editing when clicking outside editable elements.
+     */
+    attachDocumentListener() {
+      const handleDocumentClick = (event) => {
+        if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest(this.selectAll)) {
+          this.editableElements.forEach((element) => this.disableEditing(element));
+        }
+      };
+      document.addEventListener("click", handleDocumentClick);
+      this._documentClickListener = handleDocumentClick;
+    }
+    /**
+     * Cleanup method to remove all dynamically added listeners.
+     * Call this method if the instance is being destroyed.
+     */
+    cleanupListeners() {
+      this.editableElements.forEach((element) => {
+        const clickListener = element._clickListener;
+        const escapeListener = element._escapeListener;
+        if (clickListener)
+          element.removeEventListener("click", clickListener);
+        if (escapeListener)
+          element.removeEventListener("keydown", escapeListener);
+      });
+      const documentClickListener = this._documentClickListener;
+      if (documentClickListener)
+        document.removeEventListener("click", documentClickListener);
+    }
+  };
+
   // library/attributeselector.ts
   var createAttribute = (attrName, defaultValue = null) => {
     return (name = defaultValue) => {
@@ -19805,130 +19890,8 @@
   };
   var renderer_default = Renderer;
 
-  // library/wfcollection.ts
-  var CollectionList = class {
-    constructor(container, name) {
-      this.collectionData = [];
-      if (!container || !container.classList.contains("w-dyn-list"))
-        throw new Error(`Container can't be undefined.`);
-      this.name = name || "wf";
-      this.container = container;
-      this.listElement = container.querySelector(".w-dyn-items");
-      this.listItems = container.querySelectorAll(".w-dyn-item");
-      this.renderer = new renderer_default(container, this.name);
-      this.readCollectionData();
-    }
-    readCollectionData() {
-      this.collectionData = this.renderer.read(this.container);
-    }
-    getCollectionData() {
-      return this.collectionData;
-    }
-    getListItems() {
-      return this.listItems;
-    }
-    getAttributeData() {
-      let data = [];
-      this.listItems.forEach((item) => {
-        const itemData = new Map(Object.entries(item.dataset));
-        itemData.forEach((value, key) => {
-          if (!key.startsWith("wf")) {
-            itemData.delete(key);
-          }
-        });
-        data.push(itemData);
-      });
-      return data;
-    }
-  };
-
-  // src/ts/sanavitapdf.ts
+  // library/pdf.ts
   var import_html2canvas = __toESM(require_html2canvas());
-
-  // library/canvas.ts
-  var EditableCanvas = class {
-    constructor(canvas, ...customSelectors) {
-      this.defaultSelector = '[data-canvas-editable="true"]';
-      this.selectAll = this.defaultSelector;
-      if (!canvas)
-        throw new Error(`Canvas can't be undefined.`);
-      this.canvas = canvas;
-      if (customSelectors && customSelectors.length) {
-        this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
-      }
-      this.editableElements = this.canvas.querySelectorAll(this.selectAll);
-      this.canvas.querySelectorAll(`[data-canvas-editable]:not(${this.defaultSelector})`).forEach((element) => element.classList.remove("canvas-editable"));
-      this.initialize();
-    }
-    initialize() {
-      this.editableElements.forEach((element) => {
-        element.classList.add("canvas-editable");
-        this.attachEditListener(element);
-      });
-      this.attachDocumentListener();
-    }
-    /**
-     * Enable editing for a specific element.
-     */
-    enableEditing(element) {
-      element.contentEditable = "true";
-      const handleEscape = (event) => {
-        if (event.key === "Escape") {
-          this.disableEditing(element);
-        }
-      };
-      element.addEventListener("keydown", handleEscape);
-      element._escapeListener = handleEscape;
-    }
-    /**
-     * Disable editing for a specific element.
-     */
-    disableEditing(element) {
-      element.contentEditable = "false";
-      const handleEscape = element._escapeListener;
-      if (handleEscape) {
-        element.removeEventListener("keydown", handleEscape);
-        delete element._escapeListener;
-      }
-    }
-    /**
-     * Attach a click listener to enable editing for an element.
-     */
-    attachEditListener(element) {
-      const handleClick = () => this.enableEditing(element);
-      element.addEventListener("click", handleClick);
-      element._clickListener = handleClick;
-    }
-    /**
-     * Attach a document-wide listener to disable editing when clicking outside editable elements.
-     */
-    attachDocumentListener() {
-      const handleDocumentClick = (event) => {
-        if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest(this.selectAll)) {
-          this.editableElements.forEach((element) => this.disableEditing(element));
-        }
-      };
-      document.addEventListener("click", handleDocumentClick);
-      this._documentClickListener = handleDocumentClick;
-    }
-    /**
-     * Cleanup method to remove all dynamically added listeners.
-     * Call this method if the instance is being destroyed.
-     */
-    cleanupListeners() {
-      this.editableElements.forEach((element) => {
-        const clickListener = element._clickListener;
-        const escapeListener = element._escapeListener;
-        if (clickListener)
-          element.removeEventListener("click", clickListener);
-        if (escapeListener)
-          element.removeEventListener("keydown", escapeListener);
-      });
-      const documentClickListener = this._documentClickListener;
-      if (documentClickListener)
-        document.removeEventListener("click", documentClickListener);
-    }
-  };
 
   // node_modules/jspdf/dist/jspdf.es.min.js
   init_typeof();
@@ -28936,133 +28899,10 @@
   }();
   var jspdf_es_min_default = E;
 
-  // library/form/form.ts
-  var siteId = document.documentElement.dataset.wfSite || "";
-  var pageId = document.documentElement.dataset.wfPage || "";
-  var W_CHECKBOX_CLASS = ".w-checkbox-input";
-  var W_INPUT = ".w-input";
-  var W_SELECT = ".w-select";
-  var formElementSelector = attributeselector_default("data-form-element");
-  var filterFormSelector = attributeselector_default("data-filter-form");
-  var FORM_SELECTOR = "form";
-  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
-  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
-  var FORM_INPUT_SELECTOR_LIST = [
-    W_INPUT,
-    W_SELECT,
-    RADIO_INPUT_SELECTOR,
-    CHECKBOX_INPUT_SELECTOR
-  ];
-  var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
-  var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
-  function isRadioInput(input) {
-    return input instanceof HTMLInputElement && input.type === "radio";
-  }
-  function isCheckboxInput(input) {
-    return input instanceof HTMLInputElement && input.type === "checkbox";
-  }
-  var formQuery = {
-    form: FORM_SELECTOR,
-    checkbox: CHECKBOX_INPUT_SELECTOR,
-    radio: RADIO_INPUT_SELECTOR,
-    select: W_SELECT,
-    input: FORM_INPUT_SELECTOR,
-    inputOnly: W_INPUT,
-    inputSelectorList: FORM_INPUT_SELECTOR_LIST,
-    filters: FORM_FILTERS_SELECTOR
-  };
-
-  // library/form/formfield.ts
-  var FormField = class {
-    constructor(data = null) {
-      if (!data) {
-        return;
-      }
-      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
-      this.label = data.label || `Unnamed Field`;
-      this.value = data.value || "";
-      this.required = data.required || false;
-      this.type = data.type || "text";
-      if (this.type === "radio" || "checkbox") {
-        this.checked = data.checked || false;
-      }
-      if (this.type === "checkbox" && !this.checked) {
-        console.log(this.label, this.type, this.checked, data.checked);
-        this.value = "Nicht angew\xE4hlt";
-      }
-    }
-    validate(report = true) {
-      let valid = true;
-      if (this.required) {
-        if (this.type === "radio" || this.type === "checkbox") {
-          if (!this.checked) {
-            valid = false;
-          }
-        } else {
-          if (!this.value.trim()) {
-            valid = false;
-          }
-        }
-      }
-      if (!valid && report) {
-        console.warn(`Field "${this.label}" is invalid.`);
-      }
-      return valid;
-    }
-  };
-  function FieldFromInput(input, index2) {
-    if (input.type === "radio" && !input.checked) {
-      return new FormField();
-    }
-    const field = new FormField({
-      id: input.id || parameterize(input.dataset.name || `field ${index2}`),
-      label: input.dataset.name || `field ${index2}`,
-      value: input.value,
-      required: input.required || false,
-      type: input.type,
-      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
-    });
-    return field;
-  }
-
-  // library/form/fieldgroup.ts
-  var FieldGroup = class {
-    constructor(fields = /* @__PURE__ */ new Map()) {
-      this.fields = fields;
-    }
-    // Method to retrieve a field by its id
-    getField(fieldId) {
-      return this.fields.get(fieldId);
-    }
-  };
-
-  // src/ts/sanavitapdf.ts
-  var pdfFieldSelector = attributeselector_default("data-pdf-field");
+  // library/pdf.ts
   var pdfElementSelector = attributeselector_default("data-pdf-element");
-  var wfCollectionSelector = attributeselector_default("wf-collection");
-  var actionSelector = attributeselector_default("data-action");
-  var DailyMenuCollection = class extends CollectionList {
-    constructor(container) {
-      super(container, "pdf");
-      this.renderer.addFilterAttributes(["date", "end-date", "weekly-hit-boolean"]);
-      this.readCollectionData();
-    }
-    filterByDate(startDate, endDate, ...additionalConditions) {
-      return [...this.collectionData].filter(
-        (weekday) => {
-          const baseCondition = weekday.date >= startDate && weekday.date <= endDate;
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
-          return baseCondition && allAdditionalConditions;
-        }
-      );
-    }
-    filterByRange(startDate, dayRange = 7, ...conditions) {
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + dayRange - 1);
-      return this.filterByDate(startDate, endDate, ...conditions);
-    }
-  };
-  var PDF = class {
+  var pdfFieldSelector = attributeselector_default("data-pdf-field");
+  var Pdf = class {
     constructor(container) {
       if (!container)
         throw new Error("PDF Element not found.");
@@ -29211,6 +29051,168 @@
       } finally {
         this.unFreeze();
       }
+    }
+  };
+
+  // library/wfcollection.ts
+  var CollectionList = class {
+    constructor(container, name) {
+      this.collectionData = [];
+      if (!container || !container.classList.contains("w-dyn-list"))
+        throw new Error(`Container can't be undefined.`);
+      this.name = name || "wf";
+      this.container = container;
+      this.listElement = container.querySelector(".w-dyn-items");
+      this.listItems = container.querySelectorAll(".w-dyn-item");
+      this.renderer = new renderer_default(container, this.name);
+      this.readCollectionData();
+    }
+    readCollectionData() {
+      this.collectionData = this.renderer.read(this.container);
+    }
+    getCollectionData() {
+      return this.collectionData;
+    }
+    getListItems() {
+      return this.listItems;
+    }
+    getAttributeData() {
+      let data = [];
+      this.listItems.forEach((item) => {
+        const itemData = new Map(Object.entries(item.dataset));
+        itemData.forEach((value, key) => {
+          if (!key.startsWith("wf")) {
+            itemData.delete(key);
+          }
+        });
+        data.push(itemData);
+      });
+      return data;
+    }
+  };
+
+  // library/form/form.ts
+  var siteId = document.documentElement.dataset.wfSite || "";
+  var pageId = document.documentElement.dataset.wfPage || "";
+  var W_CHECKBOX_CLASS = ".w-checkbox-input";
+  var W_INPUT = ".w-input";
+  var W_SELECT = ".w-select";
+  var formElementSelector = attributeselector_default("data-form-element");
+  var filterFormSelector = attributeselector_default("data-filter-form");
+  var FORM_SELECTOR = "form";
+  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
+  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
+  var FORM_INPUT_SELECTOR_LIST = [
+    W_INPUT,
+    W_SELECT,
+    RADIO_INPUT_SELECTOR,
+    CHECKBOX_INPUT_SELECTOR
+  ];
+  var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
+  var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
+  function isRadioInput(input) {
+    return input instanceof HTMLInputElement && input.type === "radio";
+  }
+  function isCheckboxInput(input) {
+    return input instanceof HTMLInputElement && input.type === "checkbox";
+  }
+  var formQuery = {
+    form: FORM_SELECTOR,
+    checkbox: CHECKBOX_INPUT_SELECTOR,
+    radio: RADIO_INPUT_SELECTOR,
+    select: W_SELECT,
+    input: FORM_INPUT_SELECTOR,
+    inputOnly: W_INPUT,
+    inputSelectorList: FORM_INPUT_SELECTOR_LIST,
+    filters: FORM_FILTERS_SELECTOR
+  };
+
+  // library/form/formfield.ts
+  var FormField = class {
+    constructor(data = null) {
+      if (!data) {
+        return;
+      }
+      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
+      this.label = data.label || `Unnamed Field`;
+      this.value = data.value || "";
+      this.required = data.required || false;
+      this.type = data.type || "text";
+      if (this.type === "radio" || "checkbox") {
+        this.checked = data.checked || false;
+      }
+      if (this.type === "checkbox" && !this.checked) {
+        console.log(this.label, this.type, this.checked, data.checked);
+        this.value = "Nicht angew\xE4hlt";
+      }
+    }
+    validate(report = true) {
+      let valid = true;
+      if (this.required) {
+        if (this.type === "radio" || this.type === "checkbox") {
+          if (!this.checked) {
+            valid = false;
+          }
+        } else {
+          if (!this.value.trim()) {
+            valid = false;
+          }
+        }
+      }
+      if (!valid && report) {
+        console.warn(`Field "${this.label}" is invalid.`);
+      }
+      return valid;
+    }
+  };
+  function FieldFromInput(input, index2) {
+    if (input.type === "radio" && !input.checked) {
+      return new FormField();
+    }
+    const field = new FormField({
+      id: input.id || parameterize(input.dataset.name || `field ${index2}`),
+      label: input.dataset.name || `field ${index2}`,
+      value: input.value,
+      required: input.required || false,
+      type: input.type,
+      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
+    });
+    return field;
+  }
+
+  // library/form/fieldgroup.ts
+  var FieldGroup = class {
+    constructor(fields = /* @__PURE__ */ new Map()) {
+      this.fields = fields;
+    }
+    // Method to retrieve a field by its id
+    getField(fieldId) {
+      return this.fields.get(fieldId);
+    }
+  };
+
+  // src/ts/sanavitapdf.ts
+  var wfCollectionSelector = attributeselector_default("wf-collection");
+  var actionSelector = attributeselector_default("data-action");
+  var DailyMenuCollection = class extends CollectionList {
+    constructor(container) {
+      super(container, "pdf");
+      this.renderer.addFilterAttributes(["date", "end-date", "weekly-hit-boolean"]);
+      this.readCollectionData();
+    }
+    filterByDate(startDate, endDate, ...additionalConditions) {
+      return [...this.collectionData].filter(
+        (weekday) => {
+          const baseCondition = weekday.date >= startDate && weekday.date <= endDate;
+          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
+          return baseCondition && allAdditionalConditions;
+        }
+      );
+    }
+    filterByRange(startDate, dayRange = 7, ...conditions) {
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + dayRange - 1);
+      return this.filterByDate(startDate, endDate, ...conditions);
     }
   };
   var FilterForm = class {
@@ -29428,7 +29430,7 @@
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     tagWeeklyHit(dailyMenuListElement);
     const menuList = new DailyMenuCollection(dailyMenuListElement);
-    const pdf = new PDF(pdfContainer);
+    const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     setDefaultFilters(filterForm, menuList.getCollectionData());
     filterForm.addOnChange((filters) => {
