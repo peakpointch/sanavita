@@ -12,8 +12,7 @@ import {
 } from "@library/form";
 import { wf, wfclass, formQuery } from "@library/form";
 import { FormInput, Validator } from "@library/form";
-import { FormField, FieldData, FieldFromInput } from "@library/form";
-import FieldGroup from "@library/form/fieldgroup";
+import { FormField, FieldData, FieldFromInput, FieldGroup } from "@library/form";
 
 // Types
 type GroupName =
