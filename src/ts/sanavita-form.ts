@@ -1,6 +1,5 @@
 // Imports
 import createAttribute from "@library/attributeselector";
-import { parameterize } from "@library/parameterize";
 import {
   isCheckboxInput,
   isRadioInput,

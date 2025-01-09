@@ -5,7 +5,7 @@ import createAttribute from "@library/attributeselector";
 
 // Types
 export type PdfElement = 'container' | 'scale' | 'page' | 'weekday' | 'dish';
-type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
+export type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
 
 // Variables
 export const pdfElementSelector = createAttribute<PdfElement>('data-pdf-element');
