@@ -1,1 +1,68 @@
-(()=>{function C(){if(document.querySelectorAll('[popup="empty-state"]').length>0)return;var n=document.cookie.split(";").map(t=>t.split("=").map(e=>e.trim())).reduce((t,[e,p])=>({...t,[e]:decodeURIComponent(p)}),{});let o=document.querySelector(".popup_cms-item"),u=document.querySelectorAll("[popup]"),l=5e3,i=!1,s;function r(){o.style.display="flex",setTimeout(()=>o.classList.add("show"),200),i=!1}function a(){o.classList.remove("show"),setTimeout(()=>o.style.display="none",200),y(),i=!0,clearTimeout(s)}function d(){return n.popupClosed?!1:(f(),s=setTimeout(r,l),!0)}function m(t){if(n.popupClosed)return;let e=new Date;t==="action"?e.setDate(e.getDate()+7):e.setDate(e.getDate()+2);let p={value:!0,expires:e};document.cookie=`popupClosed=${encodeURIComponent(JSON.stringify(p))}; expires=${e.toUTCString()}; path=/`}function c(t){let e=t.target.closest("[popup]").getAttribute("popup");e&&["action","close"].includes(e)&&(m(e),a())}function f(){u.forEach(function(t){t.addEventListener("click",c)})}function y(){u.forEach(function(t){t.removeEventListener("click",c)})}d()}fsCookieScript.addEventListener("load",C);})();
+(() => {
+  // src/js/popup-cookie.js
+  function initializePopup() {
+    const popupEmptyState = document.querySelectorAll('[popup="empty-state"]');
+    if (popupEmptyState.length > 0) {
+      return;
+    }
+    var cookies = document.cookie.split(";").map((cookie) => cookie.split("=").map((part) => part.trim())).reduce((accumulator, [key, value]) => ({ ...accumulator, [key]: decodeURIComponent(value) }), {});
+    const popupElement = document.querySelector(".popup_cms-item");
+    const popupButtons = document.querySelectorAll("[popup]");
+    const popupDelay = 5e3;
+    let isPopupClosed = false;
+    let openPopupTimeout;
+    function openPopup() {
+      popupElement.style.display = "flex";
+      setTimeout(() => popupElement.classList.add("show"), 200);
+      isPopupClosed = false;
+    }
+    function closePopup() {
+      popupElement.classList.remove("show");
+      setTimeout(() => popupElement.style.display = "none", 200);
+      removeButtonListeners();
+      isPopupClosed = true;
+      clearTimeout(openPopupTimeout);
+    }
+    function isExpired() {
+      if (!cookies["popupClosed"]) {
+        addButtonListeners();
+        openPopupTimeout = setTimeout(openPopup, popupDelay);
+        return true;
+      } else {
+        return false;
+      }
+    }
+    function setPopupCookie(action) {
+      if (cookies["popupClosed"]) {
+        return;
+      }
+      let expirationDate = /* @__PURE__ */ new Date();
+      if (action === "action") {
+        expirationDate.setDate(expirationDate.getDate() + 7);
+      } else {
+        expirationDate.setDate(expirationDate.getDate() + 2);
+      }
+      const popupClosedValue = { value: true, expires: expirationDate };
+      document.cookie = `popupClosed=${encodeURIComponent(JSON.stringify(popupClosedValue))}; expires=${expirationDate.toUTCString()}; path=/`;
+    }
+    function handleButtonClick(event) {
+      const buttonAttributeValue = event.target.closest("[popup]").getAttribute("popup");
+      if (buttonAttributeValue && ["action", "close"].includes(buttonAttributeValue)) {
+        setPopupCookie(buttonAttributeValue);
+        closePopup();
+      }
+    }
+    function addButtonListeners() {
+      popupButtons.forEach(function(button) {
+        button.addEventListener("click", handleButtonClick);
+      });
+    }
+    function removeButtonListeners() {
+      popupButtons.forEach(function(button) {
+        button.removeEventListener("click", handleButtonClick);
+      });
+    }
+    isExpired();
+  }
+  fsCookieScript.addEventListener("load", initializePopup);
+})();

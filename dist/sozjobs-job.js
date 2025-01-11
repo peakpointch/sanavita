@@ -1,1 +1,39 @@
-(()=>{function c(e){return e.replace(/([a-z])([A-Z])/g,"$1-$2").toLowerCase()}function s(e){return`job${e.charAt(0).toUpperCase()+e.slice(1)}`}function i(){document.querySelector('[data-job-element="layout"]').classList.remove("placeholder")}window.addEventListener("jobDataReady",()=>{let e=window.jobData,o=window.contractTypesData,r=["title","accessionPer","rate","categoryNames","contractTypeName"];e.isparttime?e.rate=`${e.parttimefrom}-${e.parttimeto}%`:e.rate="Vollzeit 100%",e.categorynames=e.categories.map(t=>t?t.name:"").filter(t=>t!==null).join(", "),e.contracttypename=o.find(t=>t.key===e.contracttype)?.value,r.forEach(t=>{let n=`[data-job-${c(t)}]:not(a)`;document.querySelectorAll(n).forEach(a=>{a.innerText=e[t.toLowerCase()],a.dataset[s(t)]=e[t.toLowerCase()]||"init"})}),document.querySelector("[data-job-abstract]").insertAdjacentHTML("beforeend",e.abstract),document.querySelector("[data-job-detail]").insertAdjacentHTML("beforeend",e.detail),i()});})();
+(() => {
+  // src/js/sozjobs-job.js
+  function toKebabCase(str) {
+    return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+  }
+  function toJobDataset(str) {
+    return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
+  }
+  function removePlaceholderClass() {
+    document.querySelector('[data-job-element="layout"]').classList.remove("placeholder");
+  }
+  window.addEventListener("jobDataReady", () => {
+    const job = window.jobData;
+    const contractTypes = window.contractTypesData;
+    const props = ["title", "accessionPer", "rate", "categoryNames", "contractTypeName"];
+    if (job.isparttime) {
+      job.rate = `${job.parttimefrom}-${job.parttimeto}%`;
+    } else {
+      job.rate = `Vollzeit 100%`;
+    }
+    job.categorynames = job.categories.map((category) => {
+      return category ? category.name : "";
+    }).filter((name) => name !== null).join(", ");
+    job.contracttypename = contractTypes.find((type) => type.key === job.contracttype)?.value;
+    props.forEach((prop) => {
+      const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
+      const elements = document.querySelectorAll(attr);
+      elements.forEach((el) => {
+        el.innerText = job[prop.toLowerCase()];
+        el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+      });
+    });
+    const abstractWrapper = document.querySelector("[data-job-abstract]");
+    abstractWrapper.insertAdjacentHTML("beforeend", job.abstract);
+    const detailWrapper = document.querySelector("[data-job-detail]");
+    detailWrapper.insertAdjacentHTML("beforeend", job.detail);
+    removePlaceholderClass();
+  });
+})();

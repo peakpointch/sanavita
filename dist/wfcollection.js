@@ -1,1 +1,18 @@
-(()=>{var e={initialized:!1},t=i=>{e.initialized||(e.initialized=!0,i.forEach(r=>{e[r]=[]}))};window.initWfCollections=t;window.wfCollections=e;})();
+(() => {
+  // library/wfcollection.ts
+  var wfCollections = {
+    initialized: false
+  };
+  var initWfCollections = (collections) => {
+    if (wfCollections.initialized)
+      return;
+    wfCollections.initialized = true;
+    collections.forEach((collection) => {
+      wfCollections[collection] = [];
+    });
+  };
+
+  // src/js/wfcollection.js
+  window.initWfCollections = initWfCollections;
+  window.wfCollections = wfCollections;
+})();

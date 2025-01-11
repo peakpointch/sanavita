@@ -34,8 +34,9 @@ function processItems(container, target) {
 function extractTargetFromAttribute(container) {
   const targetSelector = container.getAttribute("inlinecms-target");
   if (!targetSelector) {
+    const containerSelector = `${container.id ? "#" + container.id : ""}.${container.className.replace(" ", ".")}`;
     throw new Error(
-      `Container is missing data-inlinecms-target attribute: ${container}`
+      `Container is missing data-inlinecms-target attribute: ${containerSelector || container}`
     );
   }
   const target = document.querySelector(targetSelector);
@@ -63,7 +64,7 @@ function inlineCms(containers) {
     containerElements = Array.from(containers);
   }
   if (containerElements.length === 0) {
-    throw new Error(`No containers found matching: ${containers}`);
+    throw new Error(`No containers found matching: ${JSON.stringify(containers)}`);
   }
   containerElements.forEach((container) => {
     validateContainer(container);
@@ -71,8 +72,9 @@ function inlineCms(containers) {
     try {
       targetElement = extractTargetFromAttribute(container);
     } catch (e) {
-      console.error(
-        `Inlinecms: Error getting Target element from Attribute.`,
+      console.info(
+        `Inlinecms: Setting target to the containers parent.
+`,
         e.message
       );
       targetElement = container.parentElement;

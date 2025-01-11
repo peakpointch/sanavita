@@ -1,1 +1,46 @@
-(()=>{function r(){let l=document.querySelectorAll('[data-timeline-element="component"]'),c=window.innerWidth;l.forEach(s=>{let d=s.getAttribute("data-timeline-time-from"),m=s.getAttribute("data-timeline-time-to"),[u,f,g]=d.split("."),[h,p,y]=m.split("."),t=new Date(`${g}-${f}-${u}`),i=new Date(`${y}-${p}-${h}`),e=new Date;e.setHours(0,0,0,0),t.setHours(0,0,0,0),i.setHours(0,0,0,0);let n=s.querySelector('[data-timeline-element="progres"]'),a=s.querySelector('[data-timeline-element="dot"]'),o=0;if(e<t)o=0,a.classList.remove("is-active");else if(e>=i)o=100,a.classList.add("is-active");else{let D=i-t;o=(e-t)/D*100,e>=t&&a.classList.add("is-active")}c>991?(n.style.width=`${o}%`,n.style.height="auto"):(n.style.height=`${o}%`,n.style.width="auto")})}r();setInterval(r,24*60*60*1e3);window.addEventListener("resize",r);})();
+(() => {
+  // src/js/timeline.js
+  function updateTimelineProgress() {
+    const timelineComponents = document.querySelectorAll('[data-timeline-element="component"]');
+    const screenWidth = window.innerWidth;
+    timelineComponents.forEach((timeline) => {
+      const timeFromString = timeline.getAttribute("data-timeline-time-from");
+      const timeToString = timeline.getAttribute("data-timeline-time-to");
+      const [fromDay, fromMonth, fromYear] = timeFromString.split(".");
+      const [toDay, toMonth, toYear] = timeToString.split(".");
+      const fromDate = /* @__PURE__ */ new Date(`${fromYear}-${fromMonth}-${fromDay}`);
+      const toDate = /* @__PURE__ */ new Date(`${toYear}-${toMonth}-${toDay}`);
+      const today = /* @__PURE__ */ new Date();
+      today.setHours(0, 0, 0, 0);
+      fromDate.setHours(0, 0, 0, 0);
+      toDate.setHours(0, 0, 0, 0);
+      const progressElement = timeline.querySelector('[data-timeline-element="progres"]');
+      const dotElement = timeline.querySelector('[data-timeline-element="dot"]');
+      let progressPercentage = 0;
+      if (today < fromDate) {
+        progressPercentage = 0;
+        dotElement.classList.remove("is-active");
+      } else if (today >= toDate) {
+        progressPercentage = 100;
+        dotElement.classList.add("is-active");
+      } else {
+        const totalDuration = toDate - fromDate;
+        const elapsedDuration = today - fromDate;
+        progressPercentage = elapsedDuration / totalDuration * 100;
+        if (today >= fromDate) {
+          dotElement.classList.add("is-active");
+        }
+      }
+      if (screenWidth > 991) {
+        progressElement.style.width = `${progressPercentage}%`;
+        progressElement.style.height = "auto";
+      } else {
+        progressElement.style.height = `${progressPercentage}%`;
+        progressElement.style.width = "auto";
+      }
+    });
+  }
+  updateTimelineProgress();
+  setInterval(updateTimelineProgress, 24 * 60 * 60 * 1e3);
+  window.addEventListener("resize", updateTimelineProgress);
+})();

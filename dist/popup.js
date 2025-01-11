@@ -1,1 +1,49 @@
-(()=>{function a(){let t=document.querySelector(".popup_cms-item"),o=document.querySelectorAll("[popup]"),p=document.querySelectorAll('[popup="empty-state"]'),c=5e3,n=!1;if(p.length>0)return;function i(){t.style.display="flex",setTimeout(()=>t.classList.add("show"),200),r()}function l(){n||(t.classList.remove("show"),setTimeout(()=>t.style.display="none",200),n=!0)}function s(e){let u=e.target.closest("[popup]").getAttribute("popup");u&&["action","close"].includes(u)&&l()}function r(){o.forEach(function(e){e.addEventListener("click",s)})}function f(){o.forEach(function(e){e.removeEventListener("click",s)})}setTimeout(i,c)}function d(){window.FsCC.preferences.store.consents.personalization||a()}fsCookieScript.addEventListener("load",d);})();
+(() => {
+  // src/js/popup.js
+  function handlePopup() {
+    const popupElement = document.querySelector(".popup_cms-item");
+    const popupButtons = document.querySelectorAll("[popup]");
+    const popupEmptyState = document.querySelectorAll('[popup="empty-state"]');
+    const popupDelay = 5e3;
+    let isPopupClosed = false;
+    if (popupEmptyState.length > 0) {
+      return;
+    }
+    function openPopup() {
+      popupElement.style.display = "flex";
+      setTimeout(() => popupElement.classList.add("show"), 200);
+      addButtonListeners();
+    }
+    function closePopup() {
+      if (!isPopupClosed) {
+        popupElement.classList.remove("show");
+        setTimeout(() => popupElement.style.display = "none", 200);
+        isPopupClosed = true;
+      }
+    }
+    function handleButtonClick(event) {
+      const buttonAttributeValue = event.target.closest("[popup]").getAttribute("popup");
+      if (buttonAttributeValue && ["action", "close"].includes(buttonAttributeValue)) {
+        closePopup();
+      }
+    }
+    function addButtonListeners() {
+      popupButtons.forEach(function(button) {
+        button.addEventListener("click", handleButtonClick);
+      });
+    }
+    function removeButtonListeners() {
+      popupButtons.forEach(function(button) {
+        button.removeEventListener("click", handleButtonClick);
+      });
+    }
+    setTimeout(openPopup, popupDelay);
+  }
+  function checkToRun() {
+    if (window.FsCC.preferences.store.consents.personalization) {
+      return;
+    }
+    handlePopup();
+  }
+  fsCookieScript.addEventListener("load", checkToRun);
+})();

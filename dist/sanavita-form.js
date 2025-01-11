@@ -1036,32 +1036,24 @@
     }
   };
   var MultiStepForm = class {
-    constructor(component, settings) {
+    constructor(component, options) {
+      this.initialized = false;
       this.currentStep = 0;
       this.customComponents = [];
-      this.initialized = false;
       this.component = component;
-      this.formElement = this.component.querySelector(
-        formQuery.form
-      );
-      this.settings = settings;
+      this.formElement = this.component.querySelector(formQuery.form);
+      this.options = options;
       if (!this.formElement) {
         throw new Error("Form element not found within the specified component.");
       }
       this.formSteps = this.component.querySelectorAll(stepsElementSelector("step"));
-      this.paginationItems = this.component.querySelectorAll(
-        STEPS_PAGINATION_ITEM_SELECTOR
-      );
-      this.navigationElement = this.component.querySelector(
-        stepsElementSelector("navigation")
-      );
+      this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
+      this.navigationElement = this.component.querySelector(stepsElementSelector("navigation"));
       this.buttonsNext = this.component.querySelectorAll(stepsNavSelector("next"));
       this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector("prev"));
       this.successElement = this.component.querySelector(formElementSelector("success"));
       this.errorElement = this.component.querySelector(formElementSelector("error"));
-      this.submitButton = this.component.querySelector(
-        formElementSelector("submit")
-      );
+      this.submitButton = this.component.querySelector(formElementSelector("submit"));
       this.initialize();
     }
     initialize() {
@@ -1129,25 +1121,27 @@ Component:`,
       }
     }
     buildJsonForWebflow() {
-      const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
-      let customFields = {};
-      this.customComponents.map((entry) => {
-        customFields = {
-          ...customFields,
+      const customFields = this.customComponents.reduce((acc, entry) => {
+        return {
+          ...acc,
           ...entry.getData ? entry.getData() : {}
         };
       });
+      const fields = {
+        ...mapToObject(this.getAllFormData(), false),
+        ...customFields
+      };
+      if (this.options.recaptcha) {
+        const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
+        fields["g-recaptcha-response"] = recaptcha;
+      }
       return {
         name: this.formElement.dataset.name,
         pageId: wf.pageId,
         elementId: this.formElement.dataset.wfElementId,
         source: window.location.href,
         test: false,
-        fields: {
-          ...mapToObject(this.getAllFormData(), false),
-          ...customFields,
-          "g-recaptcha-response": recaptcha
-        },
+        fields,
         dolphin: false
       };
     }
@@ -1267,7 +1261,7 @@ Component:`,
           button.style.opacity = "1";
         }
       });
-      if (target === this.settings.navigation.hideInStep) {
+      if (target === this.options.navigation.hideInStep) {
         this.navigationElement.style.visibility = "hidden";
         this.navigationElement.style.opacity = "0";
       } else {
@@ -1295,7 +1289,7 @@ Component:`,
       const currentStepElement = this.formSteps[step];
       const inputs = currentStepElement.querySelectorAll(formQuery.input);
       const filteredInputs = Array.from(inputs).filter((input) => {
-        const isExcluded = this.settings.excludeInputSelectors.some(
+        const isExcluded = this.options.excludeInputSelectors.some(
           (selector) => {
             return input.closest(`${selector}`) !== null || input.matches(selector);
           }
@@ -1332,6 +1326,13 @@ Component:`,
         const stepData = this.getFormDataForStep(stepIndex);
         fields = new Map([...fields, ...stepData]);
       });
+      const newFields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
+        const stepData = this.getFormDataForStep(stepIndex);
+        return new Map([
+          ...acc,
+          ...stepData
+        ]);
+      }, /* @__PURE__ */ new Map());
       return fields;
     }
   };
@@ -1431,6 +1432,7 @@ Component:`,
       navigation: {
         hideInStep: 0
       },
+      recaptcha: true,
       excludeInputSelectors: [
         '[data-decision-path="upload"]',
         "[data-decision-component]"

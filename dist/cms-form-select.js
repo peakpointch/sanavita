@@ -1,1 +1,39 @@
-(()=>{function i(t){let e=t.dataset.formSelectOptionPrefix||"",o=t.dataset.formSelectOptionValue||"";return e?`${e} ${o}`:o}function u(t){let e=document.createElement("option");return e.setAttribute("value",t),e.innerText=t,e}function c(){let t=l.querySelectorAll('[data-form-select-element="option-value"]'),e=document.querySelector('[data-form-select-element="target"]');t.forEach(o=>{let n=i(o),s=o.dataset.status?o.dataset.status:null;if(n&&(!s||s==="active")){let r=new u(n);console.log("CMS FORM SELECT -- INSERTING ...",n),e.appendChild(r)}else console.log("CMS FORM SELECT -- SKIPPING EMPTY OPTION")})}var l=document.querySelector('[data-form-select-element="source"]'),a=l.dataset.formSelectWait||null;a&&a.length>0?(console.log("CMS FORM SELECT -- WAITING ..."),l.addEventListener(l.dataset.formSelectWait,c)):(console.log("CMS FORM SELECT -- INSTANT ..."),c());})();
+(() => {
+  // src/js/cms-form-select.js
+  function getSelectValue(item) {
+    const prefix = item.dataset.formSelectOptionPrefix || "";
+    const value = item.dataset.formSelectOptionValue || "";
+    const optionValue = prefix ? `${prefix} ${value}` : value;
+    return optionValue;
+  }
+  function Option(value) {
+    const optionElement = document.createElement("option");
+    optionElement.setAttribute("value", value);
+    optionElement.innerText = value;
+    return optionElement;
+  }
+  function insertSelectOptions() {
+    const items = selectList.querySelectorAll('[data-form-select-element="option-value"]');
+    const selectTarget = document.querySelector('[data-form-select-element="target"]');
+    items.forEach((item) => {
+      const optionValue = getSelectValue(item);
+      const optionStatus = item.dataset.status ? item.dataset.status : null;
+      if (optionValue && (!optionStatus || optionStatus === "active")) {
+        const option = new Option(optionValue);
+        console.log("CMS FORM SELECT -- INSERTING ...", optionValue);
+        selectTarget.appendChild(option);
+      } else {
+        console.log("CMS FORM SELECT -- SKIPPING EMPTY OPTION");
+      }
+    });
+  }
+  var selectList = document.querySelector('[data-form-select-element="source"]');
+  var waitEvent = selectList.dataset.formSelectWait || null;
+  if (waitEvent && waitEvent.length > 0) {
+    console.log("CMS FORM SELECT -- WAITING ...");
+    selectList.addEventListener(selectList.dataset.formSelectWait, insertSelectOptions);
+  } else {
+    console.log("CMS FORM SELECT -- INSTANT ...");
+    insertSelectOptions();
+  }
+})();

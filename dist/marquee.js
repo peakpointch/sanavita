@@ -1,1 +1,25 @@
-(()=>{var r=!0,l=document.querySelectorAll('[pp-type="image-marquee"]');function s(u){u.forEach(t=>{let e=t.querySelector(".marquee_pause"),a=t.querySelector(".marquee_track");!e|!a||e.addEventListener("click",()=>{a.classList.toggle("marquee_paused"),r?(e.innerText="play",r=!1):(e.innerText="pause",r=!0)})})}s(l);})();
+(() => {
+  // src/js/marquee.js
+  var isFirstClick = true;
+  var marquees = document.querySelectorAll('[pp-type="image-marquee"]');
+  function handleMarqueeEvents(allMarquees) {
+    allMarquees.forEach((component) => {
+      let btn = component.querySelector(".marquee_pause");
+      let track = component.querySelector(".marquee_track");
+      if (!btn | !track) {
+        return;
+      }
+      btn.addEventListener("click", () => {
+        track.classList.toggle("marquee_paused");
+        if (isFirstClick) {
+          btn.innerText = "play";
+          isFirstClick = false;
+        } else {
+          btn.innerText = "pause";
+          isFirstClick = true;
+        }
+      });
+    });
+  }
+  handleMarqueeEvents(marquees);
+})();

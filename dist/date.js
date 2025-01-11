@@ -1,1 +1,40 @@
-(()=>{function s(t,n="d-mmmm-yyyy"){let e=t.getDate(),a=t.toLocaleString("default",{month:"long"}),o=t.getFullYear();return n==="d-mmmm"?`${e}. <span class="monthclass">${a}</span>`:`${e}. <span class="monthclass">${a}</span> ${o}`}function d(){return s(new Date)}function r(){let t=new Date,n=t.getDay(),e=new Date(t),a=new Date(t);return e.setDate(t.getDate()-(n===0?6:n-1)),a.setDate(e.getDate()+6),`${s(e,"d-mmmm")} \u2013 ${s(a)}`}var c=d(),l=r(),m=document.querySelectorAll("[data-date]");m.forEach(t=>{t.dataset.date==="current-week"?(t.innerHTML=l,t.dataset.date="initialized"):t.dataset.date==="today"?(t.innerHTML=c,t.dataset.date="initialized"):t.dataset.date="failed"});})();
+(() => {
+  // src/js/date.js
+  function formatDate(date, option = "d-mmmm-yyyy") {
+    const day = date.getDate();
+    const month = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+    if (option === "d-mmmm") {
+      return `${day}. <span class="monthclass">${month}</span>`;
+    } else {
+      return `${day}. <span class="monthclass">${month}</span> ${year}`;
+    }
+  }
+  function getTodaysDate() {
+    const today2 = /* @__PURE__ */ new Date();
+    return formatDate(today2);
+  }
+  function getCurrentWeek() {
+    const now = /* @__PURE__ */ new Date();
+    const currentDayOfWeek = now.getDay();
+    const startDate = new Date(now);
+    const endDate = new Date(now);
+    startDate.setDate(now.getDate() - (currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1));
+    endDate.setDate(startDate.getDate() + 6);
+    return `${formatDate(startDate, "d-mmmm")} \u2013 ${formatDate(endDate)}`;
+  }
+  var today = getTodaysDate();
+  var currentWeek = getCurrentWeek();
+  var dateElements = document.querySelectorAll("[data-date]");
+  dateElements.forEach((e) => {
+    if (e.dataset.date === "current-week") {
+      e.innerHTML = currentWeek;
+      e.dataset.date = "initialized";
+    } else if (e.dataset.date === "today") {
+      e.innerHTML = today;
+      e.dataset.date = "initialized";
+    } else {
+      e.dataset.date = "failed";
+    }
+  });
+})();

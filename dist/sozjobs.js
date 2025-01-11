@@ -1,1 +1,87 @@
-(()=>{function h(e){return e.replace(/([a-z])([A-Z])/g,"$1-$2").toLowerCase()}function L(e){return`job${e.charAt(0).toUpperCase()+e.slice(1)}`}function w(e){let r=document.createElement("option");return r.setAttribute("value",e),r.innerText=e,r}function p(){u.remove(),y.classList.remove("hide")}function S(){v.forEach(e=>{e.remove()})}var g=document.querySelector("[data-form-select-target]"),c=document.querySelector('[data-job-element="component"]'),u=c.querySelector('[data-job-element="list"]'),y=c.querySelector('[data-job-element="empty-state"]'),j=c.querySelector('[data-job-element="template"]'),v=c.querySelectorAll('[data-job-element="loading"]'),s=3;window.addEventListener("jobDataReady",()=>{let e=window.jobData,r=window.contractTypesData;if(!e.length){p();return}y.remove();let l=(a,i)=>{e.slice(a,a+i).forEach(t=>{let n=j.cloneNode(!0);n.classList.remove("hide"),n.classList.remove("is-template"),n.style.display="flex";let b=["title","accessionPer","rate","categoryNames","contractTypeName"];t.isparttime?t.rate=`${t.parttimefrom}-${t.parttimeto}%`:t.rate="Vollzeit 100%",t.categorynames=t.categories.map(o=>o?o.name:"").filter(o=>o!==null).join(", "),t.contracttypename=r.find(o=>o.key===t.contracttype)?.value,b.forEach(o=>{let f=`[data-job-${h(o)}]:not(a)`,m=n.querySelector(f);m.innerText=t[o.toLowerCase()],m.dataset[L(o)]=t[o.toLowerCase()]||"init"});let d=n.querySelector("a");d.href=`/jobs/job?id=${t.identitynumber}`,d.target="",u.appendChild(n)})};if(l(0,s),S(),e.length>s){let a=c.querySelector('[data-job-element="pagination"]');a.classList.remove("hide"),a.addEventListener("click",()=>{s+=3,l(s-3,3),s>=e.length&&a.classList.add("hide")})}e.map(a=>{let i=new w(a.title);g.appendChild(i)})});window.addEventListener("jobDataEmpty",()=>{p()});})();
+(() => {
+  // src/js/sozjobs.js
+  function toKebabCase(str) {
+    return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+  }
+  function toJobDataset(str) {
+    return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
+  }
+  function Option(value) {
+    const optionElement = document.createElement("option");
+    optionElement.setAttribute("value", value);
+    optionElement.innerText = value;
+    return optionElement;
+  }
+  function emptyState() {
+    jobList.remove();
+    jobEmptyState.classList.remove("hide");
+  }
+  function disableLoading() {
+    jobLoadingTemplate.forEach((element) => {
+      element.remove();
+    });
+  }
+  var formSelectField = document.querySelector("[data-form-select-target]");
+  var jobComponent = document.querySelector('[data-job-element="component"]');
+  var jobList = jobComponent.querySelector('[data-job-element="list"]');
+  var jobEmptyState = jobComponent.querySelector('[data-job-element="empty-state"]');
+  var jobCardTemplate = jobComponent.querySelector('[data-job-element="template"]');
+  var jobLoadingTemplate = jobComponent.querySelectorAll('[data-job-element="loading"]');
+  var displayedJobs = 3;
+  window.addEventListener("jobDataReady", () => {
+    let jobs = window.jobData;
+    const contractTypes = window.contractTypesData;
+    if (!jobs.length) {
+      emptyState();
+      return;
+    }
+    jobEmptyState.remove();
+    const displayJobs = (start, count) => {
+      const jobsToShow = jobs.slice(start, start + count);
+      jobsToShow.forEach((job) => {
+        const jobCard = jobCardTemplate.cloneNode(true);
+        jobCard.classList.remove("hide");
+        jobCard.classList.remove("is-template");
+        jobCard.style.display = "flex";
+        const props = ["title", "accessionPer", "rate", "categoryNames", "contractTypeName"];
+        if (job.isparttime) {
+          job.rate = `${job.parttimefrom}-${job.parttimeto}%`;
+        } else {
+          job.rate = `Vollzeit 100%`;
+        }
+        job.categorynames = job.categories.map((category) => category ? category.name : "").filter((name) => name !== null).join(", ");
+        job.contracttypename = contractTypes.find((type) => type.key === job.contracttype)?.value;
+        props.forEach((prop) => {
+          const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
+          const el = jobCard.querySelector(attr);
+          el.innerText = job[prop.toLowerCase()];
+          el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+        });
+        const cardLink = jobCard.querySelector("a");
+        cardLink.href = `/jobs/job?id=${job.identitynumber}`;
+        cardLink.target = "";
+        jobList.appendChild(jobCard);
+      });
+    };
+    displayJobs(0, displayedJobs);
+    disableLoading();
+    if (jobs.length > displayedJobs) {
+      const loadButton = jobComponent.querySelector('[data-job-element="pagination"]');
+      loadButton.classList.remove("hide");
+      loadButton.addEventListener("click", () => {
+        displayedJobs += 3;
+        displayJobs(displayedJobs - 3, 3);
+        if (displayedJobs >= jobs.length) {
+          loadButton.classList.add("hide");
+        }
+      });
+    }
+    jobs.map((job) => {
+      const optionElement = new Option(job.title);
+      formSelectField.appendChild(optionElement);
+    });
+  });
+  window.addEventListener("jobDataEmpty", () => {
+    emptyState();
+  });
+})();

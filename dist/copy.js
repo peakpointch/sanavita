@@ -1,1 +1,11 @@
-(()=>{var c=page.querySelectorAll("[copy-component]");c.forEach(t=>{let e=t.querySelector("button"),o=t.dataset.copyText;e.addEventListener("click",()=>{navigator.clipboard.writeText(o)})});})();
+(() => {
+  // src/js/copy.js
+  var allComponents = page.querySelectorAll("[copy-component]");
+  allComponents.forEach((component) => {
+    const button = component.querySelector("button");
+    const copyData = component.dataset.copyText;
+    button.addEventListener("click", () => {
+      navigator.clipboard.writeText(copyData);
+    });
+  });
+})();

@@ -1,1 +1,73 @@
-(()=>{function u(e,t=e.parentNode){if(!e.classList.contains("w-dyn-list")){console.error("The element given is not a CMS list: "+e);return}let o;typeof t=="string"?o=document.querySelector(t):t instanceof Node&&(o=t);let a=e.querySelectorAll(".w-dyn-item");if(e.remove(),!a.length>0){console.error("The collection given doesn't contain any items: "+e);return}a.forEach(s=>{s.classList.remove("w-dyn-item"),o.appendChild(s)})}var p=document.querySelectorAll('.w-dyn-list[data-cms-unpack="true"]');p.forEach(e=>{let t=e.dataset.cmsUnpackTarget;u(e,t),e.dataset.cmsUnpack="initialized"});document.querySelectorAll(".w-slide:empty").forEach(e=>e.remove());var S=document.querySelectorAll('[swiper-component="true"]:not(.swiper-initialized)');S.forEach(e=>{if(!e.querySelectorAll(".swiper-slide").length>0){console.log("Skip empty swiper: "+e),e.classList.add("hide");return}e.classList.remove("initial-hide");let o=(e.dataset.swiperNav||".swiper-button").toString(),a=`${o}:not(.next)`,s=`${o}.next`,i=JSON.parse(e.dataset.swiperAutoHeight||"false"),n=e.dataset.swiperSlidesPerView==="auto"?"auto":parseFloat(e.dataset.swiperSlidesPerView||1),l=parseFloat(e.dataset.swiperSpace||1),r=JSON.parse(e.dataset.swiperCenteredSlides||"false"),c=JSON.parse(e.dataset.swiperLoop||"true"),d=JSON.parse(e.dataset.swiperTouchMove||"true"),w=new Swiper(e,{navigation:{prevEl:a,nextEl:s},pagination:{el:".swiper-pagination",clickable:!0},allowTouchMove:d,centeredSlides:r,speed:400,autoHeight:i,spaceBetween:l,loop:c,slidesPerView:n,on:{init:()=>{e.dataset.swiperComponent="initialized"}}})});})();
+(() => {
+  // src/js/legacy-swiper.js
+  function unpackCmsList(cmsList, target = cmsList.parentNode) {
+    if (!cmsList.classList.contains("w-dyn-list")) {
+      console.error("The element given is not a CMS list: " + cmsList);
+      return;
+    }
+    let targetEl;
+    if (typeof target === "string") {
+      targetEl = document.querySelector(target);
+    } else if (target instanceof Node) {
+      targetEl = target;
+    }
+    const items = cmsList.querySelectorAll(".w-dyn-item");
+    cmsList.remove();
+    if (!items.length > 0) {
+      console.error("The collection given doesn't contain any items: " + cmsList);
+      return;
+    }
+    items.forEach((item) => {
+      item.classList.remove("w-dyn-item");
+      targetEl.appendChild(item);
+    });
+  }
+  var allCmsListsToUnpack = document.querySelectorAll('.w-dyn-list[data-cms-unpack="true"]');
+  allCmsListsToUnpack.forEach((cmsList) => {
+    const target = cmsList.dataset.cmsUnpackTarget;
+    unpackCmsList(cmsList, target);
+    cmsList.dataset.cmsUnpack = "initialized";
+  });
+  document.querySelectorAll(".w-slide:empty").forEach((e) => e.remove());
+  var allSwipers = document.querySelectorAll('[swiper-component="true"]:not(.swiper-initialized)');
+  allSwipers.forEach((swiperElement) => {
+    const slides = swiperElement.querySelectorAll(".swiper-slide");
+    if (!slides.length > 0) {
+      console.log("Skip empty swiper: " + swiperElement);
+      swiperElement.classList.add("hide");
+      return;
+    }
+    swiperElement.classList.remove("initial-hide");
+    const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
+    const prevEl = `${dataNav}:not(.next)`;
+    const nextEl = `${dataNav}.next`;
+    const autoHeight = JSON.parse(swiperElement.dataset.swiperAutoHeight || "false");
+    const slidesPerView = swiperElement.dataset.swiperSlidesPerView === "auto" ? "auto" : parseFloat(swiperElement.dataset.swiperSlidesPerView || 1);
+    const spaceBetween = parseFloat(swiperElement.dataset.swiperSpace || 1);
+    const centeredSlides = JSON.parse(swiperElement.dataset.swiperCenteredSlides || "false");
+    const loop = JSON.parse(swiperElement.dataset.swiperLoop || "true");
+    const allowTouchMove = JSON.parse(swiperElement.dataset.swiperTouchMove || "true");
+    const swiper = new Swiper(swiperElement, {
+      navigation: {
+        prevEl,
+        nextEl
+      },
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true
+      },
+      allowTouchMove,
+      centeredSlides,
+      speed: 400,
+      autoHeight,
+      spaceBetween,
+      loop,
+      slidesPerView,
+      on: {
+        init: () => {
+          swiperElement.dataset.swiperComponent = "initialized";
+        }
+      }
+    });
+  });
+})();

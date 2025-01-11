@@ -1,1 +1,17 @@
-(()=>{function i(){let n=page.querySelector(".pgc-item_wrap"),e=10,f=1270,a=e,t=-1/150*window.innerWidth+8;t=Math.max(0,t);let s=Math.max(e,e+t);n&&n.style.setProperty("--item-offset",`${s}deg`)}i();window.addEventListener("resize",i);})();
+(() => {
+  // src/js/circle.js
+  function updateOffset() {
+    const itemWrap = page.querySelector(".pgc-item_wrap");
+    const baseDeg = 10;
+    const minWidth = 1270;
+    const minOffset = baseDeg;
+    let vwOffset = -1 / 150 * window.innerWidth + 8;
+    vwOffset = Math.max(0, vwOffset);
+    let newOffset = Math.max(baseDeg, baseDeg + vwOffset);
+    if (itemWrap) {
+      itemWrap.style.setProperty("--item-offset", `${newOffset}deg`);
+    }
+  }
+  updateOffset();
+  window.addEventListener("resize", updateOffset);
+})();

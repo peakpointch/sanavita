@@ -77,7 +77,7 @@ function build() {
 
   // Build the scripts
   buildScripts('src/ts', 'dist', 'ts', [], false, "iife");
-  buildScripts('src/js', 'dist', 'js', ['admin'], true, "iife");
+  buildScripts('src/js', 'dist', 'js', ['admin'], false, "iife");
 
   // Build development files
   buildDevFiles(devFiles);

@@ -1,1 +1,22 @@
-(()=>{var l="uploadcare-uuid",o="uploadcare-file",a=document.querySelector("uc-upload-ctx-provider");a.addEventListener("change",c=>{let e=c.detail.successEntries;console.log("FILES:",e);let d=e.map(t=>t.uuid),r=e.map(t=>t.cdnUrl),n=document.getElementById(l);n.value=d.join(", "),n.dispatchEvent(new Event("change",{bubbles:!0}));let u=document.getElementById(o);u.value=r.join(", "),u.dispatchEvent(new Event("change",{bubbles:!0}))});})();
+(() => {
+  // src/js/uploadcare.js
+  var UUID_FIELD_ID = "uploadcare-uuid";
+  var URLCDN_FIELD_ID = "uploadcare-file";
+  var ctxProvider = document.querySelector("uc-upload-ctx-provider");
+  ctxProvider.addEventListener("change", (event) => {
+    const files = event.detail.successEntries;
+    console.log("FILES:", files);
+    let uuidArray = files.map((file) => {
+      return file.uuid;
+    });
+    let cdnUrlArray = files.map((file) => {
+      return file.cdnUrl;
+    });
+    const uuidField = document.getElementById(UUID_FIELD_ID);
+    uuidField.value = uuidArray.join(", ");
+    uuidField.dispatchEvent(new Event("change", { bubbles: true }));
+    const urlField = document.getElementById(URLCDN_FIELD_ID);
+    urlField.value = cdnUrlArray.join(", ");
+    urlField.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+})();
