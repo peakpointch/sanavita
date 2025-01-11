@@ -3,10 +3,11 @@ import Swiper from "swiper/bundle";
 function skipEmptySwiper(swiperElement) {
   const slides = swiperElement.querySelectorAll(".swiper-slide");
   if (!slides.length > 0) {
-    console.log("Skip empty swiper: " + swiperElement);
+    console.log("Skip empty swiper:", swiperElement);
     swiperElement.classList.add("hide");
-    return;
+    return true;
   }
+  return false
 }
 
 function setNavigationPrefix(swiperId, swiperMode) {
@@ -41,7 +42,7 @@ const webflowSwipers = document.querySelectorAll(
 );
 
 webflowSwipers.forEach((swiperElement) => {
-  skipEmptySwiper(swiperElement);
+  if (skipEmptySwiper(swiperElement)) return;
   swiperElement.classList.remove("initial-hide");
 
   const swiperId = swiperElement.getAttribute("swiper-component");
