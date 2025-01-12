@@ -1,13 +1,25 @@
 import Swiper from "swiper/bundle";
 
-function skipEmptySwiper(swiperElement) {
+function swiperEmpty(swiperElement) {
   const slides = swiperElement.querySelectorAll(".swiper-slide");
   if (!slides.length > 0) {
     console.warn(`Swiper "${swiperElement.getAttribute("swiper-component")}": Skip empty component.`);
-    swiperElement.classList.add("hide");
     return true;
   }
   return false
+}
+
+function hideEmptySwiper(swiperElement) {
+  const swiperId = swiperElement.getAttribute("swiper-component");
+  const swiperMode = swiperElement.dataset.swiperMode;
+  const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
+
+  const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
+  const prevEl = `${navigationPrefix}${dataNav}:not(.next)`;
+  const nextEl = `${navigationPrefix}${dataNav}.next`;
+
+
+  swiperElement.classList.add("hide");
 }
 
 function setNavigationPrefix(swiperId, swiperMode) {
