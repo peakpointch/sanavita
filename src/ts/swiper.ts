@@ -1,11 +1,16 @@
 import Swiper from "swiper";
+import { Autoplay, Navigation, Pagination } from "swiper/modules"
+import { toCamelCase } from "@library/parameterize";
 
 interface SwiperAttribute {
   name: string;
-  type: string;
-  default?: any;
+  type: "text" | "boolean" | "float" | "floatOrAuto";
+  default?: string | boolean | number;
 };
 
+interface CustomSwiperOptions {
+  [key: string]: any
+}
 
 function swiperEmpty(swiperElement: HTMLElement) {
   const slides = swiperElement.querySelectorAll<HTMLElement>(".swiper-slide");
@@ -24,9 +29,6 @@ function hideEmptySwiper(swiperElement: HTMLElement) {
   const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
   const prevEl = `${navigationPrefix}${dataNav}:not(.next)`;
   const nextEl = `${navigationPrefix}${dataNav}.next`;
-
-
-  swiperElement.classList.add("hide");
 }
 
 function setNavigationPrefix(swiperId: string, swiperMode: string) {
@@ -53,10 +55,42 @@ function setupAutoplay(enabled: boolean, delay = 4000) {
   }
 }
 
-function parseSwiperOptions(attributes: SwiperAttribute[]) {
-  const settings = {};
+function getKeyFromAttributeName(name: string): string {
+  if (name.startsWith('data-swiper-')) {
+    return toCamelCase(name.replace('data-swiper-', ''));
+  } else if (name.startsWith('data-')) {
+    return toCamelCase(name.replace('data-', ''));
+  } else {
+    return toCamelCase(name);
+  }
+}
+
+function parseSwiperOptions(container: HTMLElement, attributes: SwiperAttribute[]): CustomSwiperOptions {
+  const settings: CustomSwiperOptions = {};
   attributes.forEach((attribute, index) => {
-    const name = attribute.name;
+    const key = getKeyFromAttributeName(attribute.name);
+    const value = container.getAttribute(attribute.name);
+
+    switch (attribute.type) {
+      case "text":
+        settings[key] = value || attribute.default || "";
+        break;
+      case "boolean":
+        if (value !== "false" && value !== "true" && attribute.default === undefined) {
+          throw new Error(`Attribute "${attribute.name}" is not a boolean.`);
+        }
+        settings[key] = JSON.parse(value || attribute.default.toString()) ?? undefined;
+        break;
+      case "float":
+        settings[key] = parseFloat(value || attribute.default.toString());
+        break;
+      case "floatOrAuto":
+        settings[key] = value === "auto" ? "auto" : parseFloat(value) || "auto";
+        break;
+      default:
+        settings[key] = value || attribute.default || "";
+        break;
+    }
 
   })
   return settings;
@@ -71,71 +105,30 @@ function initWebflowSwipers() {
   );
 
   webflowSwipers.forEach((swiperElement: HTMLElement) => {
-    //if (skipEmptySwiper(swiperElement)) {
-    //  hideEmptySwiper(swiperElement)
-    //  return;
-    //}
+    if (swiperEmpty(swiperElement)) {
+      hideEmptySwiper(swiperElement);
+      return;
+    }
     swiperElement.classList.remove("initial-hide");
 
-    const attributes: SwiperAttribute[] = [
-      {
-        name: "swiper-component",
-        type: "component"
-      },
-      {
-        name: "data-swiper-mode",
-        type: "text"
-      },
-      {
-        name: "data-swiper-nav",
-        type: "text",
-        default: ".swiper-button"
-      },
-      {
-        name: "data-swiper-auto-height",
-        type: "boolean",
-        default: false
-      },
-      {
-        name: "data-swiper-slides-per-view",
-        type: "floatOrAuto",
-      },
-      {
-        name: "data-swiper-space",
-        type: "float",
-        default: 8
-      },
-      {
-        name: "data-swiper-centered-slides",
-        type: "boolean",
-        default: false
-      },
-      {
-        name: "data-swiper-loop",
-        type: "boolean",
-        default: true
-      },
-      {
-        name: "data-swiper-touch-move",
-        type: "boolean",
-        default: true
-      },
-      {
-        name: "data-swiper-autoplay",
-        type: "boolean",
-        default: true
-      },
-      {
-        name: "data-swiper-autoplay-delay",
-        type: "float",
-        default: 4000
-      },
-      {
-        name: "data-swiper-speed",
-        type: "float",
-        default: 400
-      },
+    const swiperAttributes: SwiperAttribute[] = [
+      { name: "swiper-component", type: "text" },
+      { name: "data-swiper-mode", type: "text" },
+      { name: "data-swiper-nav", type: "text", default: ".swiper-button" },
+      { name: "data-swiper-auto-height", type: "boolean", default: false },
+      { name: "data-swiper-slides-per-view", type: "floatOrAuto", },
+      { name: "data-swiper-space", type: "float", default: 8 },
+      { name: "data-swiper-centered-slides", type: "boolean", default: false },
+      { name: "data-swiper-loop", type: "boolean", default: true },
+      { name: "data-swiper-touch-move", type: "boolean", default: true },
+      { name: "data-swiper-autoplay", type: "boolean", default: true },
+      { name: "data-swiper-autoplay-delay", type: "float", default: 4000 },
+      { name: "data-swiper-speed", type: "float", default: 400 },
     ]
+
+    const swiperSettings = parseSwiperOptions(swiperElement, swiperAttributes);
+
+    console.log("Swiper settings:", swiperSettings);
 
     const swiperId = swiperElement.getAttribute("swiper-component");
     const swiperMode = swiperElement.dataset.swiperMode;
@@ -173,7 +166,10 @@ function initWebflowSwipers() {
       spaceBetween: spaceBetween,
       loop: loop,
       slidesPerView: slidesPerView,
+      modules: [Autoplay, Navigation, Pagination]
     });
+
+    console.log("SWIPER:", swiper);
 
     swiper.autoplay.stop();
 
