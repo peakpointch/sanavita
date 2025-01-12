@@ -4,7 +4,7 @@
  * @param multiple - Whether to fetch multiple elements.
  * @returns An array of HTMLElements (or throws an error if not found).
  */
-export function findElements(
+export default function findElements(
   input: string | HTMLElement | HTMLElement[],
   multiple: boolean = false
 ): HTMLElement[] {

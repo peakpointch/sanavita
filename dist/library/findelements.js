@@ -14,5 +14,5 @@ function findElements(input, multiple = false) {
   throw new Error("Invalid input provided: must be a string, HTMLElement, or array.");
 }
 export {
-  findElements
+  findElements as default
 };
