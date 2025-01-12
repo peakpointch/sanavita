@@ -24,6 +24,6 @@
     "http": "^0.0.1-security",
     "jquery": "^3.7.1",
     "jspdf": "^2.5.2",
-    "swiper": "^11.1.15"
+    "swiper": "^11.2.1"
   }
 }
