@@ -9654,7 +9654,7 @@
   function skipEmptySwiper(swiperElement) {
     const slides = swiperElement.querySelectorAll(".swiper-slide");
     if (!slides.length > 0) {
-      console.log("Skip empty swiper:", swiperElement);
+      console.warn(`Swiper "${swiperElement.getAttribute("swiper-component")}": Skip empty component.`);
       swiperElement.classList.add("hide");
       return true;
     }
