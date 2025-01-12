@@ -1,3 +1,3 @@
 import { inlineCms } from "@library/inlinecms";
 
-inlineCms("[inlinecms], [data-inlinecms], [data-cms-unpack]");
+inlineCms("[inlinecms], [data-inlinecms-component], [data-inlinecms], [data-cms-unpack]");

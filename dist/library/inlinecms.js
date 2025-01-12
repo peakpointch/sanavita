@@ -15,6 +15,8 @@ function findElements(input, multiple = false) {
 }
 
 // library/inlinecms.ts
+var INLINECMS_TARGET_ATTR = `data-inlinecms-target`;
+var INLINECMS_COMPONENT_ATTR = `data-inlinecms-component`;
 function validateContainer(container) {
   if (!container.classList.contains("w-dyn-list")) {
     throw new Error("The element given is not a CMS list: " + container);
@@ -32,16 +34,18 @@ function processItems(container, target) {
   });
 }
 function extractTargetFromAttribute(container) {
-  const targetSelector = container.getAttribute("inlinecms-target");
+  const targetSelector = container.getAttribute(INLINECMS_TARGET_ATTR);
   if (!targetSelector) {
-    const containerSelector = `${container.id ? "#" + container.id : ""}.${container.className.replace(" ", ".")}`;
-    throw new Error(
-      `Container is missing data-inlinecms-target attribute: ${containerSelector || container}`
-    );
+    throw new Error(`Container is missing ${INLINECMS_TARGET_ATTR} attribute.`);
   }
-  const target = document.querySelector(targetSelector);
+  let target;
+  if (targetSelector === "parentNode" || targetSelector === "parent" || targetSelector === "parentElement") {
+    target = container.parentElement;
+  } else {
+    target = document.querySelector(targetSelector);
+  }
   if (!target) {
-    throw new Error(`Target element not found for selector: ${targetSelector}`);
+    throw new Error(`Target element not found with specified selector: "${targetSelector}".`);
   }
   return target;
 }
@@ -64,19 +68,16 @@ function inlineCms(containers) {
     containerElements = Array.from(containers);
   }
   if (containerElements.length === 0) {
-    throw new Error(`No containers found matching: ${JSON.stringify(containers)}`);
+    throw new Error(`No containers found matching: ${typeof containers === "string" ? containers : ""} `);
   }
-  containerElements.forEach((container) => {
+  containerElements.forEach((container, index) => {
+    const componentName = container.getAttribute(INLINECMS_COMPONENT_ATTR) || `index ${index}`;
     validateContainer(container);
     let targetElement;
     try {
       targetElement = extractTargetFromAttribute(container);
     } catch (e) {
-      console.info(
-        `Inlinecms: Setting target to the containers parent.
-`,
-        e.message
-      );
+      console.warn(`Inlinecms "${componentName}":`, e.message, `Setting target to the containers parent.`);
       targetElement = container.parentElement;
     }
     processItems(container, targetElement);

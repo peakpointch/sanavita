@@ -1,4 +1,8 @@
-import { findElements } from "./findelements";
+import findElements from "./findelements";
+import getSelectorStringForError from "./selectorstring";
+
+const INLINECMS_TARGET_ATTR = `data-inlinecms-target`;
+const INLINECMS_COMPONENT_ATTR = `data-inlinecms-component`;
 
 /**
  * Ensures the given container is a valid CMS container.
@@ -36,16 +40,20 @@ function processItems(container: HTMLElement, target: HTMLElement): void {
  * @returns The target HTMLElement (or throws an error if not found).
  */
 function extractTargetFromAttribute(container: HTMLElement): HTMLElement {
-  const targetSelector = container.getAttribute("inlinecms-target");
+  const targetSelector = container.getAttribute(INLINECMS_TARGET_ATTR);
   if (!targetSelector) {
-    throw new Error(
-      `Container is missing data-inlinecms-target attribute: ${container}`
-    );
+    throw new Error(`Container is missing ${INLINECMS_TARGET_ATTR} attribute.`);
   }
 
-  const target: HTMLElement | null = document.querySelector(targetSelector);
+  let target: HTMLElement | null;
+  if (targetSelector === "parentNode" || targetSelector === "parent" || targetSelector === "parentElement") {
+    target = container.parentElement;
+  } else {
+    target = document.querySelector(targetSelector);
+  }
+
   if (!target) {
-    throw new Error(`Target element not found for selector: ${targetSelector}`);
+    throw new Error(`Target element not found with specified selector: "${targetSelector}".`);
   }
 
   return target;
@@ -97,10 +105,11 @@ export function inlineCms(
   }
 
   if (containerElements.length === 0) {
-    throw new Error(`No containers found matching: ${containers}`);
+    throw new Error(`No containers found matching: ${(typeof containers === "string") ? containers : ''} `);
   }
 
-  containerElements.forEach((container) => {
+  containerElements.forEach((container, index) => {
+    const componentName: string = container.getAttribute(INLINECMS_COMPONENT_ATTR) || `index ${index}`;
     validateContainer(container);
 
     let targetElement: HTMLElement;
@@ -108,10 +117,7 @@ export function inlineCms(
       // Extract the target from the container's attribute
       targetElement = extractTargetFromAttribute(container);
     } catch (e) {
-      console.error(
-        `Inlinecms: Error getting Target element from Attribute.`,
-        e.message
-      );
+      console.warn(`Inlinecms "${componentName}":`, e.message, `Setting target to the containers parent.`);
       targetElement = container.parentElement;
     }
 
