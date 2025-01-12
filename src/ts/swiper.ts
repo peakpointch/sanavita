@@ -1,15 +1,22 @@
-import Swiper from "swiper/bundle";
+import Swiper from "swiper";
 
-function swiperEmpty(swiperElement) {
-  const slides = swiperElement.querySelectorAll(".swiper-slide");
-  if (!slides.length > 0) {
+interface SwiperAttribute {
+  name: string;
+  type: string;
+  default?: any;
+};
+
+
+function swiperEmpty(swiperElement: HTMLElement) {
+  const slides = swiperElement.querySelectorAll<HTMLElement>(".swiper-slide");
+  if (slides.length === 0) {
     console.warn(`Swiper "${swiperElement.getAttribute("swiper-component")}": Skip empty component.`);
     return true;
   }
   return false
 }
 
-function hideEmptySwiper(swiperElement) {
+function hideEmptySwiper(swiperElement: HTMLElement) {
   const swiperId = swiperElement.getAttribute("swiper-component");
   const swiperMode = swiperElement.dataset.swiperMode;
   const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
@@ -22,7 +29,7 @@ function hideEmptySwiper(swiperElement) {
   swiperElement.classList.add("hide");
 }
 
-function setNavigationPrefix(swiperId, swiperMode) {
+function setNavigationPrefix(swiperId: string, swiperMode: string) {
   let navigationPrefix = "";
   if (swiperMode && swiperMode === "cms") {
     navigationPrefix = `[swiper-navigation-for="${swiperId}"] ` // This space is mandatory
@@ -30,11 +37,11 @@ function setNavigationPrefix(swiperId, swiperMode) {
   return navigationPrefix;
 }
 
-function parseSlidesPerView(value) {
+function parseSlidesPerView(value: string) {
   return value === "auto" ? "auto" : parseFloat(value) || "auto";
 }
 
-function setupAutoplay(enabled, delay = 4000) {
+function setupAutoplay(enabled: boolean, delay = 4000) {
   if (!enabled) {
     return false;
   }
@@ -46,10 +53,10 @@ function setupAutoplay(enabled, delay = 4000) {
   }
 }
 
-function parseSwiperOptions(attributes) {
+function parseSwiperOptions(attributes: SwiperAttribute[]) {
   const settings = {};
   attributes.forEach((attribute, index) => {
-    const name = attribute;
+    const name = attribute.name;
 
   })
   return settings;
@@ -63,14 +70,14 @@ function initWebflowSwipers() {
     '[swiper-component]:not([swiper-component="default"])'
   );
 
-  webflowSwipers.forEach((swiperElement) => {
+  webflowSwipers.forEach((swiperElement: HTMLElement) => {
     //if (skipEmptySwiper(swiperElement)) {
     //  hideEmptySwiper(swiperElement)
     //  return;
     //}
     swiperElement.classList.remove("initial-hide");
 
-    const attributes = [
+    const attributes: SwiperAttribute[] = [
       {
         name: "swiper-component",
         type: "component"
@@ -135,13 +142,13 @@ function initWebflowSwipers() {
     const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
     const autoHeight = JSON.parse(swiperElement.dataset.swiperAutoHeight || "false");
     const slidesPerView = parseSlidesPerView(swiperElement.dataset.swiperSlidesPerView);
-    const spaceBetween = parseFloat(swiperElement.dataset.swiperSpace || 8);
+    const spaceBetween = parseFloat(swiperElement.dataset.swiperSpace || "8");
     const centeredSlides = JSON.parse(swiperElement.dataset.swiperCenteredSlides || "false");
     const loop = JSON.parse(swiperElement.dataset.swiperLoop || "true");
     const allowTouchMove = JSON.parse(swiperElement.dataset.swiperTouchMove || "true");
     const autoplay = JSON.parse(swiperElement.dataset.swiperAutoplay || "true");
-    const autoplayDelay = parseFloat(swiperElement.dataset.swiperAutoplayDelay || 4000);
-    const speed = parseFloat(swiperElement.dataset.swiperSpeed || 400);
+    const autoplayDelay = parseFloat(swiperElement.dataset.swiperAutoplayDelay || "4000");
+    const speed = parseFloat(swiperElement.dataset.swiperSpeed || "400");
 
     const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
     const prevEl = `${navigationPrefix}${dataNav}:not(.next)`;
@@ -166,7 +173,6 @@ function initWebflowSwipers() {
       spaceBetween: spaceBetween,
       loop: loop,
       slidesPerView: slidesPerView,
-      debugger: true,
     });
 
     swiper.autoplay.stop();
@@ -188,7 +194,7 @@ function initWebflowSwipers() {
 }
 
 function initDefaultSwipers() {
-  const defaultSwipers = document.querySelectorAll(`[default-swiper-component]`);
+  const defaultSwipers = document.querySelectorAll<HTMLElement>(`[default-swiper-component]`);
 
   defaultSwipers.forEach((swiperElement) => {
     if (swiperEmpty(swiperElement)) return;
