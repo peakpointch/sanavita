@@ -5389,7 +5389,7 @@
       const prevEl = `${navigationPrefix}${settings.nav}:not(.next)`;
       const nextEl = `${navigationPrefix}${settings.nav}.next`;
       const autoplayOptions = setupAutoplay(settings.autoplay, settings.autoplayDelay);
-      const swiper = new Swiper(swiperElement, {
+      const swiperOptions = {
         navigation: {
           prevEl,
           nextEl
@@ -5399,16 +5399,17 @@
           clickable: true
         },
         autoplay: autoplayOptions,
-        allowTouchMove: settings.touchMove,
+        allowTouchMove: settings.allowTouchMove,
         centeredSlides: settings.centeredSlides,
         effect: "slide",
         speed: settings.speed,
         autoHeight: settings.autoHeight,
-        spaceBetween: settings.space,
+        spaceBetween: settings.spaceBetween,
         loop: settings.loop,
         slidesPerView: settings.slidesPerView,
         modules: [Autoplay, Navigation, Pagination]
-      });
+      };
+      const swiper = new Swiper(swiperElement, swiperOptions);
       swiper.autoplay.stop();
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {

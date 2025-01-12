@@ -9,6 +9,10 @@ type CamelToDash<T extends string> = T extends `${infer Head}${infer Tail}`
   : `-${Lowercase<Head>}${CamelToDash<Tail>}` // If it's uppercase, add a dash and make it lowercase
   : T;
 
+type DashToCamelCase<T extends string> = T extends `${infer Head}-${infer Tail}`
+  ? `${Head}${Capitalize<DashToCamelCase<Tail>>}` // Capitalize the first character of Tail
+  : T;
+
 interface SwiperAttribute {
   name: "swiper-component"
   | "data-swiper-nav"
@@ -26,16 +30,16 @@ interface CustomSwiperOptions {
   "nav": string,
   "autoHeight": boolean,
   "slidesPerView": "auto" | number,
-  "space": number,
+  "spaceBetween": number,
   "centeredSlides": boolean,
   "loop": boolean,
-  "touchMove": boolean,
+  "allowTouchMove": boolean,
   "autoplay": boolean,
   "autoplayDelay": number,
   "speed": number,
 }
 
-function swiperEmpty(swiperElement: HTMLElement) {
+function swiperEmpty(swiperElement: HTMLElement): boolean {
   const slides = swiperElement.querySelectorAll<HTMLElement>(".swiper-slide");
   if (slides.length === 0) {
     console.warn(`Swiper "${swiperElement.getAttribute("swiper-component")}": Skip empty component.`);
@@ -44,7 +48,7 @@ function swiperEmpty(swiperElement: HTMLElement) {
   return false
 }
 
-function hideEmptySwiper(swiperElement: HTMLElement) {
+function hideEmptySwiper(swiperElement: HTMLElement): void {
   const swiperId = swiperElement.getAttribute("swiper-component");
   const swiperMode = swiperElement.dataset.swiperMode;
   const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
@@ -54,7 +58,7 @@ function hideEmptySwiper(swiperElement: HTMLElement) {
   const nextEl = `${navigationPrefix}${dataNav}.next`;
 }
 
-function setNavigationPrefix(swiperId: string, swiperMode: string) {
+function setNavigationPrefix(swiperId: string, swiperMode: string): string {
   let navigationPrefix = "";
   if (swiperMode && swiperMode === "cms") {
     navigationPrefix = `[swiper-navigation-for="${swiperId}"] ` // This space is mandatory
@@ -62,11 +66,11 @@ function setNavigationPrefix(swiperId: string, swiperMode: string) {
   return navigationPrefix;
 }
 
-function parseSlidesPerView(value: string) {
+function parseSlidesPerView(value: string): number | "auto" {
   return value === "auto" ? "auto" : parseFloat(value) || "auto";
 }
 
-function setupAutoplay(enabled: boolean, delay = 4000) {
+function setupAutoplay(enabled: boolean, delay = 4000): boolean | AutoplayOptions {
   if (!enabled) {
     return false;
   }
@@ -75,7 +79,7 @@ function setupAutoplay(enabled: boolean, delay = 4000) {
     delay: delay,
     pauseOnMouseEnter: true,
     disableOnInteraction: true,
-  }
+  } as AutoplayOptions;
 }
 
 function getKeyFromAttributeName(name: string): string {
@@ -134,6 +138,9 @@ function initWebflowSwipers() {
     }
     swiperElement.classList.remove("initial-hide");
 
+    /**
+     * REMINDER: If this changes, `CustomSwiperOptions` has to be updated as well
+     */
     const swiperAttributes: SwiperAttribute[] = [
       { name: "swiper-component", type: "string" },
       { name: "data-swiper-mode", type: "string" },
@@ -147,7 +154,7 @@ function initWebflowSwipers() {
       { name: "data-swiper-autoplay", type: "boolean", default: true },
       { name: "data-swiper-autoplay-delay", type: "float", default: 4000 },
       { name: "data-swiper-speed", type: "float", default: 400 },
-    ]
+    ];
 
     const settings = parseSwiperOptions(swiperElement, swiperAttributes);
 
@@ -156,7 +163,7 @@ function initWebflowSwipers() {
     const nextEl = `${navigationPrefix}${settings.nav}.next`;
     const autoplayOptions = setupAutoplay(settings.autoplay, settings.autoplayDelay);
 
-    const swiper = new Swiper(swiperElement, {
+    const swiperOptions: SwiperOptions = {
       navigation: {
         prevEl: prevEl,
         nextEl: nextEl,
@@ -166,16 +173,18 @@ function initWebflowSwipers() {
         clickable: true,
       },
       autoplay: autoplayOptions,
-      allowTouchMove: settings.touchMove,
+      allowTouchMove: settings.allowTouchMove,
       centeredSlides: settings.centeredSlides,
       effect: "slide",
       speed: settings.speed,
       autoHeight: settings.autoHeight,
-      spaceBetween: settings.space,
+      spaceBetween: settings.spaceBetween,
       loop: settings.loop,
       slidesPerView: settings.slidesPerView,
       modules: [Autoplay, Navigation, Pagination]
-    });
+    }
+
+    const swiper = new Swiper(swiperElement, swiperOptions);
 
     swiper.autoplay.stop();
 
