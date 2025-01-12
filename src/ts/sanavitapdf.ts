@@ -76,7 +76,7 @@ class FilterForm {
     container.classList.remove("w-form");
     container.addEventListener('submit', (event) => {
       event.preventDefault();
-    })
+    });
 
     this.container = container;
     this.filterFields = container.querySelectorAll(formQuery.filters);
