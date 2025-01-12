@@ -24,7 +24,7 @@ function processItems(container: HTMLElement, target: HTMLElement): void {
     container.querySelectorAll(".w-dyn-item");
 
   if (items.length === 0) {
-    console.warn(`The container doesn't contain any items: ${container}`);
+    throw new Error(`The container doesn't contain any cms-items.`);
   }
 
   container.remove();
@@ -71,19 +71,25 @@ export function inlineCmsDev(
   // Find all container elements
   const containers = findElements(container, true);
 
-  containers.forEach((containerEl) => {
-    validateContainer(containerEl);
+  containers.forEach((container, index) => {
+    const componentName: string = container.getAttribute(INLINECMS_COMPONENT_ATTR) || `index ${index}`;
+    validateContainer(container);
 
     // Determine the target element
-    const targetEl = target
+    const targetElement = target
       ? findElements(target)[0]
-      : containerEl.parentElement;
+      : container.parentElement;
 
-    if (!targetEl) {
+    if (!targetElement) {
       throw new Error("Target element not found or specified.");
     }
 
-    processItems(containerEl, targetEl);
+    try {
+      // Process the container and append items to the target
+      processItems(container, targetElement);
+    } catch (e) {
+      console.warn(`Inlinecms "${componentName}":`, e.message);
+    }
   });
 }
 
@@ -121,7 +127,11 @@ export function inlineCms(
       targetElement = container.parentElement;
     }
 
-    // Process the container and append items to the target
-    processItems(container, targetElement);
+    try {
+      // Process the container and append items to the target
+      processItems(container, targetElement);
+    } catch (e) {
+      console.warn(`Inlinecms "${componentName}":`, e.message);
+    }
   });
 }

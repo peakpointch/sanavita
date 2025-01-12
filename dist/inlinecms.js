@@ -26,7 +26,7 @@
   function processItems(container, target) {
     const items = container.querySelectorAll(".w-dyn-item");
     if (items.length === 0) {
-      console.warn(`The container doesn't contain any items: ${container}`);
+      throw new Error(`The container doesn't contain any cms-items.`);
     }
     container.remove();
     items.forEach((item) => {
@@ -70,7 +70,11 @@
         console.warn(`Inlinecms "${componentName}":`, e.message, `Setting target to the containers parent.`);
         targetElement = container.parentElement;
       }
-      processItems(container, targetElement);
+      try {
+        processItems(container, targetElement);
+      } catch (e) {
+        console.warn(`Inlinecms "${componentName}":`, e.message);
+      }
     });
   }
 

@@ -25,7 +25,7 @@ function validateContainer(container) {
 function processItems(container, target) {
   const items = container.querySelectorAll(".w-dyn-item");
   if (items.length === 0) {
-    console.warn(`The container doesn't contain any items: ${container}`);
+    throw new Error(`The container doesn't contain any cms-items.`);
   }
   container.remove();
   items.forEach((item) => {
@@ -51,13 +51,18 @@ function extractTargetFromAttribute(container) {
 }
 function inlineCmsDev(container, target) {
   const containers = findElements(container, true);
-  containers.forEach((containerEl) => {
-    validateContainer(containerEl);
-    const targetEl = target ? findElements(target)[0] : containerEl.parentElement;
-    if (!targetEl) {
+  containers.forEach((container2, index) => {
+    const componentName = container2.getAttribute(INLINECMS_COMPONENT_ATTR) || `index ${index}`;
+    validateContainer(container2);
+    const targetElement = target ? findElements(target)[0] : container2.parentElement;
+    if (!targetElement) {
       throw new Error("Target element not found or specified.");
     }
-    processItems(containerEl, targetEl);
+    try {
+      processItems(container2, targetElement);
+    } catch (e) {
+      console.warn(`Inlinecms "${componentName}":`, e.message);
+    }
   });
 }
 function inlineCms(containers) {
@@ -80,7 +85,11 @@ function inlineCms(containers) {
       console.warn(`Inlinecms "${componentName}":`, e.message, `Setting target to the containers parent.`);
       targetElement = container.parentElement;
     }
-    processItems(container, targetElement);
+    try {
+      processItems(container, targetElement);
+    } catch (e) {
+      console.warn(`Inlinecms "${componentName}":`, e.message);
+    }
   });
 }
 export {
