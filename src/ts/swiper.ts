@@ -39,6 +39,8 @@ interface CustomSwiperOptions {
   "speed": number,
 }
 
+type SwiperHideOptions = "hideNone" | "hideComponent" | "emptyState";
+
 function swiperEmpty(swiperElement: HTMLElement): boolean {
   const slides = swiperElement.querySelectorAll<HTMLElement>(".swiper-slide");
   if (slides.length === 0) {
@@ -54,8 +56,25 @@ function hideEmptySwiper(swiperElement: HTMLElement): void {
   const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
 
   const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
-  const prevEl = `${navigationPrefix}${dataNav}:not(.next)`;
-  const nextEl = `${navigationPrefix}${dataNav}.next`;
+  const prevSelector = `${navigationPrefix}${dataNav}:not(.next)`;
+  const nextSelector = `${navigationPrefix}${dataNav}.next`;
+
+  const hideOptions: SwiperHideOptions = swiperElement.dataset.swiperHideOptions as SwiperHideOptions || "hideNone";
+
+  switch (hideOptions) {
+    case "hideNone":
+      break;
+    case "hideComponent":
+      swiperElement.classList.add('hide');
+      break;
+    case "emptyState":
+      const prevEl = navigationPrefix ? swiperElement.querySelector(prevSelector) : document.querySelector(prevSelector);
+      const nextEl = navigationPrefix ? swiperElement.querySelector(nextSelector) : document.querySelector(nextSelector);
+      [prevEl, nextEl].forEach(e => e.classList.add('hide'));
+      break;
+    default:
+      break;
+  }
 }
 
 function setNavigationPrefix(swiperId: string, swiperMode: string): string {

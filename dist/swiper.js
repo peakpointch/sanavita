@@ -5302,8 +5302,23 @@
     const swiperMode = swiperElement.dataset.swiperMode;
     const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
     const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
-    const prevEl = `${navigationPrefix}${dataNav}:not(.next)`;
-    const nextEl = `${navigationPrefix}${dataNav}.next`;
+    const prevSelector = `${navigationPrefix}${dataNav}:not(.next)`;
+    const nextSelector = `${navigationPrefix}${dataNav}.next`;
+    const hideOptions = swiperElement.dataset.swiperHideOptions || "hideNone";
+    switch (hideOptions) {
+      case "hideNone":
+        break;
+      case "hideComponent":
+        swiperElement.classList.add("hide");
+        break;
+      case "emptyState":
+        const prevEl = navigationPrefix ? swiperElement.querySelector(prevSelector) : document.querySelector(prevSelector);
+        const nextEl = navigationPrefix ? swiperElement.querySelector(nextSelector) : document.querySelector(nextSelector);
+        [prevEl, nextEl].forEach((e) => e.classList.add("hide"));
+        break;
+      default:
+        break;
+    }
   }
   function setNavigationPrefix(swiperId, swiperMode) {
     let navigationPrefix = "";
