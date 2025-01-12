@@ -5312,9 +5312,6 @@
     }
     return navigationPrefix;
   }
-  function parseSlidesPerView(value) {
-    return value === "auto" ? "auto" : parseFloat(value) || "auto";
-  }
   function setupAutoplay(enabled, delay = 4e3) {
     if (!enabled) {
       return false;
@@ -5340,7 +5337,7 @@
       const key = getKeyFromAttributeName(attribute.name);
       const value = container.getAttribute(attribute.name);
       switch (attribute.type) {
-        case "text":
+        case "string":
           settings[key] = value || attribute.default || "";
           break;
         case "boolean":
@@ -5374,37 +5371,24 @@
       }
       swiperElement.classList.remove("initial-hide");
       const swiperAttributes = [
-        { name: "swiper-component", type: "text" },
-        { name: "data-swiper-mode", type: "text" },
-        { name: "data-swiper-nav", type: "text", default: ".swiper-button" },
+        { name: "swiper-component", type: "string" },
+        { name: "data-swiper-mode", type: "string" },
+        { name: "data-swiper-nav", type: "string", default: ".swiper-button" },
         { name: "data-swiper-auto-height", type: "boolean", default: false },
         { name: "data-swiper-slides-per-view", type: "floatOrAuto" },
-        { name: "data-swiper-space", type: "float", default: 8 },
+        { name: "data-swiper-space-between", type: "float", default: 8 },
         { name: "data-swiper-centered-slides", type: "boolean", default: false },
         { name: "data-swiper-loop", type: "boolean", default: true },
-        { name: "data-swiper-touch-move", type: "boolean", default: true },
+        { name: "data-swiper-allow-touch-move", type: "boolean", default: true },
         { name: "data-swiper-autoplay", type: "boolean", default: true },
         { name: "data-swiper-autoplay-delay", type: "float", default: 4e3 },
         { name: "data-swiper-speed", type: "float", default: 400 }
       ];
-      const swiperSettings = parseSwiperOptions(swiperElement, swiperAttributes);
-      console.log("Swiper settings:", swiperSettings);
-      const swiperId = swiperElement.getAttribute("swiper-component");
-      const swiperMode = swiperElement.dataset.swiperMode;
-      const dataNav = (swiperElement.dataset.swiperNav || ".swiper-button").toString();
-      const autoHeight = JSON.parse(swiperElement.dataset.swiperAutoHeight || "false");
-      const slidesPerView = parseSlidesPerView(swiperElement.dataset.swiperSlidesPerView);
-      const spaceBetween = parseFloat(swiperElement.dataset.swiperSpace || "8");
-      const centeredSlides = JSON.parse(swiperElement.dataset.swiperCenteredSlides || "false");
-      const loop2 = JSON.parse(swiperElement.dataset.swiperLoop || "true");
-      const allowTouchMove = JSON.parse(swiperElement.dataset.swiperTouchMove || "true");
-      const autoplay = JSON.parse(swiperElement.dataset.swiperAutoplay || "true");
-      const autoplayDelay = parseFloat(swiperElement.dataset.swiperAutoplayDelay || "4000");
-      const speed = parseFloat(swiperElement.dataset.swiperSpeed || "400");
-      const navigationPrefix = setNavigationPrefix(swiperId, swiperMode);
-      const prevEl = `${navigationPrefix}${dataNav}:not(.next)`;
-      const nextEl = `${navigationPrefix}${dataNav}.next`;
-      const autoplayOptions = setupAutoplay(autoplay, autoplayDelay);
+      const settings = parseSwiperOptions(swiperElement, swiperAttributes);
+      const navigationPrefix = setNavigationPrefix(settings.swiperComponent, settings.mode);
+      const prevEl = `${navigationPrefix}${settings.nav}:not(.next)`;
+      const nextEl = `${navigationPrefix}${settings.nav}.next`;
+      const autoplayOptions = setupAutoplay(settings.autoplay, settings.autoplayDelay);
       const swiper = new Swiper(swiperElement, {
         navigation: {
           prevEl,
@@ -5415,17 +5399,16 @@
           clickable: true
         },
         autoplay: autoplayOptions,
-        allowTouchMove,
-        centeredSlides,
+        allowTouchMove: settings.touchMove,
+        centeredSlides: settings.centeredSlides,
         effect: "slide",
-        speed,
-        autoHeight,
-        spaceBetween,
-        loop: loop2,
-        slidesPerView,
+        speed: settings.speed,
+        autoHeight: settings.autoHeight,
+        spaceBetween: settings.space,
+        loop: settings.loop,
+        slidesPerView: settings.slidesPerView,
         modules: [Autoplay, Navigation, Pagination]
       });
-      console.log("SWIPER:", swiper);
       swiper.autoplay.stop();
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
@@ -5463,7 +5446,8 @@
         spaceBetween: 24,
         speed: 400,
         loop: true,
-        slidesPerView: "auto"
+        slidesPerView: "auto",
+        modules: [Autoplay, Navigation, Pagination]
       });
     });
   }
