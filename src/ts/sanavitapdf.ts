@@ -3,7 +3,7 @@ import EditableCanvas from '@library/canvas';
 import Pdf, { pdfElementSelector } from '@library/pdf';
 import { CollectionList } from '@library/wfcollection';
 import { RenderData, RenderElement, RenderField } from '@library/renderer';
-import { FieldGroup, FieldFromInput, FormInput, filterFormSelector, formQuery } from '@library/form';
+import { FieldGroup, fieldFromInput, FormInput, filterFormSelector, formQuery } from '@library/form';
 import createAttribute from '@library/attributeselector';
 
 // Types
@@ -16,7 +16,6 @@ const wfCollectionSelector = createAttribute<string>('wf-collection');
 const actionSelector = createAttribute<ActionElement>('data-action');
 
 class DailyMenuCollection extends CollectionList {
-
   constructor(container: HTMLElement | null) {
     super(container, 'pdf');
 
@@ -145,7 +144,7 @@ class FilterForm {
     this.data = new FieldGroup();
     fields = fields as NodeListOf<FormInput>;
     fields.forEach((input, index) => {
-      const field = FieldFromInput(input, index);
+      const field = fieldFromInput(input, index);
       if (field?.id) {
         this.data.fields.set(field.id, field);
       }

@@ -29116,7 +29116,7 @@
   function isCheckboxInput(input) {
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
-  var formQuery = {
+  var formQuery2 = {
     form: FORM_SELECTOR,
     checkbox: CHECKBOX_INPUT_SELECTOR,
     radio: RADIO_INPUT_SELECTOR,
@@ -29233,8 +29233,8 @@
         event.preventDefault();
       });
       this.container = container;
-      this.filterFields = container.querySelectorAll(formQuery.filters);
-      this.formFields = container.querySelectorAll(formQuery.input);
+      this.filterFields = container.querySelectorAll(formQuery2.filters);
+      this.formFields = container.querySelectorAll(formQuery2.input);
       this.attachChangeListeners();
     }
     getFilterInput(fieldId) {
