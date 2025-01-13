@@ -20,11 +20,14 @@ type GroupName =
   | "health"
   | "primaryRelative"
   | "secondaryRelative";
-type MutliStepFormSettings = {
+type FormOptions = {
+  excludeInputSelectors: string[];
+  recaptcha: boolean;
+}
+interface MultiStepFormOptions extends FormOptions {
   navigation: {
     hideInStep: number;
   };
-  excludeInputSelectors: string[];
 };
 type CustomFormComponent = {
   step: number;
@@ -840,6 +843,7 @@ class FormArray {
 }
 
 class MultiStepForm {
+  public initialized: boolean = false;
   public component: HTMLElement;
   public formElement: HTMLFormElement;
   public formSteps: NodeListOf<HTMLElement>;
@@ -852,36 +856,27 @@ class MultiStepForm {
   private successElement: HTMLElement | null;
   private errorElement: HTMLElement | null;
   private submitButton: HTMLInputElement | null;
-  private settings: MutliStepFormSettings;
-  public initialized: boolean = false;
+  private options: MultiStepFormOptions;
 
-  constructor(component: HTMLElement, settings: MutliStepFormSettings) {
+  constructor(component: HTMLElement, options: MultiStepFormOptions) {
     this.component = component;
-    this.formElement = this.component.querySelector(
-      formQuery.form
-    ) as HTMLFormElement;
-    this.settings = settings;
+    this.formElement = this.component.querySelector<HTMLFormElement>(formQuery.form);
+    this.options = options;
 
     if (!this.formElement) {
       throw new Error("Form element not found within the specified component.");
     }
 
     this.formSteps = this.component.querySelectorAll(stepsElementSelector('step'));
-    this.paginationItems = this.component.querySelectorAll(
-      STEPS_PAGINATION_ITEM_SELECTOR
-    );
-    this.navigationElement = this.component.querySelector(
-      stepsElementSelector('navigation')
-    )!;
+    this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
+    this.navigationElement = this.component.querySelector(stepsElementSelector('navigation'));
     this.buttonsNext = this.component.querySelectorAll(stepsNavSelector('next'));
     this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector('prev'));
 
     // Handle optional UI elements
     this.successElement = this.component.querySelector(formElementSelector('success'));
     this.errorElement = this.component.querySelector(formElementSelector('error'));
-    this.submitButton = this.component.querySelector(
-      formElementSelector('submit')
-    ) as HTMLInputElement | null;
+    this.submitButton = this.component.querySelector<HTMLInputElement>(formElementSelector('submit'));
 
     this.initialize();
   }
@@ -971,16 +966,22 @@ class MultiStepForm {
   }
 
   private buildJsonForWebflow(): any {
-    const recaptcha = (
-      this.formElement.querySelector("#g-recaptcha-response") as FormInput
-    ).value;
-    let customFields = {};
-    this.customComponents.map((entry) => {
-      customFields = {
-        ...customFields,
+    const customFields = this.customComponents.reduce((acc, entry) => {
+      return {
+        ...acc,
         ...(entry.getData ? entry.getData() : {}),
       };
     });
+
+    const fields = {
+      ...mapToObject(this.getAllFormData(), false),
+      ...customFields,
+    }
+
+    if (this.options.recaptcha) {
+      const recaptcha = (this.formElement.querySelector("#g-recaptcha-response") as FormInput).value;
+      fields["g-recaptcha-response"] = recaptcha;
+    }
 
     return {
       name: this.formElement.dataset.name,
@@ -988,11 +989,7 @@ class MultiStepForm {
       elementId: this.formElement.dataset.wfElementId,
       source: window.location.href,
       test: false,
-      fields: {
-        ...mapToObject(this.getAllFormData(), false),
-        ...customFields,
-        "g-recaptcha-response": recaptcha,
-      },
+      fields: fields,
       dolphin: false,
     };
   }
@@ -1136,7 +1133,7 @@ class MultiStepForm {
       }
     });
 
-    if (target === this.settings.navigation.hideInStep) {
+    if (target === this.options.navigation.hideInStep) {
       this.navigationElement.style.visibility = "hidden";
       this.navigationElement.style.opacity = "0";
     } else {
@@ -1173,7 +1170,7 @@ class MultiStepForm {
 
     const filteredInputs = Array.from(inputs).filter((input) => {
       // Check if the input matches any exclude selectors or is inside an excluded wrapper
-      const isExcluded = this.settings.excludeInputSelectors.some(
+      const isExcluded = this.options.excludeInputSelectors.some(
         (selector) => {
           return (
             input.closest(`${selector}`) !== null || input.matches(selector)
@@ -1211,7 +1208,7 @@ class MultiStepForm {
     const stepInputs: NodeListOf<FormInput> =
       stepElement.querySelectorAll(formQuery.input);
     stepInputs.forEach((input, inputIndex) => {
-      const entry = FieldFromInput(input, inputIndex);
+      const entry = fieldFromInput(input, inputIndex);
       if (entry?.id) {
         fields.set(entry.id, entry.value);
       }
@@ -1430,9 +1427,10 @@ document.addEventListener("DOMContentLoaded", () => {
     navigation: {
       hideInStep: 0,
     },
+    recaptcha: true,
     excludeInputSelectors: [
       '[data-decision-path="upload"]',
-      "[data-decision-component]",
+      '[data-decision-component]',
     ],
   });
 
