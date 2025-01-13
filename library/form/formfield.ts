@@ -67,7 +67,7 @@ class FormField {
   }
 }
 
-function FieldFromInput(input: FormInput, index): FormField {
+function fieldFromInput(input: FormInput, index): FormField {
   if (input.type === "radio" && !(input as HTMLInputElement).checked) {
     return new FormField();
   }
@@ -85,4 +85,4 @@ function FieldFromInput(input: FormInput, index): FormField {
   return field;
 }
 
-export { FieldData, FormField, FieldFromInput }
+export { FieldData, FormField, fieldFromInput }
