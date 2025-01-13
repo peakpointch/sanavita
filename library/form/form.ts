@@ -207,22 +207,14 @@ export function validateFields(
         input.reportValidity();
         input.classList.add("has-error");
         if (isCheckboxInput(input)) {
-          input.parentElement
-            ?.querySelector(W_CHECKBOX_CLASS)
-            ?.classList.add("has-error");
+          input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.add("has-error");
         }
-        input.addEventListener(
-          "change",
-          () => {
-            input.classList.remove("has-error");
-            if (isCheckboxInput(input)) {
-              input.parentElement
-                ?.querySelector(W_CHECKBOX_CLASS)
-                ?.classList.remove("has-error");
-            }
-          },
-          { once: true }
-        );
+        input.addEventListener("change", () => {
+          input.classList.remove("has-error");
+          if (isCheckboxInput(input)) {
+            input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove("has-error");
+          }
+        }, { once: true });
         invalidField = input; // Store the first invalid field
       }
       break;
