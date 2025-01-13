@@ -7,11 +7,13 @@ import {
   clearRadioGroup,
   sendFormData,
   validateFields,
-  formElementSelector
+  formElementSelector,
+  fieldFromInput
 } from "@library/form";
 import { wf, wfclass, formQuery } from "@library/form";
 import { FormInput, Validator } from "@library/form";
-import { FormField, FieldData, FieldFromInput, FieldGroup } from "@library/form";
+import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@library/form";
+import Accordion from "@library/accordion";
 
 // Types
 type GroupName =
@@ -772,7 +774,7 @@ class FormArray {
       }
 
       groupInputs.forEach((input, index) => {
-        const field = FieldFromInput(input, index);
+        const field = fieldFromInput(input, index);
         if (field?.id) {
           personData[groupName].fields.set(field.id, field);
         }
