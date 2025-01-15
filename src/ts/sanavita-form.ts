@@ -973,7 +973,7 @@ class MultiStepForm {
         ...acc,
         ...(entry.getData ? entry.getData() : {}),
       };
-    });
+    }, {});
 
     const fields = {
       ...mapToObject(this.getAllFormData(), false),
@@ -1220,16 +1220,25 @@ class MultiStepForm {
   }
 
   public getAllFormData(): Map<string, FormField> {
-    let fields: Map<string, FormField> = new Map();
+    //let fields: Map<string, FormField> = new Map();
+    //
+    //this.formSteps.forEach((step, stepIndex) => {
+    //  const stepData = this.getFormDataForStep(stepIndex);
+    //  fields = new Map([...fields, ...stepData]);
+    //});
 
-    this.formSteps.forEach((step, stepIndex) => {
+    const fields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
       const stepData = this.getFormDataForStep(stepIndex);
-      fields = new Map([...fields, ...stepData]);
-    });
+      return new Map([
+        ...acc,
+        ...stepData
+      ]);
+    }, new Map());
 
     return fields;
   }
 }
+
 function mapToObject(map: Map<any, any>, stringify: boolean = false): any {
   // Convert a Map to a plain object
   const obj: any = {};

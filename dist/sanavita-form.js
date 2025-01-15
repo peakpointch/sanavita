@@ -131,7 +131,7 @@
       });
     });
   }
-  function validateFields(inputs, report = true) {
+  function validateFields2(inputs, report = true) {
     let valid = true;
     let invalidField = null;
     for (const input of Array.from(inputs)) {
@@ -143,16 +143,12 @@
           if (isCheckboxInput(input)) {
             input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.add("has-error");
           }
-          input.addEventListener(
-            "change",
-            () => {
-              input.classList.remove("has-error");
-              if (isCheckboxInput(input)) {
-                input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove("has-error");
-              }
-            },
-            { once: true }
-          );
+          input.addEventListener("change", () => {
+            input.classList.remove("has-error");
+            if (isCheckboxInput(input)) {
+              input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove("has-error");
+            }
+          }, { once: true });
           invalidField = input;
         }
         break;
@@ -166,7 +162,7 @@
     siteId,
     pageId
   };
-  var formQuery = {
+  var formQuery2 = {
     form: FORM_SELECTOR,
     checkbox: CHECKBOX_INPUT_SELECTOR,
     radio: RADIO_INPUT_SELECTOR,
@@ -220,7 +216,7 @@
       return valid;
     }
   };
-  function FieldFromInput(input, index) {
+  function fieldFromInput(input, index) {
     if (input.type === "radio" && !input.checked) {
       return new FormField();
     }
@@ -246,17 +242,256 @@
     }
   };
 
-  // src/ts/sanavita-form.ts
-  var stepsElementSelector = attributeselector_default("data-steps-element");
-  var stepsTargetSelector = attributeselector_default("data-step-target");
-  var stepsNavSelector = attributeselector_default("data-steps-nav");
+  // library/form/formmessage.ts
+  var FormMessage = class {
+    /**
+     * Constructs a new FormMessage instance.
+     * @param componentName The name of the component (used in `data-message-component`).
+     * @param messageFor The target form field identifier (used in `data-message-for`).
+     */
+    constructor(componentName, messageFor) {
+      this.initialized = false;
+      this.messageFor = messageFor;
+      const component = document.querySelector(
+        `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
+      );
+      if (!component) {
+        console.warn(
+          `No FormMessage component was found: ${componentName}, ${this.messageFor}`
+        );
+        return;
+      }
+      this.component = component;
+      this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
+      this.reset();
+      this.initialized = true;
+    }
+    /**
+     * Displays an informational message.
+     * @param message The message text to display. Defaults to `null`.
+     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
+     */
+    info(message = null, silent = false) {
+      if (!this.initialized)
+        return;
+      if (!silent) {
+        this.component.setAttribute("aria-live", "polite");
+      }
+      this.setMessage(message, "info", silent);
+    }
+    /**
+     * Displays an error message.
+     * @param message The message text to display. Defaults to `null`.
+     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
+     */
+    error(message = null, silent = false) {
+      if (!this.initialized)
+        return;
+      if (!silent) {
+        this.component.setAttribute("role", "alert");
+        this.component.setAttribute("aria-live", "assertive");
+      }
+      this.setMessage(message, "error", silent);
+    }
+    /**
+     * Resets the message component, hiding any displayed message.
+     */
+    reset() {
+      if (!this.initialized)
+        return;
+      this.component.classList.remove("info", "error");
+    }
+    /**
+     * Sets the message text and type (private method).
+     * @param message The message text to display. Defaults to `null`.
+     * @param type The type of message (`"info"` or `"error"`).
+     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
+     */
+    setMessage(message = null, type, silent = false) {
+      if (!this.initialized)
+        return;
+      if (this.messageElement && message) {
+        this.messageElement.textContent = message;
+      } else if (!this.messageElement) {
+        console.warn("Message text element not found.");
+      }
+      this.component.classList.remove("info", "error");
+      this.component.classList.add(type);
+      if (silent)
+        return;
+      this.component.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  };
+
+  // library/form/formdecision.ts
+  var FormDecision = class {
+    /**
+     * Constructs a new FormDecision instance.
+     * @param component The FormDecision element.
+     * @param id Unique identifier for the specific instance.
+     */
+    constructor(component, id) {
+      this.paths = [];
+      this.errorMessages = {};
+      this.defaultErrorMessage = "Please complete the required fields.";
+      if (!component || !id) {
+        console.error(`FormDecision: Component not found.`);
+        return;
+      } else if (!component.hasAttribute("data-decision-component")) {
+        console.error(
+          `FormDecision: Selected element is not a FormDecision component:`,
+          component
+        );
+        return;
+      }
+      this.component = component;
+      this.id = id;
+      this.formMessage = new FormMessage("FormDecision", id);
+      this.initialize();
+    }
+    /**
+     * Initializes the FormDecision instance by setting up decision inputs & paths as well as their event listeners.
+     */
+    initialize() {
+      const decisionFieldsWrapper = this.component.querySelector('[data-decision-element="decision"]') || this.component;
+      this.decisionInputs = decisionFieldsWrapper.querySelectorAll(
+        "input[data-decision-action]"
+      );
+      if (this.decisionInputs.length === 0) {
+        console.warn(
+          `Decision component "${this.id}" does not contain any decision input elements.`
+        );
+        return;
+      }
+      this.decisionInputs.forEach((input) => {
+        const path = this.component.querySelector(
+          `[data-decision-path="${input.dataset.decisionAction || input.value}"]`
+        );
+        if (path) {
+          path.style.display = "none";
+          this.paths.push(path);
+        }
+        input.addEventListener("change", (event) => {
+          this.handleChange(path, event);
+          this.formMessage.reset();
+        });
+      });
+      this.component.addEventListener("change", () => this.formMessage.reset());
+    }
+    /**
+     * Handles changes to the decision input fields and updates the associated path visibility.
+     * @param path The HTMLElement that contains the form fields of this path.
+     * @param event The event that invokes this change.
+     */
+    handleChange(path, event) {
+      this.paths.forEach((entry) => {
+        entry.style.display = "none";
+      });
+      if (path) {
+        path.style.removeProperty("display");
+      }
+      this.updateRequiredAttributes();
+    }
+    /**
+     * Retrieves the currently selected decision input.
+     * @returns The selected input element, or undefined if none is selected.
+     */
+    getSelectedInput() {
+      return Array.from(this.decisionInputs).find((input) => input.checked);
+    }
+    /**
+     * Validates the FormDecision based on the selected path to ensure the form's correctness.
+     * @returns A boolean indicating whether the validation passed.
+     */
+    validate() {
+      const selectedInput = this.getSelectedInput();
+      const { valid: decisionValid } = validateFields(this.decisionInputs);
+      if (!decisionValid || !selectedInput) {
+        console.warn("No decision selected!");
+        this.handleValidationMessages(false);
+        return false;
+      }
+      const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
+      const pathIndex = this.paths.findIndex(
+        (path) => path.dataset.decisionPath === pathId
+      );
+      const isValid = pathIndex === -1 || this.checkPathValidity(pathIndex);
+      this.handleValidationMessages(isValid);
+      return isValid;
+    }
+    /**
+     * Sets custom error messages for the decision inputs.
+     * @param messages An object mapping decision input values to error messages.
+     * @param defaultMessage An optional default error message to use when no specific message is provided.
+     */
+    setErrorMessages(messages, defaultMessage) {
+      this.errorMessages = messages;
+      if (defaultMessage) {
+        this.defaultErrorMessage = defaultMessage;
+      }
+    }
+    /**
+     * Validates the fields within the specified path and returns whether they are valid.
+     * @param pathIndex The index of the path to validate.
+     * @returns A boolean indicating whether the specified path is valid.
+     */
+    checkPathValidity(pathIndex) {
+      const pathElement = this.paths[pathIndex];
+      const inputs = pathElement.querySelectorAll(formQuery.input);
+      const { valid, invalidField } = validateFields(inputs, true);
+      return valid;
+    }
+    /**
+     * Updates the required attributes of input fields within the paths based on the selected decision input.
+     */
+    updateRequiredAttributes() {
+      this.paths.forEach((path) => {
+        const inputs = path.querySelectorAll(
+          "input, select, textarea"
+        );
+        inputs.forEach((input) => {
+          input.required = false;
+        });
+      });
+      const selectedInput = this.component.querySelector(
+        "input[data-decision-action]:checked"
+      );
+      if (selectedInput) {
+        const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
+        const selectedPath = this.paths.find(
+          (path) => path.dataset.decisionPath === pathId
+        );
+        if (selectedPath) {
+          const requiredFields = selectedPath.querySelectorAll(
+            '[data-decision-required="required"], [data-decision-required="true"]'
+          );
+          requiredFields.forEach((input) => {
+            input.required = true;
+          });
+        }
+      }
+    }
+    /**
+     * Displays validation message based on the current path.
+     * @param currentGroupValid A boolean indicating whether the current group of inputs is valid.
+     */
+    handleValidationMessages(currentGroupValid) {
+      if (!currentGroupValid) {
+        const selectedInput = this.getSelectedInput();
+        const pathId = selectedInput?.dataset.decisionAction || selectedInput?.value;
+        const customMessage = this.errorMessages[pathId] || this.defaultErrorMessage;
+        this.formMessage.error(customMessage);
+      } else {
+        this.formMessage.reset();
+      }
+    }
+  };
+
+  // library/accordion.ts
   var modalSelector = attributeselector_default("data-modal-element");
-  var personSelector = attributeselector_default("data-person-element");
-  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
-  var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
-  var ARRAY_GROUP_SELECTOR = "[data-person-data-group]";
-  var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
-  var STORAGE_KEY = "formProgress";
   var Accordion = class {
     constructor(component) {
       this.isOpen = false;
@@ -314,6 +549,18 @@
       }
     }
   };
+
+  // src/ts/sanavita-form.ts
+  var stepsElementSelector = attributeselector_default("data-steps-element");
+  var stepsTargetSelector = attributeselector_default("data-step-target");
+  var stepsNavSelector = attributeselector_default("data-steps-nav");
+  var modalSelector2 = attributeselector_default("data-modal-element");
+  var personSelector = attributeselector_default("data-person-element");
+  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
+  var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
+  var ARRAY_GROUP_SELECTOR = "[data-person-data-group]";
+  var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
+  var STORAGE_KEY = "formProgress";
   var Person = class {
     constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
       this.personalData = personalData;
@@ -391,192 +638,6 @@
       deserializeFieldGroup(data.secondaryRelative)
     );
   }
-  var FormMessage = class {
-    constructor(componentName, messageFor) {
-      this.initialized = false;
-      this.messageFor = messageFor;
-      const component = document.querySelector(
-        `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
-      );
-      if (!component) {
-        console.warn(
-          `No FormMessage component was found: ${componentName}, ${this.messageFor}`
-        );
-        return;
-      }
-      this.component = component;
-      this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
-      this.reset();
-      this.initialized = true;
-    }
-    // Method to display an info message
-    info(message = null, silent = false) {
-      if (!this.initialized)
-        return;
-      if (!silent) {
-        this.component.setAttribute("aria-live", "polite");
-      }
-      this.setMessage(message, "info", silent);
-    }
-    // Method to display an error message
-    error(message = null, silent = false) {
-      if (!this.initialized)
-        return;
-      if (!silent) {
-        this.component.setAttribute("role", "alert");
-        this.component.setAttribute("aria-live", "assertive");
-      }
-      this.setMessage(message, "error", silent);
-    }
-    // Method to reset/hide the message
-    reset() {
-      if (!this.initialized)
-        return;
-      this.component.classList.remove("info", "error");
-    }
-    // Private method to set the message and style
-    setMessage(message = null, type, silent = false) {
-      if (!this.initialized)
-        return;
-      if (this.messageElement && message) {
-        this.messageElement.textContent = message;
-      } else if (!this.messageElement) {
-        console.warn("Message text element not found.");
-      }
-      this.component.classList.remove("info", "error");
-      this.component.classList.add(type);
-      if (silent)
-        return;
-      this.component.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    }
-  };
-  var FormDecision = class {
-    constructor(component, id) {
-      this.paths = [];
-      this.errorMessages = {};
-      this.defaultErrorMessage = "Please complete the required fields.";
-      if (!component || !id) {
-        console.error(`FormDecision: Component not found.`);
-        return;
-      } else if (!component.hasAttribute("data-decision-component")) {
-        console.error(
-          `FormDecision: Selected element is not a FormDecision component:`,
-          component
-        );
-        return;
-      }
-      this.component = component;
-      this.id = id;
-      this.formMessage = new FormMessage("FormDecision", id);
-      this.initialize();
-    }
-    initialize() {
-      const decisionFieldsWrapper = this.component.querySelector('[data-decision-element="decision"]') || this.component;
-      this.decisionInputs = decisionFieldsWrapper.querySelectorAll(
-        "input[data-decision-action]"
-      );
-      if (this.decisionInputs.length === 0) {
-        console.warn(
-          `Decision component "${this.id}" does not contain any decision input elements.`
-        );
-        return;
-      }
-      this.decisionInputs.forEach((input) => {
-        const path = this.component.querySelector(
-          `[data-decision-path="${input.dataset.decisionAction || input.value}"]`
-        );
-        if (path) {
-          path.style.display = "none";
-          this.paths.push(path);
-        }
-        input.addEventListener("change", (event) => {
-          this.handleChange(path, event);
-          this.formMessage.reset();
-        });
-      });
-      this.component.addEventListener("change", () => this.formMessage.reset());
-    }
-    handleChange(path, event) {
-      this.paths.forEach((entry) => {
-        entry.style.display = "none";
-      });
-      if (path) {
-        path.style.removeProperty("display");
-      }
-      this.updateRequiredAttributes();
-    }
-    getSelectedInput() {
-      return Array.from(this.decisionInputs).find((input) => input.checked);
-    }
-    validate() {
-      const selectedInput = this.getSelectedInput();
-      const { valid: decisionValid } = validateFields(this.decisionInputs);
-      if (!decisionValid || !selectedInput) {
-        console.warn("No decision selected!");
-        this.handleValidationMessages(false);
-        return false;
-      }
-      const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
-      const pathIndex = this.paths.findIndex(
-        (path) => path.dataset.decisionPath === pathId
-      );
-      const isValid = pathIndex === -1 || this.checkPathValidity(pathIndex);
-      this.handleValidationMessages(isValid);
-      return isValid;
-    }
-    setErrorMessages(messages, defaultMessage) {
-      this.errorMessages = messages;
-      if (defaultMessage) {
-        this.defaultErrorMessage = defaultMessage;
-      }
-    }
-    checkPathValidity(pathIndex) {
-      const pathElement = this.paths[pathIndex];
-      const inputs = pathElement.querySelectorAll(formQuery.input);
-      const { valid, invalidField } = validateFields(inputs, true);
-      return valid;
-    }
-    updateRequiredAttributes() {
-      this.paths.forEach((path) => {
-        const inputs = path.querySelectorAll(
-          "input, select, textarea"
-        );
-        inputs.forEach((input) => {
-          input.required = false;
-        });
-      });
-      const selectedInput = this.component.querySelector(
-        "input[data-decision-action]:checked"
-      );
-      if (selectedInput) {
-        const pathId = selectedInput.dataset.decisionAction || selectedInput.value;
-        const selectedPath = this.paths.find(
-          (path) => path.dataset.decisionPath === pathId
-        );
-        if (selectedPath) {
-          const requiredFields = selectedPath.querySelectorAll(
-            '[data-decision-required="required"], [data-decision-required="true"]'
-          );
-          requiredFields.forEach((input) => {
-            input.required = true;
-          });
-        }
-      }
-    }
-    handleValidationMessages(currentGroupValid) {
-      if (!currentGroupValid) {
-        const selectedInput = this.getSelectedInput();
-        const pathId = selectedInput?.dataset.decisionAction || selectedInput?.value;
-        const customMessage = this.errorMessages[pathId] || this.defaultErrorMessage;
-        this.formMessage.error(customMessage);
-      } else {
-        this.formMessage.reset();
-      }
-    }
-  };
   var Modal = class {
     constructor(component) {
       this.initialized = false;
@@ -594,10 +655,10 @@
       this.initialized = true;
     }
     getModalContent() {
-      return this.component.querySelector(modalSelector("scroll"));
+      return this.component.querySelector(modalSelector2("scroll"));
     }
     getStickyFooter() {
-      return this.component.querySelector(modalSelector("sticky-bottom"));
+      return this.component.querySelector(modalSelector2("sticky-bottom"));
     }
     setupScrollEvent(modalContent, stickyFooter) {
       modalContent.addEventListener("scroll", () => {
@@ -657,7 +718,7 @@
       this.template = this.list.querySelector(personSelector("template"));
       this.addButton = this.container.querySelector(personSelector("add"));
       this.formMessage = new FormMessage("FormArray", this.id.toString());
-      this.modalForm = document.querySelector(formQuery.form);
+      this.modalForm = document.querySelector(formQuery2.form);
       this.modalElement = document.querySelector(
         formElementSelector("modal") + `[data-modal-for="person"]`
       );
@@ -666,7 +727,7 @@
       this.cancelButtons = this.modalElement.querySelectorAll(
         personSelector("cancel")
       );
-      this.modalInputs = this.modalElement.querySelectorAll(formQuery.input);
+      this.modalInputs = this.modalElement.querySelectorAll(formQuery2.input);
       this.groupElements = this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
       this.initialize();
     }
@@ -822,7 +883,7 @@
     }
     populateModal(person) {
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(formQuery.input);
+        const groupInputs = group.querySelectorAll(formQuery2.input);
         const groupName = group.dataset.personDataGroup;
         groupInputs.forEach((input) => {
           const field = person[groupName].getField(input.id);
@@ -919,8 +980,8 @@
       });
     }
     validateModal(report = true) {
-      const allModalFields = this.modalElement.querySelectorAll(formQuery.input);
-      const { valid, invalidField } = validateFields(allModalFields, report);
+      const allModalFields = this.modalElement.querySelectorAll(formQuery2.input);
+      const { valid, invalidField } = validateFields2(allModalFields, report);
       if (valid === true) {
         return true;
       } else if (invalidField) {
@@ -971,14 +1032,14 @@
     extractData() {
       const personData = new Person();
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(formQuery.input);
+        const groupInputs = group.querySelectorAll(formQuery2.input);
         const groupName = group.dataset.personDataGroup;
         if (!personData[groupName]) {
           console.error(`The group "${groupName}" doesn't exist.`);
           return;
         }
         groupInputs.forEach((input, index) => {
-          const field = FieldFromInput(input, index);
+          const field = fieldFromInput(input, index);
           if (field?.id) {
             personData[groupName].fields.set(field.id, field);
           }
@@ -1041,7 +1102,7 @@
       this.currentStep = 0;
       this.customComponents = [];
       this.component = component;
-      this.formElement = this.component.querySelector(formQuery.form);
+      this.formElement = this.component.querySelector(formQuery2.form);
       this.options = options;
       if (!this.formElement) {
         throw new Error("Form element not found within the specified component.");
@@ -1126,7 +1187,7 @@ Component:`,
           ...acc,
           ...entry.getData ? entry.getData() : {}
         };
-      });
+      }, {});
       const fields = {
         ...mapToObject(this.getAllFormData(), false),
         ...customFields
@@ -1172,7 +1233,7 @@ Component:`,
       this.formSteps.forEach((step, index) => {
         step.dataset.stepId = index.toString();
         step.classList.toggle("hide", index !== this.currentStep);
-        step.querySelectorAll(formQuery.input).forEach((input) => {
+        step.querySelectorAll(formQuery2.input).forEach((input) => {
           input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -1287,7 +1348,7 @@ Component:`,
     validateCurrentStep(step) {
       const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
       const currentStepElement = this.formSteps[step];
-      const inputs = currentStepElement.querySelectorAll(formQuery.input);
+      const inputs = currentStepElement.querySelectorAll(formQuery2.input);
       const filteredInputs = Array.from(inputs).filter((input) => {
         const isExcluded = this.options.excludeInputSelectors.some(
           (selector) => {
@@ -1296,7 +1357,7 @@ Component:`,
         );
         return !isExcluded;
       });
-      let { valid } = validateFields(filteredInputs);
+      let { valid } = validateFields2(filteredInputs);
       if (!valid) {
         console.warn(`${basicError}: Standard validation is not valid`);
         return valid;
@@ -1311,9 +1372,9 @@ Component:`,
     getFormDataForStep(step) {
       let fields = /* @__PURE__ */ new Map();
       const stepElement = this.formSteps[step];
-      const stepInputs = stepElement.querySelectorAll(formQuery.input);
+      const stepInputs = stepElement.querySelectorAll(formQuery2.input);
       stepInputs.forEach((input, inputIndex) => {
-        const entry = FieldFromInput(input, inputIndex);
+        const entry = fieldFromInput(input, inputIndex);
         if (entry?.id) {
           fields.set(entry.id, entry.value);
         }
@@ -1321,12 +1382,7 @@ Component:`,
       return fields;
     }
     getAllFormData() {
-      let fields = /* @__PURE__ */ new Map();
-      this.formSteps.forEach((step, stepIndex) => {
-        const stepData = this.getFormDataForStep(stepIndex);
-        fields = new Map([...fields, ...stepData]);
-      });
-      const newFields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
+      const fields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
         const stepData = this.getFormDataForStep(stepIndex);
         return new Map([
           ...acc,
