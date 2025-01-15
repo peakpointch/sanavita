@@ -29165,7 +29165,7 @@
       return valid;
     }
   };
-  function FieldFromInput(input, index2) {
+  function fieldFromInput(input, index2) {
     if (input.type === "radio" && !input.checked) {
       return new FormField();
     }
@@ -29288,7 +29288,7 @@
       this.data = new FieldGroup();
       fields = fields;
       fields.forEach((input, index2) => {
-        const field = FieldFromInput(input, index2);
+        const field = fieldFromInput(input, index2);
         if (field?.id) {
           this.data.fields.set(field.id, field);
         }
