@@ -29405,6 +29405,24 @@
     }
   };
 
+  // library/dateutils.ts
+  function formatDate2(date, options) {
+    return new Date(date).toLocaleDateString("de-CH", options);
+  }
+  function addDays(date = /* @__PURE__ */ new Date(), days) {
+    date.setDate(date.getDate() + days);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+  function getMonday(date = /* @__PURE__ */ new Date(), week = 0) {
+    let dayOfWeek = date.getDay();
+    let daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    date.setDate(date.getDate() - daysToMonday);
+    date.setDate(date.getDate() + week * 7);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
   // src/ts/sanavitapdf.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector2 = attributeselector_default("data-action");
@@ -29443,22 +29461,6 @@
     form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
     form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
   }
-  function formatDate2(date, options) {
-    return new Date(date).toLocaleDateString("de-CH", options);
-  }
-  function addDays(date = /* @__PURE__ */ new Date(), days) {
-    date.setDate(date.getDate() + days);
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }
-  function getMonday(date = /* @__PURE__ */ new Date(), week = 0) {
-    let dayOfWeek = date.getDay();
-    let daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    date.setDate(date.getDate() - daysToMonday);
-    date.setDate(date.getDate() + week * 7);
-    date.setHours(0, 0, 0, 0);
-    return date;
-  }
   function tagWeeklyHit(list) {
     const weeklyHitElements = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
     weeklyHitElements.forEach((hit) => {
@@ -29490,9 +29492,7 @@
     filterCollection.readCollectionData();
     setDefaultFilters(filterForm);
     setMinMaxDate(filterForm, filterCollection.getCollectionData());
-    filterForm.addBeforeChange(() => {
-      filterForm.validateDateRange("startDate", "endDate");
-    });
+    filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate"));
     filterForm.addOnChange((filters) => {
       const startDate = new Date(filters.getField("startDate").value);
       const endDate = new Date(filters.getField("endDate").value);

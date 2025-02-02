@@ -4,6 +4,7 @@ import Pdf, { pdfElementSelector } from '@library/pdf';
 import { CollectionList } from '@library/wfcollection';
 import { RenderData, RenderElement, RenderField } from '@library/renderer';
 import { FilterForm, FieldGroup, filterFormSelector } from '@library/form';
+import { addDays, getMonday, formatDate, DateOptionsObject } from '@library/dateutils';
 import createAttribute from '@library/attributeselector';
 
 // Types
@@ -71,31 +72,6 @@ function setDefaultFilters(form: FilterForm): void {
   form.getFilterInput('dayRange').value = form.setDayRange(7).toString();
 }
 
-type DateOptionsObject = {
-  [key: string]: Intl.DateTimeFormatOptions;
-}
-
-function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions): string {
-  return new Date(date).toLocaleDateString('de-CH', options);
-}
-
-function addDays(date: Date = new Date(), days: number): Date {
-  date.setDate(date.getDate() + days);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-function getMonday(date: Date = new Date(), week: number = 0): Date {
-  let dayOfWeek = date.getDay();
-  let daysToMonday = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
-
-  date.setDate(date.getDate() - daysToMonday);
-  date.setDate(date.getDate() + week * 7);
-  date.setHours(0, 0, 0, 0);
-
-  return date;
-}
-
 /**
  * Tag the weekly hit elements in the cms list with 
  * a different attribute value, so that the render engine 
@@ -141,9 +117,7 @@ function initialize(): void {
   setDefaultFilters(filterForm);
   setMinMaxDate(filterForm, filterCollection.getCollectionData());
 
-  filterForm.addBeforeChange(() => {
-    filterForm.validateDateRange('startDate', 'endDate');
-  });
+  filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate'));
   filterForm.addOnChange((filters) => {
     // Get FilterForm values
     const startDate = new Date(filters.getField('startDate').value);
