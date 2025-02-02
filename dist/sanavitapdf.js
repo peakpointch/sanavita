@@ -29191,30 +29191,8 @@
     }
   };
 
-  // src/ts/sanavitapdf.ts
-  var wfCollectionSelector = attributeselector_default("wf-collection");
+  // library/form/filterform.ts
   var actionSelector = attributeselector_default("data-action");
-  var DailyMenuCollection = class extends CollectionList {
-    constructor(container) {
-      super(container, "pdf");
-      this.renderer.addFilterAttributes(["date", "end-date", "weekly-hit-boolean"]);
-      this.readCollectionData();
-    }
-    filterByDate(startDate, endDate, ...additionalConditions) {
-      return [...this.collectionData].filter(
-        (weekday) => {
-          const baseCondition = weekday.date >= startDate && weekday.date <= endDate;
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
-          return baseCondition && allAdditionalConditions;
-        }
-      );
-    }
-    filterByRange(startDate, dayRange = 7, ...conditions) {
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + dayRange - 1);
-      return this.filterByDate(startDate, endDate, ...conditions);
-    }
-  };
   var FilterForm = class {
     constructor(container) {
       this.changeActions = [];
@@ -29368,6 +29346,31 @@
       }
     }
   };
+
+  // src/ts/sanavitapdf.ts
+  var wfCollectionSelector = attributeselector_default("wf-collection");
+  var actionSelector2 = attributeselector_default("data-action");
+  var DailyMenuCollection = class extends CollectionList {
+    constructor(container) {
+      super(container, "pdf");
+      this.renderer.addFilterAttributes(["date", "end-date", "weekly-hit-boolean"]);
+      this.readCollectionData();
+    }
+    filterByDate(startDate, endDate, ...additionalConditions) {
+      return [...this.collectionData].filter(
+        (weekday) => {
+          const baseCondition = weekday.date >= startDate && weekday.date <= endDate;
+          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
+          return baseCondition && allAdditionalConditions;
+        }
+      );
+    }
+    filterByRange(startDate, dayRange = 7, ...conditions) {
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + dayRange - 1);
+      return this.filterByDate(startDate, endDate, ...conditions);
+    }
+  };
   var filterMenuData = (filters, menuList) => {
     const startDateValue = filters.getField("startDate").value;
     const startDate = new Date(startDateValue);
@@ -29390,7 +29393,7 @@
     return date;
   }
   function initDownload(pdf) {
-    const button = document.querySelector(actionSelector("download"));
+    const button = document.querySelector(actionSelector2("download"));
     if (!button)
       throw new Error("Download button does not exist");
     button.addEventListener("click", async () => {
