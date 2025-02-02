@@ -83,8 +83,8 @@ class Renderer {
    * It identifies elements with `data-${elementAttr}-element` and `data-${fieldAttr}-field` attributes,
    * and processes them into RenderElement and RenderField objects.
    *
-   * @param {HTMLElement} node - The root node to start reading from.
-   * @returns {RenderData} An array of RenderElement and RenderField objects representing the node structure.
+   * @param node The root node to start reading from.
+   * @returns `RenderData` An array of RenderElement and RenderField objects representing the node structure.
    */
   public read(node: HTMLElement, stopRecursionMatches: string[] = []): RenderData {
     const renderData: RenderData = [];

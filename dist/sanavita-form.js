@@ -236,7 +236,11 @@
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
-    // Method to retrieve a field by its id
+    /**
+     * Finds a specific `FormField` instance by id.
+     *
+     * @param fieldId The id attribute of the associated DOM element.
+     */
     getField(fieldId) {
       return this.fields.get(fieldId);
     }
@@ -489,6 +493,9 @@
       }
     }
   };
+
+  // library/form/filterform.ts
+  var actionSelector = attributeselector_default("data-action");
 
   // library/accordion.ts
   var modalSelector = attributeselector_default("data-modal-element");

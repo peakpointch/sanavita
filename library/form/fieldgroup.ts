@@ -7,8 +7,12 @@ export class FieldGroup {
     this.fields = fields;
   }
 
-  // Method to retrieve a field by its id
-  getField(fieldId: string): FormField | undefined {
+  /**
+   * Finds a specific `FormField` instance by id.
+   *
+   * @param fieldId The id attribute of the associated DOM element.
+   */
+  public getField(fieldId: string): FormField | undefined {
     return this.fields.get(fieldId);
   }
 }
