@@ -19620,8 +19620,8 @@ var Renderer = class _Renderer {
    * It identifies elements with `data-${elementAttr}-element` and `data-${fieldAttr}-field` attributes,
    * and processes them into RenderElement and RenderField objects.
    *
-   * @param {HTMLElement} node - The root node to start reading from.
-   * @returns {RenderData} An array of RenderElement and RenderField objects representing the node structure.
+   * @param node The root node to start reading from.
+   * @returns `RenderData` An array of RenderElement and RenderField objects representing the node structure.
    */
   read(node2, stopRecursionMatches = []) {
     const renderData = [];
@@ -28962,6 +28962,17 @@ var Pdf = class {
     } finally {
       this.unFreeze();
     }
+  }
+  initDownload(button) {
+    if (!button)
+      throw new Error("Download button does not exist");
+    button.addEventListener("click", async () => {
+      this.scale(1, false);
+      setTimeout(async () => {
+        await this.create();
+        this.resetScale();
+      }, 0);
+    });
   }
 };
 export {

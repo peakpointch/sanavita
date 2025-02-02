@@ -201,4 +201,15 @@ export default class Pdf {
       this.unFreeze();
     }
   }
+
+  public initDownload(button: HTMLElement | null): void {
+    if (!button) throw new Error('Download button does not exist');
+    button.addEventListener('click', async () => {
+      this.scale(1, false);
+      setTimeout(async () => {
+        await this.create();
+        this.resetScale();
+      }, 0);
+    });
+  }
 }

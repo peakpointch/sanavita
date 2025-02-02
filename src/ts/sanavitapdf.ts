@@ -71,6 +71,14 @@ function setDefaultFilters(form: FilterForm): void {
   form.getFilterInput('dayRange').value = form.setDayRange(7).toString();
 }
 
+type DateOptionsObject = {
+  [key: string]: Intl.DateTimeFormatOptions;
+}
+
+function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions): string {
+  return new Date(date).toLocaleDateString('de-CH', options);
+}
+
 function addDays(date: Date = new Date(), days: number): Date {
   date.setDate(date.getDate() + days);
   date.setHours(0, 0, 0, 0);
@@ -88,24 +96,17 @@ function getMonday(date: Date = new Date(), week: number = 0): Date {
   return date;
 }
 
-function initDownload(pdf: Pdf): void {
-  const button = document.querySelector(actionSelector('download'));
-  if (!button) throw new Error('Download button does not exist');
-  button.addEventListener('click', async () => {
-    pdf.scale(1, false);
-    setTimeout(async () => {
-      await pdf.create();
-      pdf.resetScale();
-    }, 0);
+/**
+ * Tag the weekly hit elements in the cms list with 
+ * a different attribute value, so that the render engine 
+ * can effectively differentiate them as two different 
+ * render elements.
+ */
+function tagWeeklyHit(list: HTMLElement): void {
+  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
+  weeklyHitElements.forEach(hit => {
+    hit.setAttribute("data-pdf-element", "weekly-hit");
   });
-}
-
-function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions): string {
-  return new Date(date).toLocaleDateString('de-CH', options);
-}
-
-type DateOptionsObject = {
-  [key: string]: Intl.DateTimeFormatOptions;
 }
 
 const dateOptions: DateOptionsObject = {
@@ -121,19 +122,6 @@ const dateOptions: DateOptionsObject = {
   }
 }
 
-/**
- * Tag the weekly hit elements in the cms list with 
- * a different attribute value, so that the render engine 
- * can effectively differentiate them as two different 
- * render elements.
- */
-function tagWeeklyHit(list: HTMLElement): void {
-  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
-  weeklyHitElements.forEach(hit => {
-    hit.setAttribute("data-pdf-element", "weekly-hit");
-  });
-}
-
 function initialize(): void {
   const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
   const pdfContainer: HTMLElement | null = document.querySelector(pdfElementSelector('container'));
@@ -146,12 +134,16 @@ function initialize(): void {
   const filterCollection = new FilterCollection(dailyMenuListElement);
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm(filterFormElement);
+  const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
 
   filterCollection.renderer.addFilterAttributes(['weekly-hit-boolean']);
   filterCollection.readCollectionData();
   setDefaultFilters(filterForm);
   setMinMaxDate(filterForm, filterCollection.getCollectionData());
 
+  filterForm.addBeforeChange(() => {
+    filterForm.validateDateRange('startDate', 'endDate');
+  });
   filterForm.addOnChange((filters) => {
     // Get FilterForm values
     const startDate = new Date(filters.getField('startDate').value);
@@ -175,22 +167,15 @@ function initialize(): void {
     ]);
   });
 
-  const resetScaleToBreakpointDefault = (): void => {
+  filterForm.addResizeReset('scale', () => {
     const defaultScale = pdf.getDefaultScale();
-    filterForm.getFilterInput('scale').value = defaultScale.toString();
     pdf.scale(defaultScale);
-  };
-  resetScaleToBreakpointDefault();
+    return defaultScale;
+  });
 
-  window.addEventListener('resize', () => {
-    resetScaleToBreakpointDefault();
-  })
-
-  const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
-
+  filterForm.applyResizeResets();
   filterForm.invokeOnChange(); // Initialize the filter with it's default values
-
-  initDownload(pdf);
+  pdf.initDownload(document.querySelector(actionSelector('download')));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

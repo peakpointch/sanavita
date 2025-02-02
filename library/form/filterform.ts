@@ -1,7 +1,7 @@
-import { FieldGroup, FormInput, formQuery, fieldFromInput } from ".";
+import { FieldGroup, HTMLFormInput, formQuery, fieldFromInput } from ".";
 import createAttribute from "@library/attributeselector";
 
-type Action = (filters: FieldGroup) => any;
+type Action = (filters?: FieldGroup) => any;
 type ActionElement = 'download' | 'save';
 
 const actionSelector = createAttribute<ActionElement>('data-action');
@@ -9,10 +9,12 @@ const actionSelector = createAttribute<ActionElement>('data-action');
 export class FilterForm {
   public container: HTMLElement;
   private data: FieldGroup;
-  private filterFields: NodeListOf<FormInput>;
-  private formFields: NodeListOf<FormInput>;
+  private filterFields: NodeListOf<HTMLFormInput>;
+  private formFields: NodeListOf<HTMLFormInput>;
+  private beforeChangeActions: Action[] = [];
   private changeActions: Action[] = [];
   private defaultDayRange: number = 7;
+  private resizeResetFields: Map<string, () => string | number | Date> = new Map();
 
   constructor(container: HTMLElement | null) {
     if (!container) throw new Error(`FilterForm container can't be null`)
@@ -36,9 +38,9 @@ export class FilterForm {
   }
 
   /**
-   * Get the HTMLElement of a specific filter input.
+   * Returns the `HTMLElement` of a specific filter input.
    */
-  public getFilterInput(fieldId: string): FormInput {
+  public getFilterInput(fieldId: string): HTMLFormInput {
     const existingFields = this.getFieldIds(this.filterFields)
     if (!this.fieldExists(fieldId, existingFields)) {
       throw new Error(`Field with ID "${fieldId}" was not found`);
@@ -50,7 +52,7 @@ export class FilterForm {
   /**
    * Get all the field-ids inside the current instance.
    */
-  private getFieldIds(fields: NodeListOf<FormInput>): string[] {
+  private getFieldIds(fields: NodeListOf<HTMLFormInput>): string[] {
     return Array.from(fields).map(input => input.id);
   }
 
@@ -75,13 +77,17 @@ export class FilterForm {
   private attachChangeListeners(): void {
     this.formFields.forEach(field => {
       field.addEventListener("input", this.onChange.bind(this));
-
-      if (field.id === 'startDate' || field.id === 'endDate' || field.id === 'dayRange') {
-        field.addEventListener("input", () => this.validateDateRange());
-      }
     });
     const saveBtn = this.container.querySelector(actionSelector('save'));
     saveBtn.addEventListener('click', this.onChange.bind(this));
+  }
+
+  /**
+   * Add an action to be exectued before all the onChange actions get called.
+   * Use this function to validate or modify inputs if needed.
+   */
+  public addBeforeChange(action: Action): void {
+    this.beforeChangeActions.push(action);
   }
 
   /**
@@ -95,6 +101,7 @@ export class FilterForm {
    * Execute all onChange actions.
    */
   private onChange(): void {
+    this.beforeChangeActions.forEach(action => action());
     const filters: FieldGroup = this.getFieldGroup(this.filterFields);
     this.changeActions.forEach(action => action(filters));
   }
@@ -113,9 +120,9 @@ export class FilterForm {
    * Use this method to get all the form field values as structured data 
    * alongside field metadata.
    */
-  public getFieldGroup(fields: NodeListOf<FormInput> | FormInput[]): FieldGroup {
+  public getFieldGroup(fields: NodeListOf<HTMLFormInput> | HTMLFormInput[]): FieldGroup {
     this.data = new FieldGroup();
-    fields = fields as NodeListOf<FormInput>;
+    fields = fields as NodeListOf<HTMLFormInput>;
     fields.forEach((input, index) => {
       const field = fieldFromInput(input, index);
       if (field?.id) {
@@ -123,6 +130,51 @@ export class FilterForm {
       }
     });
     return this.data;
+  }
+
+  /**
+   * Reset a field to a specific value on `window.resize` event.
+   */
+  public addResizeReset(fieldId: string, getValue: () => string | number | Date): void {
+    const existingFields = this.getFieldIds(this.filterFields);
+    if (!this.fieldExists(fieldId, existingFields)) {
+      throw new Error(`Field with ID "${fieldId}" was not found`);
+    }
+
+    // Store the function that provides the reset value
+    this.resizeResetFields.set(fieldId, getValue);
+
+    // Attach resize event listener only once
+    if (this.resizeResetFields.size === 1) {
+      window.addEventListener('resize', () => this.applyResizeResets());
+    }
+  }
+
+  /**
+   * Remove a field from the reset on resize list. This will no longer reset the field on resize.
+   */
+  public removeResizeReset(fieldId: string): void {
+    this.resizeResetFields.delete(fieldId);
+
+    // Detach event listener if no fields remain to reset on resize
+    if (this.resizeResetFields.size === 0) {
+      window.removeEventListener('resize', this.applyResizeResets);
+    }
+  }
+
+  /**
+   * Applies the reset values to the fields.
+   */
+  public applyResizeResets(): void {
+    this.resizeResetFields.forEach((getValue, fieldId) => {
+      let value = getValue();
+
+      if (value instanceof Date) {
+        value = value.toISOString().split('T')[0]; // Format Date to YYYY-MM-DD
+      }
+
+      this.getFilterInput(fieldId).value = value.toString();
+    });
   }
 
   /**
@@ -140,10 +192,13 @@ export class FilterForm {
   /**
    * Validate the date range between startDate and endDate.
    * Ensure they remain within the chosen day range.
+   *
+   * @param startDateFieldId The field id of the startdate `HTMLFormInput`
+   * @param endDateFieldId The field id of the enddate `HTMLFormInput`
    */
-  private validateDateRange(customDayRange?: number): void {
-    const startDateInput = this.getFilterInput('startDate') as HTMLInputElement;
-    const endDateInput = this.getFilterInput('endDate') as HTMLInputElement;
+  public validateDateRange(startDateFieldId: string, endDateFieldId: string, customDayRange?: number): void {
+    const startDateInput = this.getFilterInput(startDateFieldId) as HTMLInputElement;
+    const endDateInput = this.getFilterInput(endDateFieldId) as HTMLInputElement;
 
     const startDate = new Date(startDateInput.value);
     const endDate = new Date(endDateInput.value);
@@ -181,9 +236,6 @@ export class FilterForm {
           startDateInput.value = endDate.toISOString().split('T')[0];
         }
       }
-
-      // Trigger a change event to update the UI and filters
-      this.onChange();
     }
   }
 }

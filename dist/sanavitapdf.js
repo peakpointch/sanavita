@@ -19709,8 +19709,8 @@
      * It identifies elements with `data-${elementAttr}-element` and `data-${fieldAttr}-field` attributes,
      * and processes them into RenderElement and RenderField objects.
      *
-     * @param {HTMLElement} node - The root node to start reading from.
-     * @returns {RenderData} An array of RenderElement and RenderField objects representing the node structure.
+     * @param node The root node to start reading from.
+     * @returns `RenderData` An array of RenderElement and RenderField objects representing the node structure.
      */
     read(node2, stopRecursionMatches = []) {
       const renderData = [];
@@ -19783,14 +19783,11 @@
           value = isNaN(parsedDate.getTime()) ? null : parsedDate;
         }
         if (attr.toLowerCase().includes("boolean")) {
-          switch (value) {
-            case "select":
-              const booleanValue = child.querySelector(value);
-              value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || "false") : false;
-              break;
-            default:
-              value = JSON.parse(value);
-              break;
+          if (value === "select") {
+            const booleanValue = child.querySelector(value);
+            value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || "false") : false;
+          } else {
+            value = JSON.parse(value);
           }
         }
         field[toCamelCase(attr)] = value;
@@ -29055,6 +29052,17 @@
         this.unFreeze();
       }
     }
+    initDownload(button) {
+      if (!button)
+        throw new Error("Download button does not exist");
+      button.addEventListener("click", async () => {
+        this.scale(1, false);
+        setTimeout(async () => {
+          await this.create();
+          this.resetScale();
+        }, 0);
+      });
+    }
   };
 
   // library/wfcollection.ts
@@ -29202,8 +29210,10 @@
   var actionSelector = attributeselector_default("data-action");
   var FilterForm = class {
     constructor(container) {
+      this.beforeChangeActions = [];
       this.changeActions = [];
       this.defaultDayRange = 7;
+      this.resizeResetFields = /* @__PURE__ */ new Map();
       if (!container)
         throw new Error(`FilterForm container can't be null`);
       container = container;
@@ -29258,12 +29268,16 @@
     attachChangeListeners() {
       this.formFields.forEach((field) => {
         field.addEventListener("input", this.onChange.bind(this));
-        if (field.id === "startDate" || field.id === "endDate" || field.id === "dayRange") {
-          field.addEventListener("input", () => this.validateDateRange());
-        }
       });
       const saveBtn = this.container.querySelector(actionSelector("save"));
       saveBtn.addEventListener("click", this.onChange.bind(this));
+    }
+    /**
+     * Add an action to be exectued before all the onChange actions get called.
+     * Use this function to validate or modify inputs if needed.
+     */
+    addBeforeChange(action) {
+      this.beforeChangeActions.push(action);
     }
     /**
      * Add an action to be executed when the filters change.
@@ -29275,6 +29289,7 @@
      * Execute all onChange actions.
      */
     onChange() {
+      this.beforeChangeActions.forEach((action) => action());
       const filters = this.getFieldGroup(this.filterFields);
       this.changeActions.forEach((action) => action(filters));
     }
@@ -29303,6 +29318,40 @@
       return this.data;
     }
     /**
+     * Reset a field to a specific value on `window.resize` event.
+     */
+    addResizeReset(fieldId, getValue) {
+      const existingFields = this.getFieldIds(this.filterFields);
+      if (!this.fieldExists(fieldId, existingFields)) {
+        throw new Error(`Field with ID "${fieldId}" was not found`);
+      }
+      this.resizeResetFields.set(fieldId, getValue);
+      if (this.resizeResetFields.size === 1) {
+        window.addEventListener("resize", () => this.applyResizeResets());
+      }
+    }
+    /**
+     * Remove a field from the reset on resize list. This will no longer reset the field on resize.
+     */
+    removeResizeReset(fieldId) {
+      this.resizeResetFields.delete(fieldId);
+      if (this.resizeResetFields.size === 0) {
+        window.removeEventListener("resize", this.applyResizeResets);
+      }
+    }
+    /**
+     * Applies the reset values to the fields.
+     */
+    applyResizeResets() {
+      this.resizeResetFields.forEach((getValue, fieldId) => {
+        let value = getValue();
+        if (value instanceof Date) {
+          value = value.toISOString().split("T")[0];
+        }
+        this.getFilterInput(fieldId).value = value.toString();
+      });
+    }
+    /**
      * Set a custom day range for validation.
      * If no custom range is needed, revert to default.
      */
@@ -29316,10 +29365,13 @@
     /**
      * Validate the date range between startDate and endDate.
      * Ensure they remain within the chosen day range.
+     *
+     * @param startDateFieldId The field id of the startdate `HTMLFormInput`
+     * @param endDateFieldId The field id of the enddate `HTMLFormInput`
      */
-    validateDateRange(customDayRange) {
-      const startDateInput = this.getFilterInput("startDate");
-      const endDateInput = this.getFilterInput("endDate");
+    validateDateRange(startDateFieldId, endDateFieldId, customDayRange) {
+      const startDateInput = this.getFilterInput(startDateFieldId);
+      const endDateInput = this.getFilterInput(endDateFieldId);
       const startDate = new Date(startDateInput.value);
       const endDate = new Date(endDateInput.value);
       let activeRange = customDayRange ?? this.defaultDayRange;
@@ -29349,7 +29401,6 @@
             startDateInput.value = endDate.toISOString().split("T")[0];
           }
         }
-        this.onChange();
       }
     }
   };
@@ -29360,6 +29411,7 @@
   var FilterCollection = class extends CollectionList {
     constructor(container) {
       super(container, "pdf");
+      this.renderer.addFilterAttributes(["date", "end-date"]);
     }
     filterByDate(startDate, endDate, ...additionalConditions) {
       return [...this.collectionData].filter(
@@ -29391,6 +29443,9 @@
     form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
     form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
   }
+  function formatDate2(date, options) {
+    return new Date(date).toLocaleDateString("de-CH", options);
+  }
   function addDays(date = /* @__PURE__ */ new Date(), days) {
     date.setDate(date.getDate() + days);
     date.setHours(0, 0, 0, 0);
@@ -29404,20 +29459,11 @@
     date.setHours(0, 0, 0, 0);
     return date;
   }
-  function initDownload(pdf) {
-    const button = document.querySelector(actionSelector2("download"));
-    if (!button)
-      throw new Error("Download button does not exist");
-    button.addEventListener("click", async () => {
-      pdf.scale(1, false);
-      setTimeout(async () => {
-        await pdf.create();
-        pdf.resetScale();
-      }, 0);
+  function tagWeeklyHit(list) {
+    const weeklyHitElements = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
+    weeklyHitElements.forEach((hit) => {
+      hit.setAttribute("data-pdf-element", "weekly-hit");
     });
-  }
-  function formatDate2(date, options) {
-    return new Date(date).toLocaleDateString("de-CH", options);
   }
   var dateOptions = {
     day: {
@@ -29431,54 +29477,48 @@
       year: "numeric"
     }
   };
-  function tagWeeklyHit(list) {
-    const weeklyHitElements = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
-    weeklyHitElements.forEach((hit) => {
-      hit.setAttribute("data-pdf-element", "weekly-hit");
-    });
-  }
   function initialize() {
     const dailyMenuListElement = document.querySelector(wfCollectionSelector("daily"));
     const pdfContainer = document.querySelector(pdfElementSelector("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     tagWeeklyHit(dailyMenuListElement);
-    const menuList = new FilterCollection(dailyMenuListElement);
+    const filterCollection = new FilterCollection(dailyMenuListElement);
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
+    const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
+    filterCollection.renderer.addFilterAttributes(["weekly-hit-boolean"]);
+    filterCollection.readCollectionData();
     setDefaultFilters(filterForm);
-    setMinMaxDate(filterForm, menuList.getCollectionData());
+    setMinMaxDate(filterForm, filterCollection.getCollectionData());
+    filterForm.addBeforeChange(() => {
+      filterForm.validateDateRange("startDate", "endDate");
+    });
     filterForm.addOnChange((filters) => {
       const startDate = new Date(filters.getField("startDate").value);
       const endDate = new Date(filters.getField("endDate").value);
       const dayRange = parseFloat(filters.getField("dayRange").value);
       const scale = parseFloat(filters.getField("scale").value);
-      pdf.scale(scale);
       filterForm.setDayRange(dayRange);
-      const renderElements = menuList.filterByDate(startDate, endDate);
       const staticRenderFields = [
         {
           element: "title",
           value: `${formatDate2(startDate, dateOptions.day)}. \u2013 ${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
         }
       ];
-      const data = [
+      pdf.scale(scale);
+      pdf.render([
         ...staticRenderFields,
-        ...renderElements
-      ];
-      pdf.render(data);
+        ...filterCollection.filterByDate(startDate, endDate)
+      ]);
     });
-    const resetScaleToBreakpointDefault = () => {
+    filterForm.addResizeReset("scale", () => {
       const defaultScale = pdf.getDefaultScale();
-      filterForm.getFilterInput("scale").value = defaultScale.toString();
       pdf.scale(defaultScale);
-    };
-    resetScaleToBreakpointDefault();
-    window.addEventListener("resize", () => {
-      resetScaleToBreakpointDefault();
+      return defaultScale;
     });
-    const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
+    filterForm.applyResizeResets();
     filterForm.invokeOnChange();
-    initDownload(pdf);
+    pdf.initDownload(document.querySelector(actionSelector2("download")));
   }
   document.addEventListener("DOMContentLoaded", () => {
     try {
