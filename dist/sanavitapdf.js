@@ -29237,6 +29237,9 @@
       this.formFields = container.querySelectorAll(formQuery2.input);
       this.attachChangeListeners();
     }
+    /**
+     * Get the HTMLElement of a specific filter input.
+     */
     getFilterInput(fieldId) {
       const existingFields = this.getFieldIds(this.filterFields);
       if (!this.fieldExists(fieldId, existingFields)) {
@@ -29244,9 +29247,15 @@
       }
       return Array.from(this.filterFields).find((field) => field.id === fieldId);
     }
+    /**
+     * Get all the field-ids inside the current instance.
+     */
     getFieldIds(fields) {
       return Array.from(fields).map((input) => input.id);
     }
+    /**
+     * Check if a field-id exists in a list of field-ids.
+     */
     fieldExists(fieldId, fieldIds) {
       const matches = fieldIds.filter((id) => id === fieldId);
       if (matches.length === 1) {
@@ -29256,6 +29265,11 @@
       }
       return false;
     }
+    /**
+     * Attach all the event listeners needed for the form to function.
+     * These event listeners ensure the instance is always in sync with the
+     * current state of the FilterForm.
+     */
     attachChangeListeners() {
       this.formFields.forEach((field) => {
         field.addEventListener("input", this.onChange.bind(this));
@@ -29272,8 +29286,11 @@
     addOnChange(action) {
       this.changeActions.push(action);
     }
+    /**
+     * Execute all onChange actions.
+     */
     onChange() {
-      const filters = this.extractData(this.filterFields);
+      const filters = this.getFieldGroup(this.filterFields);
       this.changeActions.forEach((action) => action(filters));
     }
     /**
@@ -29284,7 +29301,12 @@
     invokeOnChange() {
       this.onChange();
     }
-    extractData(fields) {
+    /**
+     * Get the FieldGroup from current form state.
+     * Use this method to get all the form field values as structured data 
+     * alongside field metadata.
+     */
+    getFieldGroup(fields) {
       this.data = new FieldGroup();
       fields = fields;
       fields.forEach((input, index2) => {
@@ -29367,8 +29389,6 @@
     date.setHours(0, 0, 0, 0);
     return date;
   }
-  function onSave() {
-  }
   function initDownload(pdf) {
     const button = document.querySelector(actionSelector("download"));
     if (!button)
@@ -29380,12 +29400,6 @@
         pdf.resetScale();
       }, 0);
     });
-  }
-  function initSave() {
-    const button = document.querySelector(actionSelector("save"));
-    if (!button)
-      throw new Error("Save button does not exist");
-    button.addEventListener("click", () => onSave());
   }
   function setDefaultFilters(form, data) {
     const nextMonday = getMonday(/* @__PURE__ */ new Date(), 1);
@@ -29464,7 +29478,6 @@
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
     filterForm.invokeOnChange();
     initDownload(pdf);
-    initSave();
   }
   document.addEventListener("DOMContentLoaded", () => {
     try {

@@ -84,6 +84,9 @@ class FilterForm {
     this.attachChangeListeners();
   }
 
+  /**
+   * Get the HTMLElement of a specific filter input.
+   */
   public getFilterInput(fieldId: string): FormInput {
     const existingFields = this.getFieldIds(this.filterFields)
     if (!this.fieldExists(fieldId, existingFields)) {
@@ -93,10 +96,16 @@ class FilterForm {
     return Array.from(this.filterFields).find(field => field.id === fieldId);
   }
 
+  /**
+   * Get all the field-ids inside the current instance.
+   */
   private getFieldIds(fields: NodeListOf<FormInput>): string[] {
     return Array.from(fields).map(input => input.id);
   }
 
+  /**
+   * Check if a field-id exists in a list of field-ids.
+   */
   private fieldExists(fieldId: string, fieldIds: string[]): boolean {
     const matches = fieldIds.filter(id => id === fieldId);
     if (matches.length === 1) {
@@ -107,6 +116,11 @@ class FilterForm {
     return false;
   }
 
+  /**
+   * Attach all the event listeners needed for the form to function.
+   * These event listeners ensure the instance is always in sync with the
+   * current state of the FilterForm.
+   */
   private attachChangeListeners(): void {
     this.formFields.forEach(field => {
       field.addEventListener("input", this.onChange.bind(this));
@@ -126,8 +140,11 @@ class FilterForm {
     this.changeActions.push(action);
   }
 
+  /**
+   * Execute all onChange actions.
+   */
   private onChange(): void {
-    const filters: FieldGroup = this.extractData(this.filterFields);
+    const filters: FieldGroup = this.getFieldGroup(this.filterFields);
     this.changeActions.forEach(action => action(filters));
   }
 
@@ -140,7 +157,12 @@ class FilterForm {
     this.onChange();
   }
 
-  public extractData(fields: NodeListOf<FormInput> | FormInput[]): FieldGroup {
+  /**
+   * Get the FieldGroup from current form state.
+   * Use this method to get all the form field values as structured data 
+   * alongside field metadata.
+   */
+  public getFieldGroup(fields: NodeListOf<FormInput> | FormInput[]): FieldGroup {
     this.data = new FieldGroup();
     fields = fields as NodeListOf<FormInput>;
     fields.forEach((input, index) => {
@@ -242,10 +264,6 @@ function getMonday(date: Date = new Date(), week: number = 0): Date {
   return date;
 }
 
-function onSave(): void {
-
-}
-
 function initDownload(pdf: Pdf): void {
   const button = document.querySelector(actionSelector('download'));
   if (!button) throw new Error('Download button does not exist');
@@ -256,12 +274,6 @@ function initDownload(pdf: Pdf): void {
       pdf.resetScale();
     }, 0);
   });
-}
-
-function initSave(): void {
-  const button = document.querySelector(actionSelector('save'));
-  if (!button) throw new Error('Save button does not exist');
-  button.addEventListener('click', () => onSave());
 }
 
 function setDefaultFilters(form: FilterForm, data: RenderData): void {
@@ -366,7 +378,6 @@ function initialize(): void {
   filterForm.invokeOnChange(); // Initialize the filter with it's default values
 
   initDownload(pdf);
-  initSave();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
