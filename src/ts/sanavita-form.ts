@@ -11,7 +11,7 @@ import {
   fieldFromInput
 } from "@library/form";
 import { wf, wfclass, formQuery } from "@library/form";
-import { FormInput, Validator } from "@library/form";
+import { HTMLFormInput, Validator } from "@library/form";
 import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@library/form";
 import Accordion from "@library/accordion";
 
@@ -208,11 +208,11 @@ class FormGroup {
     });
   }
 
-  private getGroupFields(groupName: string): NodeListOf<FormInput> {
+  private getGroupFields(groupName: string): NodeListOf<HTMLFormInput> {
     return this.container.querySelectorAll(`[data-form-group="${groupName}"]`);
   }
 
-  private getAllGroupFields(): NodeListOf<FormInput> {
+  private getAllGroupFields(): NodeListOf<HTMLFormInput> {
     const selectorList = this.groupNames.map((groupName) => {
       return `[data-form-group="${groupName}"]`;
     });
@@ -363,8 +363,8 @@ class FormArray {
   private modalForm: HTMLFormElement;
   private saveButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
-  private modalInputs: NodeListOf<FormInput>;
-  private groupElements: NodeListOf<FormInput>;
+  private modalInputs: NodeListOf<HTMLFormInput>;
+  private groupElements: NodeListOf<HTMLFormInput>;
   private accordionList: Accordion[] = [];
   public initialized: boolean = false;
 
@@ -572,7 +572,7 @@ class FormArray {
 
   private populateModal(person: Person) {
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormInput> =
+      const groupInputs: NodeListOf<HTMLFormInput> =
         group.querySelectorAll(formQuery.input);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
@@ -697,7 +697,7 @@ class FormArray {
   }
 
   private validateModal(report: boolean = true): boolean {
-    const allModalFields: NodeListOf<FormInput> =
+    const allModalFields: NodeListOf<HTMLFormInput> =
       this.modalElement.querySelectorAll(formQuery.input);
     const { valid, invalidField } = validateFields(allModalFields, report);
 
@@ -744,7 +744,7 @@ class FormArray {
    * @param field - The form element (field) to search for within the accordions.
    * @returns The index of the accordion containing the field, or `-1` if no accordion contains the field.
    */
-  private accordionIndexOf(field: FormInput): number {
+  private accordionIndexOf(field: HTMLFormInput): number {
     let parentElement: HTMLElement | null = field.closest(
       '[data-animate="accordion"]'
     );
@@ -764,7 +764,7 @@ class FormArray {
     const personData = new Person();
 
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<FormInput> =
+      const groupInputs: NodeListOf<HTMLFormInput> =
         group.querySelectorAll(formQuery.input);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
@@ -981,7 +981,7 @@ class MultiStepForm {
     }
 
     if (this.options.recaptcha) {
-      const recaptcha = (this.formElement.querySelector("#g-recaptcha-response") as FormInput).value;
+      const recaptcha = (this.formElement.querySelector("#g-recaptcha-response") as HTMLFormInput).value;
       fields["g-recaptcha-response"] = recaptcha;
     }
 
@@ -1167,7 +1167,7 @@ class MultiStepForm {
     const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length
       }`;
     const currentStepElement = this.formSteps[step];
-    const inputs: NodeListOf<FormInput> =
+    const inputs: NodeListOf<HTMLFormInput> =
       currentStepElement.querySelectorAll(formQuery.input);
 
     const filteredInputs = Array.from(inputs).filter((input) => {
@@ -1207,7 +1207,7 @@ class MultiStepForm {
     let fields: Map<string, FormField> = new Map();
 
     const stepElement = this.formSteps[step];
-    const stepInputs: NodeListOf<FormInput> =
+    const stepInputs: NodeListOf<HTMLFormInput> =
       stepElement.querySelectorAll(formQuery.input);
     stepInputs.forEach((input, inputIndex) => {
       const entry = fieldFromInput(input, inputIndex);

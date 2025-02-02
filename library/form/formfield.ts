@@ -1,4 +1,4 @@
-import { FormComponentElement, FormInput, Validator } from "@library/form";
+import { FormComponentElement, HTMLFormInput, Validator } from "@library/form";
 import { isCheckboxInput, isRadioInput } from "@library/form";
 import { parameterize } from "@library/parameterize";
 
@@ -67,7 +67,7 @@ class FormField {
   }
 }
 
-function fieldFromInput(input: FormInput, index): FormField {
+function fieldFromInput(input: HTMLFormInput, index): FormField {
   if (input.type === "radio" && !(input as HTMLInputElement).checked) {
     return new FormField();
   }

@@ -1,7 +1,7 @@
 import createAttribute from "@library/attributeselector";
 
 // Types
-type FormInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+type HTMLFormInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
 type Validator = () => boolean;
 type FormComponentElement = 'component' | 'success' | 'error' | 'submit' | 'modal';
 type FilterFormElement = 'component' | 'field';
@@ -36,19 +36,19 @@ const FORM_FILTERS_SELECTOR: string = FORM_INPUT_SELECTOR_LIST.join(`${filterFor
 
 /**
  * Check if a FormElement is a radio input.
- * @param {FormInput} input - The input that is to be checked.
+ * @param {HTMLFormInput} input - The input that is to be checked.
  * @returns {boolean} True if the input is a radio button, otherwise false.
  */
-export function isRadioInput(input: FormInput): input is HTMLInputElement {
+export function isRadioInput(input: HTMLFormInput): input is HTMLInputElement {
   return input instanceof HTMLInputElement && input.type === "radio";
 }
 
 /**
  * Check if a FormElement is a checkbox input.
- * @param {FormInput} input - The input that is to be checked.
+ * @param {HTMLFormInput} input - The input that is to be checked.
  * @returns {boolean} True if the input is a checkbox, otherwise false.
  */
-export function isCheckboxInput(input: FormInput): input is HTMLInputElement {
+export function isCheckboxInput(input: HTMLFormInput): input is HTMLInputElement {
   return input instanceof HTMLInputElement && input.type === "checkbox";
 }
 
@@ -191,14 +191,14 @@ export function initCustomInputs(container: HTMLElement) {
 }
 
 export function validateFields(
-  inputs: NodeListOf<FormInput> | FormInput[],
+  inputs: NodeListOf<HTMLFormInput> | HTMLFormInput[],
   report: boolean = true
 ): {
   valid: boolean;
-  invalidField: FormInput | null;
+  invalidField: HTMLFormInput | null;
 } {
   let valid = true; // Assume the step is valid unless we find a problem
-  let invalidField: FormInput | null = null;
+  let invalidField: HTMLFormInput | null = null;
 
   for (const input of Array.from(inputs)) {
     if (!input.checkValidity()) {
@@ -255,4 +255,4 @@ export {
   filterFormSelector,
 }
 
-export type { FormInput, FormComponentElement, Validator };
+export type { HTMLFormInput, FormComponentElement, Validator };
