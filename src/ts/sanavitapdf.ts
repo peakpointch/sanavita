@@ -14,13 +14,11 @@ type MenuDataCondition = ((menuData: RenderElement | RenderField) => boolean);
 const wfCollectionSelector = createAttribute<string>('wf-collection');
 const actionSelector = createAttribute<ActionElement>('data-action');
 
-class DailyMenuCollection extends CollectionList {
+class FilterCollection extends CollectionList {
   constructor(container: HTMLElement | null) {
     super(container, 'pdf');
 
-    // Initialize Collection Data
-    this.renderer.addFilterAttributes(['date', 'end-date', 'weekly-hit-boolean']);
-    this.readCollectionData();
+    this.renderer.addFilterAttributes(['date', 'end-date']);
   }
 
   public filterByDate(
@@ -54,14 +52,23 @@ class DailyMenuCollection extends CollectionList {
   }
 }
 
-const filterMenuData = (filters: FieldGroup, menuList: DailyMenuCollection): RenderData => {
-  const startDateValue: string = filters.getField('startDate').value;
-  const startDate: Date = new Date(startDateValue);
-  const endDateValue: string = filters.getField('endDate').value;
-  const endDate: Date = new Date(endDateValue);
-  const filteredDays: RenderData = menuList.filterByDate(startDate, endDate);
+function setMinMaxDate(form: FilterForm, data: RenderData): void {
+  const dates = data.map(weekday => weekday.date.getTime());
+  const minDate = new Date(Math.min(...dates)).toISOString().split('T')[0];
+  const maxDate = new Date(Math.max(...dates)).toISOString().split('T')[0];
 
-  return filteredDays;
+  form.getFilterInput('startDate').setAttribute('min', minDate)
+  form.getFilterInput('startDate').setAttribute('max', maxDate)
+  form.getFilterInput('endDate').setAttribute('min', minDate)
+  form.getFilterInput('endDate').setAttribute('max', maxDate)
+}
+
+function setDefaultFilters(form: FilterForm): void {
+  const nextMonday: Date = getMonday(new Date(), 1);
+
+  form.getFilterInput('startDate').value = nextMonday.toLocaleDateString('en-CA');
+  form.getFilterInput('endDate').value = addDays(nextMonday, 6).toLocaleDateString('en-CA');
+  form.getFilterInput('dayRange').value = form.setDayRange(7).toString();
 }
 
 function addDays(date: Date = new Date(), days: number): Date {
@@ -93,30 +100,6 @@ function initDownload(pdf: Pdf): void {
   });
 }
 
-function setDefaultFilters(form: FilterForm, data: RenderData): void {
-  const nextMonday: Date = getMonday(new Date(), 1);
-  const startDateInput = form.getFilterInput('startDate')
-  const endDateInput = form.getFilterInput('endDate')
-  const dayRangeInput = form.getFilterInput('dayRange')
-
-  startDateInput.value = nextMonday.toLocaleDateString('en-CA');
-  endDateInput.value = addDays(nextMonday, 6).toLocaleDateString('en-CA');
-  dayRangeInput.value = form.setDayRange(7).toString();
-
-  const dates = data.map(weekday => weekday.date.getTime());
-  const minDate = new Date(Math.min(...dates)).toISOString().split('T')[0];
-  const maxDate = new Date(Math.max(...dates)).toISOString().split('T')[0];
-
-  startDateInput.setAttribute('min', minDate)
-  startDateInput.setAttribute('max', maxDate)
-  endDateInput.setAttribute('min', minDate)
-  endDateInput.setAttribute('max', maxDate)
-}
-
-const isWeeklyHit: MenuDataCondition = (menuData) => {
-  return menuData.weeklyHit;
-}
-
 function formatDate(date: Date | string, options: Intl.DateTimeFormatOptions): string {
   return new Date(date).toLocaleDateString('de-CH', options);
 }
@@ -138,6 +121,12 @@ const dateOptions: DateOptionsObject = {
   }
 }
 
+/**
+ * Tag the weekly hit elements in the cms list with 
+ * a different attribute value, so that the render engine 
+ * can effectively differentiate them as two different 
+ * render elements.
+ */
 function tagWeeklyHit(list: HTMLElement): void {
   const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
   weeklyHitElements.forEach(hit => {
@@ -150,33 +139,40 @@ function initialize(): void {
   const pdfContainer: HTMLElement | null = document.querySelector(pdfElementSelector('container'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
+  // Before initialization
   tagWeeklyHit(dailyMenuListElement);
 
-  const menuList = new DailyMenuCollection(dailyMenuListElement);
+  // Initialize collection list and pdf
+  const filterCollection = new FilterCollection(dailyMenuListElement);
   const pdf = new Pdf(pdfContainer);
-
   const filterForm = new FilterForm(filterFormElement);
-  setDefaultFilters(filterForm, menuList.getCollectionData());
-  filterForm.addOnChange((filters) => {
-    const startDate = new Date(filters.getField('startDate').value);
-    const endDate = filters.getField('endDate').value;
-    const scale = parseFloat(filters.getField('scale').value)
-    pdf.scale(scale);
-    filterForm.setDayRange(parseFloat(filters.getField('dayRange').value));
 
-    const renderFields: RenderField[] = [
+  filterCollection.renderer.addFilterAttributes(['weekly-hit-boolean']);
+  filterCollection.readCollectionData();
+  setDefaultFilters(filterForm);
+  setMinMaxDate(filterForm, filterCollection.getCollectionData());
+
+  filterForm.addOnChange((filters) => {
+    // Get FilterForm values
+    const startDate = new Date(filters.getField('startDate').value);
+    const endDate = new Date(filters.getField('endDate').value);
+    const dayRange = parseFloat(filters.getField('dayRange').value);
+    const scale = parseFloat(filters.getField('scale').value)
+
+    // Use FilterForm values
+    filterForm.setDayRange(dayRange);
+    const staticRenderFields: RenderField[] = [
       {
         element: 'title',
         value: `${formatDate(startDate, dateOptions.day)}. – ${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
       } as RenderField,
     ];
 
-    const renderElements: RenderData = filterMenuData(filters, menuList);
-    const data: RenderData = [
-      ...renderFields,
-      ...renderElements,
-    ];
-    pdf.render(data);
+    pdf.scale(scale);
+    pdf.render([
+      ...staticRenderFields,
+      ...filterCollection.filterByDate(startDate, endDate),
+    ]);
   });
 
   const resetScaleToBreakpointDefault = (): void => {

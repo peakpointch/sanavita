@@ -19783,11 +19783,14 @@
           value = isNaN(parsedDate.getTime()) ? null : parsedDate;
         }
         if (attr.toLowerCase().includes("boolean")) {
-          if (value === "select") {
-            const booleanValue = child.querySelector(value);
-            value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || "false") : false;
-          } else {
-            value = JSON.parse(value);
+          switch (value) {
+            case "select":
+              const booleanValue = child.querySelector(value);
+              value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || "false") : false;
+              break;
+            default:
+              value = JSON.parse(value);
+              break;
           }
         }
         field[toCamelCase(attr)] = value;
@@ -29185,7 +29188,11 @@
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
-    // Method to retrieve a field by its id
+    /**
+     * Finds a specific `FormField` instance by id.
+     *
+     * @param fieldId The id attribute of the associated DOM element.
+     */
     getField(fieldId) {
       return this.fields.get(fieldId);
     }
@@ -29216,7 +29223,7 @@
       this.attachChangeListeners();
     }
     /**
-     * Get the HTMLElement of a specific filter input.
+     * Returns the `HTMLElement` of a specific filter input.
      */
     getFilterInput(fieldId) {
       const existingFields = this.getFieldIds(this.filterFields);
@@ -29350,11 +29357,9 @@
   // src/ts/sanavitapdf.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector2 = attributeselector_default("data-action");
-  var DailyMenuCollection = class extends CollectionList {
+  var FilterCollection = class extends CollectionList {
     constructor(container) {
       super(container, "pdf");
-      this.renderer.addFilterAttributes(["date", "end-date", "weekly-hit-boolean"]);
-      this.readCollectionData();
     }
     filterByDate(startDate, endDate, ...additionalConditions) {
       return [...this.collectionData].filter(
@@ -29371,14 +29376,21 @@
       return this.filterByDate(startDate, endDate, ...conditions);
     }
   };
-  var filterMenuData = (filters, menuList) => {
-    const startDateValue = filters.getField("startDate").value;
-    const startDate = new Date(startDateValue);
-    const endDateValue = filters.getField("endDate").value;
-    const endDate = new Date(endDateValue);
-    const filteredDays = menuList.filterByDate(startDate, endDate);
-    return filteredDays;
-  };
+  function setMinMaxDate(form, data) {
+    const dates = data.map((weekday) => weekday.date.getTime());
+    const minDate = new Date(Math.min(...dates)).toISOString().split("T")[0];
+    const maxDate = new Date(Math.max(...dates)).toISOString().split("T")[0];
+    form.getFilterInput("startDate").setAttribute("min", minDate);
+    form.getFilterInput("startDate").setAttribute("max", maxDate);
+    form.getFilterInput("endDate").setAttribute("min", minDate);
+    form.getFilterInput("endDate").setAttribute("max", maxDate);
+  }
+  function setDefaultFilters(form) {
+    const nextMonday = getMonday(/* @__PURE__ */ new Date(), 1);
+    form.getFilterInput("startDate").value = nextMonday.toLocaleDateString("en-CA");
+    form.getFilterInput("endDate").value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
+    form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
+  }
   function addDays(date = /* @__PURE__ */ new Date(), days) {
     date.setDate(date.getDate() + days);
     date.setHours(0, 0, 0, 0);
@@ -29403,22 +29415,6 @@
         pdf.resetScale();
       }, 0);
     });
-  }
-  function setDefaultFilters(form, data) {
-    const nextMonday = getMonday(/* @__PURE__ */ new Date(), 1);
-    const startDateInput = form.getFilterInput("startDate");
-    const endDateInput = form.getFilterInput("endDate");
-    const dayRangeInput = form.getFilterInput("dayRange");
-    startDateInput.value = nextMonday.toLocaleDateString("en-CA");
-    endDateInput.value = addDays(nextMonday, 6).toLocaleDateString("en-CA");
-    dayRangeInput.value = form.setDayRange(7).toString();
-    const dates = data.map((weekday) => weekday.date.getTime());
-    const minDate = new Date(Math.min(...dates)).toISOString().split("T")[0];
-    const maxDate = new Date(Math.max(...dates)).toISOString().split("T")[0];
-    startDateInput.setAttribute("min", minDate);
-    startDateInput.setAttribute("max", maxDate);
-    endDateInput.setAttribute("min", minDate);
-    endDateInput.setAttribute("max", maxDate);
   }
   function formatDate2(date, options) {
     return new Date(date).toLocaleDateString("de-CH", options);
@@ -29446,25 +29442,27 @@
     const pdfContainer = document.querySelector(pdfElementSelector("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     tagWeeklyHit(dailyMenuListElement);
-    const menuList = new DailyMenuCollection(dailyMenuListElement);
+    const menuList = new FilterCollection(dailyMenuListElement);
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
-    setDefaultFilters(filterForm, menuList.getCollectionData());
+    setDefaultFilters(filterForm);
+    setMinMaxDate(filterForm, menuList.getCollectionData());
     filterForm.addOnChange((filters) => {
       const startDate = new Date(filters.getField("startDate").value);
-      const endDate = filters.getField("endDate").value;
+      const endDate = new Date(filters.getField("endDate").value);
+      const dayRange = parseFloat(filters.getField("dayRange").value);
       const scale = parseFloat(filters.getField("scale").value);
       pdf.scale(scale);
-      filterForm.setDayRange(parseFloat(filters.getField("dayRange").value));
-      const renderFields = [
+      filterForm.setDayRange(dayRange);
+      const renderElements = menuList.filterByDate(startDate, endDate);
+      const staticRenderFields = [
         {
           element: "title",
           value: `${formatDate2(startDate, dateOptions.day)}. \u2013 ${formatDate2(endDate, dateOptions.day)}. ${formatDate2(startDate, dateOptions.title)}`
         }
       ];
-      const renderElements = filterMenuData(filters, menuList);
       const data = [
-        ...renderFields,
+        ...staticRenderFields,
         ...renderElements
       ];
       pdf.render(data);
