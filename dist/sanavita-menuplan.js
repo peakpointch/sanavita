@@ -29423,7 +29423,7 @@
     return date;
   }
 
-  // src/ts/sanavitapdf.ts
+  // src/ts/sanavita-menuplan.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector2 = attributeselector_default("data-action");
   var FilterCollection = class extends CollectionList {
