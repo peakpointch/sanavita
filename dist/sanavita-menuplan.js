@@ -29065,7 +29065,7 @@
     }
   };
 
-  // library/wfcollection.ts
+  // library/wfcollection/wfcollection.ts
   var CollectionList = class {
     constructor(container, name) {
       this.collectionData = [];
@@ -29099,6 +29099,28 @@
         data.push(itemData);
       });
       return data;
+    }
+  };
+
+  // library/wfcollection/filtercollection.ts
+  var FilterCollection = class extends CollectionList {
+    constructor(container) {
+      super(container, "pdf");
+      this.renderer.addFilterAttributes(["date", "end-date"]);
+    }
+    filterByDate(startDate, endDate, ...additionalConditions) {
+      return [...this.collectionData].filter(
+        (weekday) => {
+          const baseCondition = weekday.date >= startDate && weekday.date <= endDate;
+          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
+          return baseCondition && allAdditionalConditions;
+        }
+      );
+    }
+    filterByRange(startDate, dayRange = 7, ...conditions) {
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + dayRange - 1);
+      return this.filterByDate(startDate, endDate, ...conditions);
     }
   };
 
@@ -29426,26 +29448,6 @@
   // src/ts/sanavita-menuplan.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector2 = attributeselector_default("data-action");
-  var FilterCollection = class extends CollectionList {
-    constructor(container) {
-      super(container, "pdf");
-      this.renderer.addFilterAttributes(["date", "end-date"]);
-    }
-    filterByDate(startDate, endDate, ...additionalConditions) {
-      return [...this.collectionData].filter(
-        (weekday) => {
-          const baseCondition = weekday.date >= startDate && weekday.date <= endDate;
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
-          return baseCondition && allAdditionalConditions;
-        }
-      );
-    }
-    filterByRange(startDate, dayRange = 7, ...conditions) {
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + dayRange - 1);
-      return this.filterByDate(startDate, endDate, ...conditions);
-    }
-  };
   function setMinMaxDate(form, data) {
     const dates = data.map((weekday) => weekday.date.getTime());
     const minDate = new Date(Math.min(...dates)).toISOString().split("T")[0];

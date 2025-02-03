@@ -1,7 +1,7 @@
 // Imports
 import EditableCanvas from '@library/canvas';
 import Pdf, { pdfElementSelector } from '@library/pdf';
-import { CollectionList } from '@library/wfcollection';
+import { FilterCollection } from '@library/wfcollection';
 import { RenderData, RenderElement, RenderField } from '@library/renderer';
 import { FilterForm, FieldGroup, filterFormSelector } from '@library/form';
 import { addDays, getMonday, formatDate, DateOptionsObject } from '@library/dateutils';
@@ -9,49 +9,10 @@ import createAttribute from '@library/attributeselector';
 
 // Types
 type ActionElement = 'download' | 'save';
-type MenuDataCondition = ((menuData: RenderElement | RenderField) => boolean);
 
 // Selector functions
 const wfCollectionSelector = createAttribute<string>('wf-collection');
 const actionSelector = createAttribute<ActionElement>('data-action');
-
-class FilterCollection extends CollectionList {
-  constructor(container: HTMLElement | null) {
-    super(container, 'pdf');
-
-    this.renderer.addFilterAttributes(['date', 'end-date']);
-  }
-
-  public filterByDate(
-    startDate: Date,
-    endDate: Date,
-    ...additionalConditions: MenuDataCondition[]
-  ): RenderData {
-    return [...this.collectionData].filter(
-      (weekday) => {
-        // Base conditions
-        const baseCondition =
-          weekday.date >= startDate &&
-          weekday.date <= endDate;
-
-        // Check all additional conditions
-        const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
-
-        return baseCondition && allAdditionalConditions;
-      }
-    );
-  }
-
-  public filterByRange(
-    startDate: Date,
-    dayRange: number = 7,
-    ...conditions: MenuDataCondition[]
-  ): RenderData {
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + dayRange - 1);
-    return this.filterByDate(startDate, endDate, ...conditions);
-  }
-}
 
 function setMinMaxDate(form: FilterForm, data: RenderData): void {
   const dates = data.map(weekday => weekday.date.getTime());

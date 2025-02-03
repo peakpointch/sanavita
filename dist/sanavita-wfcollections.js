@@ -1,5 +1,5 @@
 (() => {
-  // library/wfcollection.ts
+  // library/wfcollection/wfcollection.ts
   var wfCollections = {
     initialized: false
   };
