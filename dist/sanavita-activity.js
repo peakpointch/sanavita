@@ -29450,7 +29450,7 @@
     return date;
   }
 
-  // src/ts/sanavita-menuplan.ts
+  // src/ts/sanavita-activity.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector2 = attributeselector_default("data-action");
   function setMinMaxDate(form, data) {
@@ -29487,14 +29487,15 @@
     }
   };
   function initialize() {
-    const dailyMenuListElement = document.querySelector(wfCollectionSelector("daily"));
+    const filterCollectionListElement = document.querySelector(wfCollectionSelector("activity"));
     const pdfContainer = document.querySelector(Pdf.select("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
-    tagWeeklyHit(dailyMenuListElement);
-    const filterCollection = new FilterCollection(dailyMenuListElement);
+    tagWeeklyHit(filterCollectionListElement);
+    const filterCollection = new FilterCollection(filterCollectionListElement);
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
+    console.log(`RenderData "activity":`, pdf.renderer.read(filterCollectionListElement));
     filterCollection.renderer.addFilterAttributes(["weekly-hit-boolean"]);
     filterCollection.readCollectionData();
     setDefaultFilters(filterForm);

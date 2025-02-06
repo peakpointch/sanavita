@@ -2,10 +2,12 @@
 import EditableCanvas from '@library/canvas';
 import Pdf from '@library/pdf';
 import { FilterCollection } from '@library/wfcollection';
-import { RenderData, RenderElement, RenderField } from '@library/renderer';
-import { FilterForm, FieldGroup, filterFormSelector } from '@library/form';
-import { addDays, getMonday, formatDate, DateOptionsObject } from '@library/dateutils';
+import { RenderData, RenderField } from '@library/renderer';
+import { FilterForm, filterFormSelector } from '@library/form';
+
+// Utility functions
 import createAttribute from '@library/attributeselector';
+import { addDays, getMonday, formatDate, DateOptionsObject } from '@library/dateutils';
 
 // Types
 type ActionElement = 'download' | 'save';
@@ -60,18 +62,20 @@ const dateOptions: DateOptionsObject = {
 }
 
 function initialize(): void {
-  const dailyMenuListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('daily'));
+  const filterCollectionListElement: HTMLElement | null = document.querySelector(wfCollectionSelector('activity'));
   const pdfContainer: HTMLElement | null = document.querySelector(Pdf.select('container'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
   // Before initialization
-  tagWeeklyHit(dailyMenuListElement);
+  tagWeeklyHit(filterCollectionListElement);
 
   // Initialize collection list and pdf
-  const filterCollection = new FilterCollection(dailyMenuListElement);
+  const filterCollection = new FilterCollection(filterCollectionListElement);
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
+
+  console.log(`RenderData "activity":`, pdf.renderer.read(filterCollectionListElement));
 
   filterCollection.renderer.addFilterAttributes(['weekly-hit-boolean']);
   filterCollection.readCollectionData();

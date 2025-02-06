@@ -8,8 +8,6 @@ export type PdfElement = 'container' | 'scale' | 'page' | 'weekday' | 'dish';
 export type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
 
 // Variables
-export const pdfElementSelector = createAttribute<PdfElement>('data-pdf-element');
-const pdfFieldSelector = createAttribute<PdfFieldName>('data-pdf-field');
 
 export default class Pdf {
   public canvas: HTMLElement;
@@ -28,10 +26,16 @@ export default class Pdf {
     this.getScaleElement();
   }
 
+  /**
+   * Use this method to select the elements for a new `Pdf` instance.
+   * @returns CSS selector string
+   */
+  static select = createAttribute<PdfElement>('data-pdf-element');
+
   private getScaleElement(): HTMLElement {
-    const scale = this.canvas.querySelector<HTMLElement>(pdfElementSelector('scale'));
+    const scale = this.canvas.querySelector<HTMLElement>(Pdf.select('scale'));
     if (!scale) {
-      console.warn(`Scale element ${pdfElementSelector('scale')} is undefined.`)
+      console.warn(`Scale element ${Pdf.select('scale')} is undefined.`)
       return;
     }
     this.scaleElement = scale;
@@ -58,7 +62,7 @@ export default class Pdf {
   }
 
   private getPages(): HTMLElement[] {
-    const pages = this.canvas.querySelectorAll<HTMLElement>(pdfElementSelector('page'));
+    const pages = this.canvas.querySelectorAll<HTMLElement>(Pdf.select('page'));
     this.pages = Array.from(pages);
     return this.pages;
   }

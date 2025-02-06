@@ -28811,9 +28811,7 @@ E.API.PDFObject = function() {
 var jspdf_es_min_default = E;
 
 // library/pdf.ts
-var pdfElementSelector = attributeselector_default("data-pdf-element");
-var pdfFieldSelector = attributeselector_default("data-pdf-field");
-var Pdf = class {
+var Pdf = class _Pdf {
   constructor(container) {
     if (!container)
       throw new Error("PDF Element not found.");
@@ -28822,10 +28820,17 @@ var Pdf = class {
     this.getPages();
     this.getScaleElement();
   }
+  static {
+    /**
+     * Use this method to select the elements for a new `Pdf` instance.
+     * @returns CSS selector string
+     */
+    this.select = attributeselector_default("data-pdf-element");
+  }
   getScaleElement() {
-    const scale = this.canvas.querySelector(pdfElementSelector("scale"));
+    const scale = this.canvas.querySelector(_Pdf.select("scale"));
     if (!scale) {
-      console.warn(`Scale element ${pdfElementSelector("scale")} is undefined.`);
+      console.warn(`Scale element ${_Pdf.select("scale")} is undefined.`);
       return;
     }
     this.scaleElement = scale;
@@ -28847,7 +28852,7 @@ var Pdf = class {
     return this.defaultScale;
   }
   getPages() {
-    const pages = this.canvas.querySelectorAll(pdfElementSelector("page"));
+    const pages = this.canvas.querySelectorAll(_Pdf.select("page"));
     this.pages = Array.from(pages);
     return this.pages;
   }
@@ -28976,8 +28981,7 @@ var Pdf = class {
   }
 };
 export {
-  Pdf as default,
-  pdfElementSelector
+  Pdf as default
 };
 /*! Bundled license information:
 
