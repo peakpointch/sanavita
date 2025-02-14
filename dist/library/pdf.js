@@ -19748,7 +19748,12 @@ var Renderer = class _Renderer {
     });
   }
   /**
-   * Modifies the `visibilityControl` property of `elementOrField` based on the attribute from `child`.
+   * Parse the visibility control attribute value of a Render-`child`.
+   *
+   * ### "VisibilityControl" tells the `Renderer` wether it should mess with a `RenderElement`'s or `RenderField`'s visibility
+   * - `emptyState`: Shows an empty state if the children are hidden
+   * - `true`: Hides the element if there is no content to be shown.
+   * - `false`: Disable visibility control, do not mess with the element's visibility.
    */
   readVisibilityControl(child) {
     const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim();
