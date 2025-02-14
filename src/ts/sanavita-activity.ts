@@ -35,19 +35,6 @@ function setDefaultFilters(form: FilterForm): void {
   form.getFilterInput('dayRange').value = form.setDayRange(7).toString();
 }
 
-/**
- * Tag the weekly hit elements in the cms list with 
- * a different attribute value, so that the render engine 
- * can effectively differentiate them as two different 
- * render elements.
- */
-function tagWeeklyHit(list: HTMLElement): void {
-  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
-  weeklyHitElements.forEach(hit => {
-    hit.setAttribute("data-pdf-element", "weekly-hit");
-  });
-}
-
 const dateOptions: DateOptionsObject = {
   day: {
     day: "numeric"
@@ -66,23 +53,19 @@ function initialize(): void {
   const pdfContainer: HTMLElement | null = document.querySelector(Pdf.select('container'));
   const filterFormElement: HTMLElement | null = document.querySelector(filterFormSelector('component'));
 
-  // Before initialization
-  tagWeeklyHit(filterCollectionListElement);
-
   // Initialize collection list and pdf
   const filterCollection = new FilterCollection(filterCollectionListElement);
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
 
-  console.log(`RenderData "activity":`, pdf.renderer.read(filterCollectionListElement));
 
-  filterCollection.renderer.addFilterAttributes(['weekly-hit-boolean']);
   filterCollection.readCollectionData();
+  console.log(`RenderData "activity":`, filterCollection.renderer.read(filterCollectionListElement));
   setDefaultFilters(filterForm);
   setMinMaxDate(filterForm, filterCollection.getCollectionData());
 
-  filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate'));
+  filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate', 5));
   filterForm.addOnChange((filters) => {
     // Get FilterForm values
     const startDate = new Date(filters.getField('startDate').value);
@@ -96,10 +79,15 @@ function initialize(): void {
       {
         element: 'title',
         value: `${formatDate(startDate, dateOptions.day)}. – ${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
+        visibility: true,
       } as RenderField,
     ];
 
-    pdf.scale(scale);
+    pdf.scale(scale)
+    console.log(`RenderData "activity":`, [
+      ...staticRenderFields,
+      ...filterCollection.filterByDate(startDate, endDate),
+    ]);
     pdf.render([
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
