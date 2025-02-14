@@ -209,7 +209,8 @@ export default class Pdf {
   public initDownload(button: HTMLElement | null): void {
     if (!button) throw new Error('Download button does not exist');
     button.addEventListener('click', async () => {
-      this.scale(1, false);
+      // Scale the pdf from 72 to 300 DPI
+      this.scale(4.17, false);
       setTimeout(async () => {
         await this.create();
         this.resetScale();
