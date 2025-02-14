@@ -40,7 +40,7 @@ function setDefaultFilters(form: FilterForm): void {
  * render elements.
  */
 function tagWeeklyHit(list: HTMLElement): void {
-  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([data-weekly-hit-boolean="true"])`);
+  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(`.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`);
   weeklyHitElements.forEach(hit => {
     hit.setAttribute("data-pdf-element", "weekly-hit");
   });
@@ -75,6 +75,7 @@ function initialize(): void {
 
   filterCollection.renderer.addFilterAttributes(['weekly-hit-boolean']);
   filterCollection.readCollectionData();
+  console.log(`RenderData "Menuplan":`, filterCollection.renderer.read(dailyMenuListElement));
   setDefaultFilters(filterForm);
   setMinMaxDate(filterForm, filterCollection.getCollectionData());
 
@@ -92,10 +93,15 @@ function initialize(): void {
       {
         element: 'title',
         value: `${formatDate(startDate, dateOptions.day)}. – ${formatDate(endDate, dateOptions.day)}. ${formatDate(startDate, dateOptions.title)}`,
-      } as RenderField,
+        visibility: true,
+      },
     ];
 
     pdf.scale(scale);
+    console.log(`RenderData "Menuplan":`, [
+      ...staticRenderFields,
+      ...filterCollection.filterByDate(startDate, endDate),
+    ]);
     pdf.render([
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
