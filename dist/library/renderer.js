@@ -37,14 +37,14 @@ var Renderer = class _Renderer {
     this.attributeName = attributeName;
     this.filterAttributes = /* @__PURE__ */ new Set([
       "data-filter",
-      "data-category",
-      "data-visibility"
+      "data-category"
     ]);
     if (!canvas)
       throw new Error(`Canvas can't be undefined.`);
     this.canvas = canvas;
     this.elementAttr = `data-${attributeName}-element`;
     this.fieldAttr = `data-${attributeName}-field`;
+    this.emptyStateAttr = `data-${attributeName}-empty-state`;
   }
   render(data, canvas = this.canvas) {
     this.clear();
@@ -61,10 +61,36 @@ var Renderer = class _Renderer {
           return;
         }
         newCanvases.forEach((newCanvas) => {
-          if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas, renderItem.visibilityControl);
-          } else {
-            this.renderRecursive(renderItem.fields, newCanvas);
+          if (newCanvas.style.display === "none") {
+            newCanvas.style.removeProperty("display");
+          }
+          if (newCanvas.classList.contains("hide")) {
+            newCanvas.classList.remove("hide");
+          }
+          switch (this.readVisibilityControl(newCanvas)) {
+            case "emptyState":
+              const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
+              if (this.shouldHideElement(renderItem)) {
+                emptyStateElement.classList.remove("hide");
+                if (emptyStateElement.style.display === "none") {
+                  emptyStateElement.style.removeProperty("display");
+                }
+              } else {
+                emptyStateElement.classList.add("hide");
+                emptyStateElement.style.display = "none";
+              }
+              this.renderRecursive(renderItem.fields, newCanvas);
+              break;
+            case true:
+              if (this.shouldHideElement(renderItem)) {
+                this.hideElement(newCanvas);
+              } else {
+                this.renderRecursive(renderItem.fields, newCanvas);
+              }
+              break;
+            default:
+              this.renderRecursive(renderItem.fields, newCanvas);
+              break;
           }
         });
       }
@@ -109,11 +135,16 @@ var Renderer = class _Renderer {
     const fields = this.read(child, stopRecursionAttributes);
     const element = {
       element: elementName,
-      fields
+      fields,
+      visibility: true
     };
     element.instance = instance || void 0;
-    this.readFilteringProperties(child, element);
-    this.readVisibilityControl(child, element);
+    if (child.closest(`.w-condition-invisible`)) {
+      element.visibility = false;
+    } else {
+      element.visibility = true;
+    }
+    this.readFilteringProperties(element, child);
     return element;
   }
   readRenderField(child) {
@@ -131,14 +162,23 @@ var Renderer = class _Renderer {
     const field = {
       element: fieldName,
       value,
-      type
+      type,
+      visibility: true
     };
     field.instance = instance || void 0;
-    this.readFilteringProperties(child, field);
-    this.readVisibilityControl(child, field);
+    if (child.closest(`.w-condition-invisible`)) {
+      field.visibility = false;
+    } else {
+      field.visibility = true;
+    }
+    this.readFilteringProperties(field, child);
     return field;
   }
-  readFilteringProperties(child, field) {
+  /**
+   * Modifies the `field` properties based on the filtering attributes from `child`.
+   * Handles `date` and `boolean` attributes.
+   */
+  readFilteringProperties(field, child) {
     this.filterAttributes.forEach((attr) => {
       if (!child.hasAttribute(attr)) {
         return;
@@ -153,8 +193,11 @@ var Renderer = class _Renderer {
       }
       if (attr.toLowerCase().includes("boolean")) {
         if (value === "select") {
-          const booleanValue = child.querySelector(value);
-          value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || "false") : false;
+          const targetElement = child.querySelector(`[${attr}]`);
+          if (!targetElement) {
+            throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+          }
+          value = Boolean(!targetElement.classList.contains("w-condition-invisible"));
         } else {
           value = JSON.parse(value);
         }
@@ -162,16 +205,41 @@ var Renderer = class _Renderer {
       field[toCamelCase(attr)] = value;
     });
   }
-  readVisibilityControl(child, elementOrField) {
+  /**
+   * Parse the visibility control attribute value of a Render-`child`.
+   *
+   * ### "VisibilityControl" tells the `Renderer` wether it should mess with a `RenderElement`'s or `RenderField`'s visibility
+   * - `emptyState`: Shows an empty state if the children are hidden
+   * - `true`: Hides the element if there is no content to be shown.
+   * - `false`: Disable visibility control, do not mess with the element's visibility.
+   */
+  readVisibilityControl(child) {
     const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim();
-    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr ?? "false") || false;
+    switch (visibilityControlAttr) {
+      case "emptyState":
+        return "emptyState";
+      default:
+        return JSON.parse(visibilityControlAttr ?? "false") || false;
+    }
   }
   renderField(field, canvas) {
     const selector = this.fieldSelector(field);
     const fields = canvas.querySelectorAll(selector);
     fields.forEach((fieldElement) => {
-      if (!field.value.trim()) {
-        this.hideElement(fieldElement, field.visibilityControl);
+      if (!field.visibility || !field.value.trim()) {
+        switch (this.readVisibilityControl(fieldElement)) {
+          case "emptyState":
+            this.hideElement(fieldElement);
+            console.log(canvas);
+            break;
+          case true:
+            this.hideElement(fieldElement);
+            break;
+          case false:
+            break;
+          default:
+            break;
+        }
       } else {
         switch (field.type) {
           case "html":
@@ -187,6 +255,8 @@ var Renderer = class _Renderer {
     });
   }
   shouldHideElement(element) {
+    if (element.visibility === false)
+      return true;
     return element.fields.every((child) => {
       if (_Renderer.isRenderField(child)) {
         return !child.value.trim();
@@ -197,12 +267,9 @@ var Renderer = class _Renderer {
       return false;
     });
   }
-  hideElement(element, hideControl) {
+  hideElement(element) {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || "false");
     const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
-    if (!hideControl) {
-      return;
-    }
     if (hideSelf) {
       element.style.display = "none";
     } else if (ancestorToHide) {

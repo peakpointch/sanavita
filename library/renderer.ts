@@ -2,14 +2,15 @@ import createAttribute from "@library/attributeselector";
 import { toCamelCase } from "./parameterize";
 import formatDate from "./date";
 
-type VisibilityControl = boolean;
+type VisibilityControl = boolean | 'emptyState';
+type UnparsedBoolean<T> = Exclude<T, boolean> | "true" | "false";
 
 type RenderField = {
   element: string;
   instance?: string;
   value: string;
   type?: 'text' | 'html' | 'date';
-  visibilityControl?: VisibilityControl;
+  visibility: boolean;
   [key: string]: any;
 };
 
@@ -17,7 +18,7 @@ type RenderElement = {
   element: string;
   instance?: string;
   fields: RenderData;
-  visibilityControl?: VisibilityControl;
+  visibility: boolean;
   [key: string]: any;
 };
 
@@ -28,10 +29,10 @@ class Renderer {
   private data: RenderData;
   private fieldAttr: string;
   private elementAttr: string;
+  private emptyStateAttr: string;
   private filterAttributes: Set<string> = new Set([
     'data-filter',
     'data-category',
-    'data-visibility'
   ]);
 
   constructor(canvas: HTMLElement | null, private attributeName: string = 'render') {
@@ -39,6 +40,7 @@ class Renderer {
     this.canvas = canvas;
     this.elementAttr = `data-${attributeName}-element`;
     this.fieldAttr = `data-${attributeName}-field`;
+    this.emptyStateAttr = `data-${attributeName}-empty-state`;
   }
 
   public render(data: RenderData, canvas: HTMLElement = this.canvas): void {
@@ -63,10 +65,38 @@ class Renderer {
 
         // Recursion with visibility check
         newCanvases.forEach((newCanvas) => {
-          if (renderItem.visibilityControl && this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas, renderItem.visibilityControl);
-          } else {
-            this.renderRecursive(renderItem.fields, newCanvas); // Recursively render children
+          if (newCanvas.style.display === "none") {
+            newCanvas.style.removeProperty('display');
+          }
+          if (newCanvas.classList.contains('hide')) {
+            newCanvas.classList.remove('hide');
+          }
+
+          switch (this.readVisibilityControl(newCanvas)) {
+            case "emptyState":
+              const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
+              if (this.shouldHideElement(renderItem)) {
+                emptyStateElement.classList.remove('hide');
+                if (emptyStateElement.style.display === "none") {
+                  emptyStateElement.style.removeProperty('display');
+                }
+              } else {
+                emptyStateElement.classList.add('hide');
+                emptyStateElement.style.display = "none";
+              }
+              // For both cases since the children have to be hidden if the empty state is shown.
+              this.renderRecursive(renderItem.fields, newCanvas);
+              break;
+            case true:
+              if (this.shouldHideElement(renderItem)) {
+                this.hideElement(newCanvas);
+              } else {
+                this.renderRecursive(renderItem.fields, newCanvas); // Recursively render children
+              }
+              break;
+            default:
+              this.renderRecursive(renderItem.fields, newCanvas); // Recursively render children
+              break;
           }
         });
       }
@@ -131,12 +161,17 @@ class Renderer {
     const element: RenderElement = {
       element: elementName!,
       fields,
+      visibility: true,
     };
 
     element.instance = instance || undefined;
+    if (child.closest(`.w-condition-invisible`)) {
+      element.visibility = false;
+    } else {
+      element.visibility = true;
+    }
 
-    this.readFilteringProperties(child, element);
-    this.readVisibilityControl(child, element);
+    this.readFilteringProperties(element, child);
 
     return element;
   }
@@ -161,18 +196,27 @@ class Renderer {
       element: fieldName!,
       value,
       type,
+      visibility: true,
     };
 
     field.instance = instance || undefined;
+    if (child.closest(`.w-condition-invisible`)) {
+      field.visibility = false;
+    } else {
+      field.visibility = true;
+    }
 
     // Optionally, handle additional properties for filtering purposes
-    this.readFilteringProperties(child, field);
-    this.readVisibilityControl(child, field);
+    this.readFilteringProperties(field, child);
 
     return field;
   }
 
-  private readFilteringProperties(child: HTMLElement, field: RenderField | RenderElement): void {
+  /**
+   * Modifies the `field` properties based on the filtering attributes from `child`.
+   * Handles `date` and `boolean` attributes.
+   */
+  private readFilteringProperties(field: RenderField | RenderElement, child: HTMLElement): void {
     this.filterAttributes.forEach(attr => {
       if (!child.hasAttribute(attr)) { return }
 
@@ -188,10 +232,16 @@ class Renderer {
       // Handle Boolean attributes
       if (attr.toLowerCase().includes('boolean')) {
         if (value === 'select') {
-          // If value is 'select', attempt to parse a child element's attribute as boolean
-          const booleanValue = child.querySelector(value);
-          value = booleanValue ? JSON.parse(booleanValue.getAttribute(attr) || 'false') : false;
+          // Translate webflows conditional visibility to boolean
+          const targetElement = child.querySelector(`[${attr}]`);
+
+          if (!targetElement) {
+            throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+          }
+
+          value = Boolean(!targetElement.classList.contains('w-condition-invisible'));
         } else {
+          // Handles direct attribute values
           value = JSON.parse(value);
         }
       }
@@ -200,18 +250,42 @@ class Renderer {
     });
   }
 
-
-  private readVisibilityControl(child: HTMLElement, elementOrField: RenderField | RenderElement): void {
-    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim();
-    elementOrField.visibilityControl = JSON.parse(visibilityControlAttr ?? 'false') || false;
+  /**
+   * Parse the visibility control attribute value of a Render-`child`.
+   *
+   * ### "VisibilityControl" tells the `Renderer` wether it should mess with a `RenderElement`'s or `RenderField`'s visibility
+   * - `emptyState`: Shows an empty state if the children are hidden
+   * - `true`: Hides the element if there is no content to be shown.
+   * - `false`: Disable visibility control, do not mess with the element's visibility.
+   */
+  private readVisibilityControl(child: HTMLElement): VisibilityControl {
+    const visibilityControlAttr = child.getAttribute(`data-${this.attributeName}-visibility-control`)?.trim() as UnparsedBoolean<VisibilityControl>;
+    switch (visibilityControlAttr) {
+      case "emptyState":
+        return "emptyState";
+      default:
+        return JSON.parse(visibilityControlAttr ?? 'false') || false;
+    }
   }
 
   private renderField(field: RenderField, canvas: HTMLElement) {
     const selector = this.fieldSelector(field);
     const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
     fields.forEach((fieldElement) => {
-      if (!field.value.trim()) {
-        this.hideElement(fieldElement, field.visibilityControl); // Hide empty field
+      if (!field.visibility || !field.value.trim()) {
+        switch (this.readVisibilityControl(fieldElement)) {
+          case "emptyState":
+            this.hideElement(fieldElement); // Hide empty field
+            console.log(canvas);
+            break;
+          case true:
+            this.hideElement(fieldElement); // Hide empty field
+            break;
+          case false:
+            break;
+          default:
+            break;
+        }
       } else {
         switch (field.type) {
           case 'html':
@@ -228,6 +302,7 @@ class Renderer {
   }
 
   private shouldHideElement(element: RenderElement): boolean {
+    if (element.visibility === false) return true;
     // Check if all child fields and elements are empty
     return element.fields.every((child) => {
       if (Renderer.isRenderField(child)) {
@@ -240,12 +315,9 @@ class Renderer {
     });
   }
 
-  private hideElement(element: HTMLElement, hideControl?: VisibilityControl): void {
+  private hideElement(element: HTMLElement): void {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || 'false');
     const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
-    if (!hideControl) {
-      return
-    }
 
     if (hideSelf) {
       // Hide the element itself
