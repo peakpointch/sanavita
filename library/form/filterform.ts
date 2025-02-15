@@ -1,8 +1,10 @@
 import { FieldGroup, HTMLFormInput, formQuery, fieldFromInput } from ".";
 import createAttribute from "@library/attributeselector";
 
-type Action = (filters?: FieldGroup) => any;
+type Action = () => any;
+type FilterAction = (filters: FieldGroup) => any;
 type ActionElement = 'download' | 'save';
+type HTMLActionElement = HTMLButtonElement;
 
 const actionSelector = createAttribute<ActionElement>('data-action');
 
@@ -10,9 +12,10 @@ export class FilterForm {
   public container: HTMLElement;
   private data: FieldGroup;
   private filterFields: NodeListOf<HTMLFormInput>;
-  private formFields: NodeListOf<HTMLFormInput>;
+  private actionElements: NodeListOf<HTMLActionElement>
   private beforeChangeActions: Action[] = [];
-  private changeActions: Action[] = [];
+  private fieldChangeActions: Map<string, FilterAction[]> = new Map();
+  private globalChangeActions: FilterAction[] = []; // Stores wildcard ('*') actions
   private defaultDayRange: number = 7;
   private resizeResetFields: Map<string, () => string | number | Date> = new Map();
 
@@ -31,8 +34,8 @@ export class FilterForm {
     });
 
     this.container = container;
-    this.filterFields = container.querySelectorAll(formQuery.filters);
-    this.formFields = container.querySelectorAll(formQuery.input);
+    this.filterFields = container.querySelectorAll<HTMLFormInput>(formQuery.input);
+    this.actionElements = container.querySelectorAll<HTMLActionElement>(actionSelector());
 
     this.attachChangeListeners();
   }
@@ -47,6 +50,13 @@ export class FilterForm {
     }
 
     return Array.from(this.filterFields).find(field => field.id === fieldId);
+  }
+
+  /**
+   * Returns the `HTMLElement` of a specific action element.
+   */
+  public getActionElement(id: ActionElement): HTMLActionElement {
+    return Array.from(this.actionElements).find(element => element.id === id);
   }
 
   /**
@@ -75,11 +85,12 @@ export class FilterForm {
    * current state of the FilterForm.
    */
   private attachChangeListeners(): void {
-    this.formFields.forEach(field => {
-      field.addEventListener("input", this.onChange.bind(this));
+    this.filterFields.forEach(field => {
+      field.addEventListener("input", (event) => this.onChange(event));
     });
-    const saveBtn = this.container.querySelector(actionSelector('save'));
-    saveBtn.addEventListener('click', this.onChange.bind(this));
+    this.actionElements.forEach(element => {
+      element.addEventListener("click", (event) => this.onChange(event));
+    })
   }
 
   /**
@@ -91,28 +102,83 @@ export class FilterForm {
   }
 
   /**
-   * Add an action to be executed when the filters change.
+   * Add actions that should run when specific fields change.
+   * @param fields - An array of field IDs and action element IDs OR '*' for any change event.
+   * @param action - An array of actions to execute when the field(s) change.
    */
-  public addOnChange(action: Action) {
-    this.changeActions.push(action);
+  public addOnChange(fields: string[] | '*', action: FilterAction): void {
+    if (fields === '*') {
+      this.globalChangeActions.push(action);
+    } else {
+      fields.forEach((fieldId) => {
+        if (!this.fieldChangeActions.has(fieldId)) {
+          this.fieldChangeActions.set(fieldId, []);
+        }
+        this.fieldChangeActions.get(fieldId)?.push(action);
+      });
+    }
   }
 
   /**
-   * Execute all onChange actions.
+   * Execute change actions for the specific field that changed.
+   * If wildcard actions exist, they run on every change.
    */
-  private onChange(): void {
+  private onChange(event: Event): void {
+    this.beforeChangeActions.forEach(action => action());
+
+    const targetId = this.getTargetId(event);
+    if (!targetId) {
+      throw new Error(`Target is neither a FilterField nor an ActionElement.`);
+    }
+
+    // Get current state of all fields
+    const filters: FieldGroup = this.getFieldGroup(this.filterFields);
+
+    // Run specific actions for this field
+    const actions = this.fieldChangeActions.get(targetId) || [];
+    actions.forEach((action) => action(filters));
+
+    // Run wildcard actions (global change actions)
+    this.globalChangeActions.forEach((action) => action(filters));
+  }
+
+  /**
+   * Extracts the target ID from an event, whether it's a filter field or an action element.
+   */
+  private getTargetId(event: Event): string | null {
+    const target = event.target as HTMLElement;
+    if (!target) return null;
+
+    if (event.type === "input") {
+      return target.id;
+    }
+    if (event.type === "click" && target.hasAttribute("data-action")) {
+      return target.getAttribute("data-action");
+    }
+    return null;
+  }
+
+  /**
+   * Simulate an onChange event and invoke change actions for specified fields.
+   * @param fields - An array of field IDs OR '*' for all fields.
+   */
+  public invokeOnChange(fields: string[] | "*"): void {
     this.beforeChangeActions.forEach(action => action());
     const filters: FieldGroup = this.getFieldGroup(this.filterFields);
-    this.changeActions.forEach(action => action(filters));
-  }
 
-  /**
-   * Simulate an onChange event by invoking all the changeActions.
-   * Use this method to trigger the filter logic and initialize rendering 
-   * based on pre-defined or externally set default values.
-   */
-  public invokeOnChange(): void {
-    this.onChange();
+    if (fields === "*") {
+      // Invoke all actions
+      this.fieldChangeActions.forEach((actions) => {
+        actions.forEach((action) => action(filters));
+      });
+    } else {
+      // Invoke specific actions
+      fields.forEach(fieldId => {
+        const actions = this.fieldChangeActions.get(fieldId) || [];
+        actions.forEach((action) => action(filters));
+      });
+    }
+    this.globalChangeActions.forEach((action) => action(filters));
   }
 
   /**
