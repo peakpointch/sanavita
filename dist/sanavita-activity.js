@@ -29305,7 +29305,9 @@
   var FilterForm = class {
     constructor(container) {
       this.beforeChangeActions = [];
-      this.changeActions = [];
+      this.fieldChangeActions = /* @__PURE__ */ new Map();
+      this.globalChangeActions = [];
+      // Stores wildcard ('*') actions
       this.defaultDayRange = 7;
       this.resizeResetFields = /* @__PURE__ */ new Map();
       if (!container)
@@ -29322,8 +29324,8 @@
         event.preventDefault();
       });
       this.container = container;
-      this.filterFields = container.querySelectorAll(formQuery2.filters);
-      this.formFields = container.querySelectorAll(formQuery2.input);
+      this.filterFields = container.querySelectorAll(formQuery2.input);
+      this.actionElements = container.querySelectorAll(actionSelector());
       this.attachChangeListeners();
     }
     /**
@@ -29335,6 +29337,12 @@
         throw new Error(`Field with ID "${fieldId}" was not found`);
       }
       return Array.from(this.filterFields).find((field) => field.id === fieldId);
+    }
+    /**
+     * Returns the `HTMLElement` of a specific action element.
+     */
+    getActionElement(id) {
+      return Array.from(this.actionElements).find((element) => element.id === id);
     }
     /**
      * Get all the field-ids inside the current instance.
@@ -29360,11 +29368,12 @@
      * current state of the FilterForm.
      */
     attachChangeListeners() {
-      this.formFields.forEach((field) => {
-        field.addEventListener("input", this.onChange.bind(this));
+      this.filterFields.forEach((field) => {
+        field.addEventListener("input", (event) => this.onChange(event));
       });
-      const saveBtn = this.container.querySelector(actionSelector("save"));
-      saveBtn.addEventListener("click", this.onChange.bind(this));
+      this.actionElements.forEach((element) => {
+        element.addEventListener("click", (event) => this.onChange(event));
+      });
     }
     /**
      * Add an action to be exectued before all the onChange actions get called.
@@ -29374,26 +29383,70 @@
       this.beforeChangeActions.push(action);
     }
     /**
-     * Add an action to be executed when the filters change.
+     * Add actions that should run when specific fields change.
+     * @param fields - An array of field IDs and action element IDs OR '*' for any change event.
+     * @param action - An array of actions to execute when the field(s) change.
      */
-    addOnChange(action) {
-      this.changeActions.push(action);
+    addOnChange(fields, action) {
+      if (fields === "*") {
+        this.globalChangeActions.push(action);
+      } else {
+        fields.forEach((fieldId) => {
+          if (!this.fieldChangeActions.has(fieldId)) {
+            this.fieldChangeActions.set(fieldId, []);
+          }
+          this.fieldChangeActions.get(fieldId)?.push(action);
+        });
+      }
     }
     /**
-     * Execute all onChange actions.
+     * Execute change actions for the specific field that changed.
+     * If wildcard actions exist, they run on every change.
      */
-    onChange() {
+    onChange(event) {
+      this.beforeChangeActions.forEach((action) => action());
+      const targetId = this.getTargetId(event);
+      if (!targetId) {
+        throw new Error(`Target is neither a FilterField nor an ActionElement.`);
+      }
+      const filters = this.getFieldGroup(this.filterFields);
+      const actions = this.fieldChangeActions.get(targetId) || [];
+      actions.forEach((action) => action(filters));
+      this.globalChangeActions.forEach((action) => action(filters));
+    }
+    /**
+     * Extracts the target ID from an event, whether it's a filter field or an action element.
+     */
+    getTargetId(event) {
+      const target = event.target;
+      if (!target)
+        return null;
+      if (event.type === "input") {
+        return target.id;
+      }
+      if (event.type === "click" && target.hasAttribute("data-action")) {
+        return target.getAttribute("data-action");
+      }
+      return null;
+    }
+    /**
+     * Simulate an onChange event and invoke change actions for specified fields.
+     * @param fields - An array of field IDs OR '*' for all fields.
+     */
+    invokeOnChange(fields) {
       this.beforeChangeActions.forEach((action) => action());
       const filters = this.getFieldGroup(this.filterFields);
-      this.changeActions.forEach((action) => action(filters));
-    }
-    /**
-     * Simulate an onChange event by invoking all the changeActions.
-     * Use this method to trigger the filter logic and initialize rendering 
-     * based on pre-defined or externally set default values.
-     */
-    invokeOnChange() {
-      this.onChange();
+      if (fields === "*") {
+        this.fieldChangeActions.forEach((actions) => {
+          actions.forEach((action) => action(filters));
+        });
+      } else {
+        fields.forEach((fieldId) => {
+          const actions = this.fieldChangeActions.get(fieldId) || [];
+          actions.forEach((action) => action(filters));
+        });
+      }
+      this.globalChangeActions.forEach((action) => action(filters));
     }
     /**
      * Get the FieldGroup from current form state.
@@ -29556,15 +29609,20 @@
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
     filterCollection.readCollectionData();
-    console.log(`RenderData "activity":`, filterCollection.renderer.read(filterCollectionListElement));
     setDefaultFilters(filterForm);
     setMinMaxDate(filterForm, filterCollection.getCollectionData());
     filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 5));
-    filterForm.addOnChange((filters) => {
+    filterForm.addOnChange(["scale"], (filters) => {
+      const scale = parseFloat(filters.getField("scale").value);
+      pdf.scale(scale);
+    });
+    filterForm.addOnChange(["save"], () => {
+      filterForm.invokeOnChange(["startDate"]);
+    });
+    filterForm.addOnChange(["startDate", "endDate", "dayRange"], (filters) => {
       const startDate = new Date(filters.getField("startDate").value);
       const endDate = new Date(filters.getField("endDate").value);
       const dayRange = parseFloat(filters.getField("dayRange").value);
-      const scale = parseFloat(filters.getField("scale").value);
       filterForm.setDayRange(dayRange);
       const staticRenderFields = [
         {
@@ -29573,11 +29631,6 @@
           visibility: true
         }
       ];
-      pdf.scale(scale);
-      console.log(`RenderData "activity":`, [
-        ...staticRenderFields,
-        ...filterCollection.filterByDate(startDate, endDate)
-      ]);
       pdf.render([
         ...staticRenderFields,
         ...filterCollection.filterByDate(startDate, endDate)
@@ -29589,7 +29642,7 @@
       return defaultScale;
     });
     filterForm.applyResizeResets();
-    filterForm.invokeOnChange();
+    filterForm.invokeOnChange("*");
     pdf.initDownload(document.querySelector(actionSelector2("download")));
   }
   document.addEventListener("DOMContentLoaded", () => {

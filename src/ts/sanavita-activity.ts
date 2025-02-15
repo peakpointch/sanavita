@@ -61,17 +61,22 @@ function initialize(): void {
 
 
   filterCollection.readCollectionData();
-  console.log(`RenderData "activity":`, filterCollection.renderer.read(filterCollectionListElement));
   setDefaultFilters(filterForm);
   setMinMaxDate(filterForm, filterCollection.getCollectionData());
 
   filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate', 5));
-  filterForm.addOnChange((filters) => {
+  filterForm.addOnChange(['scale'], (filters) => {
+    const scale = parseFloat(filters.getField('scale').value);
+    pdf.scale(scale);
+  });
+  filterForm.addOnChange(['save'], () => {
+    filterForm.invokeOnChange(['startDate']);
+  });
+  filterForm.addOnChange(['startDate', 'endDate', 'dayRange'], (filters) => {
     // Get FilterForm values
     const startDate = new Date(filters.getField('startDate').value);
     const endDate = new Date(filters.getField('endDate').value);
     const dayRange = parseFloat(filters.getField('dayRange').value);
-    const scale = parseFloat(filters.getField('scale').value)
 
     // Use FilterForm values
     filterForm.setDayRange(dayRange);
@@ -83,11 +88,6 @@ function initialize(): void {
       } as RenderField,
     ];
 
-    pdf.scale(scale)
-    console.log(`RenderData "activity":`, [
-      ...staticRenderFields,
-      ...filterCollection.filterByDate(startDate, endDate),
-    ]);
     pdf.render([
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
@@ -101,7 +101,7 @@ function initialize(): void {
   });
 
   filterForm.applyResizeResets();
-  filterForm.invokeOnChange(); // Initialize the filter with it's default values
+  filterForm.invokeOnChange("*"); // Initialize the filter with it's default values
   pdf.initDownload(document.querySelector(actionSelector('download')));
 }
 
