@@ -40,10 +40,10 @@ export class CalendarweekComponent {
     const minDateStr = container.getAttribute('data-min-date');
     const maxDateStr = container.getAttribute('data-max-date');
     this.setMinMaxDates(new Date(minDateStr), new Date(maxDateStr));
-    this.updateCalendarweekRange();
+    this.updateWeekMinMax();
 
     // Bind event listeners
-    this.calendarweekInput.addEventListener('keydown', (event) => this.onCalendarweekChange(event));
+    this.calendarweekInput.addEventListener('keydown', (event) => this.onWeekKeydown(event));
     this.yearInput.addEventListener('keydown', (event) => this.onYearKeydown(event));
     this.yearInput.addEventListener('input', () => this.onYearChange());
   }
@@ -67,7 +67,7 @@ export class CalendarweekComponent {
     this.calendarweekInput.value = week.toString();
 
     // Update the range based on the new year and week
-    this.updateCalendarweekRange();
+    this.updateWeekMinMax();
   }
 
   public setMode(mode: UXMode): void {
@@ -113,10 +113,19 @@ export class CalendarweekComponent {
       this.container.dataset.maxDate = null;
     }
 
-    this.updateCalendarweekRange();
+    this.updateWeekMinMax();
   }
 
-  private updateCalendarweekRange(): void {
+  private onChange(): void {
+    console.log("ON CHANGE");
+  }
+
+  private onYearChange(): void {
+    this.validateWeekInBounds();
+    this.onChange();
+  }
+
+  private updateWeekMinMax(): void {
     const currentYear = parseInt(this.yearInput.value);
 
     const maxWeeksOfCurrentYear = getISOWeeksOfYear(currentYear);
@@ -136,7 +145,7 @@ export class CalendarweekComponent {
     this.calendarweekInput.max = maxCalendarWeek.toString();
   }
 
-  private onCalendarweekChange(event: KeyboardEvent): void {
+  private onWeekKeydown(event: KeyboardEvent): void {
     let currentWeek = parseInt(this.calendarweekInput.value);
     let currentYear = parseInt(this.yearInput.value);
 
@@ -152,7 +161,7 @@ export class CalendarweekComponent {
           currentYear += 1;
           currentWeek = 1;
           this.yearInput.value = currentYear.toString();
-          this.updateCalendarweekRange();
+          this.updateWeekMinMax();
           this.calendarweekInput.value = currentWeek.toString();
           break;
 
@@ -169,7 +178,7 @@ export class CalendarweekComponent {
           currentYear -= 1;
           currentWeek = getISOWeeksOfYear(currentYear);
           this.yearInput.value = currentYear.toString();
-          this.updateCalendarweekRange();
+          this.updateWeekMinMax();
           this.calendarweekInput.value = currentWeek.toString();
           break;
 
@@ -180,14 +189,13 @@ export class CalendarweekComponent {
       }
     }
 
-    this.updateCalendarweekRange();
+    this.updateWeekMinMax();
+    this.validateWeekInBounds();
+    this.onChange();
   }
 
-  private onYearChange(): void {
-    this.updateCalendarweekRange();
-
+  private validateWeekInBounds(): void {
     let currentWeek = parseInt(this.calendarweekInput.value);
-    let currentYear = parseInt(this.yearInput.value);
 
     // Get min and max calendar week values
     const minCalendarWeek = parseInt(this.calendarweekInput.min);
@@ -203,20 +211,19 @@ export class CalendarweekComponent {
 
   private onYearKeydown(event: KeyboardEvent): void {
     if (this.mode !== "loop" || !this.minDate || !this.maxDate) return;
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
 
+    const isArrowUp = event.key === "ArrowUp";
+    const isArrowDown = event.key === "ArrowDown";
     let currentYear = parseInt(this.yearInput.value);
 
-    if (event.key === "ArrowUp" && currentYear === this.maxDateYear) {
+    if ((isArrowUp && currentYear === this.maxDateYear) || (isArrowDown && currentYear === this.minDateYear)) {
       event.preventDefault();
-      currentYear = this.minDateYear;
-    } else if (event.key === "ArrowDown" && currentYear === this.minDateYear) {
-      event.preventDefault();
-      currentYear = this.maxDateYear;
+      this.yearInput.value = (isArrowUp ? this.minDateYear : this.maxDateYear).toString();
+
+      this.validateWeekInBounds();
+      this.onChange();
     }
-
-    this.yearInput.value = currentYear.toString();
-
-    this.onYearChange();
   }
 }
 
