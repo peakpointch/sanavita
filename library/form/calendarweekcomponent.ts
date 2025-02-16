@@ -1,4 +1,4 @@
-import { getISOWeek, getISOWeeksInYear, WeekOptions, getISOWeekYear, format } from 'date-fns';
+import { getISOWeek, getISOWeeksInYear, getISOWeekYear, setISOWeekYear, setISOWeek, startOfISOWeek, format } from 'date-fns';
 import createAttribute from '@library/attributeselector';
 
 export type UXMode = 'continuous' | 'loop' | 'fixed';
@@ -10,8 +10,10 @@ function getISOWeeksOfYear(year: number): number {
 
 export class CalendarweekComponent {
   private container: HTMLElement;
-  private calendarweekInput: HTMLInputElement;
+  private weekInput: HTMLInputElement;
   private yearInput: HTMLInputElement;
+  private week: number | null;
+  private year: number | null;
   private minDate: Date | null = null;
   private maxDate: Date | null = null;
   private minDateYear: number | null;
@@ -22,7 +24,7 @@ export class CalendarweekComponent {
 
   constructor(container: HTMLElement, mode?: UXMode) {
     this.container = container;
-    this.calendarweekInput = container.querySelector('input[name="calendarweek"]') as HTMLInputElement;
+    this.weekInput = container.querySelector('input[name="calendarweek"]') as HTMLInputElement;
     this.yearInput = container.querySelector('input[name="year"]') as HTMLInputElement;
 
     // Read the mode from a data attribute (defaults to 'continuous' if not set)
@@ -43,7 +45,7 @@ export class CalendarweekComponent {
     this.updateWeekMinMax();
 
     // Bind event listeners
-    this.calendarweekInput.addEventListener('keydown', (event) => this.onWeekKeydown(event));
+    this.weekInput.addEventListener('keydown', (event) => this.onWeekKeydown(event));
     this.yearInput.addEventListener('keydown', (event) => this.onYearKeydown(event));
     this.yearInput.addEventListener('input', () => this.onYearChange());
   }
@@ -63,11 +65,14 @@ export class CalendarweekComponent {
     }
 
     // Set the year and calendar week
-    this.yearInput.value = year.toString();
-    this.calendarweekInput.value = week.toString();
+    this.year = year;
+    this.week = week;
+    this.yearInput.value = this.year.toString();
+    this.weekInput.value = this.week.toString();
 
     // Update the range based on the new year and week
     this.updateWeekMinMax();
+    this.onChange();
   }
 
   public setMode(mode: UXMode): void {
@@ -116,6 +121,51 @@ export class CalendarweekComponent {
     this.updateWeekMinMax();
   }
 
+  public getCurrentDate(): Date | null {
+    this.parseWeekAndYear();
+
+    if (isNaN(this.year) || isNaN(this.week)) return null;
+
+    // Create a date representing the given ISO year and week
+    let date = setISOWeekYear(new Date(0), this.year);
+    date = setISOWeek(date, this.week);
+
+    // Ensure date is within valid range
+    if (this.minDate && date < this.minDate) return null;
+    if (this.maxDate && date > this.maxDate) return null;
+
+    // Get the first day (Monday) of that week
+    return startOfISOWeek(date);
+  }
+
+  private parseWeekAndYear(): void {
+    const parsedYear = parseInt(this.yearInput.value, 10);
+    const parsedWeek = parseInt(this.weekInput.value, 10);
+
+    if (isNaN(parsedYear) || isNaN(parsedWeek)) {
+      this.year = null;
+      this.week = null;
+      return;
+    }
+
+    const maxWeeksInParsedYear = getISOWeeksOfYear(parsedYear);
+
+    if (
+      (this.minDateYear && parsedYear < this.minDateYear) ||
+      (this.maxDateYear && parsedYear > this.maxDateYear) ||
+      parsedWeek < 1 ||
+      parsedWeek > maxWeeksInParsedYear
+    ) {
+      this.year = null;
+      this.week = null;
+      return;
+    }
+
+    this.year = parsedYear;
+    this.week = parsedWeek;
+  }
+
+
   private onChange(): void {
     console.log("ON CHANGE");
   }
@@ -141,17 +191,18 @@ export class CalendarweekComponent {
     }
 
     // Set min/max attributes for calendarweek input
-    this.calendarweekInput.min = minCalendarWeek.toString();
-    this.calendarweekInput.max = maxCalendarWeek.toString();
+    this.weekInput.min = minCalendarWeek.toString();
+    this.weekInput.max = maxCalendarWeek.toString();
   }
 
   private onWeekKeydown(event: KeyboardEvent): void {
-    let currentWeek = parseInt(this.calendarweekInput.value);
+    let currentWeek = parseInt(this.weekInput.value);
     let currentYear = parseInt(this.yearInput.value);
 
     // Get min and max calendar week values
-    const minCalendarWeek = parseInt(this.calendarweekInput.min);
-    const maxCalendarWeek = parseInt(this.calendarweekInput.max);
+    const minCalendarWeek = parseInt(this.weekInput.min);
+    const maxCalendarWeek = parseInt(this.weekInput.max);
+    let changed: boolean = false;
 
     if (event.key === "ArrowUp" && currentWeek >= maxCalendarWeek) {
       event.preventDefault();
@@ -162,12 +213,14 @@ export class CalendarweekComponent {
           currentWeek = 1;
           this.yearInput.value = currentYear.toString();
           this.updateWeekMinMax();
-          this.calendarweekInput.value = currentWeek.toString();
+          this.weekInput.value = currentWeek.toString();
+          changed = true
           break;
 
         case "loop":
           currentWeek = minCalendarWeek;
-          this.calendarweekInput.value = currentWeek.toString();
+          this.weekInput.value = currentWeek.toString();
+          changed = true
           break;
       }
     } else if (event.key === "ArrowDown" && currentWeek <= minCalendarWeek) {
@@ -179,33 +232,37 @@ export class CalendarweekComponent {
           currentWeek = getISOWeeksOfYear(currentYear);
           this.yearInput.value = currentYear.toString();
           this.updateWeekMinMax();
-          this.calendarweekInput.value = currentWeek.toString();
+          this.weekInput.value = currentWeek.toString();
+          changed = true
           break;
 
         case "loop":
           currentWeek = maxCalendarWeek;
-          this.calendarweekInput.value = currentWeek.toString();
+          this.weekInput.value = currentWeek.toString();
+          changed = true
           break;
       }
     }
 
-    this.updateWeekMinMax();
-    this.validateWeekInBounds();
-    this.onChange();
+    if (changed && this.getCurrentDate() !== null) {
+      this.updateWeekMinMax();
+      this.validateWeekInBounds();
+      this.onChange();
+    }
   }
 
   private validateWeekInBounds(): void {
-    let currentWeek = parseInt(this.calendarweekInput.value);
+    let currentWeek = parseInt(this.weekInput.value);
 
     // Get min and max calendar week values
-    const minCalendarWeek = parseInt(this.calendarweekInput.min);
-    const maxCalendarWeek = parseInt(this.calendarweekInput.max);
+    const minCalendarWeek = parseInt(this.weekInput.min);
+    const maxCalendarWeek = parseInt(this.weekInput.max);
 
     // Ensure the selected calendar week is within range for continuous mode
     if (currentWeek < minCalendarWeek) {
-      this.calendarweekInput.value = minCalendarWeek.toString();
+      this.weekInput.value = minCalendarWeek.toString();
     } else if (currentWeek > maxCalendarWeek) {
-      this.calendarweekInput.value = maxCalendarWeek.toString();
+      this.weekInput.value = maxCalendarWeek.toString();
     }
   }
 
