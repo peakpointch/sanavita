@@ -10,13 +10,11 @@ export class CalendarweekComponent {
   private minDate: Date | null = null;
   private maxDate: Date | null = null;
   private mode: UXMode = 'continuous';
-  private weekOptions: WeekOptions;
 
-  constructor(container: HTMLElement, mode?: UXMode, weekOptions?: WeekOptions) {
+  constructor(container: HTMLElement, mode?: UXMode) {
     this.container = container;
     this.calendarweekInput = container.querySelector('input[name="calendarweek"]') as HTMLInputElement;
     this.yearInput = container.querySelector('input[name="year"]') as HTMLInputElement;
-    this.weekOptions = weekOptions;
 
     // Read the mode from a data attribute (defaults to 'continuous' if not set)
     if (!mode) {
