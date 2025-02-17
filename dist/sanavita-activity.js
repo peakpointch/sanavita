@@ -31918,22 +31918,12 @@
     const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getCollectionData());
     setDefaultFilters(filterForm, minDate, maxDate);
     const calendarweekComponent = new CalendarweekComponent(calendarweekElement, "continuous");
-    calendarweekComponent.setMinMaxDates(/* @__PURE__ */ new Date("2023-05-01"), maxDate);
+    calendarweekComponent.setMinMaxDates(minDate, maxDate);
     calendarweekComponent.addOnChange((week, year, date) => {
       filterForm.getFilterInput("startDate").value = format(date, "yyyy-MM-dd");
       filterForm.invokeOnChange(["startDate"]);
     });
     filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 5));
-    filterForm.addOnChange(["startDate", "endDate"], (filters, invokedBy) => {
-      const currentYear = parseInt(filters.getField("year").value);
-      switch (invokedBy) {
-        case "startDate":
-        case "endDate":
-          const date = new Date(filters.getField(invokedBy).value);
-          calendarweekComponent.setDate(date, true);
-          break;
-      }
-    });
     filterForm.addOnChange(["scale"], (filters) => {
       const scale = parseFloat(filters.getField("scale").value);
       pdf.scale(scale);
@@ -31941,11 +31931,12 @@
     filterForm.addOnChange(["save"], () => {
       filterForm.invokeOnChange(["startDate"]);
     });
-    filterForm.addOnChange(["startDate", "endDate", "calendarweek", "dayRange"], (filters) => {
+    filterForm.addOnChange(["startDate", "endDate", "dayRange"], (filters, invokedBy) => {
       const startDate = new Date(filters.getField("startDate").value);
       const endDate = new Date(filters.getField("endDate").value);
       const dayRange = parseFloat(filters.getField("dayRange").value);
       filterForm.setDayRange(dayRange);
+      calendarweekComponent.setDate(invokedBy === "endDate" ? endDate : startDate, true);
       const staticRenderFields = [
         {
           element: "title",
