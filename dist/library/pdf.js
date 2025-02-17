@@ -28923,6 +28923,10 @@ var Pdf = class _Pdf {
     this.pages = Array.from(pages);
     return this.pages;
   }
+  getPageWrappers() {
+    const pageWrappers = this.canvas.querySelectorAll(_Pdf.select("page-wrapper"));
+    return Array.from(pageWrappers);
+  }
   /**
    * Render any data of type `RenderData` on the pdf canvas.
    *
@@ -28998,8 +29002,14 @@ var Pdf = class _Pdf {
           canvas
         };
       };
+      let firstPage = true;
       for (let i3 = 0; i3 < this.pages.length; i3++) {
         const page = this.pages[i3];
+        if (window.getComputedStyle(page).getPropertyValue("display") === "none" || window.getComputedStyle(page).getPropertyValue("visibility") === "hidden" || page.classList.contains("hide") || page.offsetWidth === 0 || page.offsetHeight === 0) {
+          console.warn(`Hidden page detected, skipping current page. 
+Page:`, page);
+          continue;
+        }
         const customCanvas = document.createElement("canvas");
         customCanvas.width = page.offsetWidth * canvasScale;
         customCanvas.height = page.offsetHeight * canvasScale;
@@ -29023,9 +29033,10 @@ var Pdf = class _Pdf {
         const imgData = canvas.toDataURL("image/jpeg");
         const adjustedWidth = pdfWidth + 2 * zoom;
         const adjustedHeight = canvas.height * adjustedWidth / canvas.width;
-        if (i3 > 0) {
+        if (!firstPage) {
           pdf.addPage();
         }
+        firstPage = false;
         pdf.addImage(imgData, "PNG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
       }
       pdf.save(filename);

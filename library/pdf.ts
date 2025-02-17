@@ -4,7 +4,7 @@ import jsPDF, { Html2CanvasOptions } from 'jspdf';
 import createAttribute from "@library/attributeselector";
 
 // Types
-export type PdfElement = 'container' | 'scale' | 'page' | 'weekday' | 'dish';
+export type PdfElement = 'container' | 'scale' | 'page' | 'page-wrapper' | 'weekday' | 'dish';
 export type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
 
 // Variables
@@ -61,10 +61,15 @@ export default class Pdf {
     return this.defaultScale;
   }
 
-  private getPages(): HTMLElement[] {
+  public getPages(): HTMLElement[] {
     const pages = this.canvas.querySelectorAll<HTMLElement>(Pdf.select('page'));
     this.pages = Array.from(pages);
     return this.pages;
+  }
+
+  public getPageWrappers(): HTMLElement[] {
+    const pageWrappers = this.canvas.querySelectorAll<HTMLElement>(Pdf.select('page-wrapper'));
+    return Array.from(pageWrappers);
   }
 
   /**
@@ -156,8 +161,21 @@ export default class Pdf {
         }
       }
 
+      let firstPage = true;
+
       for (let i = 0; i < this.pages.length; i++) {
         const page = this.pages[i];
+
+        if (
+          window.getComputedStyle(page).getPropertyValue('display') === "none" ||
+          window.getComputedStyle(page).getPropertyValue('visibility') === 'hidden' ||
+          page.classList.contains("hide") ||
+          page.offsetWidth === 0 ||
+          page.offsetHeight === 0
+        ) {
+          console.warn(`Hidden page detected, skipping current page. \nPage:`, page);
+          continue;
+        }
 
         const customCanvas = document.createElement("canvas");
         customCanvas.width = page.offsetWidth * canvasScale;
@@ -190,9 +208,11 @@ export default class Pdf {
         const adjustedWidth = pdfWidth + 2 * zoom;
         const adjustedHeight = (canvas.height * adjustedWidth) / canvas.width;
 
-        if (i > 0) {
+        if (!firstPage) {
           pdf.addPage();
         }
+
+        firstPage = false;
 
         pdf.addImage(imgData, 'PNG', -zoom, -zoom, adjustedWidth, adjustedHeight, undefined, 'SLOW');
       }
