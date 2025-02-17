@@ -1,8 +1,7 @@
 import { FieldGroup, HTMLFormInput, formQuery, fieldFromInput } from ".";
 import createAttribute from "@library/attributeselector";
 
-type Action = () => any;
-type FilterAction = (filters: FieldGroup) => any;
+type FilterAction = (filters: FieldGroup, fieldId: "" | string) => any;
 type ActionElement = 'download' | 'save';
 type HTMLActionElement = HTMLButtonElement;
 
@@ -13,7 +12,7 @@ export class FilterForm {
   private data: FieldGroup;
   private filterFields: NodeListOf<HTMLFormInput>;
   private actionElements: NodeListOf<HTMLActionElement>
-  private beforeChangeActions: Action[] = [];
+  private beforeChangeActions: FilterAction[] = [];
   private fieldChangeActions: Map<string, FilterAction[]> = new Map();
   private globalChangeActions: FilterAction[] = []; // Stores wildcard ('*') actions
   private defaultDayRange: number = 7;
@@ -97,7 +96,7 @@ export class FilterForm {
    * Add an action to be exectued before all the onChange actions get called.
    * Use this function to validate or modify inputs if needed.
    */
-  public addBeforeChange(action: Action): void {
+  public addBeforeChange(action: FilterAction): void {
     this.beforeChangeActions.push(action);
   }
 
@@ -124,22 +123,23 @@ export class FilterForm {
    * If wildcard actions exist, they run on every change.
    */
   private onChange(event: Event): void {
-    this.beforeChangeActions.forEach(action => action());
+    // Get current state of all fields
+    let filters: FieldGroup = this.getFieldGroup(this.filterFields);
 
     const targetId = this.getTargetId(event);
     if (!targetId) {
       throw new Error(`Target is neither a FilterField nor an ActionElement.`);
     }
 
-    // Get current state of all fields
-    const filters: FieldGroup = this.getFieldGroup(this.filterFields);
+    this.beforeChangeActions.forEach(action => action(filters, targetId));
+    filters = this.getFieldGroup(this.filterFields);
 
     // Run specific actions for this field
     const actions = this.fieldChangeActions.get(targetId) || [];
-    actions.forEach((action) => action(filters));
+    actions.forEach((action) => action(filters, targetId));
 
     // Run wildcard actions (global change actions)
-    this.globalChangeActions.forEach((action) => action(filters));
+    this.globalChangeActions.forEach((action) => action(filters, targetId));
   }
 
   /**
@@ -163,22 +163,28 @@ export class FilterForm {
    * @param fields - An array of field IDs OR '*' for all fields.
    */
   public invokeOnChange(fields: string[] | "*"): void {
-    this.beforeChangeActions.forEach(action => action());
-    const filters: FieldGroup = this.getFieldGroup(this.filterFields);
+    let invokedBy: string;
+    let filters: FieldGroup = this.getFieldGroup(this.filterFields);
 
     if (fields === "*") {
+      invokedBy = "";
+      this.beforeChangeActions.forEach(action => action(filters, invokedBy));
+      filters = this.getFieldGroup(this.filterFields);
       // Invoke all actions
       this.fieldChangeActions.forEach((actions) => {
-        actions.forEach((action) => action(filters));
+        actions.forEach((action) => action(filters, invokedBy));
       });
     } else {
+      invokedBy = fields.length === 1 ? fields[0] : "";
+      this.beforeChangeActions.forEach(action => action(filters, invokedBy));
+      filters = this.getFieldGroup(this.filterFields);
       // Invoke specific actions
       fields.forEach(fieldId => {
         const actions = this.fieldChangeActions.get(fieldId) || [];
-        actions.forEach((action) => action(filters));
+        actions.forEach((action) => action(filters, invokedBy));
       });
     }
-    this.globalChangeActions.forEach((action) => action(filters));
+    this.globalChangeActions.forEach((action) => action(filters, invokedBy));
   }
 
   /**
