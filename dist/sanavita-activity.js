@@ -31124,15 +31124,18 @@
   function getISOWeeksOfYear(year) {
     return getISOWeeksInYear(new Date(year, 5, 1));
   }
-  var CalendarweekComponent = class {
+  var CalendarweekComponent = class _CalendarweekComponent {
     constructor(container, mode) {
       this.minDate = null;
       this.maxDate = null;
       this.mode = "continuous";
       this.onChangeActions = [];
       this.container = container;
-      this.weekInput = container.querySelector('input[name="calendarweek"]');
-      this.yearInput = container.querySelector('input[name="year"]');
+      this.weekInput = container.querySelector(_CalendarweekComponent.select("week"));
+      this.yearInput = container.querySelector(_CalendarweekComponent.select("year"));
+      if (!this.weekInput || !this.yearInput) {
+        throw new Error(`Couldn't find required "week" or "year" input element. Check the attribute selector "${_CalendarweekComponent.select()}"`);
+      }
       if (!mode) {
         mode = container.getAttribute("data-mode");
         if (!["continuous", "loop", "fixed"].some((validMode) => validMode === mode)) {

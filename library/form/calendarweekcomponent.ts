@@ -28,8 +28,12 @@ export class CalendarweekComponent {
 
   constructor(container: HTMLElement, mode?: UXMode) {
     this.container = container;
-    this.weekInput = container.querySelector('input[name="calendarweek"]') as HTMLInputElement;
-    this.yearInput = container.querySelector('input[name="year"]') as HTMLInputElement;
+    this.weekInput = container.querySelector<HTMLInputElement>(CalendarweekComponent.select("week"));
+    this.yearInput = container.querySelector<HTMLInputElement>(CalendarweekComponent.select("year"));
+
+    if (!this.weekInput || !this.yearInput) {
+      throw new Error(`Couldn't find required "week" or "year" input element. Check the attribute selector "${CalendarweekComponent.select()}"`);
+    }
 
     // Read the mode from a data attribute (defaults to 'continuous' if not set)
     if (!mode) {
