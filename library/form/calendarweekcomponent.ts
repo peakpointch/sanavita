@@ -12,14 +12,16 @@ export class CalendarweekComponent {
   private container: HTMLElement;
   private weekInput: HTMLInputElement;
   private yearInput: HTMLInputElement;
-  private week: number | null;
-  private year: number | null;
+  private week: number;
+  private year: number;
   private minDate: Date | null = null;
   private maxDate: Date | null = null;
   private minDateYear: number | null;
   private maxDateYear: number | null;
   private minDateWeek: number | null;
   private maxDateWeek: number | null;
+  private currentMinWeek: number;
+  private currentMaxWeek: number;
   private mode: UXMode = 'continuous';
 
   constructor(container: HTMLElement, mode?: UXMode) {
@@ -47,6 +49,7 @@ export class CalendarweekComponent {
     // Bind event listeners
     this.weekInput.addEventListener('keydown', (event) => this.onWeekKeydown(event));
     this.yearInput.addEventListener('keydown', (event) => this.onYearKeydown(event));
+    this.weekInput.addEventListener('input', () => this.onWeekChange());
     this.yearInput.addEventListener('input', () => this.onYearChange());
   }
 
@@ -67,8 +70,6 @@ export class CalendarweekComponent {
     // Set the year and calendar week
     this.year = year;
     this.week = week;
-    this.yearInput.value = this.year.toString();
-    this.weekInput.value = this.week.toString();
 
     // Update the range based on the new year and week
     this.updateWeekMinMax();
@@ -139,45 +140,45 @@ export class CalendarweekComponent {
   }
 
   private parseWeekAndYear(): void {
-    const parsedYear = parseInt(this.yearInput.value, 10);
-    const parsedWeek = parseInt(this.weekInput.value, 10);
+    let parsedYear = parseInt(this.yearInput.value, 10);
+    let parsedWeek = parseInt(this.weekInput.value, 10);
 
-    if (isNaN(parsedYear) || isNaN(parsedWeek)) {
-      this.year = null;
-      this.week = null;
-      return;
-    }
-
-    const maxWeeksInParsedYear = getISOWeeksOfYear(parsedYear);
-
-    if (
-      (this.minDateYear && parsedYear < this.minDateYear) ||
-      (this.maxDateYear && parsedYear > this.maxDateYear) ||
-      parsedWeek < 1 ||
-      parsedWeek > maxWeeksInParsedYear
-    ) {
-      this.year = null;
-      this.week = null;
-      return;
-    }
+    // Ensure year and week are within bounds
+    parsedYear = this.keepYearInBounds(parsedYear);
+    this.updateWeekMinMax(parsedYear);
+    parsedWeek = this.keepWeekInBounds(parsedWeek);
 
     this.year = parsedYear;
     this.week = parsedWeek;
   }
 
-
   private onChange(): void {
-    console.log("ON CHANGE");
+    this.updateClientWeekMinMax();
+    this.updateClientValues();
+    console.log("Internal State:", this.week, this.year);
+  }
+
+  private updateClientWeekMinMax(): void {
+    this.weekInput.min = this.currentMinWeek.toString();
+    this.weekInput.max = this.currentMaxWeek.toString();
+  }
+
+  private updateClientValues(): void {
+    this.yearInput.value = this.year.toString();
+    this.weekInput.value = this.week.toString();
   }
 
   private onYearChange(): void {
-    this.validateWeekInBounds();
+    this.parseWeekAndYear();
     this.onChange();
   }
 
-  private updateWeekMinMax(): void {
-    const currentYear = parseInt(this.yearInput.value);
+  private onWeekChange(): void {
+    this.parseWeekAndYear();
+    this.onChange();
+  }
 
+  private updateWeekMinMax(currentYear: number = this.year): void {
     const maxWeeksOfCurrentYear = getISOWeeksOfYear(currentYear);
     let minCalendarWeek = 1;
     let maxCalendarWeek = maxWeeksOfCurrentYear;
@@ -190,80 +191,70 @@ export class CalendarweekComponent {
       maxCalendarWeek = this.maxDateWeek;
     }
 
-    // Set min/max attributes for calendarweek input
-    this.weekInput.min = minCalendarWeek.toString();
-    this.weekInput.max = maxCalendarWeek.toString();
+    this.currentMinWeek = minCalendarWeek;
+    this.currentMaxWeek = maxCalendarWeek;
   }
 
   private onWeekKeydown(event: KeyboardEvent): void {
-    let currentWeek = parseInt(this.weekInput.value);
-    let currentYear = parseInt(this.yearInput.value);
-
-    // Get min and max calendar week values
-    const minCalendarWeek = parseInt(this.weekInput.min);
-    const maxCalendarWeek = parseInt(this.weekInput.max);
+    this.parseWeekAndYear();
     let changed: boolean = false;
 
-    if (event.key === "ArrowUp" && currentWeek >= maxCalendarWeek) {
+    if (event.key === "ArrowUp" && this.week >= this.currentMaxWeek) {
       event.preventDefault();
       switch (this.mode) {
         case "continuous":
-          if (currentYear === this.maxDateYear) break;
-          currentYear += 1;
-          currentWeek = 1;
-          this.yearInput.value = currentYear.toString();
+          if (this.year === this.maxDateYear) break;
+          this.year += 1;
+          this.week = 1;
           this.updateWeekMinMax();
-          this.weekInput.value = currentWeek.toString();
-          changed = true
+          changed = true;
           break;
 
         case "loop":
-          currentWeek = minCalendarWeek;
-          this.weekInput.value = currentWeek.toString();
-          changed = true
+          this.week = this.currentMinWeek;
+          changed = true;
           break;
       }
-    } else if (event.key === "ArrowDown" && currentWeek <= minCalendarWeek) {
+    } else if (event.key === "ArrowDown" && this.week <= this.currentMinWeek) {
       event.preventDefault();
       switch (this.mode) {
         case "continuous":
-          if (currentYear === this.minDateYear) break;
-          currentYear -= 1;
-          currentWeek = getISOWeeksOfYear(currentYear);
-          this.yearInput.value = currentYear.toString();
+          if (this.year === this.minDateYear) break;
+          this.year -= 1;
+          this.week = getISOWeeksOfYear(this.year);
           this.updateWeekMinMax();
-          this.weekInput.value = currentWeek.toString();
-          changed = true
+          changed = true;
           break;
 
         case "loop":
-          currentWeek = maxCalendarWeek;
-          this.weekInput.value = currentWeek.toString();
-          changed = true
+          this.week = this.currentMaxWeek;
+          changed = true;
           break;
       }
     }
 
-    if (changed && this.getCurrentDate() !== null) {
-      this.updateWeekMinMax();
-      this.validateWeekInBounds();
+    if (changed) {
       this.onChange();
     }
   }
 
-  private validateWeekInBounds(): void {
-    let currentWeek = parseInt(this.weekInput.value);
-
-    // Get min and max calendar week values
-    const minCalendarWeek = parseInt(this.weekInput.min);
-    const maxCalendarWeek = parseInt(this.weekInput.max);
-
-    // Ensure the selected calendar week is within range for continuous mode
-    if (currentWeek < minCalendarWeek) {
-      this.weekInput.value = minCalendarWeek.toString();
-    } else if (currentWeek > maxCalendarWeek) {
-      this.weekInput.value = maxCalendarWeek.toString();
+  private keepYearInBounds(year: number): number {
+    if (this.minDateYear !== null && year < this.minDateYear) {
+      return this.minDateYear;
     }
+    if (this.maxDateYear !== null && year > this.maxDateYear) {
+      return this.maxDateYear;
+    }
+    return year;
+  }
+
+  private keepWeekInBounds(week: number): number {
+    if (week < this.currentMinWeek) {
+      return this.currentMinWeek;
+    } else if (week > this.currentMaxWeek) {
+      return this.currentMaxWeek;
+    }
+    return week;
   }
 
   private onYearKeydown(event: KeyboardEvent): void {
@@ -272,13 +263,12 @@ export class CalendarweekComponent {
 
     const isArrowUp = event.key === "ArrowUp";
     const isArrowDown = event.key === "ArrowDown";
-    let currentYear = parseInt(this.yearInput.value);
+    this.parseWeekAndYear();
 
-    if ((isArrowUp && currentYear === this.maxDateYear) || (isArrowDown && currentYear === this.minDateYear)) {
+    if ((isArrowUp && this.year === this.maxDateYear) || (isArrowDown && this.year === this.minDateYear)) {
       event.preventDefault();
-      this.yearInput.value = (isArrowUp ? this.minDateYear : this.maxDateYear).toString();
+      this.year = (isArrowUp ? this.minDateYear : this.maxDateYear);
 
-      this.validateWeekInBounds();
       this.onChange();
     }
   }
