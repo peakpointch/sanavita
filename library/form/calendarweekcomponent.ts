@@ -3,6 +3,7 @@ import createAttribute from '@library/attributeselector';
 
 export type UXMode = 'continuous' | 'loop' | 'fixed';
 export type CalendarweekElements = 'component' | 'week' | 'year';
+type Action = (week: number, year: number, date: Date) => any;
 
 function getISOWeeksOfYear(year: number): number {
   return getISOWeeksInYear(new Date(year, 5, 1));
@@ -23,6 +24,7 @@ export class CalendarweekComponent {
   private currentMinWeek: number;
   private currentMaxWeek: number;
   private mode: UXMode = 'continuous';
+  private onChangeActions: Action[] = [];
 
   constructor(container: HTMLElement, mode?: UXMode) {
     this.container = container;
@@ -55,7 +57,7 @@ export class CalendarweekComponent {
 
   public static select = createAttribute<CalendarweekElements>('data-cweek-element');
 
-  public setDate(date: Date): void {
+  public setDate(date: Date, silent: boolean = false): void {
     const year = getISOWeekYear(date);
     const week = getISOWeek(date);
 
@@ -73,7 +75,11 @@ export class CalendarweekComponent {
 
     // Update the range based on the new year and week
     this.updateWeekMinMax();
-    this.onChange();
+    if (!silent) {
+      this.onChange();
+    } else {
+      this.updateClient();
+    }
   }
 
   public setMode(mode: UXMode): void {
@@ -122,18 +128,18 @@ export class CalendarweekComponent {
     this.updateWeekMinMax();
   }
 
-  public getCurrentDate(): Date | null {
-    this.parseWeekAndYear();
+  public addOnChange(callback: Action): void {
+    this.onChangeActions.push(callback);
+  }
 
-    if (isNaN(this.year) || isNaN(this.week)) return null;
+  public removeOnChange(callback: Action): void {
+    this.onChangeActions = this.onChangeActions.filter(fn => fn !== callback);
+  }
 
+  public getCurrentDate(): Date {
     // Create a date representing the given ISO year and week
     let date = setISOWeekYear(new Date(0), this.year);
     date = setISOWeek(date, this.week);
-
-    // Ensure date is within valid range
-    if (this.minDate && date < this.minDate) return null;
-    if (this.maxDate && date > this.maxDate) return null;
 
     // Get the first day (Monday) of that week
     return startOfISOWeek(date);
@@ -153,9 +159,14 @@ export class CalendarweekComponent {
   }
 
   private onChange(): void {
+    this.updateClient();
+    console.log("Internal State:", this.week, this.year);
+    this.onChangeActions.forEach((callback) => callback(this.week, this.year, this.getCurrentDate()));
+  }
+
+  private updateClient(): void {
     this.updateClientWeekMinMax();
     this.updateClientValues();
-    console.log("Internal State:", this.week, this.year);
   }
 
   private updateClientWeekMinMax(): void {
