@@ -51,8 +51,8 @@ export class CalendarweekComponent {
     // Bind event listeners
     this.weekInput.addEventListener('keydown', (event) => this.onWeekKeydown(event));
     this.yearInput.addEventListener('keydown', (event) => this.onYearKeydown(event));
-    this.weekInput.addEventListener('input', () => this.onWeekChange());
-    this.yearInput.addEventListener('input', () => this.onYearChange());
+    this.weekInput.addEventListener('change', () => this.onWeekChange());
+    this.yearInput.addEventListener('change', () => this.onYearChange());
   }
 
   public static select = createAttribute<CalendarweekElements>('data-cweek-element');
@@ -160,7 +160,6 @@ export class CalendarweekComponent {
 
   private onChange(): void {
     this.updateClient();
-    console.log("Internal State:", this.week, this.year);
     this.onChangeActions.forEach((callback) => callback(this.week, this.year, this.getCurrentDate()));
   }
 
