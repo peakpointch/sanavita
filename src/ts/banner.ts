@@ -11,7 +11,7 @@ function manageBanners(bannerWrapper: HTMLElement | null, path: string): void {
     return;
   }
 
-  const allBanners = bannerWrapper.querySelectorAll(
+  const allBanners = bannerWrapper.querySelectorAll<HTMLElement>(
     "[banner-type]:not(:has(.w-dyn-empty))"
   );
   if (!allBanners.length) {
@@ -40,13 +40,13 @@ function manageBanners(bannerWrapper: HTMLElement | null, path: string): void {
     if (currentBannerType === "default") {
       if (!hasSpecialBannerPath || !hasExpectedBanner) {
         banner.classList.add("show");
-        setBannerSpeed(banner as HTMLElement);
+        setBannerSpeed(banner);
       } else {
         banner.classList.add("hide");
       }
     } else if (path.includes(window.bannerType[currentBannerType])) {
       banner.classList.add("show");
-      setBannerSpeed(banner as HTMLElement);
+      setBannerSpeed(banner);
     } else {
       banner.classList.add("hide");
     }
@@ -54,7 +54,7 @@ function manageBanners(bannerWrapper: HTMLElement | null, path: string): void {
 }
 
 function setBannerSpeed(track: HTMLElement): number {
-  const marqueeTrack = track.querySelector(".marquee_track") as HTMLElement;
+  const marqueeTrack = track.querySelector<HTMLElement>(".marquee_track");
   if (!marqueeTrack) {
     return 0;
   }
@@ -67,18 +67,18 @@ function setBannerSpeed(track: HTMLElement): number {
 }
 
 function setAllSpeeds(main: HTMLElement): void {
-  const allMarquees = main.querySelectorAll(".marquee_component");
-  allMarquees.forEach((marquee) => setBannerSpeed(marquee as HTMLElement));
+  const allMarquees = main.querySelectorAll<HTMLElement>(".marquee_component");
+  allMarquees.forEach((marquee) => setBannerSpeed(marquee));
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  const main = document.querySelector("main") as HTMLElement;
-  const nav = document.querySelector(
+  const main = document.querySelector<HTMLElement>("main");
+  const nav: HTMLElement | null = document.querySelector(
     '[pp-type="nav-wrapper"]'
-  ) as HTMLElement | null;
-  const bannerWrapper = nav?.querySelector(
+  );
+  const bannerWrapper: HTMLElement | null = nav?.querySelector(
     '[pp-type="infobanner-component"]'
-  ) as HTMLElement | null;
+  );
   const path = window.location.pathname;
 
   manageBanners(bannerWrapper, path);
