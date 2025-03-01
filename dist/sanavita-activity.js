@@ -19627,12 +19627,20 @@
   };
 
   // library/attributeselector.ts
-  var createAttribute = (attrName, defaultValue = null) => {
+  function exclude(selector, ...exclusions) {
+    if (exclusions.length === 0)
+      return selector;
+    return selector.split(", ").reduce((acc, str) => {
+      let separator = acc === "" ? "" : ", ";
+      return acc + separator + `${str}:not(${exclusions.join(", ")})`;
+    }, "");
+  }
+  var createAttribute = (attrName, defaultValue = null, ...exclusions) => {
     return (name = defaultValue) => {
       if (!name) {
-        return `[${attrName}]`;
+        return exclude(`[${attrName}]`, ...exclusions);
       }
-      return `[${attrName}="${name}"]`;
+      return exclude(`[${attrName}="${name}"]`, ...exclusions);
     };
   };
   var attributeselector_default = createAttribute;
@@ -29012,6 +29020,10 @@
       this.pages = Array.from(pages);
       return this.pages;
     }
+    getPageWrappers() {
+      const pageWrappers = this.canvas.querySelectorAll(_Pdf.select("page-wrapper"));
+      return Array.from(pageWrappers);
+    }
     /**
      * Render any data of type `RenderData` on the pdf canvas.
      *
@@ -29087,8 +29099,14 @@
             canvas
           };
         };
+        let firstPage = true;
         for (let i3 = 0; i3 < this.pages.length; i3++) {
           const page = this.pages[i3];
+          if (window.getComputedStyle(page).getPropertyValue("display") === "none" || window.getComputedStyle(page).getPropertyValue("visibility") === "hidden" || page.classList.contains("hide") || page.offsetWidth === 0 || page.offsetHeight === 0) {
+            console.warn(`Hidden page detected, skipping current page. 
+Page:`, page);
+            continue;
+          }
           const customCanvas = document.createElement("canvas");
           customCanvas.width = page.offsetWidth * canvasScale;
           customCanvas.height = page.offsetHeight * canvasScale;
@@ -29112,9 +29130,10 @@
           const imgData = canvas.toDataURL("image/jpeg");
           const adjustedWidth = pdfWidth + 2 * zoom;
           const adjustedHeight = canvas.height * adjustedWidth / canvas.width;
-          if (i3 > 0) {
+          if (!firstPage) {
             pdf.addPage();
           }
+          firstPage = false;
           pdf.addImage(imgData, "PNG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
         }
         pdf.save(filename);
@@ -31926,6 +31945,18 @@
       filterForm.invokeOnChange(["startDate"]);
     });
     filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 5));
+    filterForm.addOnChange(["design"], (filters) => {
+      const pages = pdf.getPageWrappers();
+      const selectedDesign = filters.getField("design").value;
+      pages.forEach((page) => {
+        const design = page.getAttribute("data-pdf-design");
+        if (design === selectedDesign) {
+          page.classList.remove("hide");
+        } else {
+          page.classList.add("hide");
+        }
+      });
+    });
     filterForm.addOnChange(["scale"], (filters) => {
       const scale = parseFloat(filters.getField("scale").value);
       pdf.scale(scale);
@@ -31946,8 +31977,32 @@
           visibility: true
         }
       ];
+      const staticRenderElements = [
+        {
+          element: "activitySpecial",
+          visibility: true,
+          fields: [
+            {
+              element: "title",
+              value: `Spezialprogramm`,
+              visibility: true
+            },
+            {
+              element: "time",
+              value: `Uhrzeit`,
+              visibility: true
+            },
+            {
+              element: "paragraph",
+              value: `Lorem ipsum dolor sit amet, consetetur sadipscing elitir, sed diam nonumy eirmod tempor invidungt ut labore et dolore magna aliquayam erat, sed diam voluptua. at vero eos et accusam et justo dua dolores et ea rebum. Stet cilita kasd gubergren, no sea takimata sanctus.`,
+              visibility: true
+            }
+          ]
+        }
+      ];
       pdf.render([
         ...staticRenderFields,
+        ...staticRenderElements,
         ...filterCollection.filterByDate(startDate, endDate)
       ]);
     });

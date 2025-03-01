@@ -19541,12 +19541,20 @@ var init_index_es = __esm({
 });
 
 // library/attributeselector.ts
-var createAttribute = (attrName, defaultValue = null) => {
+function exclude(selector, ...exclusions) {
+  if (exclusions.length === 0)
+    return selector;
+  return selector.split(", ").reduce((acc, str) => {
+    let separator = acc === "" ? "" : ", ";
+    return acc + separator + `${str}:not(${exclusions.join(", ")})`;
+  }, "");
+}
+var createAttribute = (attrName, defaultValue = null, ...exclusions) => {
   return (name = defaultValue) => {
     if (!name) {
-      return `[${attrName}]`;
+      return exclude(`[${attrName}]`, ...exclusions);
     }
-    return `[${attrName}="${name}"]`;
+    return exclude(`[${attrName}="${name}"]`, ...exclusions);
   };
 };
 var attributeselector_default = createAttribute;
