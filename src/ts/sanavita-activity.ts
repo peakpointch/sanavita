@@ -2,7 +2,7 @@
 import EditableCanvas from '@library/canvas';
 import Pdf from '@library/pdf';
 import { FilterCollection } from '@library/wfcollection';
-import { RenderData, RenderField } from '@library/renderer';
+import { RenderData, RenderElement, RenderField } from '@library/renderer';
 import { FilterForm, CalendarweekComponent, filterFormSelector } from '@library/form';
 
 // Utility functions
@@ -79,6 +79,19 @@ function initialize(): void {
   });
 
   filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate', 5));
+  filterForm.addOnChange(['design'], (filters) => {
+    const pages = pdf.getPageWrappers();
+    const selectedDesign = filters.getField('design').value;
+    pages.forEach((page) => {
+      const design = page.getAttribute("data-pdf-design");
+      if (design === selectedDesign) {
+        page.classList.remove('hide');
+      } else {
+        page.classList.add('hide');
+      }
+    });
+
+  });
   filterForm.addOnChange(['scale'], (filters) => {
     const scale = parseFloat(filters.getField('scale').value);
     pdf.scale(scale);
@@ -102,11 +115,35 @@ function initialize(): void {
         element: 'title',
         value: `${formatDE(startDate, 'd')}. – ${formatDE(endDate, 'd')}. ${formatDE(startDate, 'MMMM yyyy')}`,
         visibility: true,
-      },
+      }
     ];
+    const staticRenderElements: RenderElement[] = [
+      {
+        element: 'activitySpecial',
+        visibility: true,
+        fields: [
+          {
+            element: 'title',
+            value: `Spezialprogramm`,
+            visibility: true,
+          },
+          {
+            element: 'time',
+            value: `Uhrzeit`,
+            visibility: true,
+          },
+          {
+            element: 'paragraph',
+            value: `Lorem ipsum dolor sit amet, consetetur sadipscing elitir, sed diam nonumy eirmod tempor invidungt ut labore et dolore magna aliquayam erat, sed diam voluptua. at vero eos et accusam et justo dua dolores et ea rebum. Stet cilita kasd gubergren, no sea takimata sanctus.`,
+            visibility: true,
+          }
+        ]
+      }
+    ]
 
     pdf.render([
       ...staticRenderFields,
+      ...staticRenderElements,
       ...filterCollection.filterByDate(startDate, endDate),
     ]);
   });
