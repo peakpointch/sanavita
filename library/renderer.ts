@@ -23,6 +23,7 @@ type RenderElement = {
 };
 
 type RenderData = Array<RenderElement | RenderField>;
+type FilterAttribute = Record<string, "string" | "number" | "date" | "boolean">;
 
 class Renderer {
   private canvas: HTMLElement;
@@ -30,10 +31,10 @@ class Renderer {
   private fieldAttr: string;
   private elementAttr: string;
   private emptyStateAttr: string;
-  private filterAttributes: Set<string> = new Set([
-    'data-filter',
-    'data-category',
-  ]);
+  private filterAttributes: FilterAttribute = {
+    "data-filter": "string",
+    "data-category": "string",
+  };
 
   constructor(canvas: HTMLElement | null, private attributeName: string = 'render') {
     if (!canvas) throw new Error(`Canvas can't be undefined.`);
@@ -217,37 +218,44 @@ class Renderer {
    * Handles `date` and `boolean` attributes.
    */
   private readFilteringProperties(field: RenderField | RenderElement, child: HTMLElement): void {
-    this.filterAttributes.forEach(attr => {
-      if (!child.hasAttribute(attr)) { return }
+    for (let [attr, type] of Object.entries(this.filterAttributes)) {
+      if (!child.hasAttribute(attr)) { continue }
 
       let value: any = child.getAttribute(attr);
-      if (!value) { return }
+      if (!value) { continue }
 
-      // Handle Date attributes
-      if (attr.toLowerCase().includes('date')) {
-        const parsedDate = new Date(value);
-        value = isNaN(parsedDate.getTime()) ? null : parsedDate;  // Ensure valid date
-      }
+      switch (type) {
+        case "date":
+          const parsedDate = new Date(value);
+          value = isNaN(parsedDate.getTime()) ? null : parsedDate;  // Ensure valid date
+          break;
 
-      // Handle Boolean attributes
-      if (attr.toLowerCase().includes('boolean')) {
-        if (value === 'select') {
-          // Translate webflows conditional visibility to boolean
-          const targetElement = child.querySelector(`[${attr}]`);
+        case "boolean":
+          if (value === 'select') {
+            // Translate webflows conditional visibility to boolean
+            const targetElement = child.querySelector(`[${attr}]`);
+            if (!targetElement) {
+              throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+            }
 
-          if (!targetElement) {
-            throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+            value = Boolean(!targetElement.classList.contains('w-condition-invisible'));
+          } else {
+            // Handles attribute values directly
+            value = JSON.parse(value);
           }
+          break;
 
-          value = Boolean(!targetElement.classList.contains('w-condition-invisible'));
-        } else {
-          // Handles direct attribute values
-          value = JSON.parse(value);
-        }
+        case "number":
+          value = parseFloat(value);
+          break;
+
+        case "string":
+        default:
+          break;
       }
 
       field[toCamelCase(attr)] = value;
-    });
+    };
   }
 
   /**
@@ -334,16 +342,14 @@ class Renderer {
   }
 
   // Method to add filter attributes
-  public addFilterAttributes(newAttributes: string[]): void {
-    newAttributes.forEach(attr => {
-      this.filterAttributes.add(attr);
-    });
+  public addFilterAttributes(newAttributes: FilterAttribute): void {
+    Object.assign(this.filterAttributes, newAttributes)
   }
 
   // Method to remove filter attributes
-  public removeFilterAttributes(attributesToRemove: string[]): void {
+  public removeFilterAttributes(...attributesToRemove: string[]): void {
     attributesToRemove.forEach(attr => {
-      this.filterAttributes.delete(attr);
+      delete this.filterAttributes[attr]
     });
   }
 
