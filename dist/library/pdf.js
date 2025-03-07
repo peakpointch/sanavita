@@ -19585,10 +19585,10 @@ function formatDate(date, format, locale = "de-CH") {
 var Renderer = class _Renderer {
   constructor(canvas, attributeName = "render") {
     this.attributeName = attributeName;
-    this.filterAttributes = /* @__PURE__ */ new Set([
-      "data-filter",
-      "data-category"
-    ]);
+    this.filterAttributes = {
+      "data-filter": "string",
+      "data-category": "string"
+    };
     if (!canvas)
       throw new Error(`Canvas can't be undefined.`);
     this.canvas = canvas;
@@ -19729,31 +19729,40 @@ var Renderer = class _Renderer {
    * Handles `date` and `boolean` attributes.
    */
   readFilteringProperties(field, child) {
-    this.filterAttributes.forEach((attr) => {
+    for (let [attr, type] of Object.entries(this.filterAttributes)) {
       if (!child.hasAttribute(attr)) {
-        return;
+        continue;
       }
       let value = child.getAttribute(attr);
       if (!value) {
-        return;
+        continue;
       }
-      if (attr.toLowerCase().includes("date")) {
-        const parsedDate = new Date(value);
-        value = isNaN(parsedDate.getTime()) ? null : parsedDate;
-      }
-      if (attr.toLowerCase().includes("boolean")) {
-        if (value === "select") {
-          const targetElement = child.querySelector(`[${attr}]`);
-          if (!targetElement) {
-            throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+      switch (type) {
+        case "date":
+          const parsedDate = new Date(value);
+          value = isNaN(parsedDate.getTime()) ? null : parsedDate;
+          break;
+        case "boolean":
+          if (value === "select") {
+            const targetElement = child.querySelector(`[${attr}]`);
+            if (!targetElement) {
+              throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+            }
+            value = Boolean(!targetElement.classList.contains("w-condition-invisible"));
+          } else {
+            value = JSON.parse(value);
           }
-          value = Boolean(!targetElement.classList.contains("w-condition-invisible"));
-        } else {
-          value = JSON.parse(value);
-        }
+          break;
+        case "number":
+          value = parseFloat(value);
+          break;
+        case "string":
+        default:
+          break;
       }
       field[toCamelCase(attr)] = value;
-    });
+    }
+    ;
   }
   /**
    * Parse the visibility control attribute value of a Render-`child`.
@@ -19833,14 +19842,12 @@ var Renderer = class _Renderer {
   }
   // Method to add filter attributes
   addFilterAttributes(newAttributes) {
-    newAttributes.forEach((attr) => {
-      this.filterAttributes.add(attr);
-    });
+    Object.assign(this.filterAttributes, newAttributes);
   }
   // Method to remove filter attributes
-  removeFilterAttributes(attributesToRemove) {
+  removeFilterAttributes(...attributesToRemove) {
     attributesToRemove.forEach((attr) => {
-      this.filterAttributes.delete(attr);
+      delete this.filterAttributes[attr];
     });
   }
   elementSelector(element) {
