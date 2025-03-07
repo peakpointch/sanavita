@@ -1,5 +1,5 @@
 import Swiper from "swiper";
-import { Autoplay, Navigation, Pagination } from "swiper/modules"
+import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules"
 import { toCamelCase } from "@library/parameterize";
 import { AutoplayOptions, NavigationOptions, SwiperOptions } from "swiper/types";
 
@@ -142,6 +142,85 @@ function parseSwiperOptions(container: HTMLElement, attributes: SwiperAttribute[
   return settings as CustomSwiperOptions;
 }
 
+export function readSwiperOptions(swiperElement: HTMLElement): SwiperOptions {
+  if (swiperEmpty(swiperElement)) {
+    hideEmptySwiper(swiperElement);
+    return;
+  }
+  swiperElement.classList.remove("initial-hide");
+
+  /**
+   * REMINDER: If this changes, `CustomSwiperOptions` has to be updated as well
+   */
+  const swiperAttributes: SwiperAttribute[] = [
+    { name: "swiper-component", type: "string" },
+    { name: "data-swiper-mode", type: "string" },
+    { name: "data-swiper-nav", type: "string", default: ".swiper-button" },
+    { name: "data-swiper-auto-height", type: "boolean", default: false },
+    { name: "data-swiper-slides-per-view", type: "floatOrAuto", },
+    { name: "data-swiper-space-between", type: "float", default: 8 },
+    { name: "data-swiper-centered-slides", type: "boolean", default: false },
+    { name: "data-swiper-loop", type: "boolean", default: true },
+    { name: "data-swiper-allow-touch-move", type: "boolean", default: true },
+    { name: "data-swiper-autoplay", type: "boolean", default: true },
+    { name: "data-swiper-autoplay-delay", type: "float", default: 4000 },
+    { name: "data-swiper-speed", type: "float", default: 400 },
+  ];
+
+  const settings = parseSwiperOptions(swiperElement, swiperAttributes);
+
+  const navigationPrefix = setNavigationPrefix(settings.swiperComponent, settings.mode);
+  const prevEl = `${navigationPrefix}${settings.nav}:not(.next)`;
+  const nextEl = `${navigationPrefix}${settings.nav}.next`;
+  const autoplayOptions = setupAutoplay(settings.autoplay, settings.autoplayDelay);
+
+  const swiperOptions: SwiperOptions = {
+    navigation: {
+      prevEl: prevEl,
+      nextEl: nextEl,
+    },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+    autoplay: autoplayOptions,
+    allowTouchMove: settings.allowTouchMove,
+    centeredSlides: settings.centeredSlides,
+    effect: "slide",
+    speed: settings.speed,
+    autoHeight: settings.autoHeight,
+    spaceBetween: settings.spaceBetween,
+    loop: settings.loop,
+    slidesPerView: settings.slidesPerView,
+    modules: [Autoplay, Navigation, Pagination]
+  }
+
+  return swiperOptions;
+}
+
+function initWebflowSwiper(swiperElement: HTMLElement): Swiper {
+  const swiperOptions = readSwiperOptions(swiperElement);
+  const swiper = new Swiper(swiperElement, swiperOptions);
+
+  swiper.autoplay.stop();
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        swiper.autoplay.start();
+      } else {
+        swiper.autoplay.stop();
+      }
+    })
+  }, {
+    threshold: 0.2
+  });
+
+  observer.observe(swiperElement);
+
+  return swiper;
+}
+
 function initWebflowSwipers() {
   // Remove all empty slides
   document.querySelectorAll(".w-slide:empty").forEach((e) => e.remove());
@@ -151,75 +230,7 @@ function initWebflowSwipers() {
   );
 
   webflowSwipers.forEach((swiperElement: HTMLElement) => {
-    if (swiperEmpty(swiperElement)) {
-      hideEmptySwiper(swiperElement);
-      return;
-    }
-    swiperElement.classList.remove("initial-hide");
-
-    /**
-     * REMINDER: If this changes, `CustomSwiperOptions` has to be updated as well
-     */
-    const swiperAttributes: SwiperAttribute[] = [
-      { name: "swiper-component", type: "string" },
-      { name: "data-swiper-mode", type: "string" },
-      { name: "data-swiper-nav", type: "string", default: ".swiper-button" },
-      { name: "data-swiper-auto-height", type: "boolean", default: false },
-      { name: "data-swiper-slides-per-view", type: "floatOrAuto", },
-      { name: "data-swiper-space-between", type: "float", default: 8 },
-      { name: "data-swiper-centered-slides", type: "boolean", default: false },
-      { name: "data-swiper-loop", type: "boolean", default: true },
-      { name: "data-swiper-allow-touch-move", type: "boolean", default: true },
-      { name: "data-swiper-autoplay", type: "boolean", default: true },
-      { name: "data-swiper-autoplay-delay", type: "float", default: 4000 },
-      { name: "data-swiper-speed", type: "float", default: 400 },
-    ];
-
-    const settings = parseSwiperOptions(swiperElement, swiperAttributes);
-
-    const navigationPrefix = setNavigationPrefix(settings.swiperComponent, settings.mode);
-    const prevEl = `${navigationPrefix}${settings.nav}:not(.next)`;
-    const nextEl = `${navigationPrefix}${settings.nav}.next`;
-    const autoplayOptions = setupAutoplay(settings.autoplay, settings.autoplayDelay);
-
-    const swiperOptions: SwiperOptions = {
-      navigation: {
-        prevEl: prevEl,
-        nextEl: nextEl,
-      },
-      pagination: {
-        el: ".swiper-pagination",
-        clickable: true,
-      },
-      autoplay: autoplayOptions,
-      allowTouchMove: settings.allowTouchMove,
-      centeredSlides: settings.centeredSlides,
-      effect: "slide",
-      speed: settings.speed,
-      autoHeight: settings.autoHeight,
-      spaceBetween: settings.spaceBetween,
-      loop: settings.loop,
-      slidesPerView: settings.slidesPerView,
-      modules: [Autoplay, Navigation, Pagination]
-    }
-
-    const swiper = new Swiper(swiperElement, swiperOptions);
-
-    swiper.autoplay.stop();
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          swiper.autoplay.start();
-        } else {
-          swiper.autoplay.stop();
-        }
-      })
-    }, {
-      threshold: 0.2
-    });
-
-    observer.observe(swiperElement);
+    initWebflowSwiper(swiperElement);
   });
 }
 
