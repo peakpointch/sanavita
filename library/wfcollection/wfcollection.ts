@@ -13,7 +13,7 @@ class CollectionList {
   public renderer: Renderer;
   public collectionData: RenderData = [];
   private listElement: HTMLElement;
-  private listItems: NodeListOf<HTMLElement>;
+  private items: NodeListOf<HTMLElement>;
 
   constructor(container: HTMLElement | null, name?: string) {
     if (!container || !container.classList.contains('w-dyn-list')) throw new Error(`Container can't be undefined.`);
@@ -21,29 +21,37 @@ class CollectionList {
     this.name = name || 'wf';
     this.container = container;
     this.listElement = container.querySelector('.w-dyn-items');
-    this.listItems = container.querySelectorAll('.w-dyn-item');
+    this.items = container.querySelectorAll('.w-dyn-item');
     this.renderer = new Renderer(container, this.name);
 
     // Invoke first read to initialize `this.collectionData`
-    this.readCollectionData();
+    this.readData();
   }
 
-  public readCollectionData(): void {
+  public readData(): void {
     this.collectionData = this.renderer.read(this.container);
   }
 
-  public getCollectionData(): RenderData {
+  public getData(): RenderData {
     return this.collectionData;
   }
 
-  public getListItems(): NodeListOf<HTMLElement> {
-    return this.listItems;
+  public getItems(): NodeListOf<HTMLElement> {
+    return this.items;
+  }
+
+  /**
+   * This method removes every element that was hidden by Webflow's conditional visibility.
+   */
+  public removeInvisibleElements(): void {
+    this.listElement.querySelectorAll(".w-condition-invisible")
+      .forEach(element => element.remove());
   }
 
   public getAttributeData(): any {
     let data: any[] = [];
 
-    this.listItems.forEach(item => {
+    this.items.forEach(item => {
       const itemData: Map<string, any> = new Map(Object.entries(item.dataset));
       itemData.forEach((value, key) => {
         if (!key.startsWith('wf')) {
