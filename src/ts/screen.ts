@@ -169,21 +169,23 @@ function initialize() {
     modules: [Autoplay, Navigation, Pagination, Manipulation]
   }
   const swiper = new Swiper(newsSwiperEl, swiperOptions);
-  swiper.autoplay.start();
+  swiper.autoplay.stop();
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        swiper.autoplay.start();
-      } else {
-        swiper.autoplay.stop();
-      }
+  if (swiperOptions.autoplay !== false) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          swiper.autoplay.start();
+        } else {
+          swiper.autoplay.stop();
+        }
+      });
+    }, {
+      threshold: 0.2
     });
-  }, {
-    threshold: 0.2
-  });
 
-  observer.observe(swiper.el);
+    observer.observe(swiper.el);
+  }
 
   const manager = new ElementManager(collection.getData(), swiper, collectionElement)
   setInterval(() => {

@@ -203,20 +203,21 @@ function initWebflowSwiper(swiperElement: HTMLElement): Swiper {
   const swiper = new Swiper(swiperElement, swiperOptions);
 
   swiper.autoplay.stop();
+  if (swiperOptions.autoplay !== false) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          swiper.autoplay.start();
+        } else {
+          swiper.autoplay.stop();
+        }
+      })
+    }, {
+      threshold: 0.2
+    });
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        swiper.autoplay.start();
-      } else {
-        swiper.autoplay.stop();
-      }
-    })
-  }, {
-    threshold: 0.2
-  });
-
-  observer.observe(swiperElement);
+    observer.observe(swiperElement);
+  }
 
   return swiper;
 }
