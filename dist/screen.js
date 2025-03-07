@@ -6090,8 +6090,12 @@
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var swiperSelector = attributeselector_default("custom-swiper-component");
   var ElementManager = class {
-    // To track inserted elements
     constructor(allElements, swiper, collectionElement) {
+      // To track inserted elements
+      /**
+       * Count of elements overlaying the swiper
+       */
+      this.uecount = 0;
       this.data = allElements;
       this.filteredData = [];
       this.swiper = swiper;
@@ -6143,7 +6147,10 @@
           elementToInsert.classList.add("swiper-slide");
           this.swiper.appendSlide(elementToInsert);
         } else if (element.element === "event" || element.element === "memorial") {
+          if (this.uecount === 1)
+            return;
           this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
+          this.uecount++;
         }
         this.insertedElements.set(element.instance, elementToInsert);
       }
@@ -6162,7 +6169,6 @@
     update() {
       this.filterElements();
       this.sort(this.filteredData);
-      console.log(this.filteredData);
       let changed = false;
       this.filteredData.forEach((element) => {
         if (!this.insertedElements.has(element.instance)) {
@@ -6178,8 +6184,7 @@
           changed = true;
         }
       });
-      const insertedRenderElements = Array.from(this.insertedElements.keys()).map((instance) => this.data.find((element) => element.instance === instance));
-      if (changed && insertedRenderElements.some((element) => element.element !== "birthday")) {
+      if (changed && this.uecount) {
         this.swiper.el.classList.add("hide");
         this.swiper.autoplay.pause();
       } else if (changed) {

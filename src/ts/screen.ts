@@ -116,7 +116,6 @@ class ElementManager {
   public update(): void {
     this.filterElements();
     this.sort(this.filteredData);
-    console.log(this.filteredData);
     let changed = false;
 
     // Add new elements that should be shown
