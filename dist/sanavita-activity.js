@@ -19674,10 +19674,10 @@
   var Renderer = class _Renderer {
     constructor(canvas, attributeName = "render") {
       this.attributeName = attributeName;
-      this.filterAttributes = /* @__PURE__ */ new Set([
-        "data-filter",
-        "data-category"
-      ]);
+      this.filterAttributes = {
+        "data-filter": "string",
+        "data-category": "string"
+      };
       if (!canvas)
         throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
@@ -19818,31 +19818,40 @@
      * Handles `date` and `boolean` attributes.
      */
     readFilteringProperties(field, child) {
-      this.filterAttributes.forEach((attr) => {
+      for (let [attr, type] of Object.entries(this.filterAttributes)) {
         if (!child.hasAttribute(attr)) {
-          return;
+          continue;
         }
         let value = child.getAttribute(attr);
         if (!value) {
-          return;
+          continue;
         }
-        if (attr.toLowerCase().includes("date")) {
-          const parsedDate = new Date(value);
-          value = isNaN(parsedDate.getTime()) ? null : parsedDate;
-        }
-        if (attr.toLowerCase().includes("boolean")) {
-          if (value === "select") {
-            const targetElement = child.querySelector(`[${attr}]`);
-            if (!targetElement) {
-              throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+        switch (type) {
+          case "date":
+            const parsedDate = new Date(value);
+            value = isNaN(parsedDate.getTime()) ? null : parsedDate;
+            break;
+          case "boolean":
+            if (value === "select") {
+              const targetElement = child.querySelector(`[${attr}]`);
+              if (!targetElement) {
+                throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
+              }
+              value = Boolean(!targetElement.classList.contains("w-condition-invisible"));
+            } else {
+              value = JSON.parse(value);
             }
-            value = Boolean(!targetElement.classList.contains("w-condition-invisible"));
-          } else {
-            value = JSON.parse(value);
-          }
+            break;
+          case "number":
+            value = parseFloat(value);
+            break;
+          case "string":
+          default:
+            break;
         }
         field[toCamelCase(attr)] = value;
-      });
+      }
+      ;
     }
     /**
      * Parse the visibility control attribute value of a Render-`child`.
@@ -19922,14 +19931,12 @@
     }
     // Method to add filter attributes
     addFilterAttributes(newAttributes) {
-      newAttributes.forEach((attr) => {
-        this.filterAttributes.add(attr);
-      });
+      Object.assign(this.filterAttributes, newAttributes);
     }
     // Method to remove filter attributes
-    removeFilterAttributes(attributesToRemove) {
+    removeFilterAttributes(...attributesToRemove) {
       attributesToRemove.forEach((attr) => {
-        this.filterAttributes.delete(attr);
+        delete this.filterAttributes[attr];
       });
     }
     elementSelector(element) {
@@ -29165,22 +29172,28 @@ Page:`, page);
       this.name = name || "wf";
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
-      this.listItems = container.querySelectorAll(".w-dyn-item");
+      this.items = container.querySelectorAll(".w-dyn-item");
       this.renderer = new renderer_default(container, this.name);
-      this.readCollectionData();
+      this.readData();
     }
-    readCollectionData() {
+    readData() {
       this.collectionData = this.renderer.read(this.container);
     }
-    getCollectionData() {
+    getData() {
       return this.collectionData;
     }
-    getListItems() {
-      return this.listItems;
+    getItems() {
+      return this.items;
+    }
+    /**
+     * This method removes every element that was hidden by Webflow's conditional visibility.
+     */
+    removeInvisibleElements() {
+      this.listElement.querySelectorAll(".w-condition-invisible").forEach((element) => element.remove());
     }
     getAttributeData() {
       let data = [];
-      this.listItems.forEach((item) => {
+      this.items.forEach((item) => {
         const itemData = new Map(Object.entries(item.dataset));
         itemData.forEach((value, key) => {
           if (!key.startsWith("wf")) {
@@ -29195,9 +29208,12 @@ Page:`, page);
 
   // library/wfcollection/filtercollection.ts
   var FilterCollection = class extends CollectionList {
-    constructor(container) {
-      super(container, "pdf");
-      this.renderer.addFilterAttributes(["date", "end-date"]);
+    constructor(container, name) {
+      super(container, name);
+      this.renderer.addFilterAttributes({
+        "date": "date",
+        "end-date": "date"
+      });
     }
     filterByDate(startDate, endDate, ...additionalConditions) {
       return [...this.collectionData].filter(
@@ -31935,8 +31951,8 @@ Page:`, page);
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
-    filterCollection.readCollectionData();
-    const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getCollectionData());
+    filterCollection.readData();
+    const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
     setDefaultFilters(filterForm, minDate, maxDate);
     const calendarweekComponent = new CalendarweekComponent(calendarweekElement, "continuous");
     calendarweekComponent.setMinMaxDates(minDate, maxDate);

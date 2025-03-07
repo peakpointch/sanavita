@@ -4,10 +4,13 @@ import { RenderData, RenderElement, RenderField } from '@library/renderer';
 type MenuDataCondition = ((menuData: RenderElement | RenderField) => boolean);
 
 export class FilterCollection extends CollectionList {
-  constructor(container: HTMLElement | null) {
-    super(container, 'pdf');
+  constructor(container: HTMLElement | null, name?: string) {
+    super(container, name);
 
-    this.renderer.addFilterAttributes(['date', 'end-date']);
+    this.renderer.addFilterAttributes({
+      "date": "date",
+      "end-date": "date",
+    });
   }
 
   public filterByDate(

@@ -68,8 +68,8 @@ function initialize(): void {
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
 
 
-  filterCollection.readCollectionData();
-  const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getCollectionData());
+  filterCollection.readData();
+  const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
   setDefaultFilters(filterForm, minDate, maxDate);
   const calendarweekComponent = new CalendarweekComponent(calendarweekElement, "continuous");
   calendarweekComponent.setMinMaxDates(minDate, maxDate);
