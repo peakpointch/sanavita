@@ -188,7 +188,7 @@ function initialize() {
   const manager = new ElementManager(collection.getData(), swiper, collectionElement)
   setInterval(() => {
     manager.update();
-  }, 1000);
+  }, 3000);
 
   //@ts-ignore
   window.newscollection = collection;

@@ -6226,7 +6226,7 @@
     const manager = new ElementManager(collection.getData(), swiper, collectionElement);
     setInterval(() => {
       manager.update();
-    }, 1e3);
+    }, 3e3);
     window.newscollection = collection;
     window.elementManager = manager;
   }
