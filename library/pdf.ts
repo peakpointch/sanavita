@@ -165,71 +165,82 @@ export default class Pdf {
     element.style.removeProperty('margin');
   }
 
-  public async create(filename?: string | undefined): Promise<void> {
-    this.freeze();
-    if (!filename || typeof filename !== 'string') {
-      filename = `Menuplan generiert am ${new Date().toLocaleDateString('de-DE')}`;
+  /**
+   * @param page The current page element as an `HTMLElement`.
+   * @param scale The scale of the canvas.
+   * @returns The prepared `HTMLCanvasElement`.
+   */
+  private prepareCanvas(page: HTMLElement, scale: number): HTMLCanvasElement {
+    if (!page) {
+      throw new Error(`Pdf page not found.`);
     }
-    filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = page.offsetWidth * scale;
+    canvas.height = page.offsetHeight * scale;
+
+    const ctx = canvas.getContext("2d");
+    const originalDrawImage = ctx.drawImage;
+
+    // @ts-ignore
+    ctx.drawImage = function (image: CanvasImageSource, sx: number, sy: number, sw: number, sh, dx, dy, dw, dh): void {
+      if (image instanceof HTMLImageElement) {
+        if (sw / dw < sh / dh) {
+          const _dh = dh
+          dh = sh * (dw / sw)
+          dy = dy + (_dh - dh) / 2
+        } else {
+          const _dw = dw
+          dw = sw * (dh / sh)
+          dx = dx + (_dw - dw) / 2
+        }
+      }
+
+      return originalDrawImage.call(ctx, image, sx, sy, sw, sh, dx, dy, dw, dh)
+    };
+
+    return canvas;
+  }
+
+  private isPageHidden(page: HTMLElement): boolean {
+    return window.getComputedStyle(page).getPropertyValue('display') === "none" ||
+      window.getComputedStyle(page).getPropertyValue('visibility') === 'hidden' ||
+      page.classList.contains("hide") ||
+      page.offsetWidth === 0 ||
+      page.offsetHeight === 0;
+  }
+
+  private async create(): Promise<jsPDF> {
+    this.freeze();
+
+    // Calculate dimensions to fit the A4 page
+    const zoom = 0.1; // crop 0.1mm on each side
+    const canvasScale = 2;
+    const getHtml2CanvasOptions = (canvas?: HTMLCanvasElement): Html2CanvasOptions => {
+      return {
+        scale: canvasScale,
+        useCORS: true,
+        canvas: canvas
+      }
+    }
+
     try {
       // Generate the PDF
       const pdf = new jsPDF('portrait', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-
-      // Calculate dimensions to fit the A4 page
-      const zoom = 0.1; // crop 0.1mm on each side
-      const canvasScale = 2;
-
-      const getHtml2CanvasOptions = (canvas?: HTMLCanvasElement): Html2CanvasOptions => {
-        return {
-          scale: canvasScale,
-          useCORS: true,
-          canvas: canvas
-        }
-      }
-
       let firstPage = true;
 
       for (let i = 0; i < this.pages.length; i++) {
         const page = this.pages[i];
 
-        if (
-          window.getComputedStyle(page).getPropertyValue('display') === "none" ||
-          window.getComputedStyle(page).getPropertyValue('visibility') === 'hidden' ||
-          page.classList.contains("hide") ||
-          page.offsetWidth === 0 ||
-          page.offsetHeight === 0
-        ) {
+        if (this.isPageHidden(page)) {
           console.warn(`Hidden page detected, skipping current page. \nPage:`, page);
           continue;
         }
 
-        const customCanvas = document.createElement("canvas");
-        customCanvas.width = page.offsetWidth * canvasScale;
-        customCanvas.height = page.offsetHeight * canvasScale;
-
-        const ctx = customCanvas.getContext("2d");
-        const originalDrawImage = ctx.drawImage;
-
-        // @ts-ignore
-        ctx.drawImage = function (image: CanvasImageSource, sx: number, sy: number, sw: number, sh, dx, dy, dw, dh): void {
-          if (image instanceof HTMLImageElement) {
-            if (sw / dw < sh / dh) {
-              const _dh = dh
-              dh = sh * (dw / sw)
-              dy = dy + (_dh - dh) / 2
-            } else {
-              const _dw = dw
-              dw = sw * (dh / sh)
-              dx = dx + (_dw - dw) / 2
-            }
-          }
-
-          return originalDrawImage.call(ctx, image, sx, sy, sw, sh, dx, dy, dw, dh)
-        };
-
         // Convert HTML element to canvas
-        const canvas = await html2canvas(page, getHtml2CanvasOptions(customCanvas));
+        const defaultCanvas: HTMLCanvasElement = this.prepareCanvas(page, canvasScale);
+        const canvas = await html2canvas(page, getHtml2CanvasOptions(defaultCanvas));
         const imgData = canvas.toDataURL('image/jpeg');
 
         const adjustedWidth = pdfWidth + 2 * zoom;
@@ -244,8 +255,7 @@ export default class Pdf {
         pdf.addImage(imgData, 'PNG', -zoom, -zoom, adjustedWidth, adjustedHeight, undefined, 'SLOW');
       }
 
-      // Save the PDF
-      pdf.save(filename);
+      return pdf;
     } catch (error) {
       console.error('Error creating PDF:', error);
     } finally {
@@ -253,15 +263,20 @@ export default class Pdf {
     }
   }
 
-  public initDownload(button: HTMLElement | null): void {
-    if (!button) throw new Error('Download button does not exist');
-    button.addEventListener('click', async () => {
-      // Scale the pdf from 72 to 300 DPI
-      this.scale(4.17, false);
-      setTimeout(async () => {
-        await this.create();
-        this.resetScale();
-      }, 0);
-    });
+  public async save(filename?: string, clientScale: number = 1): Promise<void> {
+    // Save the PDF
+    filename = filename || `Dokument generiert am ${new Date().toLocaleDateString('de-DE')}`;
+    filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+
+    // Scale the pdf on client
+    this.scale(clientScale, false);
+
+    setTimeout(async () => {
+      // Create the jsPDF instance
+      const pdf = await this.create();
+      pdf.save(filename);
+
+      this.resetScale();
+    }, 0);
   }
 }
