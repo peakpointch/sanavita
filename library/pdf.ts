@@ -73,6 +73,29 @@ export default class Pdf {
   }
 
   /**
+   * Retrieves an array of `HTMLElement` objects representing design wrappers or design pages.
+   *
+   * - If no design IDs are provided, it returns **all** available designs.
+   * - If one or more design IDs are provided, it returns only the designs whose `data-pdf-design` attribute matches the specified IDs.
+   *
+   * @param designs - Optional list of design IDs to filter by. If empty, all designs are returned.
+   * @returns Array of matching `HTMLElement` elements.
+   */
+  public getDesigns(...designs: string[]): HTMLElement[] {
+    const designWrappers = Array.from(this.canvas.querySelectorAll<HTMLElement>(`[data-pdf-design]`));
+
+    if (designs.length === 0) {
+      return designWrappers;
+    }
+
+    const filteredDesigns = designWrappers.filter(wrapper => {
+      designs.includes(wrapper.getAttribute('data-pdf-design') || '');
+    });
+
+    return filteredDesigns;
+  }
+
+  /**
    * Render any data of type `RenderData` on the pdf canvas.
    *
    * @param data Data of type `RenderData`. This data will be given to the Renderer instance to render it.
