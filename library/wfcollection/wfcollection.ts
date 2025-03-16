@@ -14,7 +14,7 @@ class CollectionList {
   public collectionData: RenderData = [];
   public debug: boolean = false;
   private listElement: HTMLElement;
-  private items: NodeListOf<HTMLElement>;
+  private items: HTMLElement[];
 
   constructor(container: HTMLElement | null, name?: string) {
     if (!container || !container.classList.contains('w-dyn-list')) throw new Error(`Container can't be undefined.`);
@@ -22,7 +22,7 @@ class CollectionList {
     this.name = name || 'wf';
     this.container = container;
     this.listElement = container.querySelector('.w-dyn-items');
-    this.items = container.querySelectorAll('.w-dyn-item');
+    this.items = Array.from(this.listElement?.querySelectorAll('.w-dyn-item') ?? []);
     this.renderer = new Renderer(container, this.name);
 
     // Invoke first read to initialize `this.collectionData`
@@ -34,8 +34,22 @@ class CollectionList {
     console.log(`"${this.name}" CollectionList:`, ...args);
   }
 
+  public isEmpty(): boolean {
+    const isEmpty = !this.listElement && this.container.querySelector('.w-dyn-empty') !== null;
+
+    if (isEmpty) {
+      console.warn(`Collection "${this.name}" is empty.`);
+    }
+
+    return isEmpty;
+  }
+
   public readData(): void {
-    this.collectionData = this.renderer.read(this.container);
+    if (this.isEmpty()) {
+      this.collectionData = [];
+      return;
+    }
+    this.collectionData = this.renderer.read(this.listElement);
     this.log('Data:', this.collectionData);
   }
 
@@ -43,7 +57,7 @@ class CollectionList {
     return this.collectionData;
   }
 
-  public getItems(): NodeListOf<HTMLElement> {
+  public getItems(): HTMLElement[] {
     return this.items;
   }
 
@@ -51,6 +65,8 @@ class CollectionList {
    * This method removes every element that was hidden by Webflow's conditional visibility.
    */
   public removeInvisibleElements(): void {
+    if (this.isEmpty()) return;
+
     this.listElement.querySelectorAll(".w-condition-invisible")
       .forEach(element => element.remove());
   }
