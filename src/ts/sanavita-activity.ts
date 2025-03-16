@@ -14,6 +14,21 @@ import { de } from 'date-fns/locale';
 type ActionElement = 'download' | 'save';
 type FieldIds = 'startDate' | 'endDate' | 'dayRange' | 'design' | 'scale' | 'calendarweek' | 'calendaryear' | ActionElement;
 
+/**
+ * Metadata representing a `Pdf` instance.
+ */
+interface LocalStoragePdfInstance {
+  design: string;
+}
+
+/**
+ * LocalStorage object representing the list of existing pdf metadata.
+ */
+interface LocalStoragePdf {
+  activity?: LocalStoragePdfInstance;
+  menuplan?: LocalStoragePdfInstance;
+}
+
 const formatDE = (date: Date, formatStr: string) => format(date, formatStr, { locale: de });
 
 // Selector functions
@@ -59,6 +74,12 @@ function setDefaultFilters(form: FilterForm<FieldIds>, minDate: Date, maxDate: D
   form.getFilterInput('startDate').value = formatDE(nextMonday, 'yyyy-MM-dd');
   form.getFilterInput('endDate').value = formatDE(addDays(nextMonday, 6), 'yyyy-MM-dd');
   form.getFilterInput('dayRange').value = form.setDayRange(7).toString();
+
+  const pdfStorage = parsePdfLocalStorage();
+  const design = pdfStorage.activity.design;
+  if (design) {
+    form.getFilterInput('design').value = design;
+  }
 }
 
 /**
@@ -87,6 +108,21 @@ function tagActivitySpecial(list: HTMLElement): void {
   });
 }
 
+function parsePdfLocalStorage(): LocalStoragePdf {
+  const parsed: LocalStoragePdf = JSON.parse(localStorage.getItem('pdf') || '{}');
+
+  const pdfStorage: LocalStoragePdf = {
+    menuplan: {
+      design: parsed.menuplan?.design || '',
+    },
+    activity: {
+      design: parsed.activity?.design || '',
+    }
+  };
+
+  return pdfStorage;
+}
+
 function initialize(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('activity'));
   const pdfContainer = document.querySelector<HTMLElement>(Pdf.select('container'));
@@ -95,6 +131,11 @@ function initialize(): void {
 
   // Before initialization
   tagActivitySpecial(filterCollectionListElement);
+
+  /**
+   * The `localStorage` object for `Pdf`.
+   */
+  const pdfStorage = parsePdfLocalStorage();
 
   // Initialize collection list and pdf
   const filterCollection = new FilterCollection(filterCollectionListElement, 'pdf');
@@ -113,12 +154,14 @@ function initialize(): void {
     filterForm.invokeOnChange(['startDate']);
   });
 
-  filterCollection.debug = true;
+  //filterCollection.debug = true;
   filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate', 5));
 
   filterForm.addOnChange(['design'], (filters) => {
     const pages = pdf.getPageWrappers();
     const selectedDesign = filters.getField('design').value;
+    pdfStorage.activity.design = selectedDesign;
+    localStorage.setItem('pdf', JSON.stringify(pdfStorage));
     pages.forEach((page) => {
       const design = page.getAttribute('data-pdf-design');
       if (design === selectedDesign) {
@@ -162,7 +205,6 @@ function initialize(): void {
   });
 
   filterForm.addOnChange('*', () => {
-    console.log('Change!');
     document.querySelectorAll<HTMLElement>(".pdf-image").forEach(el => {
       el.style.removeProperty('display');
       if (el.offsetHeight < 80) {

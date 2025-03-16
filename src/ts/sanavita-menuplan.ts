@@ -14,6 +14,21 @@ import { de } from 'date-fns/locale';
 type ActionElement = 'download' | 'save';
 type FieldIds = 'startDate' | 'endDate' | 'dayRange' | 'design' | 'scale' | 'calendarweek' | 'calendaryear' | ActionElement;
 
+/**
+ * Metadata representing a `Pdf` instance.
+ */
+interface LocalStoragePdfInstance {
+  design: string;
+}
+
+/**
+ * LocalStorage object representing the list of existing pdf metadata.
+ */
+interface LocalStoragePdf {
+  activity?: LocalStoragePdfInstance;
+  menuplan?: LocalStoragePdfInstance;
+}
+
 const formatDE = (date: Date, formatStr: string) => format(date, formatStr, { locale: de });
 
 // Selector functions
@@ -59,6 +74,12 @@ function setDefaultFilters(form: FilterForm<FieldIds>, minDate: Date, maxDate: D
   form.getFilterInput('startDate').value = formatDE(nextMonday, 'yyyy-MM-dd');
   form.getFilterInput('endDate').value = formatDE(addDays(nextMonday, 6), 'yyyy-MM-dd');
   form.getFilterInput('dayRange').value = form.setDayRange(7).toString();
+
+  const pdfStorage = parsePdfLocalStorage();
+  const design = pdfStorage.menuplan.design;
+  if (design) {
+    form.getFilterInput('design').value = design;
+  }
 }
 
 /**
@@ -74,15 +95,34 @@ function tagWeeklyHit(list: HTMLElement): void {
   });
 }
 
+function parsePdfLocalStorage(): LocalStoragePdf {
+  const parsed: LocalStoragePdf = JSON.parse(localStorage.getItem('pdf') || '{}');
+
+  const pdfStorage: LocalStoragePdf = {
+    menuplan: {
+      design: parsed.menuplan?.design || '',
+    },
+    activity: {
+      design: parsed.activity?.design || '',
+    }
+  };
+
+  return pdfStorage;
+}
+
 function initialize(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('daily'));
   const pdfContainer = document.querySelector<HTMLElement>(Pdf.select('container'));
   const filterFormElement = document.querySelector<HTMLElement>(filterFormSelector('component'));
   const calendarweekElement = document.querySelector<HTMLElement>(CalendarweekComponent.select('component'));
 
-
   // Before initialization
   tagWeeklyHit(filterCollectionListElement);
+  
+  /**
+   * The `localStorage` object for `Pdf`.
+   */
+  const pdfStorage = parsePdfLocalStorage();
 
   // Initialize collection list and pdf
   const filterCollection = new FilterCollection(filterCollectionListElement, 'pdf');
@@ -112,6 +152,8 @@ function initialize(): void {
   filterForm.addOnChange(['design'], (filters) => {
     const designs = pdf.getDesigns();
     const selectedDesign = filters.getField('design').value;
+    pdfStorage.menuplan.design = selectedDesign;
+    localStorage.setItem('pdf', JSON.stringify(pdfStorage));
     designs.forEach((page) => {
       const design = page.getAttribute('data-pdf-design');
       if (design === selectedDesign) {
