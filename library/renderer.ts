@@ -1,6 +1,7 @@
 import createAttribute from "@library/attributeselector";
 import { toCamelCase } from "./parameterize";
-import formatDate from "./date";
+import { format, parse } from "date-fns";
+import { de } from "date-fns/locale";
 
 type VisibilityControl = boolean | 'emptyState';
 type UnparsedBoolean<T> = Exclude<T, boolean> | "true" | "false";
@@ -226,7 +227,11 @@ class Renderer {
 
       switch (type) {
         case "date":
-          const parsedDate = new Date(value);
+          // Parse the date with UTC midnight time
+          //const parsedDate = new Date(value);
+
+          // Parse the date with local midnight time
+          const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
           value = isNaN(parsedDate.getTime()) ? null : parsedDate;  // Ensure valid date
           break;
 
@@ -300,7 +305,8 @@ class Renderer {
             fieldElement.innerHTML = field.value;
             break;
           case 'date':
-            fieldElement.innerText = formatDate(new Date(field.value), fieldElement.dataset.dateFormat || 'd.m.YYYY');
+            const formatStr = fieldElement.dataset.dateFormat || 'd.M.yyyy';
+            fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
             break;
           default:
             fieldElement.innerText = field.value;
