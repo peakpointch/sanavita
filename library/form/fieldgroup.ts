@@ -1,9 +1,9 @@
 import { FormField } from "@library/form/formfield";
 
-export class FieldGroup {
-  public fields: Map<string, FormField>;
+export class FieldGroup<Field extends string = string> {
+  public fields: Map<Field, FormField>;
 
-  constructor(fields: Map<string, FormField> = new Map()) {
+  constructor(fields: Map<Field, FormField> = new Map()) {
     this.fields = fields;
   }
 
@@ -12,7 +12,7 @@ export class FieldGroup {
    *
    * @param fieldId The id attribute of the associated DOM element.
    */
-  public getField(fieldId: string): FormField | undefined {
+  public getField(fieldId: Field): FormField | undefined {
     return this.fields.get(fieldId);
   }
 }

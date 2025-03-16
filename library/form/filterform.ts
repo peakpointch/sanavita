@@ -1,24 +1,24 @@
 import { FieldGroup, HTMLFormInput, formQuery, fieldFromInput } from ".";
 import createAttribute from "@library/attributeselector";
 
-type FilterAction = (filters: FieldGroup, fieldId: "" | string) => any;
+type FilterAction<T extends string = string, Q extends string = string> = (filters: FieldGroup<T>, fieldId: Q) => any;
 type ActionElement = 'download' | 'save';
 type HTMLActionElement = HTMLButtonElement;
 
 const actionSelector = createAttribute<ActionElement>('data-action');
 
-export class FilterForm {
+export class FilterForm<FieldId extends string = string> {
   public container: HTMLElement;
-  private data: FieldGroup;
+  public data: FieldGroup<FieldId>;
   private filterFields: NodeListOf<HTMLFormInput>;
   private actionElements: NodeListOf<HTMLActionElement>
-  private beforeChangeActions: FilterAction[] = [];
-  private fieldChangeActions: Map<string, FilterAction[]> = new Map();
-  private globalChangeActions: FilterAction[] = []; // Stores wildcard ('*') actions
+  private beforeChangeActions: FilterAction<FieldId>[] = [];
+  private fieldChangeActions: Map<FieldId, FilterAction<FieldId>[]> = new Map();
+  private globalChangeActions: FilterAction<FieldId>[] = []; // Stores wildcard ('*') actions
   private defaultDayRange: number = 7;
-  private resizeResetFields: Map<string, () => string | number | Date> = new Map();
+  private resizeResetFields: Map<FieldId, () => string | number | Date> = new Map();
 
-  constructor(container: HTMLElement | null) {
+  constructor(container: HTMLElement | null, private fieldIds?: readonly FieldId[]) {
     if (!container) throw new Error(`FilterForm container can't be null`)
     container = container;
     if (container.tagName === 'form') {
@@ -42,7 +42,7 @@ export class FilterForm {
   /**
    * Returns the `HTMLElement` of a specific filter input.
    */
-  public getFilterInput(fieldId: string): HTMLFormInput {
+  public getFilterInput(fieldId: FieldId): HTMLFormInput {
     const existingFields = this.getFieldIds(this.filterFields)
     if (!this.fieldExists(fieldId, existingFields)) {
       throw new Error(`Field with ID "${fieldId}" was not found`);
@@ -61,14 +61,14 @@ export class FilterForm {
   /**
    * Get all the field-ids inside the current instance.
    */
-  private getFieldIds(fields: NodeListOf<HTMLFormInput>): string[] {
-    return Array.from(fields).map(input => input.id);
+  private getFieldIds(fields: NodeListOf<HTMLFormInput>): FieldId[] {
+    return Array.from(fields).map(input => input.id as FieldId);
   }
 
   /**
    * Check if a field-id exists in a list of field-ids.
    */
-  private fieldExists(fieldId: string, fieldIds: string[]): boolean {
+  private fieldExists(fieldId: FieldId, fieldIds: FieldId[]): boolean {
     const matches = fieldIds.filter(id => id === fieldId);
     if (matches.length === 1) {
       return true;
@@ -101,11 +101,11 @@ export class FilterForm {
   }
 
   /**
-   * Add actions that should run when specific fields change.
+   * Push actions that run when specific fields change. Actions are executed in the order of insertion.
    * @param fields - An array of field IDs and action element IDs OR '*' for any change event.
    * @param action - An array of actions to execute when the field(s) change.
    */
-  public addOnChange(fields: string[] | '*', action: FilterAction): void {
+  public addOnChange<T extends FieldId>(fields: readonly T[] | '*', action: FilterAction<FieldId, T>): void {
     if (fields === '*') {
       this.globalChangeActions.push(action);
     } else {
@@ -124,7 +124,7 @@ export class FilterForm {
    */
   private onChange(event: Event): void {
     // Get current state of all fields
-    let filters: FieldGroup = this.getFieldGroup(this.filterFields);
+    let filters: FieldGroup<FieldId> = this.getFieldGroup(this.filterFields);
 
     const targetId = this.getTargetId(event);
     if (!targetId) {
@@ -145,15 +145,15 @@ export class FilterForm {
   /**
    * Extracts the target ID from an event, whether it's a filter field or an action element.
    */
-  private getTargetId(event: Event): string | null {
+  private getTargetId(event: Event): FieldId | null {
     const target = event.target as HTMLElement;
     if (!target) return null;
 
     if (event.type === "input") {
-      return target.id;
+      return target.id as FieldId;
     }
     if (event.type === "click" && target.hasAttribute("data-action")) {
-      return target.getAttribute("data-action");
+      return target.getAttribute("data-action") as FieldId;
     }
     return null;
   }
@@ -162,12 +162,12 @@ export class FilterForm {
    * Simulate an onChange event and invoke change actions for specified fields.
    * @param fields - An array of field IDs OR '*' for all fields.
    */
-  public invokeOnChange(fields: string[] | "*"): void {
-    let invokedBy: string;
-    let filters: FieldGroup = this.getFieldGroup(this.filterFields);
+  public invokeOnChange(fields: FieldId[] | "*"): void {
+    let invokedBy: FieldId;
+    let filters: FieldGroup<FieldId> = this.getFieldGroup(this.filterFields);
 
     if (fields === "*") {
-      invokedBy = "";
+      invokedBy = "" as FieldId;
       this.beforeChangeActions.forEach(action => action(filters, invokedBy));
       filters = this.getFieldGroup(this.filterFields);
       // Invoke all actions
@@ -175,7 +175,7 @@ export class FilterForm {
         actions.forEach((action) => action(filters, invokedBy));
       });
     } else {
-      invokedBy = fields.length === 1 ? fields[0] : "";
+      invokedBy = fields.length === 1 ? fields[0] : "" as FieldId;
       this.beforeChangeActions.forEach(action => action(filters, invokedBy));
       filters = this.getFieldGroup(this.filterFields);
       // Invoke specific actions
@@ -192,13 +192,13 @@ export class FilterForm {
    * Use this method to get all the form field values as structured data 
    * alongside field metadata.
    */
-  public getFieldGroup(fields: NodeListOf<HTMLFormInput> | HTMLFormInput[]): FieldGroup {
+  public getFieldGroup(fields: NodeListOf<HTMLFormInput> | HTMLFormInput[]): FieldGroup<FieldId> {
     this.data = new FieldGroup();
     fields = fields as NodeListOf<HTMLFormInput>;
     fields.forEach((input, index) => {
       const field = fieldFromInput(input, index);
       if (field?.id) {
-        this.data.fields.set(field.id, field);
+        this.data.fields.set(field.id as FieldId, field);
       }
     });
     return this.data;
@@ -207,7 +207,7 @@ export class FilterForm {
   /**
    * Reset a field to a specific value on `window.resize` event.
    */
-  public addResizeReset(fieldId: string, getValue: () => string | number | Date): void {
+  public addResizeReset(fieldId: FieldId, getValue: () => string | number | Date): void {
     const existingFields = this.getFieldIds(this.filterFields);
     if (!this.fieldExists(fieldId, existingFields)) {
       throw new Error(`Field with ID "${fieldId}" was not found`);
@@ -225,7 +225,7 @@ export class FilterForm {
   /**
    * Remove a field from the reset on resize list. This will no longer reset the field on resize.
    */
-  public removeResizeReset(fieldId: string): void {
+  public removeResizeReset(fieldId: FieldId): void {
     this.resizeResetFields.delete(fieldId);
 
     // Detach event listener if no fields remain to reset on resize
@@ -268,7 +268,7 @@ export class FilterForm {
    * @param startDateFieldId The field id of the startdate `HTMLFormInput`
    * @param endDateFieldId The field id of the enddate `HTMLFormInput`
    */
-  public validateDateRange(startDateFieldId: string, endDateFieldId: string, customDayRange?: number): void {
+  public validateDateRange(startDateFieldId: FieldId, endDateFieldId: FieldId, customDayRange?: number): void {
     const startDateInput = this.getFilterInput(startDateFieldId) as HTMLInputElement;
     const endDateInput = this.getFilterInput(endDateFieldId) as HTMLInputElement;
 
