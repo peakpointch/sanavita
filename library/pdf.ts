@@ -139,6 +139,8 @@ export default class Pdf {
     const elementRect = element.getBoundingClientRect();
 
     element.style.width = `${elementRect.width}px`;
+    element.style.minWidth = `${elementRect.width}px`;
+    element.style.maxWidth = `${elementRect.width}px`;
     element.style.height = `${elementRect.height}px`;
   }
 
@@ -154,6 +156,8 @@ export default class Pdf {
   private unFreezeElement(element: HTMLElement): void {
     // Reset the inline styles to allow for dynamic layout adjustments
     element.style.removeProperty('width');
+    element.style.removeProperty('min-width');
+    element.style.removeProperty('max-width');
     element.style.removeProperty('height');
     element.style.removeProperty('position');
     element.style.removeProperty('left');
