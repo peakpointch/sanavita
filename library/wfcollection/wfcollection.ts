@@ -12,6 +12,7 @@ class CollectionList {
   public container: HTMLElement;
   public renderer: Renderer;
   public collectionData: RenderData = [];
+  public debug: boolean = false;
   private listElement: HTMLElement;
   private items: NodeListOf<HTMLElement>;
 
@@ -28,8 +29,14 @@ class CollectionList {
     this.readData();
   }
 
+  public log(...args: any[]) {
+    if (!this.debug) return;
+    console.log(`"${this.name}" CollectionList:`, ...args);
+  }
+
   public readData(): void {
     this.collectionData = this.renderer.read(this.container);
+    this.log('Data:', this.collectionData);
   }
 
   public getData(): RenderData {
