@@ -23465,7 +23465,6 @@
           const newCanvases = canvas.querySelectorAll(selector);
           if (!newCanvases.length) {
             console.warn(`Element "${selector}" was not found.`);
-            "hello";
             return;
           }
           newCanvases.forEach((newCanvas) => {
@@ -33666,6 +33665,11 @@ Page:`, page);
     form.getFilterInput("startDate").value = formatDE(nextMonday, "yyyy-MM-dd");
     form.getFilterInput("endDate").value = formatDE(addDays(nextMonday, 6), "yyyy-MM-dd");
     form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
+    const pdfStorage = parsePdfLocalStorage();
+    const design = pdfStorage.menuplan.design;
+    if (design) {
+      form.getFilterInput("design").value = design;
+    }
   }
   function tagWeeklyHit(list) {
     const weeklyHitElements = list.querySelectorAll(`.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`);
@@ -33673,12 +33677,25 @@ Page:`, page);
       hit.setAttribute("data-pdf-element", "weekly-hit");
     });
   }
+  function parsePdfLocalStorage() {
+    const parsed = JSON.parse(localStorage.getItem("pdf") || "{}");
+    const pdfStorage = {
+      menuplan: {
+        design: parsed.menuplan?.design || ""
+      },
+      activity: {
+        design: parsed.activity?.design || ""
+      }
+    };
+    return pdfStorage;
+  }
   function initialize() {
     const filterCollectionListElement = document.querySelector(wfCollectionSelector("daily"));
     const pdfContainer = document.querySelector(Pdf.select("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     const calendarweekElement = document.querySelector(CalendarweekComponent.select("component"));
     tagWeeklyHit(filterCollectionListElement);
+    const pdfStorage = parsePdfLocalStorage();
     const filterCollection = new FilterCollection(filterCollectionListElement, "pdf");
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
@@ -33701,6 +33718,8 @@ Page:`, page);
     filterForm.addOnChange(["design"], (filters) => {
       const designs = pdf.getDesigns();
       const selectedDesign = filters.getField("design").value;
+      pdfStorage.menuplan.design = selectedDesign;
+      localStorage.setItem("pdf", JSON.stringify(pdfStorage));
       designs.forEach((page) => {
         const design = page.getAttribute("data-pdf-design");
         if (design === selectedDesign) {

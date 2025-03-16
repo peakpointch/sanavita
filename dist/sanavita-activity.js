@@ -23465,7 +23465,6 @@
           const newCanvases = canvas.querySelectorAll(selector);
           if (!newCanvases.length) {
             console.warn(`Element "${selector}" was not found.`);
-            "hello";
             return;
           }
           newCanvases.forEach((newCanvas) => {
@@ -33666,6 +33665,11 @@ Page:`, page);
     form.getFilterInput("startDate").value = formatDE(nextMonday, "yyyy-MM-dd");
     form.getFilterInput("endDate").value = formatDE(addDays(nextMonday, 6), "yyyy-MM-dd");
     form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
+    const pdfStorage = parsePdfLocalStorage();
+    const design = pdfStorage.activity.design;
+    if (design) {
+      form.getFilterInput("design").value = design;
+    }
   }
   function tagActivitySpecial(list) {
     const activityElements = list.querySelectorAll(`.w-dyn-item`);
@@ -33684,12 +33688,25 @@ Page:`, page);
       }
     });
   }
+  function parsePdfLocalStorage() {
+    const parsed = JSON.parse(localStorage.getItem("pdf") || "{}");
+    const pdfStorage = {
+      menuplan: {
+        design: parsed.menuplan?.design || ""
+      },
+      activity: {
+        design: parsed.activity?.design || ""
+      }
+    };
+    return pdfStorage;
+  }
   function initialize() {
     const filterCollectionListElement = document.querySelector(wfCollectionSelector("activity"));
     const pdfContainer = document.querySelector(Pdf.select("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     const calendarweekElement = document.querySelector(CalendarweekComponent.select("component"));
     tagActivitySpecial(filterCollectionListElement);
+    const pdfStorage = parsePdfLocalStorage();
     const filterCollection = new FilterCollection(filterCollectionListElement, "pdf");
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
@@ -33703,11 +33720,12 @@ Page:`, page);
       filterForm.getFilterInput("startDate").value = format(date, "yyyy-MM-dd");
       filterForm.invokeOnChange(["startDate"]);
     });
-    filterCollection.debug = true;
     filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 5));
     filterForm.addOnChange(["design"], (filters) => {
       const pages = pdf.getPageWrappers();
       const selectedDesign = filters.getField("design").value;
+      pdfStorage.activity.design = selectedDesign;
+      localStorage.setItem("pdf", JSON.stringify(pdfStorage));
       pages.forEach((page) => {
         const design = page.getAttribute("data-pdf-design");
         if (design === selectedDesign) {
@@ -33741,7 +33759,6 @@ Page:`, page);
       pdf.scale(scale);
     });
     filterForm.addOnChange("*", () => {
-      console.log("Change!");
       document.querySelectorAll(".pdf-image").forEach((el) => {
         el.style.removeProperty("display");
         if (el.offsetHeight < 80) {

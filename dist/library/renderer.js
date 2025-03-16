@@ -3801,7 +3801,6 @@ var Renderer = class _Renderer {
         const newCanvases = canvas.querySelectorAll(selector);
         if (!newCanvases.length) {
           console.warn(`Element "${selector}" was not found.`);
-          "hello";
           return;
         }
         newCanvases.forEach((newCanvas) => {
