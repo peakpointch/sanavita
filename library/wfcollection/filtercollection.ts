@@ -18,12 +18,12 @@ export class FilterCollection extends CollectionList {
     endDate: Date,
     ...additionalConditions: MenuDataCondition[]
   ): RenderData {
-    return [...this.collectionData].filter(
+    const filtered = [...this.collectionData].filter(
       (weekday) => {
         // Base conditions
         const baseCondition =
-          weekday.date >= startDate &&
-          weekday.date <= endDate;
+          weekday.date.getTime() >= startDate.getTime() &&
+          weekday.date.getTime() <= endDate.getTime();
 
         // Check all additional conditions
         const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
@@ -31,6 +31,10 @@ export class FilterCollection extends CollectionList {
         return baseCondition && allAdditionalConditions;
       }
     );
+
+    this.log('Filtered Data:', filtered);
+
+    return filtered;
   }
 
   public filterByRange(
