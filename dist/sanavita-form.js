@@ -2085,8 +2085,8 @@
         }
       }
       this.setMode(mode);
-      const minDateStr = container.getAttribute("data-min-date");
-      const maxDateStr = container.getAttribute("data-max-date");
+      const minDateStr = container.getAttribute("data-min-date") || "";
+      const maxDateStr = container.getAttribute("data-max-date") || "";
       this.setMinMaxDates(new Date(minDateStr), new Date(maxDateStr));
       this.updateWeekMinMax();
       this.weekInput.addEventListener("keydown", (event) => this.onWeekKeydown(event));
@@ -2122,10 +2122,10 @@
         default:
           throw new Error(`"${mode}" is not a valid mode.`);
       }
-      console.info(`Mode is set to "${this.mode}".`);
+      console.info(`Calendarweek: Mode set to "${this.mode}".`);
     }
     setMinMaxDates(newMinDate, newMaxDate) {
-      if (newMinDate instanceof Date) {
+      if (newMinDate instanceof Date && !isNaN(newMinDate.getTime())) {
         this.minDate = newMinDate;
         this.minDateYear = getISOWeekYear(newMinDate);
         this.minDateWeek = getISOWeek(newMinDate);
@@ -2138,7 +2138,7 @@
         this.yearInput.min = null;
         this.container.dataset.minDate = null;
       }
-      if (newMaxDate instanceof Date) {
+      if (newMaxDate instanceof Date && !isNaN(newMaxDate.getTime())) {
         this.maxDate = newMaxDate;
         this.maxDateYear = getISOWeekYear(newMaxDate);
         this.maxDateWeek = getISOWeek(newMaxDate);
