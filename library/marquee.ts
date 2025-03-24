@@ -1,4 +1,4 @@
-function setBannerSpeed(track: HTMLElement): number {
+function setMarqueeSpeed(track: HTMLElement): number {
   if (!track) return;
 
   const distance = track.offsetWidth;
@@ -8,7 +8,7 @@ function setBannerSpeed(track: HTMLElement): number {
   return duration;
 }
 
-function setAllSpeeds(main: HTMLElement): void {
+function handleMarquees(main: HTMLElement): void {
   const allMarquees = main.querySelectorAll<HTMLElement>(`[data-marquee-element="component"]`);
   allMarquees.forEach((marquee) => {
     const track = marquee.querySelector<HTMLElement>(`[data-marquee-element="track"]`);
@@ -22,12 +22,11 @@ function setAllSpeeds(main: HTMLElement): void {
       return;
     }
 
-    setBannerSpeed(track);
+    setMarqueeSpeed(track);
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const main = document.querySelector<HTMLElement>("main");
-  setAllSpeeds(main);
-  console.log("HELLO MARQUEE")
+  handleMarquees(main);
 });
