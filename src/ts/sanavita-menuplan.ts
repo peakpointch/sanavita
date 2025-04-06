@@ -226,9 +226,12 @@ function initialize(): void {
   const downloadBtn = document.querySelector(actionSelector('download'));
   downloadBtn.addEventListener('click', () => {
     const startDate = new Date(filterForm.data.getField('startDate').value);
-    //const endDate = new Date(filterForm.data.getField('endDate').value);
-    //let filename = `Menuplan vom ${formatDE(startDate, 'd.M.yyyy')}-${formatDE(endDate, 'd.M.yyyy')}`;
-    let filename = `Menuplan ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+    const selectedDesign = filterForm.data.getField('design').value;
+
+    let filename = `Tagesmenus Bistro ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+    if (selectedDesign === "bewohnende") {
+      filename = `Menuplan Bewohnende ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+    }
 
     pdf.save(filename, 4.17);
   });

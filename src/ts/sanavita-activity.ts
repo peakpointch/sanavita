@@ -243,8 +243,6 @@ function initialize(): void {
   const downloadBtn = document.querySelector(actionSelector('download'));
   downloadBtn.addEventListener('click', () => {
     const startDate = new Date(filterForm.getFilterInput('startDate').value);
-    //const endDate = new Date(filterForm.getFilterInput('endDate').value);
-    //let filename = `Wochenprogramm vom ${formatDE(startDate, 'd.M.yyyy')}-${formatDE(endDate, 'd.M.yyyy')}`;
     let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
 
     pdf.save(filename, 4.17);
