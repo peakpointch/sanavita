@@ -47,60 +47,16 @@ class Renderer {
 
   public render(data: RenderData, canvas: HTMLElement = this.canvas): void {
     this.clear();
-    this.renderRecursive(data, canvas);
+    this._render(data, canvas);
   }
 
-  private renderRecursive(data: RenderData, canvas: HTMLElement = this.canvas): void {
+  private _render(data: RenderData, canvas: HTMLElement = this.canvas): void {
     this.data = data;
 
     this.data.forEach((renderItem) => {
       // Render Elements
       if (Renderer.isRenderElement(renderItem)) {
-        const selector = this.elementSelector(renderItem);
-
-        // Get the current canvas for rendering nested elements
-        const newCanvases: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-        if (!newCanvases.length) {
-          console.warn(`Element "${selector}" was not found.`);
-          return;
-        }
-
-        // Recursion with visibility check
-        newCanvases.forEach((newCanvas) => {
-          if (newCanvas.style.display === "none") {
-            newCanvas.style.removeProperty('display');
-          }
-          if (newCanvas.classList.contains('hide')) {
-            newCanvas.classList.remove('hide');
-          }
-
-          switch (this.readVisibilityControl(newCanvas)) {
-            case "emptyState":
-              const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
-              if (this.shouldHideElement(renderItem)) {
-                emptyStateElement.classList.remove('hide');
-                if (emptyStateElement.style.display === "none") {
-                  emptyStateElement.style.removeProperty('display');
-                }
-              } else {
-                emptyStateElement.classList.add('hide');
-                emptyStateElement.style.display = "none";
-              }
-              // For both cases since the children have to be hidden if the empty state is shown.
-              this.renderRecursive(renderItem.fields, newCanvas);
-              break;
-            case true:
-              if (this.shouldHideElement(renderItem)) {
-                this.hideElement(newCanvas);
-              } else {
-                this.renderRecursive(renderItem.fields, newCanvas); // Recursively render children
-              }
-              break;
-            default:
-              this.renderRecursive(renderItem.fields, newCanvas); // Recursively render children
-              break;
-          }
-        });
+        this.renderElement(renderItem, canvas);
       }
 
       // Render Fields
@@ -279,6 +235,54 @@ class Renderer {
       default:
         return JSON.parse(visibilityControlAttr ?? 'false') || false;
     }
+  }
+
+  private renderElement(renderItem: RenderElement, canvas: HTMLElement) {
+    const selector = this.elementSelector(renderItem);
+
+    // Get the current canvas for rendering nested elements
+    const newCanvases: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
+    if (!newCanvases.length) {
+      console.warn(`Element "${selector}" was not found.`);
+      return;
+    }
+
+    // Recursion with visibility check
+    newCanvases.forEach((newCanvas) => {
+      if (newCanvas.style.display === "none") {
+        newCanvas.style.removeProperty('display');
+      }
+      if (newCanvas.classList.contains('hide')) {
+        newCanvas.classList.remove('hide');
+      }
+
+      switch (this.readVisibilityControl(newCanvas)) {
+        case "emptyState":
+          const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
+          if (this.shouldHideElement(renderItem)) {
+            emptyStateElement.classList.remove('hide');
+            if (emptyStateElement.style.display === "none") {
+              emptyStateElement.style.removeProperty('display');
+            }
+          } else {
+            emptyStateElement.classList.add('hide');
+            emptyStateElement.style.display = "none";
+          }
+          // For both cases since the children have to be hidden if the empty state is shown.
+          this._render(renderItem.fields, newCanvas);
+          break;
+        case true:
+          if (this.shouldHideElement(renderItem)) {
+            this.hideElement(newCanvas);
+          } else {
+            this._render(renderItem.fields, newCanvas); // Recursively render children
+          }
+          break;
+        default:
+          this._render(renderItem.fields, newCanvas); // Recursively render children
+          break;
+      }
+    });
   }
 
   private renderField(field: RenderField, canvas: HTMLElement) {
