@@ -67,6 +67,94 @@ class Renderer {
   }
 
   /**
+   * Render a `RenderElement`
+   */
+  private renderElement(renderItem: RenderElement, canvas: HTMLElement) {
+    const selector = this.elementSelector(renderItem);
+
+    // Get the current canvas for rendering nested elements
+    const newCanvases: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
+    if (!newCanvases.length) {
+      console.warn(`Element "${selector}" was not found.`);
+      return;
+    }
+
+    // Recursion with visibility check
+    newCanvases.forEach((newCanvas) => {
+      if (newCanvas.style.display === "none") {
+        newCanvas.style.removeProperty('display');
+      }
+      if (newCanvas.classList.contains('hide')) {
+        newCanvas.classList.remove('hide');
+      }
+
+      switch (this.readVisibilityControl(newCanvas)) {
+        case "emptyState":
+          const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
+          if (this.shouldHideElement(renderItem)) {
+            emptyStateElement.classList.remove('hide');
+            if (emptyStateElement.style.display === "none") {
+              emptyStateElement.style.removeProperty('display');
+            }
+          } else {
+            emptyStateElement.classList.add('hide');
+            emptyStateElement.style.display = "none";
+          }
+          // For both cases since the children have to be hidden if the empty state is shown.
+          this._render(renderItem.fields, newCanvas);
+          break;
+        case true:
+          if (this.shouldHideElement(renderItem)) {
+            this.hideElement(newCanvas);
+          } else {
+            this._render(renderItem.fields, newCanvas); // Recursively render children
+          }
+          break;
+        default:
+          this._render(renderItem.fields, newCanvas); // Recursively render children
+          break;
+      }
+    });
+  }
+
+  /**
+   * Render a `RenderField`
+   */
+  private renderField(field: RenderField, canvas: HTMLElement) {
+    const selector = this.fieldSelector(field);
+    const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
+    fields.forEach((fieldElement) => {
+      if (!field.visibility || !field.value.trim()) {
+        switch (this.readVisibilityControl(fieldElement)) {
+          case "emptyState":
+            this.hideElement(fieldElement); // Hide empty field
+            console.log(canvas);
+            break;
+          case true:
+            this.hideElement(fieldElement); // Hide empty field
+            break;
+          case false:
+            break;
+          default:
+            break;
+        }
+      } else {
+        switch (field.type) {
+          case 'html':
+            fieldElement.innerHTML = field.value;
+            break;
+          case 'date':
+            const formatStr = fieldElement.dataset.dateFormat || 'd.M.yyyy';
+            fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
+            break;
+          default:
+            fieldElement.innerText = field.value;
+        }
+      }
+    });
+  }
+
+  /**
    * Recursively reads the DOM node and its descendants to build a structured RenderData.
    * It identifies elements with `data-${elementAttr}-element` and `data-${fieldAttr}-field` attributes,
    * and processes them into RenderElement and RenderField objects.
@@ -235,88 +323,6 @@ class Renderer {
       default:
         return JSON.parse(visibilityControlAttr ?? 'false') || false;
     }
-  }
-
-  private renderElement(renderItem: RenderElement, canvas: HTMLElement) {
-    const selector = this.elementSelector(renderItem);
-
-    // Get the current canvas for rendering nested elements
-    const newCanvases: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-    if (!newCanvases.length) {
-      console.warn(`Element "${selector}" was not found.`);
-      return;
-    }
-
-    // Recursion with visibility check
-    newCanvases.forEach((newCanvas) => {
-      if (newCanvas.style.display === "none") {
-        newCanvas.style.removeProperty('display');
-      }
-      if (newCanvas.classList.contains('hide')) {
-        newCanvas.classList.remove('hide');
-      }
-
-      switch (this.readVisibilityControl(newCanvas)) {
-        case "emptyState":
-          const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
-          if (this.shouldHideElement(renderItem)) {
-            emptyStateElement.classList.remove('hide');
-            if (emptyStateElement.style.display === "none") {
-              emptyStateElement.style.removeProperty('display');
-            }
-          } else {
-            emptyStateElement.classList.add('hide');
-            emptyStateElement.style.display = "none";
-          }
-          // For both cases since the children have to be hidden if the empty state is shown.
-          this._render(renderItem.fields, newCanvas);
-          break;
-        case true:
-          if (this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas);
-          } else {
-            this._render(renderItem.fields, newCanvas); // Recursively render children
-          }
-          break;
-        default:
-          this._render(renderItem.fields, newCanvas); // Recursively render children
-          break;
-      }
-    });
-  }
-
-  private renderField(field: RenderField, canvas: HTMLElement) {
-    const selector = this.fieldSelector(field);
-    const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-    fields.forEach((fieldElement) => {
-      if (!field.visibility || !field.value.trim()) {
-        switch (this.readVisibilityControl(fieldElement)) {
-          case "emptyState":
-            this.hideElement(fieldElement); // Hide empty field
-            console.log(canvas);
-            break;
-          case true:
-            this.hideElement(fieldElement); // Hide empty field
-            break;
-          case false:
-            break;
-          default:
-            break;
-        }
-      } else {
-        switch (field.type) {
-          case 'html':
-            fieldElement.innerHTML = field.value;
-            break;
-          case 'date':
-            const formatStr = fieldElement.dataset.dateFormat || 'd.M.yyyy';
-            fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
-            break;
-          default:
-            fieldElement.innerText = field.value;
-        }
-      }
-    });
   }
 
   private shouldHideElement(element: RenderElement): boolean {
