@@ -1,6 +1,7 @@
 // library/canvas.ts
 var EditableCanvas = class {
   constructor(canvas, ...customSelectors) {
+    this.elements = { all: [], hidden: [] };
     this.defaultSelector = '[data-canvas-editable="true"]';
     this.selectAll = this.defaultSelector;
     if (!canvas)
@@ -9,12 +10,12 @@ var EditableCanvas = class {
     if (customSelectors && customSelectors.length) {
       this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
     }
-    this.editableElements = this.canvas.querySelectorAll(this.selectAll);
+    this.elements.all = Array.from(this.canvas.querySelectorAll(this.selectAll));
     this.canvas.querySelectorAll(`[data-canvas-editable]:not(${this.defaultSelector})`).forEach((element) => element.classList.remove("canvas-editable"));
     this.initialize();
   }
   initialize() {
-    this.editableElements.forEach((element) => {
+    this.elements.all.forEach((element) => {
       element.classList.add("canvas-editable");
       this.attachEditListener(element);
     });
@@ -29,9 +30,18 @@ var EditableCanvas = class {
       if (event.key === "Escape") {
         this.disableEditing(element);
       }
+      if (event.ctrlKey && event.key === "d") {
+        event.preventDefault();
+        const hiddenElement = event.target;
+        hiddenElement.style.display = "none";
+        this.elements.hidden.push(hiddenElement);
+      }
     };
     element.addEventListener("keydown", handleEscape);
     element._escapeListener = handleEscape;
+  }
+  showHiddenElements() {
+    this.elements.hidden.forEach((e) => e.style.removeProperty("display"));
   }
   /**
    * Disable editing for a specific element.
@@ -58,7 +68,7 @@ var EditableCanvas = class {
   attachDocumentListener() {
     const handleDocumentClick = (event) => {
       if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest(this.selectAll)) {
-        this.editableElements.forEach((element) => this.disableEditing(element));
+        this.elements.all.forEach((element) => this.disableEditing(element));
       }
     };
     document.addEventListener("click", handleDocumentClick);
@@ -69,7 +79,7 @@ var EditableCanvas = class {
    * Call this method if the instance is being destroyed.
    */
   cleanupListeners() {
-    this.editableElements.forEach((element) => {
+    this.elements.all.forEach((element) => {
       const clickListener = element._clickListener;
       const escapeListener = element._escapeListener;
       if (clickListener)

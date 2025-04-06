@@ -19544,6 +19544,7 @@
   // library/canvas.ts
   var EditableCanvas = class {
     constructor(canvas, ...customSelectors) {
+      this.elements = { all: [], hidden: [] };
       this.defaultSelector = '[data-canvas-editable="true"]';
       this.selectAll = this.defaultSelector;
       if (!canvas)
@@ -19552,12 +19553,12 @@
       if (customSelectors && customSelectors.length) {
         this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
       }
-      this.editableElements = this.canvas.querySelectorAll(this.selectAll);
+      this.elements.all = Array.from(this.canvas.querySelectorAll(this.selectAll));
       this.canvas.querySelectorAll(`[data-canvas-editable]:not(${this.defaultSelector})`).forEach((element) => element.classList.remove("canvas-editable"));
       this.initialize();
     }
     initialize() {
-      this.editableElements.forEach((element) => {
+      this.elements.all.forEach((element) => {
         element.classList.add("canvas-editable");
         this.attachEditListener(element);
       });
@@ -19572,9 +19573,18 @@
         if (event.key === "Escape") {
           this.disableEditing(element);
         }
+        if (event.ctrlKey && event.key === "d") {
+          event.preventDefault();
+          const hiddenElement = event.target;
+          hiddenElement.style.display = "none";
+          this.elements.hidden.push(hiddenElement);
+        }
       };
       element.addEventListener("keydown", handleEscape);
       element._escapeListener = handleEscape;
+    }
+    showHiddenElements() {
+      this.elements.hidden.forEach((e2) => e2.style.removeProperty("display"));
     }
     /**
      * Disable editing for a specific element.
@@ -19601,7 +19611,7 @@
     attachDocumentListener() {
       const handleDocumentClick = (event) => {
         if (!event.target || !(event.target instanceof HTMLElement) || !event.target.closest(this.selectAll)) {
-          this.editableElements.forEach((element) => this.disableEditing(element));
+          this.elements.all.forEach((element) => this.disableEditing(element));
         }
       };
       document.addEventListener("click", handleDocumentClick);
@@ -19612,7 +19622,7 @@
      * Call this method if the instance is being destroyed.
      */
     cleanupListeners() {
-      this.editableElements.forEach((element) => {
+      this.elements.all.forEach((element) => {
         const clickListener = element._clickListener;
         const escapeListener = element._escapeListener;
         if (clickListener)
@@ -33702,6 +33712,16 @@ Page:`, page);
     };
     return pdfStorage;
   }
+  function getStartDateFormat(startDate, endDate) {
+    let formatString = `d.`;
+    if (startDate.getMonth() < endDate.getMonth()) {
+      formatString += ` MMMM`;
+    }
+    if (getISOWeekYear(startDate) !== getISOWeekYear(endDate)) {
+      formatString += ` yyyy`;
+    }
+    return formatString;
+  }
   function initialize() {
     const filterCollectionListElement = document.querySelector(wfCollectionSelector("daily"));
     const pdfContainer = document.querySelector(Pdf.select("container"));
@@ -33749,10 +33769,11 @@ Page:`, page);
       const startDate = parse(filters.getField("startDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
       const endDate = parse(filters.getField("endDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
       cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
+      const startDateTitleFormat = getStartDateFormat(startDate, endDate);
       const staticRenderFields = [
         {
           element: "title",
-          value: `${formatDE(startDate, "d")}. \u2013 ${formatDE(endDate, "d")}. ${formatDE(startDate, "MMMM yyyy")}`,
+          value: `${formatDE(startDate, startDateTitleFormat)} \u2013 ${formatDE(endDate, "d. MMMM yyyy")}`,
           visibility: true
         }
       ];
@@ -33760,6 +33781,7 @@ Page:`, page);
         ...staticRenderFields,
         ...filterCollection.filterByDate(startDate, endDate)
       ]);
+      canvas.showHiddenElements();
     });
     filterForm.addOnChange(["scale"], (filters) => {
       const scale = parseFloat(filters.getField("scale").value);
@@ -33775,7 +33797,11 @@ Page:`, page);
     const downloadBtn = document.querySelector(actionSelector2("download"));
     downloadBtn.addEventListener("click", () => {
       const startDate = new Date(filterForm.data.getField("startDate").value);
-      let filename = `Menuplan ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      const selectedDesign = filterForm.data.getField("design").value;
+      let filename = `Tagesmenus Bistro ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      if (selectedDesign === "bewohnende") {
+        filename = `Menuplan Bewohnende ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      }
       pdf.save(filename, 4.17);
     });
   }
