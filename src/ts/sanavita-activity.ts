@@ -123,6 +123,20 @@ function parsePdfLocalStorage(): LocalStoragePdf {
   return pdfStorage;
 }
 
+function getStartDateFormat(startDate: Date, endDate: Date): string {
+  let formatString = `d.`;
+
+  if (startDate.getMonth() < endDate.getMonth()) {
+    formatString += ` MMMM`;
+  }
+
+  if (getISOWeekYear(startDate) !== getISOWeekYear(endDate)) {
+    formatString += ` yyyy`;
+  }
+
+  return formatString;
+}
+
 function initialize(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('activity'));
   const pdfContainer = document.querySelector<HTMLElement>(Pdf.select('container'));
@@ -184,11 +198,13 @@ function initialize(): void {
     // Use FilterForm values
     cweek.setDate(invokedBy === 'endDate' ? endDate : startDate, true);
 
+    const startDateTitleFormat = getStartDateFormat(startDate, endDate);
+
     // Static render fields
     const staticRenderFields: RenderField[] = [
       {
         element: 'title',
-        value: `${formatDE(startDate, 'd')}. – ${formatDE(endDate, 'd')}. ${formatDE(startDate, 'MMMM yyyy')}`,
+        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(endDate, 'd. MMMM yyyy')}`,
         visibility: true,
       },
     ];
