@@ -67,7 +67,7 @@ class Renderer {
   }
 
   /**
-   * Render a `RenderElement`
+   * Render a `RenderElement` to all its instances
    */
   private renderElement(renderElement: RenderElement, canvas: HTMLElement) {
     const selector = this.elementSelector(renderElement);
@@ -86,7 +86,7 @@ class Renderer {
   }
 
   /**
-   * Render a `RenderElement` on a single `HTMLRenderElement`
+   * Render a `RenderElement` to a single `HTMLRenderElement`
    */
   private renderElementToTemplate(renderElement: RenderElement, htmlTemplate: HTMLElement) {
     switch (this.readVisibilityControl(htmlTemplate)) {
@@ -119,40 +119,45 @@ class Renderer {
   }
 
   /**
-   * Render a `RenderField`
+   * Render a `RenderField` to all its instances
    */
-  private renderField(field: RenderField, canvas: HTMLElement) {
-    const selector = this.fieldSelector(field);
+  private renderField(renderField: RenderField, canvas: HTMLElement) {
+    const selector = this.fieldSelector(renderField);
     const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-    fields.forEach((fieldElement) => {
-      if (!field.visibility || !field.value.trim()) {
-        switch (this.readVisibilityControl(fieldElement)) {
-          case "emptyState":
-            this.hideElement(fieldElement); // Hide empty field
-            console.log(canvas);
-            break;
-          case true:
-            this.hideElement(fieldElement); // Hide empty field
-            break;
-          case false:
-            break;
-          default:
-            break;
-        }
-      } else {
-        switch (field.type) {
-          case 'html':
-            fieldElement.innerHTML = field.value;
-            break;
-          case 'date':
-            const formatStr = fieldElement.dataset.dateFormat || 'd.M.yyyy';
-            fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
-            break;
-          default:
-            fieldElement.innerText = field.value;
-        }
-      }
+    fields.forEach((htmlRenderField) => {
+      this.renderFieldToTemplate(renderField, htmlRenderField)
     });
+  }
+
+  /**
+   * Render a `RenderField` to a single `HTMLRenderField`
+   */
+  private renderFieldToTemplate(field: RenderField, htmlTemplate: HTMLElement) {
+    if (!field.visibility || !field.value.trim()) {
+      switch (this.readVisibilityControl(htmlTemplate)) {
+        case "emptyState":
+          this.hideElement(htmlTemplate); // Hide empty field
+          break;
+        case true:
+          this.hideElement(htmlTemplate); // Hide empty field
+          break;
+        case false:
+        default:
+          break;
+      }
+    } else {
+      switch (field.type) {
+        case 'html':
+          htmlTemplate.innerHTML = field.value;
+          break;
+        case 'date':
+          const formatStr = htmlTemplate.dataset.dateFormat || 'd.M.yyyy';
+          htmlTemplate.innerText = format(new Date(field.value), formatStr, { locale: de });
+          break;
+        default:
+          htmlTemplate.innerText = field.value;
+      }
+    }
   }
 
   /**
