@@ -8,7 +8,6 @@ type GlobalWfCollections = {
 type GlobalCollection = Array<object>;
 
 class CollectionList {
-  public name: string
   public container: HTMLElement;
   public renderer: Renderer;
   public collectionData: RenderData = [];
@@ -16,14 +15,13 @@ class CollectionList {
   private listElement: HTMLElement;
   private items: HTMLElement[];
 
-  constructor(container: HTMLElement | null, name?: string) {
+  constructor(container: HTMLElement | null, public name: string = '', public rendererName: string = 'wf') {
     if (!container || !container.classList.contains('w-dyn-list')) throw new Error(`Container can't be undefined.`);
 
-    this.name = name || 'wf';
     this.container = container;
     this.listElement = container.querySelector('.w-dyn-items');
     this.items = Array.from(this.listElement?.querySelectorAll('.w-dyn-item') ?? []);
-    this.renderer = new Renderer(container, this.name);
+    this.renderer = new Renderer(container, this.rendererName);
 
     // Invoke first read to initialize `this.collectionData`
     this.readData();

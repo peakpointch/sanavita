@@ -4,8 +4,8 @@ import { RenderData, RenderElement, RenderField } from '@library/renderer';
 type MenuDataCondition = ((menuData: RenderElement | RenderField) => boolean);
 
 export class FilterCollection extends CollectionList {
-  constructor(container: HTMLElement | null, name?: string) {
-    super(container, name);
+  constructor(container: HTMLElement | null, name: string = '', rendererName: string = 'wf') {
+    super(container, name, rendererName);
 
     this.renderer.addFilterAttributes({
       "date": "date",
