@@ -19,14 +19,14 @@ export class FilterCollection extends CollectionList {
     ...additionalConditions: MenuDataCondition[]
   ): RenderData {
     const filtered = [...this.collectionData].filter(
-      (weekday) => {
+      (entry) => {
         // Base conditions
         const baseCondition =
-          weekday.date.getTime() >= startDate.getTime() &&
-          weekday.date.getTime() <= endDate.getTime();
+          entry.date.getTime() >= startDate.getTime() &&
+          entry.date.getTime() <= endDate.getTime();
 
         // Check all additional conditions
-        const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
+        const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
 
         return baseCondition && allAdditionalConditions;
       }
@@ -37,14 +37,39 @@ export class FilterCollection extends CollectionList {
     return filtered;
   }
 
-  public filterByRange(
+  public filterByDateRange(
     startDate: Date,
-    dayRange: number = 7,
-    ...conditions: MenuDataCondition[]
+    endDate: Date,
+    ...additionalConditions: MenuDataCondition[]
   ): RenderData {
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + dayRange - 1);
-    return this.filterByDate(startDate, endDate, ...conditions);
+    if (startDate.getTime() > endDate.getTime()) {
+      throw new RangeError(`Invalid date range: startDate (${startDate}) is after endDate (${endDate})`);
+    }
+
+    let filtered = [...this.collectionData].filter((entry) => {
+      const startDateInRange =
+        entry.startDate.getTime() >= startDate.getTime() &&
+        entry.startDate.getTime() <= endDate.getTime();
+
+      const endDateInRange =
+        entry.endDate.getTime() >= startDate.getTime() &&
+        entry.endDate.getTime() <= endDate.getTime();
+
+      const startOrEndInRange = startDateInRange || endDateInRange;
+
+      const startBeforeEndAfter =
+        entry.startDate.getTime() <= startDate.getTime() &&
+        entry.endDate.getTime() >= endDate.getTime();
+
+      // Check all additional conditions
+      const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
+
+      return (startOrEndInRange || startBeforeEndAfter) && allAdditionalConditions;
+    });
+
+    this.log('Filtered Data:', filtered);
+
+    return filtered;
   }
 }
 
