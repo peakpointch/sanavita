@@ -1,6 +1,9 @@
 export default class EditableCanvas {
   private canvas: HTMLElement;
-  private editableElements: NodeListOf<HTMLElement>;
+  private elements: {
+    all: HTMLElement[];
+    hidden: HTMLElement[];
+  } = { all: [], hidden: [] };
   private defaultSelector: string = '[data-canvas-editable="true"]';
   private selectAll: string = this.defaultSelector;
 
@@ -13,7 +16,7 @@ export default class EditableCanvas {
       this.selectAll = `${this.selectAll}, ${customSelectors.join(', ')}`;
     }
 
-    this.editableElements = this.canvas.querySelectorAll<HTMLElement>(this.selectAll);
+    this.elements.all = Array.from(this.canvas.querySelectorAll<HTMLElement>(this.selectAll));
     this.canvas.querySelectorAll<HTMLElement>(`[data-canvas-editable]:not(${this.defaultSelector})`)
       .forEach(element => element.classList.remove('canvas-editable'));
 
@@ -22,7 +25,7 @@ export default class EditableCanvas {
 
   private initialize() {
     // Initialize all editable elements
-    this.editableElements.forEach(element => {
+    this.elements.all.forEach(element => {
       element.classList.add('canvas-editable');
       this.attachEditListener(element);
     });
@@ -42,12 +45,23 @@ export default class EditableCanvas {
       if (event.key === 'Escape') {
         this.disableEditing(element);
       }
+
+      if (event.ctrlKey && event.key === 'd') {
+        event.preventDefault();
+        const hiddenElement = event.target as HTMLElement;
+        hiddenElement.style.display = 'none';
+        this.elements.hidden.push(hiddenElement);
+      }
     };
 
     element.addEventListener('keydown', handleEscape);
 
     // Store the handleEscape function for later removal
     (element as any)._escapeListener = handleEscape;
+  }
+
+  public showHiddenElements(): void {
+    this.elements.hidden.forEach(e => e.style.removeProperty('display'));
   }
 
   /**
@@ -86,7 +100,7 @@ export default class EditableCanvas {
         !event.target.closest(this.selectAll)
       ) {
         // Disable content editing for all editable elements
-        this.editableElements.forEach(element => this.disableEditing(element));
+        this.elements.all.forEach(element => this.disableEditing(element));
       }
     };
 
@@ -102,7 +116,7 @@ export default class EditableCanvas {
    */
   private cleanupListeners(): void {
     // Remove listeners from editable elements
-    this.editableElements.forEach(element => {
+    this.elements.all.forEach(element => {
       const clickListener = (element as any)._clickListener;
       const escapeListener = (element as any)._escapeListener;
 
