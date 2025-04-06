@@ -3807,46 +3807,48 @@ var Renderer = class _Renderer {
   /**
    * Render a `RenderElement`
    */
-  renderElement(renderItem, canvas) {
-    const selector = this.elementSelector(renderItem);
-    const newCanvases = canvas.querySelectorAll(selector);
-    if (!newCanvases.length) {
+  renderElement(renderElement, canvas) {
+    const selector = this.elementSelector(renderElement);
+    const htmlRenderElements = canvas.querySelectorAll(selector);
+    if (!htmlRenderElements.length) {
       console.warn(`Element "${selector}" was not found.`);
       return;
     }
-    newCanvases.forEach((newCanvas) => {
-      if (newCanvas.style.display === "none") {
-        newCanvas.style.removeProperty("display");
-      }
-      if (newCanvas.classList.contains("hide")) {
-        newCanvas.classList.remove("hide");
-      }
-      switch (this.readVisibilityControl(newCanvas)) {
-        case "emptyState":
-          const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
-          if (this.shouldHideElement(renderItem)) {
-            emptyStateElement.classList.remove("hide");
-            if (emptyStateElement.style.display === "none") {
-              emptyStateElement.style.removeProperty("display");
-            }
-          } else {
-            emptyStateElement.classList.add("hide");
-            emptyStateElement.style.display = "none";
-          }
-          this._render(renderItem.fields, newCanvas);
-          break;
-        case true:
-          if (this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas);
-          } else {
-            this._render(renderItem.fields, newCanvas);
-          }
-          break;
-        default:
-          this._render(renderItem.fields, newCanvas);
-          break;
-      }
+    htmlRenderElements.forEach((htmlRenderElement) => {
+      this.showElement(htmlRenderElement);
+      this.renderElementToTemplate(renderElement, htmlRenderElement);
     });
+  }
+  /**
+   * Render a `RenderElement` on a single `HTMLRenderElement`
+   */
+  renderElementToTemplate(renderElement, htmlTemplate) {
+    switch (this.readVisibilityControl(htmlTemplate)) {
+      case "emptyState":
+        const emptyStateElement = htmlTemplate.querySelector(`[${this.emptyStateAttr}]`);
+        if (this.shouldHideElement(renderElement)) {
+          emptyStateElement.classList.remove("hide");
+          if (emptyStateElement.style.display === "none") {
+            emptyStateElement.style.removeProperty("display");
+          }
+        } else {
+          emptyStateElement.classList.add("hide");
+          emptyStateElement.style.display = "none";
+        }
+        this._render(renderElement.fields, htmlTemplate);
+        break;
+      case true:
+        if (this.shouldHideElement(renderElement)) {
+          this.hideElement(htmlTemplate);
+        } else {
+          this._render(renderElement.fields, htmlTemplate);
+        }
+        break;
+      case false:
+      default:
+        this._render(renderElement.fields, htmlTemplate);
+        break;
+    }
   }
   /**
    * Render a `RenderField`
@@ -4028,6 +4030,14 @@ var Renderer = class _Renderer {
       }
       return false;
     });
+  }
+  showElement(element) {
+    if (element.style.display === "none") {
+      element.style.removeProperty("display");
+    }
+    if (element.classList.contains("hide")) {
+      element.classList.remove("hide");
+    }
   }
   hideElement(element) {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || "false");

@@ -69,52 +69,53 @@ class Renderer {
   /**
    * Render a `RenderElement`
    */
-  private renderElement(renderItem: RenderElement, canvas: HTMLElement) {
-    const selector = this.elementSelector(renderItem);
+  private renderElement(renderElement: RenderElement, canvas: HTMLElement) {
+    const selector = this.elementSelector(renderElement);
+    const htmlRenderElements: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
 
-    // Get the current canvas for rendering nested elements
-    const newCanvases: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-    if (!newCanvases.length) {
+    if (!htmlRenderElements.length) {
       console.warn(`Element "${selector}" was not found.`);
       return;
     }
 
     // Recursion with visibility check
-    newCanvases.forEach((newCanvas) => {
-      if (newCanvas.style.display === "none") {
-        newCanvas.style.removeProperty('display');
-      }
-      if (newCanvas.classList.contains('hide')) {
-        newCanvas.classList.remove('hide');
-      }
-
-      switch (this.readVisibilityControl(newCanvas)) {
-        case "emptyState":
-          const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
-          if (this.shouldHideElement(renderItem)) {
-            emptyStateElement.classList.remove('hide');
-            if (emptyStateElement.style.display === "none") {
-              emptyStateElement.style.removeProperty('display');
-            }
-          } else {
-            emptyStateElement.classList.add('hide');
-            emptyStateElement.style.display = "none";
-          }
-          // For both cases since the children have to be hidden if the empty state is shown.
-          this._render(renderItem.fields, newCanvas);
-          break;
-        case true:
-          if (this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas);
-          } else {
-            this._render(renderItem.fields, newCanvas); // Recursively render children
-          }
-          break;
-        default:
-          this._render(renderItem.fields, newCanvas); // Recursively render children
-          break;
-      }
+    htmlRenderElements.forEach((htmlRenderElement) => {
+      this.showElement(htmlRenderElement)
+      this.renderElementToTemplate(renderElement, htmlRenderElement);
     });
+  }
+
+  /**
+   * Render a `RenderElement` on a single `HTMLRenderElement`
+   */
+  private renderElementToTemplate(renderElement: RenderElement, htmlTemplate: HTMLElement) {
+    switch (this.readVisibilityControl(htmlTemplate)) {
+      case "emptyState":
+        const emptyStateElement = htmlTemplate.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
+        if (this.shouldHideElement(renderElement)) {
+          emptyStateElement.classList.remove('hide');
+          if (emptyStateElement.style.display === "none") {
+            emptyStateElement.style.removeProperty('display');
+          }
+        } else {
+          emptyStateElement.classList.add('hide');
+          emptyStateElement.style.display = "none";
+        }
+        // For both cases since the children next to the `emptyStateElement` have to be hidden if the empty state is shown.
+        this._render(renderElement.fields, htmlTemplate);
+        break;
+      case true:
+        if (this.shouldHideElement(renderElement)) {
+          this.hideElement(htmlTemplate);
+        } else {
+          this._render(renderElement.fields, htmlTemplate); // Recursively render children
+        }
+        break;
+      case false:
+      default:
+        this._render(renderElement.fields, htmlTemplate); // Recursively render children
+        break;
+    }
   }
 
   /**
@@ -337,6 +338,15 @@ class Renderer {
       }
       return false; // Default case
     });
+  }
+
+  private showElement(element: HTMLElement): void {
+    if (element.style.display === "none") {
+      element.style.removeProperty('display');
+    }
+    if (element.classList.contains('hide')) {
+      element.classList.remove('hide');
+    }
   }
 
   private hideElement(element: HTMLElement): void {
