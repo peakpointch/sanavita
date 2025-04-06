@@ -23606,54 +23606,96 @@
     }
     render(data, canvas = this.canvas) {
       this.clear();
-      this.renderRecursive(data, canvas);
+      this._render(data, canvas);
     }
-    renderRecursive(data, canvas = this.canvas) {
+    _render(data, canvas = this.canvas) {
       this.data = data;
       this.data.forEach((renderItem) => {
         if (_Renderer.isRenderElement(renderItem)) {
-          const selector = this.elementSelector(renderItem);
-          const newCanvases = canvas.querySelectorAll(selector);
-          if (!newCanvases.length) {
-            console.warn(`Element "${selector}" was not found.`);
-            return;
-          }
-          newCanvases.forEach((newCanvas) => {
-            if (newCanvas.style.display === "none") {
-              newCanvas.style.removeProperty("display");
-            }
-            if (newCanvas.classList.contains("hide")) {
-              newCanvas.classList.remove("hide");
-            }
-            switch (this.readVisibilityControl(newCanvas)) {
-              case "emptyState":
-                const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
-                if (this.shouldHideElement(renderItem)) {
-                  emptyStateElement.classList.remove("hide");
-                  if (emptyStateElement.style.display === "none") {
-                    emptyStateElement.style.removeProperty("display");
-                  }
-                } else {
-                  emptyStateElement.classList.add("hide");
-                  emptyStateElement.style.display = "none";
-                }
-                this.renderRecursive(renderItem.fields, newCanvas);
-                break;
-              case true:
-                if (this.shouldHideElement(renderItem)) {
-                  this.hideElement(newCanvas);
-                } else {
-                  this.renderRecursive(renderItem.fields, newCanvas);
-                }
-                break;
-              default:
-                this.renderRecursive(renderItem.fields, newCanvas);
-                break;
-            }
-          });
+          this.renderElement(renderItem, canvas);
         }
         if (_Renderer.isRenderField(renderItem)) {
           this.renderField(renderItem, canvas);
+        }
+      });
+    }
+    /**
+     * Render a `RenderElement`
+     */
+    renderElement(renderItem, canvas) {
+      const selector = this.elementSelector(renderItem);
+      const newCanvases = canvas.querySelectorAll(selector);
+      if (!newCanvases.length) {
+        console.warn(`Element "${selector}" was not found.`);
+        return;
+      }
+      newCanvases.forEach((newCanvas) => {
+        if (newCanvas.style.display === "none") {
+          newCanvas.style.removeProperty("display");
+        }
+        if (newCanvas.classList.contains("hide")) {
+          newCanvas.classList.remove("hide");
+        }
+        switch (this.readVisibilityControl(newCanvas)) {
+          case "emptyState":
+            const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
+            if (this.shouldHideElement(renderItem)) {
+              emptyStateElement.classList.remove("hide");
+              if (emptyStateElement.style.display === "none") {
+                emptyStateElement.style.removeProperty("display");
+              }
+            } else {
+              emptyStateElement.classList.add("hide");
+              emptyStateElement.style.display = "none";
+            }
+            this._render(renderItem.fields, newCanvas);
+            break;
+          case true:
+            if (this.shouldHideElement(renderItem)) {
+              this.hideElement(newCanvas);
+            } else {
+              this._render(renderItem.fields, newCanvas);
+            }
+            break;
+          default:
+            this._render(renderItem.fields, newCanvas);
+            break;
+        }
+      });
+    }
+    /**
+     * Render a `RenderField`
+     */
+    renderField(field, canvas) {
+      const selector = this.fieldSelector(field);
+      const fields = canvas.querySelectorAll(selector);
+      fields.forEach((fieldElement) => {
+        if (!field.visibility || !field.value.trim()) {
+          switch (this.readVisibilityControl(fieldElement)) {
+            case "emptyState":
+              this.hideElement(fieldElement);
+              console.log(canvas);
+              break;
+            case true:
+              this.hideElement(fieldElement);
+              break;
+            case false:
+              break;
+            default:
+              break;
+          }
+        } else {
+          switch (field.type) {
+            case "html":
+              fieldElement.innerHTML = field.value;
+              break;
+            case "date":
+              const formatStr = fieldElement.dataset.dateFormat || "d.M.yyyy";
+              fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
+              break;
+            default:
+              fieldElement.innerText = field.value;
+          }
         }
       });
     }
@@ -23788,39 +23830,6 @@
         default:
           return JSON.parse(visibilityControlAttr ?? "false") || false;
       }
-    }
-    renderField(field, canvas) {
-      const selector = this.fieldSelector(field);
-      const fields = canvas.querySelectorAll(selector);
-      fields.forEach((fieldElement) => {
-        if (!field.visibility || !field.value.trim()) {
-          switch (this.readVisibilityControl(fieldElement)) {
-            case "emptyState":
-              this.hideElement(fieldElement);
-              console.log(canvas);
-              break;
-            case true:
-              this.hideElement(fieldElement);
-              break;
-            case false:
-              break;
-            default:
-              break;
-          }
-        } else {
-          switch (field.type) {
-            case "html":
-              fieldElement.innerHTML = field.value;
-              break;
-            case "date":
-              const formatStr = fieldElement.dataset.dateFormat || "d.M.yyyy";
-              fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
-              break;
-            default:
-              fieldElement.innerText = field.value;
-          }
-        }
-      });
     }
     shouldHideElement(element) {
       if (element.visibility === false)

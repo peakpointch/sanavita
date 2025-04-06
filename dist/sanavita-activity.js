@@ -23465,54 +23465,96 @@
     }
     render(data, canvas = this.canvas) {
       this.clear();
-      this.renderRecursive(data, canvas);
+      this._render(data, canvas);
     }
-    renderRecursive(data, canvas = this.canvas) {
+    _render(data, canvas = this.canvas) {
       this.data = data;
       this.data.forEach((renderItem) => {
         if (_Renderer.isRenderElement(renderItem)) {
-          const selector = this.elementSelector(renderItem);
-          const newCanvases = canvas.querySelectorAll(selector);
-          if (!newCanvases.length) {
-            console.warn(`Element "${selector}" was not found.`);
-            return;
-          }
-          newCanvases.forEach((newCanvas) => {
-            if (newCanvas.style.display === "none") {
-              newCanvas.style.removeProperty("display");
-            }
-            if (newCanvas.classList.contains("hide")) {
-              newCanvas.classList.remove("hide");
-            }
-            switch (this.readVisibilityControl(newCanvas)) {
-              case "emptyState":
-                const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
-                if (this.shouldHideElement(renderItem)) {
-                  emptyStateElement.classList.remove("hide");
-                  if (emptyStateElement.style.display === "none") {
-                    emptyStateElement.style.removeProperty("display");
-                  }
-                } else {
-                  emptyStateElement.classList.add("hide");
-                  emptyStateElement.style.display = "none";
-                }
-                this.renderRecursive(renderItem.fields, newCanvas);
-                break;
-              case true:
-                if (this.shouldHideElement(renderItem)) {
-                  this.hideElement(newCanvas);
-                } else {
-                  this.renderRecursive(renderItem.fields, newCanvas);
-                }
-                break;
-              default:
-                this.renderRecursive(renderItem.fields, newCanvas);
-                break;
-            }
-          });
+          this.renderElement(renderItem, canvas);
         }
         if (_Renderer.isRenderField(renderItem)) {
           this.renderField(renderItem, canvas);
+        }
+      });
+    }
+    /**
+     * Render a `RenderElement`
+     */
+    renderElement(renderItem, canvas) {
+      const selector = this.elementSelector(renderItem);
+      const newCanvases = canvas.querySelectorAll(selector);
+      if (!newCanvases.length) {
+        console.warn(`Element "${selector}" was not found.`);
+        return;
+      }
+      newCanvases.forEach((newCanvas) => {
+        if (newCanvas.style.display === "none") {
+          newCanvas.style.removeProperty("display");
+        }
+        if (newCanvas.classList.contains("hide")) {
+          newCanvas.classList.remove("hide");
+        }
+        switch (this.readVisibilityControl(newCanvas)) {
+          case "emptyState":
+            const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
+            if (this.shouldHideElement(renderItem)) {
+              emptyStateElement.classList.remove("hide");
+              if (emptyStateElement.style.display === "none") {
+                emptyStateElement.style.removeProperty("display");
+              }
+            } else {
+              emptyStateElement.classList.add("hide");
+              emptyStateElement.style.display = "none";
+            }
+            this._render(renderItem.fields, newCanvas);
+            break;
+          case true:
+            if (this.shouldHideElement(renderItem)) {
+              this.hideElement(newCanvas);
+            } else {
+              this._render(renderItem.fields, newCanvas);
+            }
+            break;
+          default:
+            this._render(renderItem.fields, newCanvas);
+            break;
+        }
+      });
+    }
+    /**
+     * Render a `RenderField`
+     */
+    renderField(field, canvas) {
+      const selector = this.fieldSelector(field);
+      const fields = canvas.querySelectorAll(selector);
+      fields.forEach((fieldElement) => {
+        if (!field.visibility || !field.value.trim()) {
+          switch (this.readVisibilityControl(fieldElement)) {
+            case "emptyState":
+              this.hideElement(fieldElement);
+              console.log(canvas);
+              break;
+            case true:
+              this.hideElement(fieldElement);
+              break;
+            case false:
+              break;
+            default:
+              break;
+          }
+        } else {
+          switch (field.type) {
+            case "html":
+              fieldElement.innerHTML = field.value;
+              break;
+            case "date":
+              const formatStr = fieldElement.dataset.dateFormat || "d.M.yyyy";
+              fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
+              break;
+            default:
+              fieldElement.innerText = field.value;
+          }
         }
       });
     }
@@ -23647,39 +23689,6 @@
         default:
           return JSON.parse(visibilityControlAttr ?? "false") || false;
       }
-    }
-    renderField(field, canvas) {
-      const selector = this.fieldSelector(field);
-      const fields = canvas.querySelectorAll(selector);
-      fields.forEach((fieldElement) => {
-        if (!field.visibility || !field.value.trim()) {
-          switch (this.readVisibilityControl(fieldElement)) {
-            case "emptyState":
-              this.hideElement(fieldElement);
-              console.log(canvas);
-              break;
-            case true:
-              this.hideElement(fieldElement);
-              break;
-            case false:
-              break;
-            default:
-              break;
-          }
-        } else {
-          switch (field.type) {
-            case "html":
-              fieldElement.innerHTML = field.value;
-              break;
-            case "date":
-              const formatStr = fieldElement.dataset.dateFormat || "d.M.yyyy";
-              fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
-              break;
-            default:
-              fieldElement.innerText = field.value;
-          }
-        }
-      });
     }
     shouldHideElement(element) {
       if (element.visibility === false)
@@ -32977,16 +32986,17 @@ Page:`, page);
 
   // library/wfcollection/wfcollection.ts
   var CollectionList = class {
-    constructor(container, name) {
+    constructor(container, name = "", rendererName = "wf") {
+      this.name = name;
+      this.rendererName = rendererName;
       this.collectionData = [];
       this.debug = false;
       if (!container || !container.classList.contains("w-dyn-list"))
         throw new Error(`Container can't be undefined.`);
-      this.name = name || "wf";
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item") ?? []);
-      this.renderer = new renderer_default(container, this.name);
+      this.renderer = new renderer_default(container, this.rendererName);
       this.readData();
     }
     log(...args) {
@@ -33040,8 +33050,8 @@ Page:`, page);
 
   // library/wfcollection/filtercollection.ts
   var FilterCollection = class extends CollectionList {
-    constructor(container, name) {
-      super(container, name);
+    constructor(container, name = "", rendererName = "wf") {
+      super(container, name, rendererName);
       this.renderer.addFilterAttributes({
         "date": "date",
         "end-date": "date"
@@ -33049,19 +33059,29 @@ Page:`, page);
     }
     filterByDate(startDate, endDate, ...additionalConditions) {
       const filtered = [...this.collectionData].filter(
-        (weekday) => {
-          const baseCondition = weekday.date.getTime() >= startDate.getTime() && weekday.date.getTime() <= endDate.getTime();
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
+        (entry) => {
+          const baseCondition = entry.date.getTime() >= startDate.getTime() && entry.date.getTime() <= endDate.getTime();
+          const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
           return baseCondition && allAdditionalConditions;
         }
       );
       this.log("Filtered Data:", filtered);
       return filtered;
     }
-    filterByRange(startDate, dayRange = 7, ...conditions) {
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + dayRange - 1);
-      return this.filterByDate(startDate, endDate, ...conditions);
+    filterByDateRange(startDate, endDate, ...additionalConditions) {
+      if (startDate.getTime() > endDate.getTime()) {
+        throw new RangeError(`Invalid date range: startDate (${startDate}) is after endDate (${endDate})`);
+      }
+      let filtered = [...this.collectionData].filter((entry) => {
+        const startDateInRange = entry.startDate.getTime() >= startDate.getTime() && entry.startDate.getTime() <= endDate.getTime();
+        const endDateInRange = entry.endDate.getTime() >= startDate.getTime() && entry.endDate.getTime() <= endDate.getTime();
+        const startOrEndInRange = startDateInRange || endDateInRange;
+        const startBeforeEndAfter = entry.startDate.getTime() <= startDate.getTime() && entry.endDate.getTime() >= endDate.getTime();
+        const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
+        return (startOrEndInRange || startBeforeEndAfter) && allAdditionalConditions;
+      });
+      this.log("Filtered Data:", filtered);
+      return filtered;
     }
   };
 
