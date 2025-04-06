@@ -197,6 +197,8 @@ function initialize(): void {
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
     ]);
+
+    canvas.showHiddenElements();
   });
 
   filterForm.addOnChange(['scale'], (filters) => {
