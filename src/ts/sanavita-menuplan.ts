@@ -126,6 +126,7 @@ function getStartDateFormat(startDate: Date, endDate: Date): string {
 
 function initialize(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('daily'));
+  const drinkLists_collectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('drink-lists'));
   const pdfContainer = document.querySelector<HTMLElement>(Pdf.select('container'));
   const filterFormElement = document.querySelector<HTMLElement>(filterFormSelector('component'));
   const calendarweekElement = document.querySelector<HTMLElement>(CalendarweekComponent.select('component'));
@@ -138,15 +139,21 @@ function initialize(): void {
    */
   const pdfStorage = parsePdfLocalStorage();
 
-  // Initialize collection list and pdf
-  const filterCollection = new FilterCollection(filterCollectionListElement, 'pdf');
+  // Initialize collection list
+  const filterCollection = new FilterCollection(filterCollectionListElement, 'Tagesmenus', 'pdf');
+  filterCollection.renderer.addFilterAttributes({ 'weekly-hit-boolean': 'boolean' });
+  filterCollection.readData();
+
+  // Initialize drink-lists collection list
+  const drinksCollection = new FilterCollection(drinkLists_collectionListElement, 'Getränke', 'pdf');
+  drinksCollection.renderer.addFilterAttributes({ 'start-date': 'date', 'end-date': 'date' });
+  drinksCollection.readData();
+  drinksCollection.debug = true;
+
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
 
-  //filterCollection.debug = true;
-  filterCollection.renderer.addFilterAttributes({ 'weekly-hit-boolean': 'boolean' });
-  filterCollection.readData();
   const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
   setDefaultFilters(filterForm, minDate, maxDate);
 
@@ -204,6 +211,7 @@ function initialize(): void {
     pdf.render([
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
+      ...drinksCollection.filterByDateRange(startDate, endDate),
     ]);
 
     canvas.showHiddenElements();

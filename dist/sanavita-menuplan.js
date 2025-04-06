@@ -32977,16 +32977,17 @@ Page:`, page);
 
   // library/wfcollection/wfcollection.ts
   var CollectionList = class {
-    constructor(container, name) {
+    constructor(container, name = "", rendererName = "wf") {
+      this.name = name;
+      this.rendererName = rendererName;
       this.collectionData = [];
       this.debug = false;
       if (!container || !container.classList.contains("w-dyn-list"))
         throw new Error(`Container can't be undefined.`);
-      this.name = name || "wf";
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item") ?? []);
-      this.renderer = new renderer_default(container, this.name);
+      this.renderer = new renderer_default(container, this.rendererName);
       this.readData();
     }
     log(...args) {
@@ -33040,8 +33041,8 @@ Page:`, page);
 
   // library/wfcollection/filtercollection.ts
   var FilterCollection = class extends CollectionList {
-    constructor(container, name) {
-      super(container, name);
+    constructor(container, name = "", rendererName = "wf") {
+      super(container, name, rendererName);
       this.renderer.addFilterAttributes({
         "date": "date",
         "end-date": "date"
@@ -33049,19 +33050,29 @@ Page:`, page);
     }
     filterByDate(startDate, endDate, ...additionalConditions) {
       const filtered = [...this.collectionData].filter(
-        (weekday) => {
-          const baseCondition = weekday.date.getTime() >= startDate.getTime() && weekday.date.getTime() <= endDate.getTime();
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(weekday));
+        (entry) => {
+          const baseCondition = entry.date.getTime() >= startDate.getTime() && entry.date.getTime() <= endDate.getTime();
+          const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
           return baseCondition && allAdditionalConditions;
         }
       );
       this.log("Filtered Data:", filtered);
       return filtered;
     }
-    filterByRange(startDate, dayRange = 7, ...conditions) {
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + dayRange - 1);
-      return this.filterByDate(startDate, endDate, ...conditions);
+    filterByDateRange(startDate, endDate, ...additionalConditions) {
+      if (startDate.getTime() > endDate.getTime()) {
+        throw new RangeError(`Invalid date range: startDate (${startDate}) is after endDate (${endDate})`);
+      }
+      let filtered = [...this.collectionData].filter((entry) => {
+        const startDateInRange = entry.startDate.getTime() >= startDate.getTime() && entry.startDate.getTime() <= endDate.getTime();
+        const endDateInRange = entry.endDate.getTime() >= startDate.getTime() && entry.endDate.getTime() <= endDate.getTime();
+        const startOrEndInRange = startDateInRange || endDateInRange;
+        const startBeforeEndAfter = entry.startDate.getTime() <= startDate.getTime() && entry.endDate.getTime() >= endDate.getTime();
+        const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
+        return (startOrEndInRange || startBeforeEndAfter) && allAdditionalConditions;
+      });
+      this.log("Filtered Data:", filtered);
+      return filtered;
     }
   };
 
@@ -33724,17 +33735,22 @@ Page:`, page);
   }
   function initialize() {
     const filterCollectionListElement = document.querySelector(wfCollectionSelector("daily"));
+    const drinkLists_collectionListElement = document.querySelector(wfCollectionSelector("drink-lists"));
     const pdfContainer = document.querySelector(Pdf.select("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     const calendarweekElement = document.querySelector(CalendarweekComponent.select("component"));
     tagWeeklyHit(filterCollectionListElement);
     const pdfStorage = parsePdfLocalStorage();
-    const filterCollection = new FilterCollection(filterCollectionListElement, "pdf");
+    const filterCollection = new FilterCollection(filterCollectionListElement, "Tagesmenus", "pdf");
+    filterCollection.renderer.addFilterAttributes({ "weekly-hit-boolean": "boolean" });
+    filterCollection.readData();
+    const drinksCollection = new FilterCollection(drinkLists_collectionListElement, "Getr\xE4nke", "pdf");
+    drinksCollection.renderer.addFilterAttributes({ "start-date": "date", "end-date": "date" });
+    drinksCollection.readData();
+    drinksCollection.debug = true;
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
-    filterCollection.renderer.addFilterAttributes({ "weekly-hit-boolean": "boolean" });
-    filterCollection.readData();
     const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
     setDefaultFilters(filterForm, minDate, maxDate);
     const cweek = new CalendarweekComponent(calendarweekElement);
@@ -33779,7 +33795,8 @@ Page:`, page);
       ];
       pdf.render([
         ...staticRenderFields,
-        ...filterCollection.filterByDate(startDate, endDate)
+        ...filterCollection.filterByDate(startDate, endDate),
+        ...drinksCollection.filterByDateRange(startDate, endDate)
       ]);
       canvas.showHiddenElements();
     });
