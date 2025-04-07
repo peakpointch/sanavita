@@ -3778,6 +3778,7 @@ var de = {
 var Renderer = class _Renderer {
   constructor(canvas, attributeName = "render") {
     this.attributeName = attributeName;
+    this.collectionAttr = `data-is-collection`;
     this.filterAttributes = {
       "data-filter": "string",
       "data-category": "string"
@@ -3816,8 +3817,38 @@ var Renderer = class _Renderer {
     }
     htmlRenderElements.forEach((htmlRenderElement) => {
       this.showElement(htmlRenderElement);
-      this.renderElementToTemplate(renderElement, htmlRenderElement);
+      let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === "true";
+      if (isCollection) {
+        this.renderCollection(renderElement, htmlRenderElement);
+      } else {
+        this.renderElementToTemplate(renderElement, htmlRenderElement);
+      }
     });
+  }
+  renderCollection(renderElement, htmlRenderCollection) {
+    let max = parseInt(htmlRenderCollection.getAttribute("data-limit-items") || "-1");
+    if (max === -1)
+      max = renderElement.fields.length;
+    max = Math.min(renderElement.fields.length, max);
+    max = Math.max(max, 0);
+    const firstChild = htmlRenderCollection.firstElementChild;
+    if (firstChild) {
+      const htmlTemplate = firstChild.cloneNode(true);
+      htmlRenderCollection.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < max; i++) {
+        const template = htmlTemplate.cloneNode(true);
+        if (_Renderer.isRenderElement(renderElement.fields[i])) {
+          this.renderElementToTemplate(renderElement.fields[i], template);
+        } else if (_Renderer.isRenderField(renderElement.fields[i])) {
+          this.renderFieldToTemplate(renderElement.fields[i], template);
+        }
+        fragment.appendChild(template);
+      }
+      htmlRenderCollection.appendChild(fragment);
+    } else {
+      console.warn("No first child found to clone");
+    }
   }
   /**
    * Render a `RenderElement` to a single `HTMLRenderElement`
@@ -3918,6 +3949,12 @@ var Renderer = class _Renderer {
     return renderData;
   }
   clear(node = this.canvas) {
+    const collections = node.querySelectorAll(`${this.elementSelector()}[${this.collectionAttr}]`);
+    collections.forEach((collection) => {
+      const template = collection.firstElementChild.cloneNode(true);
+      collection.innerHTML = "";
+      collection.appendChild(template);
+    });
     node.querySelectorAll(this.fieldSelector()).forEach((field) => field.innerText = "");
   }
   readRenderElement(child, stopRecursionAttributes) {
@@ -4069,6 +4106,9 @@ var Renderer = class _Renderer {
   }
   elementSelector(element) {
     const elementAttrSelector = attributeselector_default(this.elementAttr);
+    if (!element) {
+      return elementAttrSelector();
+    }
     let selectorString = elementAttrSelector(element.element);
     if (element.instance) {
       selectorString += this.instanceSelector(element.element, element.instance);

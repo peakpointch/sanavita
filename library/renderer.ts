@@ -32,6 +32,7 @@ class Renderer {
   private fieldAttr: string;
   private elementAttr: string;
   private emptyStateAttr: string;
+  private collectionAttr: string = `data-is-collection`;
   private filterAttributes: FilterAttribute = {
     "data-filter": "string",
     "data-category": "string",
@@ -81,8 +82,43 @@ class Renderer {
     // Recursion with visibility check
     htmlRenderElements.forEach((htmlRenderElement) => {
       this.showElement(htmlRenderElement)
-      this.renderElementToTemplate(renderElement, htmlRenderElement);
+      let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === 'true';
+      if (isCollection) {
+        this.renderCollection(renderElement, htmlRenderElement);
+      } else {
+        this.renderElementToTemplate(renderElement, htmlRenderElement);
+      }
     });
+  }
+
+  private renderCollection(renderElement: RenderElement, htmlRenderCollection: HTMLElement) {
+    let max = parseInt(htmlRenderCollection.getAttribute('data-limit-items') || '-1');
+    if (max === -1) max = renderElement.fields.length;
+    max = Math.min(renderElement.fields.length, max);
+    max = Math.max(max, 0);
+
+    const firstChild = htmlRenderCollection.firstElementChild;
+    if (firstChild) {
+      const htmlTemplate = firstChild.cloneNode(true) as HTMLElement;
+      htmlRenderCollection.innerHTML = '';
+
+      // Use DocumentFragment for performance improvement
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < max; i++) {
+        const template = htmlTemplate.cloneNode(true) as HTMLElement;
+        if (Renderer.isRenderElement(renderElement.fields[i])) {
+          this.renderElementToTemplate(renderElement.fields[i] as RenderElement, template);
+        } else if (Renderer.isRenderField(renderElement.fields[i])) {
+          this.renderFieldToTemplate(renderElement.fields[i] as RenderField, template);
+        }
+
+        fragment.appendChild<HTMLElement>(template);
+      }
+
+      htmlRenderCollection.appendChild(fragment);
+    } else {
+      console.warn('No first child found to clone');
+    }
   }
 
   /**
@@ -199,6 +235,12 @@ class Renderer {
   }
 
   public clear(node: HTMLElement = this.canvas): void {
+    const collections = node.querySelectorAll<HTMLElement>(`${this.elementSelector()}[${this.collectionAttr}]`);
+    collections.forEach(collection => {
+      const template = collection.firstElementChild.cloneNode(true);
+      collection.innerHTML = '';
+      collection.appendChild(template);
+    });
     node.querySelectorAll<HTMLElement>(this.fieldSelector())
       .forEach(field => field.innerText = "");
   }
