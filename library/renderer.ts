@@ -32,6 +32,7 @@ class Renderer {
   private fieldAttr: string;
   private elementAttr: string;
   private emptyStateAttr: string;
+  private collectionAttr: string = `data-is-collection`;
   private filterAttributes: FilterAttribute = {
     "data-filter": "string",
     "data-category": "string",
@@ -67,91 +68,132 @@ class Renderer {
   }
 
   /**
-   * Render a `RenderElement`
+   * Render a `RenderElement` to all its instances
    */
-  private renderElement(renderItem: RenderElement, canvas: HTMLElement) {
-    const selector = this.elementSelector(renderItem);
+  private renderElement(renderElement: RenderElement, canvas: HTMLElement) {
+    const selector = this.elementSelector(renderElement);
+    const htmlRenderElements: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
 
-    // Get the current canvas for rendering nested elements
-    const newCanvases: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-    if (!newCanvases.length) {
+    if (!htmlRenderElements.length) {
       console.warn(`Element "${selector}" was not found.`);
       return;
     }
 
     // Recursion with visibility check
-    newCanvases.forEach((newCanvas) => {
-      if (newCanvas.style.display === "none") {
-        newCanvas.style.removeProperty('display');
-      }
-      if (newCanvas.classList.contains('hide')) {
-        newCanvas.classList.remove('hide');
-      }
-
-      switch (this.readVisibilityControl(newCanvas)) {
-        case "emptyState":
-          const emptyStateElement = newCanvas.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
-          if (this.shouldHideElement(renderItem)) {
-            emptyStateElement.classList.remove('hide');
-            if (emptyStateElement.style.display === "none") {
-              emptyStateElement.style.removeProperty('display');
-            }
-          } else {
-            emptyStateElement.classList.add('hide');
-            emptyStateElement.style.display = "none";
-          }
-          // For both cases since the children have to be hidden if the empty state is shown.
-          this._render(renderItem.fields, newCanvas);
-          break;
-        case true:
-          if (this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas);
-          } else {
-            this._render(renderItem.fields, newCanvas); // Recursively render children
-          }
-          break;
-        default:
-          this._render(renderItem.fields, newCanvas); // Recursively render children
-          break;
+    htmlRenderElements.forEach((htmlRenderElement) => {
+      this.showElement(htmlRenderElement)
+      let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === 'true';
+      if (isCollection) {
+        this.renderCollection(renderElement, htmlRenderElement);
+      } else {
+        this.renderElementToTemplate(renderElement, htmlRenderElement);
       }
     });
   }
 
-  /**
-   * Render a `RenderField`
-   */
-  private renderField(field: RenderField, canvas: HTMLElement) {
-    const selector = this.fieldSelector(field);
-    const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
-    fields.forEach((fieldElement) => {
-      if (!field.visibility || !field.value.trim()) {
-        switch (this.readVisibilityControl(fieldElement)) {
-          case "emptyState":
-            this.hideElement(fieldElement); // Hide empty field
-            console.log(canvas);
-            break;
-          case true:
-            this.hideElement(fieldElement); // Hide empty field
-            break;
-          case false:
-            break;
-          default:
-            break;
+  private renderCollection(renderElement: RenderElement, htmlRenderCollection: HTMLElement) {
+    let max = parseInt(htmlRenderCollection.getAttribute('data-limit-items') || '-1');
+    if (max === -1) max = renderElement.fields.length;
+    max = Math.min(renderElement.fields.length, max);
+    max = Math.max(max, 0);
+
+    const firstChild = htmlRenderCollection.firstElementChild;
+    if (firstChild) {
+      const htmlTemplate = firstChild.cloneNode(true) as HTMLElement;
+      htmlRenderCollection.innerHTML = '';
+
+      // Use DocumentFragment for performance improvement
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < max; i++) {
+        const template = htmlTemplate.cloneNode(true) as HTMLElement;
+        if (Renderer.isRenderElement(renderElement.fields[i])) {
+          this.renderElementToTemplate(renderElement.fields[i] as RenderElement, template);
+        } else if (Renderer.isRenderField(renderElement.fields[i])) {
+          this.renderFieldToTemplate(renderElement.fields[i] as RenderField, template);
         }
-      } else {
-        switch (field.type) {
-          case 'html':
-            fieldElement.innerHTML = field.value;
-            break;
-          case 'date':
-            const formatStr = fieldElement.dataset.dateFormat || 'd.M.yyyy';
-            fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
-            break;
-          default:
-            fieldElement.innerText = field.value;
-        }
+
+        fragment.appendChild<HTMLElement>(template);
       }
+
+      htmlRenderCollection.appendChild(fragment);
+    } else {
+      console.warn('No first child found to clone');
+    }
+  }
+
+  /**
+   * Render a `RenderElement` to a single `HTMLRenderElement`
+   */
+  private renderElementToTemplate(renderElement: RenderElement, htmlTemplate: HTMLElement) {
+    switch (this.readVisibilityControl(htmlTemplate)) {
+      case "emptyState":
+        const emptyStateElement = htmlTemplate.querySelector<HTMLElement>(`[${this.emptyStateAttr}]`);
+        if (this.shouldHideElement(renderElement)) {
+          emptyStateElement.classList.remove('hide');
+          if (emptyStateElement.style.display === "none") {
+            emptyStateElement.style.removeProperty('display');
+          }
+        } else {
+          emptyStateElement.classList.add('hide');
+          emptyStateElement.style.display = "none";
+        }
+        // For both cases since the children next to the `emptyStateElement` have to be hidden if the empty state is shown.
+        this._render(renderElement.fields, htmlTemplate);
+        break;
+      case true:
+        if (this.shouldHideElement(renderElement)) {
+          this.hideElement(htmlTemplate);
+        } else {
+          this._render(renderElement.fields, htmlTemplate); // Recursively render children
+        }
+        break;
+      case false:
+      default:
+        this._render(renderElement.fields, htmlTemplate); // Recursively render children
+        break;
+    }
+  }
+
+  /**
+   * Render a `RenderField` to all its instances
+   */
+  private renderField(renderField: RenderField, canvas: HTMLElement) {
+    const selector = this.fieldSelector(renderField);
+    const fields: NodeListOf<HTMLElement> = canvas.querySelectorAll(selector);
+    fields.forEach((htmlRenderField) => {
+      this.renderFieldToTemplate(renderField, htmlRenderField)
     });
+  }
+
+  /**
+   * Render a `RenderField` to a single `HTMLRenderField`
+   */
+  private renderFieldToTemplate(field: RenderField, htmlTemplate: HTMLElement) {
+    if (!field.visibility || !field.value.trim()) {
+      switch (this.readVisibilityControl(htmlTemplate)) {
+        case "emptyState":
+          this.hideElement(htmlTemplate); // Hide empty field
+          break;
+        case true:
+          this.hideElement(htmlTemplate); // Hide empty field
+          break;
+        case false:
+        default:
+          break;
+      }
+    } else {
+      switch (field.type) {
+        case 'html':
+          htmlTemplate.innerHTML = field.value;
+          break;
+        case 'date':
+          const formatStr = htmlTemplate.dataset.dateFormat || 'd.M.yyyy';
+          htmlTemplate.innerText = format(new Date(field.value), formatStr, { locale: de });
+          break;
+        default:
+          htmlTemplate.innerText = field.value;
+      }
+    }
   }
 
   /**
@@ -193,6 +235,12 @@ class Renderer {
   }
 
   public clear(node: HTMLElement = this.canvas): void {
+    const collections = node.querySelectorAll<HTMLElement>(`${this.elementSelector()}[${this.collectionAttr}]`);
+    collections.forEach(collection => {
+      const template = collection.firstElementChild.cloneNode(true);
+      collection.innerHTML = '';
+      collection.appendChild(template);
+    });
     node.querySelectorAll<HTMLElement>(this.fieldSelector())
       .forEach(field => field.innerText = "");
   }
@@ -339,6 +387,15 @@ class Renderer {
     });
   }
 
+  private showElement(element: HTMLElement): void {
+    if (element.style.display === "none") {
+      element.style.removeProperty('display');
+    }
+    if (element.classList.contains('hide')) {
+      element.classList.remove('hide');
+    }
+  }
+
   private hideElement(element: HTMLElement): void {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || 'false');
     const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
@@ -369,8 +426,12 @@ class Renderer {
     });
   }
 
-  private elementSelector(element: RenderElement): string {
+  private elementSelector(element?: RenderElement): string {
     const elementAttrSelector = createAttribute(this.elementAttr);
+    if (!element) {
+      return elementAttrSelector();
+    }
+
     let selectorString = elementAttrSelector(element.element);
     if (element.instance) {
       selectorString += this.instanceSelector(element.element, element.instance);

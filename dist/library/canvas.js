@@ -21,6 +21,11 @@ var EditableCanvas = class {
     });
     this.attachDocumentListener();
   }
+  update() {
+    this.cleanupListeners();
+    this.elements.all = Array.from(this.canvas.querySelectorAll(this.selectAll));
+    this.initialize();
+  }
   /**
    * Enable editing for a specific element.
    */

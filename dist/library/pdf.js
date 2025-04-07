@@ -23320,6 +23320,7 @@ var de = {
 var Renderer = class _Renderer {
   constructor(canvas, attributeName = "render") {
     this.attributeName = attributeName;
+    this.collectionAttr = `data-is-collection`;
     this.filterAttributes = {
       "data-filter": "string",
       "data-category": "string"
@@ -23347,84 +23348,120 @@ var Renderer = class _Renderer {
     });
   }
   /**
-   * Render a `RenderElement`
+   * Render a `RenderElement` to all its instances
    */
-  renderElement(renderItem, canvas) {
-    const selector = this.elementSelector(renderItem);
-    const newCanvases = canvas.querySelectorAll(selector);
-    if (!newCanvases.length) {
+  renderElement(renderElement, canvas) {
+    const selector = this.elementSelector(renderElement);
+    const htmlRenderElements = canvas.querySelectorAll(selector);
+    if (!htmlRenderElements.length) {
       console.warn(`Element "${selector}" was not found.`);
       return;
     }
-    newCanvases.forEach((newCanvas) => {
-      if (newCanvas.style.display === "none") {
-        newCanvas.style.removeProperty("display");
-      }
-      if (newCanvas.classList.contains("hide")) {
-        newCanvas.classList.remove("hide");
-      }
-      switch (this.readVisibilityControl(newCanvas)) {
-        case "emptyState":
-          const emptyStateElement = newCanvas.querySelector(`[${this.emptyStateAttr}]`);
-          if (this.shouldHideElement(renderItem)) {
-            emptyStateElement.classList.remove("hide");
-            if (emptyStateElement.style.display === "none") {
-              emptyStateElement.style.removeProperty("display");
-            }
-          } else {
-            emptyStateElement.classList.add("hide");
-            emptyStateElement.style.display = "none";
-          }
-          this._render(renderItem.fields, newCanvas);
-          break;
-        case true:
-          if (this.shouldHideElement(renderItem)) {
-            this.hideElement(newCanvas);
-          } else {
-            this._render(renderItem.fields, newCanvas);
-          }
-          break;
-        default:
-          this._render(renderItem.fields, newCanvas);
-          break;
+    htmlRenderElements.forEach((htmlRenderElement) => {
+      this.showElement(htmlRenderElement);
+      let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === "true";
+      if (isCollection) {
+        this.renderCollection(renderElement, htmlRenderElement);
+      } else {
+        this.renderElementToTemplate(renderElement, htmlRenderElement);
       }
     });
   }
-  /**
-   * Render a `RenderField`
-   */
-  renderField(field, canvas) {
-    const selector = this.fieldSelector(field);
-    const fields = canvas.querySelectorAll(selector);
-    fields.forEach((fieldElement) => {
-      if (!field.visibility || !field.value.trim()) {
-        switch (this.readVisibilityControl(fieldElement)) {
-          case "emptyState":
-            this.hideElement(fieldElement);
-            console.log(canvas);
-            break;
-          case true:
-            this.hideElement(fieldElement);
-            break;
-          case false:
-            break;
-          default:
-            break;
+  renderCollection(renderElement, htmlRenderCollection) {
+    let max2 = parseInt(htmlRenderCollection.getAttribute("data-limit-items") || "-1");
+    if (max2 === -1)
+      max2 = renderElement.fields.length;
+    max2 = Math.min(renderElement.fields.length, max2);
+    max2 = Math.max(max2, 0);
+    const firstChild = htmlRenderCollection.firstElementChild;
+    if (firstChild) {
+      const htmlTemplate = firstChild.cloneNode(true);
+      htmlRenderCollection.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      for (let i3 = 0; i3 < max2; i3++) {
+        const template = htmlTemplate.cloneNode(true);
+        if (_Renderer.isRenderElement(renderElement.fields[i3])) {
+          this.renderElementToTemplate(renderElement.fields[i3], template);
+        } else if (_Renderer.isRenderField(renderElement.fields[i3])) {
+          this.renderFieldToTemplate(renderElement.fields[i3], template);
         }
-      } else {
-        switch (field.type) {
-          case "html":
-            fieldElement.innerHTML = field.value;
-            break;
-          case "date":
-            const formatStr = fieldElement.dataset.dateFormat || "d.M.yyyy";
-            fieldElement.innerText = format(new Date(field.value), formatStr, { locale: de });
-            break;
-          default:
-            fieldElement.innerText = field.value;
-        }
+        fragment.appendChild(template);
       }
+      htmlRenderCollection.appendChild(fragment);
+    } else {
+      console.warn("No first child found to clone");
+    }
+  }
+  /**
+   * Render a `RenderElement` to a single `HTMLRenderElement`
+   */
+  renderElementToTemplate(renderElement, htmlTemplate) {
+    switch (this.readVisibilityControl(htmlTemplate)) {
+      case "emptyState":
+        const emptyStateElement = htmlTemplate.querySelector(`[${this.emptyStateAttr}]`);
+        if (this.shouldHideElement(renderElement)) {
+          emptyStateElement.classList.remove("hide");
+          if (emptyStateElement.style.display === "none") {
+            emptyStateElement.style.removeProperty("display");
+          }
+        } else {
+          emptyStateElement.classList.add("hide");
+          emptyStateElement.style.display = "none";
+        }
+        this._render(renderElement.fields, htmlTemplate);
+        break;
+      case true:
+        if (this.shouldHideElement(renderElement)) {
+          this.hideElement(htmlTemplate);
+        } else {
+          this._render(renderElement.fields, htmlTemplate);
+        }
+        break;
+      case false:
+      default:
+        this._render(renderElement.fields, htmlTemplate);
+        break;
+    }
+  }
+  /**
+   * Render a `RenderField` to all its instances
+   */
+  renderField(renderField, canvas) {
+    const selector = this.fieldSelector(renderField);
+    const fields = canvas.querySelectorAll(selector);
+    fields.forEach((htmlRenderField) => {
+      this.renderFieldToTemplate(renderField, htmlRenderField);
     });
+  }
+  /**
+   * Render a `RenderField` to a single `HTMLRenderField`
+   */
+  renderFieldToTemplate(field, htmlTemplate) {
+    if (!field.visibility || !field.value.trim()) {
+      switch (this.readVisibilityControl(htmlTemplate)) {
+        case "emptyState":
+          this.hideElement(htmlTemplate);
+          break;
+        case true:
+          this.hideElement(htmlTemplate);
+          break;
+        case false:
+        default:
+          break;
+      }
+    } else {
+      switch (field.type) {
+        case "html":
+          htmlTemplate.innerHTML = field.value;
+          break;
+        case "date":
+          const formatStr = htmlTemplate.dataset.dateFormat || "d.M.yyyy";
+          htmlTemplate.innerText = format(new Date(field.value), formatStr, { locale: de });
+          break;
+        default:
+          htmlTemplate.innerText = field.value;
+      }
+    }
   }
   /**
    * Recursively reads the DOM node and its descendants to build a structured RenderData.
@@ -23454,6 +23491,12 @@ var Renderer = class _Renderer {
     return renderData;
   }
   clear(node2 = this.canvas) {
+    const collections = node2.querySelectorAll(`${this.elementSelector()}[${this.collectionAttr}]`);
+    collections.forEach((collection) => {
+      const template = collection.firstElementChild.cloneNode(true);
+      collection.innerHTML = "";
+      collection.appendChild(template);
+    });
     node2.querySelectorAll(this.fieldSelector()).forEach((field) => field.innerText = "");
   }
   readRenderElement(child, stopRecursionAttributes) {
@@ -23571,6 +23614,14 @@ var Renderer = class _Renderer {
       return false;
     });
   }
+  showElement(element) {
+    if (element.style.display === "none") {
+      element.style.removeProperty("display");
+    }
+    if (element.classList.contains("hide")) {
+      element.classList.remove("hide");
+    }
+  }
   hideElement(element) {
     const hideSelf = JSON.parse(element.getAttribute(`data-${this.attributeName}-hide-self`) || "false");
     const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
@@ -23597,6 +23648,9 @@ var Renderer = class _Renderer {
   }
   elementSelector(element) {
     const elementAttrSelector = attributeselector_default(this.elementAttr);
+    if (!element) {
+      return elementAttrSelector();
+    }
     let selectorString = elementAttrSelector(element.element);
     if (element.instance) {
       selectorString += this.instanceSelector(element.element, element.instance);
