@@ -2,7 +2,7 @@
 import EditableCanvas from '@library/canvas';
 import Pdf from '@library/pdf';
 import { FilterCollection } from '@library/wfcollection';
-import { RenderData, RenderField } from '@library/renderer';
+import { RenderData, RenderElement, RenderField } from '@library/renderer';
 import { CalendarweekComponent, FilterForm, filterFormSelector } from '@library/form';
 
 // Utility functions
@@ -148,7 +148,6 @@ function initialize(): void {
   const drinksCollection = new FilterCollection(drinkLists_collectionListElement, 'Getränke', 'pdf');
   drinksCollection.renderer.addFilterAttributes({ 'start-date': 'date', 'end-date': 'date' });
   drinksCollection.readData();
-  drinksCollection.debug = true;
 
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
@@ -208,13 +207,23 @@ function initialize(): void {
       },
     ];
 
-    pdf.render([
+    const renderCollections: RenderElement[] = [
+      {
+        element: 'drink-list-collection',
+        fields: drinksCollection.filterByDateRange(startDate, endDate),
+        visibility: true,
+      }
+    ]
+
+    const renderData: RenderData = [
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
-      ...drinksCollection.filterByDateRange(startDate, endDate),
-    ]);
+      ...renderCollections,
+    ];
 
     canvas.showHiddenElements();
+    pdf.render(renderData);
+    canvas.update();
   });
 
   filterForm.addOnChange(['scale'], (filters) => {
