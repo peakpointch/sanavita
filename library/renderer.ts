@@ -384,8 +384,12 @@ class Renderer {
     });
   }
 
-  private elementSelector(element: RenderElement): string {
+  private elementSelector(element?: RenderElement): string {
     const elementAttrSelector = createAttribute(this.elementAttr);
+    if (!element) {
+      return elementAttrSelector();
+    }
+
     let selectorString = elementAttrSelector(element.element);
     if (element.instance) {
       selectorString += this.instanceSelector(element.element, element.instance);
