@@ -19564,6 +19564,11 @@
       });
       this.attachDocumentListener();
     }
+    update() {
+      this.cleanupListeners();
+      this.elements.all = Array.from(this.canvas.querySelectorAll(this.selectAll));
+      this.initialize();
+    }
     /**
      * Enable editing for a specific element.
      */
@@ -23452,6 +23457,7 @@
   var Renderer = class _Renderer {
     constructor(canvas, attributeName = "render") {
       this.attributeName = attributeName;
+      this.collectionAttr = `data-is-collection`;
       this.filterAttributes = {
         "data-filter": "string",
         "data-category": "string"
@@ -23490,8 +23496,38 @@
       }
       htmlRenderElements.forEach((htmlRenderElement) => {
         this.showElement(htmlRenderElement);
-        this.renderElementToTemplate(renderElement, htmlRenderElement);
+        let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === "true";
+        if (isCollection) {
+          this.renderCollection(renderElement, htmlRenderElement);
+        } else {
+          this.renderElementToTemplate(renderElement, htmlRenderElement);
+        }
       });
+    }
+    renderCollection(renderElement, htmlRenderCollection) {
+      let max2 = parseInt(htmlRenderCollection.getAttribute("data-limit-items") || "-1");
+      if (max2 === -1)
+        max2 = renderElement.fields.length;
+      max2 = Math.min(renderElement.fields.length, max2);
+      max2 = Math.max(max2, 0);
+      const firstChild = htmlRenderCollection.firstElementChild;
+      if (firstChild) {
+        const htmlTemplate = firstChild.cloneNode(true);
+        htmlRenderCollection.innerHTML = "";
+        const fragment = document.createDocumentFragment();
+        for (let i3 = 0; i3 < max2; i3++) {
+          const template = htmlTemplate.cloneNode(true);
+          if (_Renderer.isRenderElement(renderElement.fields[i3])) {
+            this.renderElementToTemplate(renderElement.fields[i3], template);
+          } else if (_Renderer.isRenderField(renderElement.fields[i3])) {
+            this.renderFieldToTemplate(renderElement.fields[i3], template);
+          }
+          fragment.appendChild(template);
+        }
+        htmlRenderCollection.appendChild(fragment);
+      } else {
+        console.warn("No first child found to clone");
+      }
     }
     /**
      * Render a `RenderElement` to a single `HTMLRenderElement`
@@ -23592,6 +23628,12 @@
       return renderData;
     }
     clear(node2 = this.canvas) {
+      const collections = node2.querySelectorAll(`${this.elementSelector()}[${this.collectionAttr}]`);
+      collections.forEach((collection) => {
+        const template = collection.firstElementChild.cloneNode(true);
+        collection.innerHTML = "";
+        collection.appendChild(template);
+      });
       node2.querySelectorAll(this.fieldSelector()).forEach((field) => field.innerText = "");
     }
     readRenderElement(child, stopRecursionAttributes) {
@@ -23743,6 +23785,9 @@
     }
     elementSelector(element) {
       const elementAttrSelector = attributeselector_default(this.elementAttr);
+      if (!element) {
+        return elementAttrSelector();
+      }
       let selectorString = elementAttrSelector(element.element);
       if (element.instance) {
         selectorString += this.instanceSelector(element.element, element.instance);
@@ -33774,7 +33819,7 @@ Page:`, page);
     const calendarweekElement = document.querySelector(CalendarweekComponent.select("component"));
     tagActivitySpecial(filterCollectionListElement);
     const pdfStorage = parsePdfLocalStorage();
-    const filterCollection = new FilterCollection(filterCollectionListElement, "pdf");
+    const filterCollection = new FilterCollection(filterCollectionListElement, "Aktivit\xE4ten", "pdf");
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");

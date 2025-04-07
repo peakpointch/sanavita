@@ -152,7 +152,7 @@ function initialize(): void {
   const pdfStorage = parsePdfLocalStorage();
 
   // Initialize collection list and pdf
-  const filterCollection = new FilterCollection(filterCollectionListElement, 'pdf');
+  const filterCollection = new FilterCollection(filterCollectionListElement, 'Aktivitäten', 'pdf');
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
