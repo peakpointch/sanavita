@@ -34,6 +34,12 @@ export default class EditableCanvas {
     this.attachDocumentListener();
   }
 
+  public update(): void {
+    this.cleanupListeners();
+    this.elements.all = Array.from(this.canvas.querySelectorAll<HTMLElement>(this.selectAll));
+    this.initialize();
+  }
+
   /**
    * Enable editing for a specific element.
    */
