@@ -4,8 +4,7 @@ var EditableCanvas = class {
     this.elements = { all: [], hidden: [] };
     this.defaultSelector = '[data-canvas-editable="true"]';
     this.selectAll = this.defaultSelector;
-    if (!canvas)
-      throw new Error(`Canvas can't be undefined.`);
+    if (!canvas) throw new Error(`Canvas can't be undefined.`);
     this.canvas = canvas;
     if (customSelectors && customSelectors.length) {
       this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
@@ -87,14 +86,11 @@ var EditableCanvas = class {
     this.elements.all.forEach((element) => {
       const clickListener = element._clickListener;
       const escapeListener = element._escapeListener;
-      if (clickListener)
-        element.removeEventListener("click", clickListener);
-      if (escapeListener)
-        element.removeEventListener("keydown", escapeListener);
+      if (clickListener) element.removeEventListener("click", clickListener);
+      if (escapeListener) element.removeEventListener("keydown", escapeListener);
     });
     const documentClickListener = this._documentClickListener;
-    if (documentClickListener)
-      document.removeEventListener("click", documentClickListener);
+    if (documentClickListener) document.removeEventListener("click", documentClickListener);
   }
 };
 export {

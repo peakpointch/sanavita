@@ -6389,8 +6389,7 @@
     function createVideo(component) {
       const componentId = component?.getAttribute("iphone-id");
       const video = (0, import_jquery.default)(component).find("[vimeo-id]");
-      if (!component || !video.length)
-        return;
+      if (!component || !video.length) return;
       video.empty();
       const id = video.attr("vimeo-id");
       const iframeBg = vimeoIframe.clone().attr(
@@ -6399,8 +6398,7 @@
       );
       video.append(iframeBg);
       const playButton = (0, import_jquery.default)(component).find('[iphone="play-button"]');
-      if (!playButton.length)
-        return;
+      if (!playButton.length) return;
       let firstClick = true;
       playButton.click(function() {
         if (firstClick) {

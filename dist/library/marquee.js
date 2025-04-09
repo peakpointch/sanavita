@@ -1,7 +1,6 @@
 // library/marquee.ts
 function setMarqueeSpeed(track) {
-  if (!track)
-    return;
+  if (!track) return;
   const distance = track.offsetWidth;
   const pixelsPerSecond = 100;
   const duration = distance / pixelsPerSecond;

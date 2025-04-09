@@ -4,8 +4,7 @@
     initialized: false
   };
   var initWfCollections = (collections) => {
-    if (wfCollections.initialized)
-      return;
+    if (wfCollections.initialized) return;
     wfCollections.initialized = true;
     collections.forEach((collection) => {
       wfCollections[collection] = [];

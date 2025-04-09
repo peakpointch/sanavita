@@ -1,8 +1,7 @@
 (() => {
   // library/attributeselector.ts
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0)
-      return selector;
+    if (exclusions.length === 0) return selector;
     return selector.split(", ").reduce((acc, str) => {
       let separator = acc === "" ? "" : ", ";
       return acc + separator + `${str}:not(${exclusions.join(", ")})`;
@@ -98,8 +97,7 @@
     container.querySelectorAll('input[type="radio"]').forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target;
-        if (!target.checked)
-          return;
+        if (!target.checked) return;
         const name = target.name;
         container.querySelectorAll(
           `input[type="radio"][name="${name}"]`
@@ -284,8 +282,7 @@
      * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
      */
     info(message2 = null, silent = false) {
-      if (!this.initialized)
-        return;
+      if (!this.initialized) return;
       if (!silent) {
         this.component.setAttribute("aria-live", "polite");
       }
@@ -297,8 +294,7 @@
      * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
      */
     error(message2 = null, silent = false) {
-      if (!this.initialized)
-        return;
+      if (!this.initialized) return;
       if (!silent) {
         this.component.setAttribute("role", "alert");
         this.component.setAttribute("aria-live", "assertive");
@@ -309,8 +305,7 @@
      * Resets the message component, hiding any displayed message.
      */
     reset() {
-      if (!this.initialized)
-        return;
+      if (!this.initialized) return;
       this.component.classList.remove("info", "error");
     }
     /**
@@ -320,8 +315,7 @@
      * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
      */
     setMessage(message2 = null, type, silent = false) {
-      if (!this.initialized)
-        return;
+      if (!this.initialized) return;
       if (this.messageElement && message2) {
         this.messageElement.textContent = message2;
       } else if (!this.messageElement) {
@@ -329,8 +323,7 @@
       }
       this.component.classList.remove("info", "error");
       this.component.classList.add(type);
-      if (silent)
-        return;
+      if (silent) return;
       this.component.scrollIntoView({
         behavior: "smooth",
         block: "center"
@@ -521,12 +514,10 @@
 
   // node_modules/date-fns/constructFrom.js
   function constructFrom(date, value) {
-    if (typeof date === "function")
-      return date(value);
+    if (typeof date === "function") return date(value);
     if (date && typeof date === "object" && constructFromSymbol in date)
       return date[constructFromSymbol](value);
-    if (date instanceof Date)
-      return new date.constructor(value);
+    if (date instanceof Date) return new date.constructor(value);
     return new Date(value);
   }
 
@@ -538,10 +529,8 @@
   // node_modules/date-fns/addDays.js
   function addDays(date, amount, options) {
     const _date = toDate(date, options?.in);
-    if (isNaN(amount))
-      return constructFrom(options?.in || date, NaN);
-    if (!amount)
-      return _date;
+    if (isNaN(amount)) return constructFrom(options?.in || date, NaN);
+    if (!amount) return _date;
     _date.setDate(_date.getDate() + amount);
     return _date;
   }
@@ -1050,12 +1039,10 @@
   function buildMatchPatternFn(args) {
     return (string, options = {}) => {
       const matchResult = string.match(args.matchPattern);
-      if (!matchResult)
-        return null;
+      if (!matchResult) return null;
       const matchedString = matchResult[0];
       const parseResult = string.match(args.parsePattern);
-      if (!parseResult)
-        return null;
+      if (!parseResult) return null;
       let value = args.valueCallback ? args.valueCallback(parseResult[0]) : parseResult[0];
       value = options.valueCallback ? options.valueCallback(value) : value;
       const rest = string.slice(matchedString.length);
@@ -1336,12 +1323,15 @@
     G: function(date, token, localize2) {
       const era = date.getFullYear() > 0 ? 1 : 0;
       switch (token) {
+        // AD, BC
         case "G":
         case "GG":
         case "GGG":
           return localize2.era(era, { width: "abbreviated" });
+        // A, B
         case "GGGGG":
           return localize2.era(era, { width: "narrow" });
+        // Anno Domini, Before Christ
         case "GGGG":
         default:
           return localize2.era(era, { width: "wide" });
@@ -1391,22 +1381,28 @@
     Q: function(date, token, localize2) {
       const quarter = Math.ceil((date.getMonth() + 1) / 3);
       switch (token) {
+        // 1, 2, 3, 4
         case "Q":
           return String(quarter);
+        // 01, 02, 03, 04
         case "QQ":
           return addLeadingZeros(quarter, 2);
+        // 1st, 2nd, 3rd, 4th
         case "Qo":
           return localize2.ordinalNumber(quarter, { unit: "quarter" });
+        // Q1, Q2, Q3, Q4
         case "QQQ":
           return localize2.quarter(quarter, {
             width: "abbreviated",
             context: "formatting"
           });
+        // 1, 2, 3, 4 (narrow quarter; could be not numerical)
         case "QQQQQ":
           return localize2.quarter(quarter, {
             width: "narrow",
             context: "formatting"
           });
+        // 1st quarter, 2nd quarter, ...
         case "QQQQ":
         default:
           return localize2.quarter(quarter, {
@@ -1419,22 +1415,28 @@
     q: function(date, token, localize2) {
       const quarter = Math.ceil((date.getMonth() + 1) / 3);
       switch (token) {
+        // 1, 2, 3, 4
         case "q":
           return String(quarter);
+        // 01, 02, 03, 04
         case "qq":
           return addLeadingZeros(quarter, 2);
+        // 1st, 2nd, 3rd, 4th
         case "qo":
           return localize2.ordinalNumber(quarter, { unit: "quarter" });
+        // Q1, Q2, Q3, Q4
         case "qqq":
           return localize2.quarter(quarter, {
             width: "abbreviated",
             context: "standalone"
           });
+        // 1, 2, 3, 4 (narrow quarter; could be not numerical)
         case "qqqqq":
           return localize2.quarter(quarter, {
             width: "narrow",
             context: "standalone"
           });
+        // 1st quarter, 2nd quarter, ...
         case "qqqq":
         default:
           return localize2.quarter(quarter, {
@@ -1450,18 +1452,22 @@
         case "M":
         case "MM":
           return lightFormatters.M(date, token);
+        // 1st, 2nd, ..., 12th
         case "Mo":
           return localize2.ordinalNumber(month + 1, { unit: "month" });
+        // Jan, Feb, ..., Dec
         case "MMM":
           return localize2.month(month, {
             width: "abbreviated",
             context: "formatting"
           });
+        // J, F, ..., D
         case "MMMMM":
           return localize2.month(month, {
             width: "narrow",
             context: "formatting"
           });
+        // January, February, ..., December
         case "MMMM":
         default:
           return localize2.month(month, { width: "wide", context: "formatting" });
@@ -1471,22 +1477,28 @@
     L: function(date, token, localize2) {
       const month = date.getMonth();
       switch (token) {
+        // 1, 2, ..., 12
         case "L":
           return String(month + 1);
+        // 01, 02, ..., 12
         case "LL":
           return addLeadingZeros(month + 1, 2);
+        // 1st, 2nd, ..., 12th
         case "Lo":
           return localize2.ordinalNumber(month + 1, { unit: "month" });
+        // Jan, Feb, ..., Dec
         case "LLL":
           return localize2.month(month, {
             width: "abbreviated",
             context: "standalone"
           });
+        // J, F, ..., D
         case "LLLLL":
           return localize2.month(month, {
             width: "narrow",
             context: "standalone"
           });
+        // January, February, ..., December
         case "LLLL":
         default:
           return localize2.month(month, { width: "wide", context: "standalone" });
@@ -1527,6 +1539,7 @@
     E: function(date, token, localize2) {
       const dayOfWeek = date.getDay();
       switch (token) {
+        // Tue
         case "E":
         case "EE":
         case "EEE":
@@ -1534,16 +1547,19 @@
             width: "abbreviated",
             context: "formatting"
           });
+        // T
         case "EEEEE":
           return localize2.day(dayOfWeek, {
             width: "narrow",
             context: "formatting"
           });
+        // Tu
         case "EEEEEE":
           return localize2.day(dayOfWeek, {
             width: "short",
             context: "formatting"
           });
+        // Tuesday
         case "EEEE":
         default:
           return localize2.day(dayOfWeek, {
@@ -1557,10 +1573,13 @@
       const dayOfWeek = date.getDay();
       const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
       switch (token) {
+        // Numerical value (Nth day of week with current locale or weekStartsOn)
         case "e":
           return String(localDayOfWeek);
+        // Padded numerical value
         case "ee":
           return addLeadingZeros(localDayOfWeek, 2);
+        // 1st, 2nd, ..., 7th
         case "eo":
           return localize2.ordinalNumber(localDayOfWeek, { unit: "day" });
         case "eee":
@@ -1568,16 +1587,19 @@
             width: "abbreviated",
             context: "formatting"
           });
+        // T
         case "eeeee":
           return localize2.day(dayOfWeek, {
             width: "narrow",
             context: "formatting"
           });
+        // Tu
         case "eeeeee":
           return localize2.day(dayOfWeek, {
             width: "short",
             context: "formatting"
           });
+        // Tuesday
         case "eeee":
         default:
           return localize2.day(dayOfWeek, {
@@ -1591,10 +1613,13 @@
       const dayOfWeek = date.getDay();
       const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
       switch (token) {
+        // Numerical value (same as in `e`)
         case "c":
           return String(localDayOfWeek);
+        // Padded numerical value
         case "cc":
           return addLeadingZeros(localDayOfWeek, token.length);
+        // 1st, 2nd, ..., 7th
         case "co":
           return localize2.ordinalNumber(localDayOfWeek, { unit: "day" });
         case "ccc":
@@ -1602,16 +1627,19 @@
             width: "abbreviated",
             context: "standalone"
           });
+        // T
         case "ccccc":
           return localize2.day(dayOfWeek, {
             width: "narrow",
             context: "standalone"
           });
+        // Tu
         case "cccccc":
           return localize2.day(dayOfWeek, {
             width: "short",
             context: "standalone"
           });
+        // Tuesday
         case "cccc":
         default:
           return localize2.day(dayOfWeek, {
@@ -1625,27 +1653,34 @@
       const dayOfWeek = date.getDay();
       const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
       switch (token) {
+        // 2
         case "i":
           return String(isoDayOfWeek);
+        // 02
         case "ii":
           return addLeadingZeros(isoDayOfWeek, token.length);
+        // 2nd
         case "io":
           return localize2.ordinalNumber(isoDayOfWeek, { unit: "day" });
+        // Tue
         case "iii":
           return localize2.day(dayOfWeek, {
             width: "abbreviated",
             context: "formatting"
           });
+        // T
         case "iiiii":
           return localize2.day(dayOfWeek, {
             width: "narrow",
             context: "formatting"
           });
+        // Tu
         case "iiiiii":
           return localize2.day(dayOfWeek, {
             width: "short",
             context: "formatting"
           });
+        // Tuesday
         case "iiii":
         default:
           return localize2.day(dayOfWeek, {
@@ -1757,8 +1792,7 @@
     h: function(date, token, localize2) {
       if (token === "ho") {
         let hours = date.getHours() % 12;
-        if (hours === 0)
-          hours = 12;
+        if (hours === 0) hours = 12;
         return localize2.ordinalNumber(hours, { unit: "hour" });
       }
       return lightFormatters.h(date, token);
@@ -1781,8 +1815,7 @@
     // Hour [1-24]
     k: function(date, token, localize2) {
       let hours = date.getHours();
-      if (hours === 0)
-        hours = 24;
+      if (hours === 0) hours = 24;
       if (token === "ko") {
         return localize2.ordinalNumber(hours, { unit: "hour" });
       }
@@ -1813,13 +1846,21 @@
         return "Z";
       }
       switch (token) {
+        // Hours and optional minutes
         case "X":
           return formatTimezoneWithOptionalMinutes(timezoneOffset);
+        // Hours, minutes and optional seconds without `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `XX`
         case "XXXX":
         case "XX":
           return formatTimezone(timezoneOffset);
+        // Hours, minutes and optional seconds with `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `XXX`
         case "XXXXX":
         case "XXX":
+        // Hours and minutes with `:` delimiter
         default:
           return formatTimezone(timezoneOffset, ":");
       }
@@ -1828,13 +1869,21 @@
     x: function(date, token, _localize) {
       const timezoneOffset = date.getTimezoneOffset();
       switch (token) {
+        // Hours and optional minutes
         case "x":
           return formatTimezoneWithOptionalMinutes(timezoneOffset);
+        // Hours, minutes and optional seconds without `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `xx`
         case "xxxx":
         case "xx":
           return formatTimezone(timezoneOffset);
+        // Hours, minutes and optional seconds with `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `xxx`
         case "xxxxx":
         case "xxx":
+        // Hours and minutes with `:` delimiter
         default:
           return formatTimezone(timezoneOffset, ":");
       }
@@ -1843,10 +1892,12 @@
     O: function(date, token, _localize) {
       const timezoneOffset = date.getTimezoneOffset();
       switch (token) {
+        // Short
         case "O":
         case "OO":
         case "OOO":
           return "GMT" + formatTimezoneShort(timezoneOffset, ":");
+        // Long
         case "OOOO":
         default:
           return "GMT" + formatTimezone(timezoneOffset, ":");
@@ -1856,10 +1907,12 @@
     z: function(date, token, _localize) {
       const timezoneOffset = date.getTimezoneOffset();
       switch (token) {
+        // Short
         case "z":
         case "zz":
         case "zzz":
           return "GMT" + formatTimezoneShort(timezoneOffset, ":");
+        // Long
         case "zzzz":
         default:
           return "GMT" + formatTimezone(timezoneOffset, ":");
@@ -1970,8 +2023,7 @@
   function warnOrThrowProtectedError(token, format2, input) {
     const _message = message(token, format2, input);
     console.warn(_message);
-    if (throwTokens.includes(token))
-      throw new RangeError(_message);
+    if (throwTokens.includes(token)) throw new RangeError(_message);
   }
   function message(token, format2, input) {
     const subject = token[0] === "Y" ? "years" : "days of the month";
@@ -2027,8 +2079,7 @@
       locale
     };
     return parts.map((part) => {
-      if (!part.isToken)
-        return part.value;
+      if (!part.isToken) return part.value;
       const token = part.value;
       if (!options?.useAdditionalWeekYearTokens && isProtectedWeekYearToken(token) || !options?.useAdditionalDayOfYearTokens && isProtectedDayOfYearToken(token)) {
         warnOrThrowProtectedError(token, formatStr, String(date));
@@ -2217,8 +2268,7 @@
         event.preventDefault();
         switch (this.mode) {
           case "continuous":
-            if (this.year === this.maxDateYear)
-              break;
+            if (this.year === this.maxDateYear) break;
             this.year += 1;
             this.week = 1;
             this.updateWeekMinMax();
@@ -2233,8 +2283,7 @@
         event.preventDefault();
         switch (this.mode) {
           case "continuous":
-            if (this.year === this.minDateYear)
-              break;
+            if (this.year === this.minDateYear) break;
             this.year -= 1;
             this.week = getISOWeeksOfYear(this.year);
             this.updateWeekMinMax();
@@ -2268,10 +2317,8 @@
       return week;
     }
     onYearKeydown(event) {
-      if (this.mode !== "loop" || !this.minDate || !this.maxDate)
-        return;
-      if (event.key !== "ArrowUp" && event.key !== "ArrowDown")
-        return;
+      if (this.mode !== "loop" || !this.minDate || !this.maxDate) return;
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
       const isArrowUp = event.key === "ArrowUp";
       const isArrowDown = event.key === "ArrowDown";
       this.parseWeekAndYear();
@@ -2590,8 +2637,7 @@
         console.warn(
           `Couldn't save person. Please fill in all the values correctly.`
         );
-        if (validate)
-          return null;
+        if (validate) return null;
       }
       const person = this.extractData();
       if (this.savePerson(person)) {
@@ -3000,10 +3046,8 @@ Component:`,
       };
     }
     onFormSuccess() {
-      if (this.errorElement)
-        this.errorElement.style.display = "none";
-      if (this.successElement)
-        this.successElement.style.display = "block";
+      if (this.errorElement) this.errorElement.style.display = "none";
+      if (this.successElement) this.successElement.style.display = "block";
       this.formElement.style.display = "none";
       this.formElement.dataset.state = "success";
       this.formElement.dispatchEvent(new CustomEvent("formSuccess"));
@@ -3012,10 +3056,8 @@ Component:`,
       }
     }
     onFormError() {
-      if (this.errorElement)
-        this.errorElement.style.display = "block";
-      if (this.successElement)
-        this.successElement.style.display = "none";
+      if (this.errorElement) this.errorElement.style.display = "block";
+      if (this.successElement) this.successElement.style.display = "none";
       this.formElement.dataset.state = "error";
       this.formElement.dispatchEvent(new CustomEvent("formError"));
       if (this.submitButton) {
