@@ -88,9 +88,3 @@ document.addEventListener("DOMContentLoaded", () => {
   muteButton?.addEventListener('click', toggleMute);
 });
 
-window.addEventListener('LR_UPLOAD_FINISH', (e) => {
-  console.log(e.detail);
-  document.getElementById('uploadcare-uuid').value = e.detail.data[0].uuid;
-  document.getElementById('uploadcare-file').value = e.detail.data[0].cdnUrl;
-});
-
