@@ -5,8 +5,7 @@
   var CONTROLS_SELECTOR = '[data-player-element="controls"]';
   var PLAY_BUTTON_SELECTOR = '[data-player-button="play"]';
   var MUTE_BUTTON_SELECTOR = '[data-player-button="mute"]';
-  document.addEventListener("DOMContentLoaded", () => {
-    const component = document.querySelector(VIDEO_COMPONENT_SELECTOR);
+  var createVideoComponent = (component) => {
     const videoElement = component.querySelector(VIDEO_SELECTOR);
     const controls = component.querySelector(CONTROLS_SELECTOR);
     const playButton = component.querySelector(PLAY_BUTTON_SELECTOR);
@@ -64,5 +63,11 @@
     });
     playButton.addEventListener("click", togglePlay);
     muteButton?.addEventListener("click", toggleMute);
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    const components = document.querySelectorAll(VIDEO_COMPONENT_SELECTOR);
+    components.forEach((component) => {
+      createVideoComponent(component);
+    });
   });
 })();

@@ -7,8 +7,7 @@ const CONTROLS_SELECTOR = '[data-player-element="controls"]';
 const PLAY_BUTTON_SELECTOR = '[data-player-button="play"]';
 const MUTE_BUTTON_SELECTOR = '[data-player-button="mute"]';
 
-document.addEventListener("DOMContentLoaded", () => {
-  const component = document.querySelector(VIDEO_COMPONENT_SELECTOR);
+const createVideoComponent = (component) => {
   const videoElement = component.querySelector(VIDEO_SELECTOR);
   const controls = component.querySelector(CONTROLS_SELECTOR);
   const playButton = component.querySelector(PLAY_BUTTON_SELECTOR);
@@ -86,5 +85,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Add event listeners
   playButton.addEventListener('click', togglePlay);
   muteButton?.addEventListener('click', toggleMute);
-});
+}
 
+document.addEventListener('DOMContentLoaded', () => {
+  const components = document.querySelectorAll(VIDEO_COMPONENT_SELECTOR);
+
+  components.forEach((component) => {
+    createVideoComponent(component);
+  });
+});
