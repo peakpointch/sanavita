@@ -5172,10 +5172,6 @@
     return settings;
   }
   function readSwiperOptions(swiperElement) {
-    if (swiperEmpty(swiperElement)) {
-      hideEmptySwiper(swiperElement);
-      return;
-    }
     swiperElement.classList.remove("initial-hide");
     const swiperAttributes = [
       { name: "swiper-component", type: "string" },
@@ -5219,10 +5215,14 @@
     return swiperOptions;
   }
   function initWebflowSwiper(swiperElement) {
+    if (swiperEmpty(swiperElement)) {
+      hideEmptySwiper(swiperElement);
+      return;
+    }
     const swiperOptions = readSwiperOptions(swiperElement);
     const swiper = new Swiper(swiperElement, swiperOptions);
-    swiper.autoplay.stop();
     if (swiperOptions.autoplay !== false) {
+      swiper.autoplay.stop();
       const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {

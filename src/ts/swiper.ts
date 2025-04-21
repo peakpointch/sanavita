@@ -143,10 +143,6 @@ function parseSwiperOptions(container: HTMLElement, attributes: SwiperAttribute[
 }
 
 export function readSwiperOptions(swiperElement: HTMLElement): SwiperOptions {
-  if (swiperEmpty(swiperElement)) {
-    hideEmptySwiper(swiperElement);
-    return;
-  }
   swiperElement.classList.remove("initial-hide");
 
   /**
@@ -199,11 +195,16 @@ export function readSwiperOptions(swiperElement: HTMLElement): SwiperOptions {
 }
 
 function initWebflowSwiper(swiperElement: HTMLElement): Swiper {
+  if (swiperEmpty(swiperElement)) {
+    hideEmptySwiper(swiperElement);
+    return;
+  }
+
   const swiperOptions = readSwiperOptions(swiperElement);
   const swiper = new Swiper(swiperElement, swiperOptions);
 
-  swiper.autoplay.stop();
   if (swiperOptions.autoplay !== false) {
+    swiper.autoplay.stop();
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
