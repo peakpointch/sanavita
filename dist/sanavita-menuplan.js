@@ -32817,7 +32817,6 @@ Page:`, page);
     filterCollection.renderer.addFilterAttributes({ "weekly-hit-boolean": "boolean" });
     filterCollection.readData();
     const drinksCollection = new FilterCollection(drinkLists_collectionListElement, "Getr\xE4nke", "pdf");
-    drinksCollection.debug = true;
     drinksCollection.renderer.addFilterAttributes({ "start-date": "date", "end-date": "date" });
     drinksCollection.readData();
     const pdf = new Pdf(pdfContainer);
