@@ -23309,7 +23309,6 @@
         return;
       }
       htmlRenderElements.forEach((htmlRenderElement) => {
-        this.showElement(htmlRenderElement);
         let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === "true";
         if (isCollection) {
           this.renderCollection(renderElement, htmlRenderElement);
@@ -23447,7 +23446,18 @@
         collection.innerHTML = "";
         collection.appendChild(template);
       });
-      node2.querySelectorAll(this.fieldSelector()).forEach((field) => field.innerText = "");
+      const fields = node2.querySelectorAll(this.fieldSelector());
+      fields.forEach((field) => {
+        field.innerText = "";
+        const fieldVisibility = this.readVisibilityControl(field);
+        if (fieldVisibility === true || fieldVisibility === "emptyState") {
+          this.showElement(field);
+        }
+      });
+      const elements2 = node2.querySelectorAll(this.elementSelector());
+      elements2.forEach((element) => {
+        this.showElement(element);
+      });
     }
     readRenderElement(child, stopRecursionAttributes) {
       const elementName = child.getAttribute(this.elementAttr);
@@ -23563,12 +23573,24 @@
         return false;
       });
     }
-    showElement(element) {
+    showHTMLElement(element) {
       if (element.style.display === "none") {
         element.style.removeProperty("display");
       }
       if (element.classList.contains("hide")) {
         element.classList.remove("hide");
+      }
+    }
+    showElement(element) {
+      const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
+      this.showHTMLElement(element);
+      if (ancestorToHide) {
+        const ancestor = element.closest(ancestorToHide);
+        if (ancestor) {
+          this.showHTMLElement(ancestor);
+        } else {
+          console.warn(`Ancestor "${ancestorToHide}" not found for element.`);
+        }
       }
     }
     hideElement(element) {
@@ -32795,6 +32817,7 @@ Page:`, page);
     filterCollection.renderer.addFilterAttributes({ "weekly-hit-boolean": "boolean" });
     filterCollection.readData();
     const drinksCollection = new FilterCollection(drinkLists_collectionListElement, "Getr\xE4nke", "pdf");
+    drinksCollection.debug = true;
     drinksCollection.renderer.addFilterAttributes({ "start-date": "date", "end-date": "date" });
     drinksCollection.readData();
     const pdf = new Pdf(pdfContainer);
