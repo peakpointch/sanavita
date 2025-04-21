@@ -81,7 +81,6 @@ class Renderer {
 
     // Recursion with visibility check
     htmlRenderElements.forEach((htmlRenderElement) => {
-      this.showElement(htmlRenderElement)
       let isCollection = htmlRenderElement.getAttribute(this.collectionAttr) === 'true';
       if (isCollection) {
         this.renderCollection(renderElement, htmlRenderElement);
@@ -241,8 +240,20 @@ class Renderer {
       collection.innerHTML = '';
       collection.appendChild(template);
     });
-    node.querySelectorAll<HTMLElement>(this.fieldSelector())
-      .forEach(field => field.innerText = "");
+
+    const fields = node.querySelectorAll<HTMLElement>(this.fieldSelector());
+    fields.forEach(field => {
+      field.innerText = "";
+      const fieldVisibility = this.readVisibilityControl(field);
+      if (fieldVisibility === true || fieldVisibility === "emptyState") {
+        this.showElement(field);
+      }
+    });
+
+    const elements = node.querySelectorAll<HTMLElement>(this.elementSelector());
+    elements.forEach(element => {
+      this.showElement(element);
+    });
   }
 
   private readRenderElement(child: HTMLElement, stopRecursionAttributes: string[]): RenderElement {
@@ -387,12 +398,28 @@ class Renderer {
     });
   }
 
-  private showElement(element: HTMLElement): void {
+  private showHTMLElement(element: HTMLElement): void {
     if (element.style.display === "none") {
       element.style.removeProperty('display');
     }
     if (element.classList.contains('hide')) {
       element.classList.remove('hide');
+    }
+  }
+
+  private showElement(element: HTMLElement): void {
+    const ancestorToHide = element.getAttribute(`data-${this.attributeName}-hide-ancestor`);
+
+    this.showHTMLElement(element);
+
+    if (ancestorToHide) {
+      // Hide the specified ancestor
+      const ancestor: HTMLElement = element.closest(ancestorToHide);
+      if (ancestor) {
+        this.showHTMLElement(ancestor)
+      } else {
+        console.warn(`Ancestor "${ancestorToHide}" not found for element.`);
+      }
     }
   }
 
