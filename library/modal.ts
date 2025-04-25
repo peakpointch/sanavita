@@ -37,26 +37,23 @@ export default class Modal {
     }
     this.component = component;
 
-    const modalContent = this.getModalContent();
-    const stickyFooter = this.getStickyFooter();
-
-    if (!modalContent || !stickyFooter) {
-      console.warn("Initialize modal: skip sticky footer");
-    } else {
-      this.setupScrollEvent(modalContent, stickyFooter);
-    }
+    this.setInitialState();
+    this.setupStickyFooter();
 
     this.initialized = true;
   }
 
   public static select = createAttribute<ModalElement>('data-modal-element');
 
-  private getModalContent(): HTMLElement | null {
-    return this.component.querySelector(Modal.select('scroll'));
-  }
+  private setupStickyFooter(): void {
+    const modalContent = this.component.querySelector<HTMLElement>(Modal.select('scroll'));
+    const stickyFooter = this.component.querySelector<HTMLElement>(Modal.select('sticky-bottom'));
 
-  private getStickyFooter(): HTMLElement | null {
-    return this.component.querySelector(Modal.select('sticky-bottom'));
+    if (!modalContent || !stickyFooter) {
+      console.warn("Initialize modal: skip sticky footer");
+    } else {
+      this.setupScrollEvent(modalContent, stickyFooter);
+    }
   }
 
   private setupScrollEvent(
