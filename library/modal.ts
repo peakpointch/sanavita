@@ -1,37 +1,39 @@
 import createAttribute from "./attributeselector";
 
-type ModalElement = 'scroll' | 'sticky-top' | 'sticky-bottom';
+type ModalElement = 'modal' | 'open' | 'close' | 'scroll' | 'sticky-top' | 'sticky-bottom';
+type ModalAnimationType = 'fade' | 'slideUp' | 'custom' | 'none';
 
-/**
- * Locks the scroll on the document body.
- *
- * This function sets the `overflow` style of the `body` element to `"hidden"`,
- * preventing the user from scrolling the page. Commonly used when displaying
- * modals, overlays, or other components that require the page to remain static.
- */
-function lockBodyScroll(): void {
-  document.body.style.overflow = "hidden";
+interface ModalAnimation {
+  type: ModalAnimationType;
+  duration: number;
+  className?: string;
 }
 
-/**
- * Unlocks the scroll on the document body.
- *
- * This function removes the `overflow` style from the `body` element,
- * allowing the user to scroll the page again. Typically used when hiding
- * modals, overlays, or other components that previously locked scrolling.
- */
-function unlockBodyScroll(): void {
-  document.body.style.removeProperty("overflow");
+interface ModalSettings {
+  animation: ModalAnimation;
+  stickyFooter: boolean;
+  stickyHeader: boolean;
+}
+
+export const defaultModalAnimation: ModalAnimation = {
+  type: 'none',
+  duration: 0,
+  className: 'is-closed'
+}
+
+export const defaultModalSettings: ModalSettings = {
+  animation: defaultModalAnimation,
+  stickyFooter: false,
+  stickyHeader: false,
 }
 
 export default class Modal {
   public component: HTMLElement;
   public initialized: boolean = false;
-  private onOpenFunctions: [() => any];
 
-  constructor(component: HTMLElement | null) {
+  constructor(component: HTMLElement | null, public settings: ModalSettings = defaultModalSettings) {
     if (!component) {
-      throw new Error(`The passed component doesn't exist.`);
+      throw new Error(`The component's HTMLElement cannot be undefined.`);
     }
     this.component = component;
 
@@ -75,39 +77,111 @@ export default class Modal {
     });
   }
 
-  private showComponent(): void {
-    this.component.style.removeProperty("display");
-    this.component.classList.remove("is-closed");
+  private setInitialState(): void {
+    this.component.style.display = 'none';
+    this.hide();
+
+    switch (this.settings.animation.type) {
+      case 'fade':
+        this.component.style.willChange = 'opacity';
+        this.component.style.transitionProperty = 'opacity';
+        this.component.style.transitionDuration = this.settings.animation.duration.toString();
+        break;
+
+      case 'slideUp':
+        this.component.style.willChange = 'opacity, translate';
+        this.component.style.transitionProperty = 'opacity, translate';
+        this.component.style.transitionDuration = this.settings.animation.duration.toString();
+        break;
+
+      case 'none':
+        break;
+    }
+
+    this.component.dataset.state = "closed";
+  }
+
+  private show(): void {
+    this.component.dataset.state = "opening";
+    this.component.style.removeProperty('display');
+    switch (this.settings.animation.type) {
+      case 'fade':
+        this.component.style.opacity = '1';
+        break;
+
+      case 'slideUp':
+        this.component.style.opacity = '1';
+        this.component.style.translate = '0px 0vh0;'
+        break;
+
+      default:
+        this.component.classList.remove("is-closed");
+    }
+
     this.component.dataset.state = "open";
   }
 
-  private hideComponent(): void {
-    this.component.classList.add("is-closed");
-    this.component.dataset.state = "closed";
+  private hide(): void {
+    this.component.dataset.state = "closing";
+    switch (this.settings.animation.type) {
+      case 'fade':
+        this.component.style.opacity = '0';
+        break;
+
+      case 'slideUp':
+        this.component.style.opacity = '0';
+        this.component.style.translate = '0px 20vh';
+        break;
+
+      default:
+        break;
+    }
+
     setTimeout(() => {
       this.component.style.display = "none";
-    }, 500);
+    }, this.settings.animation.duration);
+    this.component.dataset.state = "closed";
   }
 
   /**
    * Opens the modal instance.
    *
-   * This method calls the `showComponent` method and locks the scroll of the document body.
+   * This method calls the `show` method and locks the scroll of the document body.
    */
   public open() {
-    this.showComponent();
+    this.show();
     lockBodyScroll();
   }
 
   /**
    * Closes the modal instance.
    *
-   * This method calls the `hideComponent` method and unlocks the scroll of the document body.
+   * This method calls the `hide` method and unlocks the scroll of the document body.
    */
   public close() {
     unlockBodyScroll();
-    this.hideComponent();
+    this.hide();
   }
+}
 
-  public addCustomAction(action: () => any): void { }
+/**
+ * Locks the scroll on the document body.
+ *
+ * This function sets the `overflow` style of the `body` element to `"hidden"`,
+ * preventing the user from scrolling the page. Commonly used when displaying
+ * modals, overlays, or other components that require the page to remain static.
+ */
+function lockBodyScroll(): void {
+  document.body.style.overflow = "hidden";
+}
+
+/**
+ * Unlocks the scroll on the document body.
+ *
+ * This function removes the `overflow` style from the `body` element,
+ * allowing the user to scroll the page again. Typically used when hiding
+ * modals, overlays, or other components that previously locked scrolling.
+ */
+function unlockBodyScroll(): void {
+  document.body.style.removeProperty("overflow");
 }
