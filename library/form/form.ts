@@ -167,6 +167,20 @@ export function initCustomInputs(container: HTMLElement) {
   });
 }
 
+export function reportValidity(input: HTMLFormInput): void {
+  input.reportValidity();
+  input.classList.add("has-error");
+  if (isCheckboxInput(input)) {
+    input.parentElement?.querySelector(wf.select.checkbox)?.classList.add("has-error");
+  }
+  input.addEventListener("change", () => {
+    input.classList.remove("has-error");
+    if (isCheckboxInput(input)) {
+      input.parentElement?.querySelector(wf.select.checkbox)?.classList.remove("has-error");
+    }
+  }, { once: true });
+}
+
 export function validateFields(
   inputs: NodeListOf<HTMLFormInput> | HTMLFormInput[],
   report: boolean = true
@@ -175,24 +189,14 @@ export function validateFields(
   invalidField: HTMLFormInput | null;
 } {
   let valid = true; // Assume the step is valid unless we find a problem
-  let invalidField: HTMLFormInput | null = null;
+  let firstInvalidField: HTMLFormInput | null = null;
 
   for (const input of Array.from(inputs)) {
     if (!input.checkValidity()) {
       valid = false;
-      if (report && !invalidField) {
-        input.reportValidity();
-        input.classList.add("has-error");
-        if (isCheckboxInput(input)) {
-          input.parentElement?.querySelector(wf.select.checkbox)?.classList.add("has-error");
-        }
-        input.addEventListener("change", () => {
-          input.classList.remove("has-error");
-          if (isCheckboxInput(input)) {
-            input.parentElement?.querySelector(wf.select.checkbox)?.classList.remove("has-error");
-          }
-        }, { once: true });
-        invalidField = input; // Store the first invalid field
+      if (report && !firstInvalidField) {
+        reportValidity(input);
+        firstInvalidField = input; // Store the first invalid field
       }
       break;
     } else {
@@ -200,7 +204,7 @@ export function validateFields(
     }
   }
 
-  return { valid, invalidField };
+  return { valid, invalidField: firstInvalidField };
 }
 
 export {

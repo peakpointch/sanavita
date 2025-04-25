@@ -19311,31 +19311,30 @@
   var wfclass = {
     input: "w-input",
     select: "w-select",
+    wradio: "w-radio",
     radio: "w-radio-input",
+    wcheckbox: "w-checkbox",
     checkbox: "w-checkbox-input",
     checked: "w--redirected-checked"
   };
+  var inputSelectorList = [
+    `.${wfclass.input}`,
+    `.${wfclass.select}`,
+    `.${wfclass.wradio} input[type="radio"]`,
+    `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`
+  ];
   var wfselect = {
     input: `.${wfclass.input}`,
     select: `.${wfclass.select}`,
+    wradio: `.${wfclass.wradio}`,
     radio: `.${wfclass.radio}`,
+    wcheckbox: `.${wfclass.wcheckbox}`,
     checkbox: `.${wfclass.checkbox}`,
-    checked: `.${wfclass.checked}`
-  };
-  var inputSelectorList = [
-    wfselect.input,
-    wfselect.select,
-    '.w-radio input[type="radio"]',
-    `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`
-  ];
-  var wfform = {
-    form: "form",
-    checkbox: `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`,
-    radio: '.w-radio input[type="radio"]',
-    select: wfselect.select,
-    inputOnly: wfselect.input,
-    inputSelectorList,
-    input: inputSelectorList.join(", ")
+    checked: `.${wfclass.checked}`,
+    formInput: inputSelectorList.join(", "),
+    radioInput: `.${wfclass.wradio} input[type="radio"]`,
+    checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
+    inputSelectorList
   };
 
   // library/form/form.ts
