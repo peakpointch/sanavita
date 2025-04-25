@@ -1,5 +1,6 @@
-import { FieldGroup, HTMLFormInput, formQuery, fieldFromInput } from ".";
+import { FieldGroup, HTMLFormInput, fieldFromInput } from "@library/form";
 import createAttribute from "@library/attributeselector";
+import wf from "@library/webflow";
 
 type FilterAction<T extends string = string, Q extends string = string> = (filters: FieldGroup<T>, fieldId: Q) => any;
 type ActionElement = 'download' | 'save';
@@ -33,7 +34,7 @@ export class FilterForm<FieldId extends string = string> {
     });
 
     this.container = container;
-    this.filterFields = container.querySelectorAll<HTMLFormInput>(formQuery.input);
+    this.filterFields = container.querySelectorAll<HTMLFormInput>(wf.formQuery.input);
     this.actionElements = container.querySelectorAll<HTMLActionElement>(actionSelector());
 
     this.attachChangeListeners();

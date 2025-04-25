@@ -10,7 +10,7 @@ import {
   formElementSelector,
   fieldFromInput
 } from "@library/form";
-import { wf, wfclass, formQuery } from "@library/form";
+import { wf } from "@library/webflow";
 import { HTMLFormInput, Validator } from "@library/form";
 import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@library/form";
 import Accordion from "@library/accordion";
@@ -291,7 +291,7 @@ class FormArray {
     this.template = this.list.querySelector(personSelector('template'))!;
     this.addButton = this.container.querySelector(personSelector('add'))!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
-    this.modalForm = document.querySelector(formQuery.form)!;
+    this.modalForm = document.querySelector(wf.formQuery.form)!;
 
     // Form Modal
     this.modalElement = document.querySelector(
@@ -302,7 +302,7 @@ class FormArray {
     this.cancelButtons = this.modalElement.querySelectorAll(
       personSelector('cancel')
     )!;
-    this.modalInputs = this.modalElement.querySelectorAll(formQuery.input);
+    this.modalInputs = this.modalElement.querySelectorAll(wf.formQuery.input);
     this.groupElements =
       this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
 
@@ -486,7 +486,7 @@ class FormArray {
   private populateModal(person: Person) {
     this.groupElements.forEach((group) => {
       const groupInputs: NodeListOf<HTMLFormInput> =
-        group.querySelectorAll(formQuery.input);
+        group.querySelectorAll(wf.formQuery.input);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       groupInputs.forEach((input) => {
@@ -611,7 +611,7 @@ class FormArray {
 
   private validateModal(report: boolean = true): boolean {
     const allModalFields: NodeListOf<HTMLFormInput> =
-      this.modalElement.querySelectorAll(formQuery.input);
+      this.modalElement.querySelectorAll(wf.formQuery.input);
     const { valid, invalidField } = validateFields(allModalFields, report);
 
     if (valid === true) {
@@ -678,7 +678,7 @@ class FormArray {
 
     this.groupElements.forEach((group) => {
       const groupInputs: NodeListOf<HTMLFormInput> =
-        group.querySelectorAll(formQuery.input);
+        group.querySelectorAll(wf.formQuery.input);
       const groupName = group.dataset.personDataGroup! as GroupName;
 
       if (!personData[groupName]) {
@@ -775,7 +775,7 @@ class MultiStepForm {
 
   constructor(component: HTMLElement, options: MultiStepFormOptions) {
     this.component = component;
-    this.formElement = this.component.querySelector<HTMLFormElement>(formQuery.form);
+    this.formElement = this.component.querySelector<HTMLFormElement>(wf.formQuery.form);
     this.options = options;
 
     if (!this.formElement) {
@@ -940,7 +940,7 @@ class MultiStepForm {
       step.classList.toggle("hide", index !== this.currentStep);
 
       step
-        .querySelectorAll<HTMLInputElement>(formQuery.input) // Type necessary for keydown event
+        .querySelectorAll<HTMLInputElement>(wf.formQuery.input) // Type necessary for keydown event
         .forEach((input) => {
           input.addEventListener("keydown", (event: KeyboardEvent) => {
             if (event.key === "Enter") {
@@ -1081,7 +1081,7 @@ class MultiStepForm {
       }`;
     const currentStepElement = this.formSteps[step];
     const inputs: NodeListOf<HTMLFormInput> =
-      currentStepElement.querySelectorAll(formQuery.input);
+      currentStepElement.querySelectorAll(wf.formQuery.input);
 
     const filteredInputs = Array.from(inputs).filter((input) => {
       // Check if the input matches any exclude selectors or is inside an excluded wrapper
@@ -1121,7 +1121,7 @@ class MultiStepForm {
 
     const stepElement = this.formSteps[step];
     const stepInputs: NodeListOf<HTMLFormInput> =
-      stepElement.querySelectorAll(formQuery.input);
+      stepElement.querySelectorAll(wf.formQuery.input);
     stepInputs.forEach((input, inputIndex) => {
       const entry = fieldFromInput(input, inputIndex);
       if (entry?.id) {
