@@ -1,3 +1,5 @@
+import wf from "@library/webflow";
+import { HTMLFormInput, validateFields } from "./form";
 import { FormMessage } from "./formmessage";
 
 /**
@@ -164,8 +166,8 @@ export class FormDecision {
   private checkPathValidity(pathIndex: number): boolean {
     // Get the path element and the form inputs inside it
     const pathElement = this.paths[pathIndex];
-    const inputs: NodeListOf<FormInput> =
-      pathElement.querySelectorAll(formQuery.input);
+    const inputs: NodeListOf<HTMLFormInput> =
+      pathElement.querySelectorAll(wf.select.formInput);
 
     // Validate the fields within the path element
     const { valid, invalidField } = validateFields(inputs, true);
@@ -179,7 +181,7 @@ export class FormDecision {
   private updateRequiredAttributes() {
     // For all paths, make inputs non-required by default
     this.paths.forEach((path) => {
-      const inputs: NodeListOf<FormInput> = path.querySelectorAll(
+      const inputs: NodeListOf<HTMLFormInput> = path.querySelectorAll(
         "input, select, textarea"
       );
       inputs.forEach((input) => {
@@ -199,7 +201,7 @@ export class FormDecision {
       );
 
       if (selectedPath) {
-        const requiredFields: NodeListOf<FormInput> =
+        const requiredFields: NodeListOf<HTMLFormInput> =
           selectedPath.querySelectorAll(
             '[data-decision-required="required"], [data-decision-required="true"]'
           );
