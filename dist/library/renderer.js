@@ -6,12 +6,39 @@ function exclude(selector, ...exclusions) {
     return acc + separator + `${str}:not(${exclusions.join(", ")})`;
   }, "");
 }
-var createAttribute = (attrName, defaultValue = null, ...exclusions) => {
-  return (name = defaultValue) => {
+var createAttribute = (attrName, options = {
+  defaultType: "exact",
+  defaultValue: null,
+  exclusions: []
+}) => {
+  return (name = options.defaultValue, type = options.defaultType) => {
     if (!name) {
-      return exclude(`[${attrName}]`, ...exclusions);
+      return exclude(`[${attrName}]`, ...options.exclusions);
     }
-    return exclude(`[${attrName}="${name}"]`, ...exclusions);
+    const value = String(name);
+    let selector;
+    switch (type) {
+      case "startsWith":
+        selector = `[${attrName}^="${value}"]`;
+        break;
+      case "endsWith":
+        selector = `[${attrName}$="${value}"]`;
+        break;
+      case "includes":
+        selector = `[${attrName}*="${value}"]`;
+        break;
+      case "whitespace":
+        selector = `[${attrName}~="${value}"]`;
+        break;
+      case "hyphen":
+        selector = `[${attrName}|="${value}"]`;
+        break;
+      case "exact":
+      default:
+        selector = `[${attrName}="${value}"]`;
+        break;
+    }
+    return exclude(selector, ...options.exclusions ?? []);
   };
 };
 var attributeselector_default = createAttribute;
