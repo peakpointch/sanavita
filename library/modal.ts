@@ -84,13 +84,13 @@ export default class Modal {
       case 'fade':
         this.component.style.willChange = 'opacity';
         this.component.style.transitionProperty = 'opacity';
-        this.component.style.transitionDuration = this.settings.animation.duration.toString();
+        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`
         break;
 
       case 'slideUp':
         this.component.style.willChange = 'opacity, translate';
         this.component.style.transitionProperty = 'opacity, translate';
-        this.component.style.transitionDuration = this.settings.animation.duration.toString();
+        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`
         break;
 
       case 'none':
@@ -110,7 +110,7 @@ export default class Modal {
 
       case 'slideUp':
         this.component.style.opacity = '1';
-        this.component.style.translate = '0px 0vh0;'
+        this.component.style.translate = '0px 0vh;'
         break;
 
       default:
