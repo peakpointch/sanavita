@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "paths": {
       "@library/*": [ "library/*" ],
-      "@types/*": [ "types/*" ],
+      "~/types/*": [ "types/*" ],
       "html2pdf.js": [ "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js" ]
     },
     "target": "ES2015",
