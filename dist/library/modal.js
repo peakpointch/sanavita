@@ -55,13 +55,15 @@ var defaultModalSettings = {
   stickyHeader: false
 };
 var Modal = class _Modal {
-  constructor(component, settings = defaultModalSettings) {
-    this.settings = settings;
+  constructor(component, settings = {}) {
     this.initialized = false;
     if (!component) {
       throw new Error(`The component's HTMLElement cannot be undefined.`);
     }
     this.component = component;
+    this.settings = deepMerge(defaultModalSettings, settings);
+    this.component.setAttribute("role", "dialog");
+    this.component.setAttribute("aria-modal", "true");
     this.setInitialState();
     this.setupStickyFooter();
     this.initialized = true;
@@ -96,12 +98,12 @@ var Modal = class _Modal {
       case "fade":
         this.component.style.willChange = "opacity";
         this.component.style.transitionProperty = "opacity";
-        this.component.style.transitionDuration = this.settings.animation.duration.toString();
+        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
         break;
       case "slideUp":
         this.component.style.willChange = "opacity, translate";
         this.component.style.transitionProperty = "opacity, translate";
-        this.component.style.transitionDuration = this.settings.animation.duration.toString();
+        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
         break;
       case "none":
         break;
@@ -117,7 +119,7 @@ var Modal = class _Modal {
         break;
       case "slideUp":
         this.component.style.opacity = "1";
-        this.component.style.translate = "0px 0vh0;";
+        this.component.style.translate = "0px 0vh;";
         break;
       default:
         this.component.classList.remove("is-closed");
@@ -166,6 +168,17 @@ function lockBodyScroll() {
 }
 function unlockBodyScroll() {
   document.body.style.removeProperty("overflow");
+}
+function deepMerge(target, source) {
+  const result = { ...target };
+  for (const key in source) {
+    if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+      result[key] = deepMerge(target[key], source[key]);
+    } else if (source[key] !== void 0) {
+      result[key] = source[key];
+    }
+  }
+  return result;
 }
 export {
   Modal as default,
