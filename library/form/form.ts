@@ -63,13 +63,13 @@ export async function sendFormData(formData: any): Promise<boolean> {
 export function clearRadioGroup(container: HTMLElement, name: string) {
   container
     .querySelectorAll<HTMLInputElement>(
-      `${wf.formQuery.radio}[name="${name}"]`
+      `${wf.select.radioInput}[name="${name}"]`
     )
     .forEach((radio) => {
       radio.checked = false; // Uncheck all radios in the group
       const customRadio = radio
         .closest(".w-radio")
-        ?.querySelector(wf.query.radio);
+        ?.querySelector(wf.select.radio);
       if (customRadio) {
         customRadio.classList.remove(wf.class.checked); // Remove the checked styling
       }
@@ -82,19 +82,19 @@ export function initCustomInputs(container: HTMLElement) {
   const focusVisibleClass = "w--redirected-focus-visible";
   const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
   const inputTypes = [
-    ["checkbox", wf.query.checkbox],
-    ["radio", wf.query.radio],
+    ["checkbox", wf.select.checkbox],
+    ["radio", wf.select.radio],
   ];
 
   // Add change event listener for checkboxes
   container
-    .querySelectorAll<HTMLInputElement>(wf.formQuery.checkbox)
+    .querySelectorAll<HTMLInputElement>(wf.select.checkboxInput)
     .forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target as HTMLInputElement;
         const customCheckbox = target
           .closest(".w-checkbox")
-          ?.querySelector(wf.query.checkbox);
+          ?.querySelector(wf.select.checkbox);
         if (customCheckbox) {
           customCheckbox.classList.toggle(wf.class.checked, target.checked);
         }
@@ -118,7 +118,7 @@ export function initCustomInputs(container: HTMLElement) {
           .forEach((radio) => {
             const customRadio = radio
               .closest(".w-radio")
-              ?.querySelector(wf.query.radio);
+              ?.querySelector(wf.select.radio);
             if (customRadio) {
               customRadio.classList.remove(wf.class.checked);
             }
@@ -127,7 +127,7 @@ export function initCustomInputs(container: HTMLElement) {
         // Add the checked class to the selected radio's custom container
         const selectedCustomRadio = target
           .closest(".w-radio")
-          ?.querySelector(wf.query.radio);
+          ?.querySelector(wf.select.radio);
         if (selectedCustomRadio) {
           selectedCustomRadio.classList.add(wf.class.checked);
         }
@@ -184,12 +184,12 @@ export function validateFields(
         input.reportValidity();
         input.classList.add("has-error");
         if (isCheckboxInput(input)) {
-          input.parentElement?.querySelector(wf.query.checkbox)?.classList.add("has-error");
+          input.parentElement?.querySelector(wf.select.checkbox)?.classList.add("has-error");
         }
         input.addEventListener("change", () => {
           input.classList.remove("has-error");
           if (isCheckboxInput(input)) {
-            input.parentElement?.querySelector(wf.query.checkbox)?.classList.remove("has-error");
+            input.parentElement?.querySelector(wf.select.checkbox)?.classList.remove("has-error");
           }
         }, { once: true });
         invalidField = input; // Store the first invalid field
