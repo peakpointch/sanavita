@@ -34,7 +34,7 @@ export class FilterForm<FieldId extends string = string> {
     });
 
     this.container = container;
-    this.filterFields = container.querySelectorAll<HTMLFormInput>(wf.formQuery.input);
+    this.filterFields = container.querySelectorAll<HTMLFormInput>(wf.select.formInput);
     this.actionElements = container.querySelectorAll<HTMLActionElement>(actionSelector());
 
     this.attachChangeListeners();
