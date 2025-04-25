@@ -39,6 +39,10 @@ export default class Modal {
     this.component = component;
     this.settings = deepMerge(defaultModalSettings, settings);
 
+    // accessibility
+    this.component.setAttribute('role', 'dialog');
+    this.component.setAttribute('aria-modal', 'true');
+
     this.setInitialState();
     this.setupStickyFooter();
 
