@@ -2390,11 +2390,87 @@
     }
   };
 
+  // library/modal.ts
+  function lockBodyScroll() {
+    document.body.style.overflow = "hidden";
+  }
+  function unlockBodyScroll() {
+    document.body.style.removeProperty("overflow");
+  }
+  var Modal = class _Modal {
+    constructor(component) {
+      this.initialized = false;
+      if (!component) {
+        throw new Error(`The passed component doesn't exist.`);
+      }
+      this.component = component;
+      const modalContent = this.getModalContent();
+      const stickyFooter = this.getStickyFooter();
+      if (!modalContent || !stickyFooter) {
+        console.warn("Initialize modal: skip sticky footer");
+      } else {
+        this.setupScrollEvent(modalContent, stickyFooter);
+      }
+      this.initialized = true;
+    }
+    static {
+      this.select = attributeselector_default("data-modal-element");
+    }
+    getModalContent() {
+      return this.component.querySelector(_Modal.select("scroll"));
+    }
+    getStickyFooter() {
+      return this.component.querySelector(_Modal.select("sticky-bottom"));
+    }
+    setupScrollEvent(modalContent, stickyFooter) {
+      modalContent.addEventListener("scroll", () => {
+        const { scrollHeight, scrollTop, clientHeight } = modalContent;
+        const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
+        if (isScrolledToBottom) {
+          stickyFooter.classList.remove("modal-scroll-shadow");
+        } else {
+          stickyFooter.classList.add("modal-scroll-shadow");
+        }
+      });
+    }
+    showComponent() {
+      this.component.style.removeProperty("display");
+      this.component.classList.remove("is-closed");
+      this.component.dataset.state = "open";
+    }
+    hideComponent() {
+      this.component.classList.add("is-closed");
+      this.component.dataset.state = "closed";
+      setTimeout(() => {
+        this.component.style.display = "none";
+      }, 500);
+    }
+    /**
+     * Opens the modal instance.
+     *
+     * This method calls the `showComponent` method and locks the scroll of the document body.
+     */
+    open() {
+      this.showComponent();
+      lockBodyScroll();
+    }
+    /**
+     * Closes the modal instance.
+     *
+     * This method calls the `hideComponent` method and unlocks the scroll of the document body.
+     */
+    close() {
+      unlockBodyScroll();
+      this.hideComponent();
+    }
+    addCustomAction(action) {
+    }
+  };
+
   // src/ts/sanavita-form.ts
   var stepsElementSelector = attributeselector_default("data-steps-element");
   var stepsTargetSelector = attributeselector_default("data-step-target");
   var stepsNavSelector = attributeselector_default("data-steps-nav");
-  var modalSelector2 = attributeselector_default("data-modal-element");
   var personSelector = attributeselector_default("data-person-element");
   var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
@@ -2478,72 +2554,6 @@
       deserializeFieldGroup(data.secondaryRelative)
     );
   }
-  var Modal = class {
-    constructor(component) {
-      this.initialized = false;
-      if (!component) {
-        throw new Error(`The passed component doesn't exist.`);
-      }
-      this.component = component;
-      const modalContent = this.getModalContent();
-      const stickyFooter = this.getStickyFooter();
-      if (!modalContent || !stickyFooter) {
-        console.warn("Initialize modal: skip sticky footer");
-      } else {
-        this.setupScrollEvent(modalContent, stickyFooter);
-      }
-      this.initialized = true;
-    }
-    getModalContent() {
-      return this.component.querySelector(modalSelector2("scroll"));
-    }
-    getStickyFooter() {
-      return this.component.querySelector(modalSelector2("sticky-bottom"));
-    }
-    setupScrollEvent(modalContent, stickyFooter) {
-      modalContent.addEventListener("scroll", () => {
-        const { scrollHeight, scrollTop, clientHeight } = modalContent;
-        const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
-        if (isScrolledToBottom) {
-          stickyFooter.classList.remove("modal-scroll-shadow");
-        } else {
-          stickyFooter.classList.add("modal-scroll-shadow");
-        }
-      });
-    }
-    showComponent() {
-      this.component.style.removeProperty("display");
-      this.component.classList.remove("is-closed");
-      this.component.dataset.state = "open";
-    }
-    hideComponent() {
-      this.component.classList.add("is-closed");
-      this.component.dataset.state = "closed";
-      setTimeout(() => {
-        this.component.style.display = "none";
-      }, 500);
-    }
-    /**
-     * Opens the modal instance.
-     *
-     * This method calls the `showComponent` method and locks the scroll of the document body.
-     */
-    open() {
-      this.showComponent();
-      lockBodyScroll();
-    }
-    /**
-     * Closes the modal instance.
-     *
-     * This method calls the `hideComponent` method and unlocks the scroll of the document body.
-     */
-    close() {
-      unlockBodyScroll();
-      this.hideComponent();
-    }
-    addCustomAction(action) {
-    }
-  };
   var FormModal = class extends Modal {
   };
   var FormArray = class {
@@ -3302,12 +3312,6 @@ Component:`,
         console.warn(`No matching option for value: ${wohnungValue}`);
       }
     }
-  }
-  function lockBodyScroll() {
-    document.body.style.overflow = "hidden";
-  }
-  function unlockBodyScroll() {
-    document.body.style.removeProperty("overflow");
   }
   var formElement = document.querySelector(
     formElementSelector("component")
