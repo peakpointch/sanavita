@@ -1,8 +1,8 @@
 import type {
+  InputSelectorList,
   Webflow,
   WebflowClassNames,
   WebflowSelectors,
-  WebflowFormQuery,
 } from "~/types/webflow";
 
 // Webflow environment
@@ -13,41 +13,37 @@ const pageId: string = document.documentElement.dataset.wfPage || "";
 export const wfclass: WebflowClassNames = {
   input: "w-input",
   select: "w-select",
+  wradio: "w-radio",
   radio: "w-radio-input",
+  wcheckbox: "w-checkbox",
   checkbox: "w-checkbox-input",
   checked: "w--redirected-checked",
 };
 
+const inputSelectorList: InputSelectorList = [
+  `.${wfclass.input}`,
+  `.${wfclass.select}`,
+  `.${wfclass.wradio} input[type="radio"]`,
+  `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
+];
+
 export const wfselect: WebflowSelectors = {
   input: `.${wfclass.input}`,
   select: `.${wfclass.select}`,
+  wradio: `.${wfclass.wradio}`,
   radio: `.${wfclass.radio}`,
+  wcheckbox: `.${wfclass.wcheckbox}`,
   checkbox: `.${wfclass.checkbox}`,
   checked: `.${wfclass.checked}`,
+  formInput: inputSelectorList.join(", "),
+  radioInput: `.${wfclass.wradio} input[type="radio"]`,
+  checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
+  inputSelectorList: inputSelectorList,
 };
 
-const inputSelectorList: string[] = [
-  wfselect.input,
-  wfselect.select,
-  '.w-radio input[type="radio"]',
-  `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`,
-];
-
-export const wfform: WebflowFormQuery = {
-  form: "form",
-  checkbox: `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`,
-  radio: '.w-radio input[type="radio"]',
-  select: wfselect.select,
-  inputOnly: wfselect.input,
-  inputSelectorList,
-  input: inputSelectorList.join(", "),
-};
-
-// You can assign these from env, config, or inject later
 export const wf: Webflow = {
-  siteId: "your-site-id", // ideally replaced at runtime
-  pageId: "your-page-id", // ideally replaced at runtime
+  siteId,
+  pageId,
   class: wfclass,
-  query: wfselect,
-  formQuery: wfform,
+  select: wfselect,
 };
