@@ -32181,41 +32181,57 @@ Page:`, page);
     }
   };
 
-  // library/form/form.ts
+  // library/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
-  var W_CHECKBOX_CLASS = ".w-checkbox-input";
-  var W_INPUT = ".w-input";
-  var W_SELECT = ".w-select";
+  var wfclass = {
+    input: "w-input",
+    select: "w-select",
+    radio: "w-radio-input",
+    checkbox: "w-checkbox-input",
+    checked: "w--redirected-checked"
+  };
+  var wfselect = {
+    input: `.${wfclass.input}`,
+    select: `.${wfclass.select}`,
+    radio: `.${wfclass.radio}`,
+    checkbox: `.${wfclass.checkbox}`,
+    checked: `.${wfclass.checked}`
+  };
+  var inputSelectorList = [
+    wfselect.input,
+    wfselect.select,
+    '.w-radio input[type="radio"]',
+    `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`
+  ];
+  var wfform = {
+    form: "form",
+    checkbox: `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`,
+    radio: '.w-radio input[type="radio"]',
+    select: wfselect.select,
+    inputOnly: wfselect.input,
+    inputSelectorList,
+    input: inputSelectorList.join(", ")
+  };
+  var wf = {
+    siteId: "your-site-id",
+    // ideally replaced at runtime
+    pageId: "your-page-id",
+    // ideally replaced at runtime
+    class: wfclass,
+    query: wfselect,
+    formQuery: wfform
+  };
+
+  // library/form/form.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
-  var FORM_SELECTOR = "form";
-  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
-  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
-  var FORM_INPUT_SELECTOR_LIST = [
-    W_INPUT,
-    W_SELECT,
-    RADIO_INPUT_SELECTOR,
-    CHECKBOX_INPUT_SELECTOR
-  ];
-  var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
-  var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
   function isRadioInput(input) {
     return input instanceof HTMLInputElement && input.type === "radio";
   }
   function isCheckboxInput(input) {
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
-  var formQuery2 = {
-    form: FORM_SELECTOR,
-    checkbox: CHECKBOX_INPUT_SELECTOR,
-    radio: RADIO_INPUT_SELECTOR,
-    select: W_SELECT,
-    input: FORM_INPUT_SELECTOR,
-    inputOnly: W_INPUT,
-    inputSelectorList: FORM_INPUT_SELECTOR_LIST,
-    filters: FORM_FILTERS_SELECTOR
-  };
 
   // library/form/formfield.ts
   var FormField = class {
@@ -32309,7 +32325,7 @@ Page:`, page);
         event.preventDefault();
       });
       this.container = container;
-      this.filterFields = container.querySelectorAll(formQuery2.input);
+      this.filterFields = container.querySelectorAll(wf.formQuery.input);
       this.actionElements = container.querySelectorAll(actionSelector());
       this.attachChangeListeners();
     }

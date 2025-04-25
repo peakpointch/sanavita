@@ -44,27 +44,51 @@
   };
   var attributeselector_default = createAttribute;
 
-  // library/form/form.ts
+  // library/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
-  var W_CHECKBOX_CLASS = ".w-checkbox-input";
-  var W_RADIO_CLASS = ".w-radio-input";
-  var W_CHECKED_CLASS = "w--redirected-checked";
-  var W_INPUT = ".w-input";
-  var W_SELECT = ".w-select";
+  var wfclass = {
+    input: "w-input",
+    select: "w-select",
+    radio: "w-radio-input",
+    checkbox: "w-checkbox-input",
+    checked: "w--redirected-checked"
+  };
+  var wfselect = {
+    input: `.${wfclass.input}`,
+    select: `.${wfclass.select}`,
+    radio: `.${wfclass.radio}`,
+    checkbox: `.${wfclass.checkbox}`,
+    checked: `.${wfclass.checked}`
+  };
+  var inputSelectorList = [
+    wfselect.input,
+    wfselect.select,
+    '.w-radio input[type="radio"]',
+    `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`
+  ];
+  var wfform = {
+    form: "form",
+    checkbox: `.w-checkbox input[type="checkbox"]:not(${wfselect.checkbox})`,
+    radio: '.w-radio input[type="radio"]',
+    select: wfselect.select,
+    inputOnly: wfselect.input,
+    inputSelectorList,
+    input: inputSelectorList.join(", ")
+  };
+  var wf = {
+    siteId: "your-site-id",
+    // ideally replaced at runtime
+    pageId: "your-page-id",
+    // ideally replaced at runtime
+    class: wfclass,
+    query: wfselect,
+    formQuery: wfform
+  };
+
+  // library/form/form.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
-  var FORM_SELECTOR = "form";
-  var CHECKBOX_INPUT_SELECTOR = `.w-checkbox input[type="checkbox"]:not(${W_CHECKBOX_CLASS})`;
-  var RADIO_INPUT_SELECTOR = '.w-radio input[type="radio"]';
-  var FORM_INPUT_SELECTOR_LIST = [
-    W_INPUT,
-    W_SELECT,
-    RADIO_INPUT_SELECTOR,
-    CHECKBOX_INPUT_SELECTOR
-  ];
-  var FORM_INPUT_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(", ");
-  var FORM_FILTERS_SELECTOR = FORM_INPUT_SELECTOR_LIST.join(`${filterFormSelector("field")}, `);
   function isRadioInput(input) {
     return input instanceof HTMLInputElement && input.type === "radio";
   }
@@ -72,7 +96,7 @@
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
   async function sendFormData(formData) {
-    const url = `https://webflow.com/api/v1/form/${siteId}`;
+    const url = `https://webflow.com/api/v1/form/${wf.siteId}`;
     const request = {
       method: "POST",
       headers: {
@@ -95,12 +119,12 @@
   }
   function clearRadioGroup(container, name) {
     container.querySelectorAll(
-      `${RADIO_INPUT_SELECTOR}[name="${name}"]`
+      `${wf.formQuery.radio}[name="${name}"]`
     ).forEach((radio) => {
       radio.checked = false;
-      const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+      const customRadio = radio.closest(".w-radio")?.querySelector(wf.query.radio);
       if (customRadio) {
-        customRadio.classList.remove(W_CHECKED_CLASS);
+        customRadio.classList.remove(wf.class.checked);
       }
     });
   }
@@ -109,15 +133,15 @@
     const focusVisibleClass = "w--redirected-focus-visible";
     const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
     const inputTypes = [
-      ["checkbox", W_CHECKBOX_CLASS],
-      ["radio", W_RADIO_CLASS]
+      ["checkbox", wf.query.checkbox],
+      ["radio", wf.query.radio]
     ];
-    container.querySelectorAll(CHECKBOX_INPUT_SELECTOR).forEach((input) => {
+    container.querySelectorAll(wf.formQuery.checkbox).forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target;
-        const customCheckbox = target.closest(".w-checkbox")?.querySelector(W_CHECKBOX_CLASS);
+        const customCheckbox = target.closest(".w-checkbox")?.querySelector(wf.query.checkbox);
         if (customCheckbox) {
-          customCheckbox.classList.toggle(W_CHECKED_CLASS, target.checked);
+          customCheckbox.classList.toggle(wf.class.checked, target.checked);
         }
       });
     });
@@ -129,14 +153,14 @@
         container.querySelectorAll(
           `input[type="radio"][name="${name}"]`
         ).forEach((radio) => {
-          const customRadio = radio.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+          const customRadio = radio.closest(".w-radio")?.querySelector(wf.query.radio);
           if (customRadio) {
-            customRadio.classList.remove(W_CHECKED_CLASS);
+            customRadio.classList.remove(wf.class.checked);
           }
         });
-        const selectedCustomRadio = target.closest(".w-radio")?.querySelector(W_RADIO_CLASS);
+        const selectedCustomRadio = target.closest(".w-radio")?.querySelector(wf.query.radio);
         if (selectedCustomRadio) {
-          selectedCustomRadio.classList.add(W_CHECKED_CLASS);
+          selectedCustomRadio.classList.add(wf.class.checked);
         }
       });
     });
@@ -174,12 +198,12 @@
           input.reportValidity();
           input.classList.add("has-error");
           if (isCheckboxInput(input)) {
-            input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.add("has-error");
+            input.parentElement?.querySelector(wf.query.checkbox)?.classList.add("has-error");
           }
           input.addEventListener("change", () => {
             input.classList.remove("has-error");
             if (isCheckboxInput(input)) {
-              input.parentElement?.querySelector(W_CHECKBOX_CLASS)?.classList.remove("has-error");
+              input.parentElement?.querySelector(wf.query.checkbox)?.classList.remove("has-error");
             }
           }, { once: true });
           invalidField = input;
@@ -191,20 +215,6 @@
     }
     return { valid, invalidField };
   }
-  var wf = {
-    siteId,
-    pageId
-  };
-  var formQuery2 = {
-    form: FORM_SELECTOR,
-    checkbox: CHECKBOX_INPUT_SELECTOR,
-    radio: RADIO_INPUT_SELECTOR,
-    select: W_SELECT,
-    input: FORM_INPUT_SELECTOR,
-    inputOnly: W_INPUT,
-    inputSelectorList: FORM_INPUT_SELECTOR_LIST,
-    filters: FORM_FILTERS_SELECTOR
-  };
 
   // library/parameterize.ts
   function parameterize(text) {
@@ -2595,7 +2605,7 @@
       this.template = this.list.querySelector(personSelector("template"));
       this.addButton = this.container.querySelector(personSelector("add"));
       this.formMessage = new FormMessage("FormArray", this.id.toString());
-      this.modalForm = document.querySelector(formQuery2.form);
+      this.modalForm = document.querySelector(wf.formQuery.form);
       this.modalElement = document.querySelector(
         formElementSelector("modal") + `[data-modal-for="person"]`
       );
@@ -2604,7 +2614,7 @@
       this.cancelButtons = this.modalElement.querySelectorAll(
         personSelector("cancel")
       );
-      this.modalInputs = this.modalElement.querySelectorAll(formQuery2.input);
+      this.modalInputs = this.modalElement.querySelectorAll(wf.formQuery.input);
       this.groupElements = this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
       this.initialize();
     }
@@ -2759,7 +2769,7 @@
     }
     populateModal(person) {
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(formQuery2.input);
+        const groupInputs = group.querySelectorAll(wf.formQuery.input);
         const groupName = group.dataset.personDataGroup;
         groupInputs.forEach((input) => {
           const field = person[groupName].getField(input.id);
@@ -2856,7 +2866,7 @@
       });
     }
     validateModal(report = true) {
-      const allModalFields = this.modalElement.querySelectorAll(formQuery2.input);
+      const allModalFields = this.modalElement.querySelectorAll(wf.formQuery.input);
       const { valid, invalidField } = validateFields2(allModalFields, report);
       if (valid === true) {
         return true;
@@ -2908,7 +2918,7 @@
     extractData() {
       const personData = new Person();
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(formQuery2.input);
+        const groupInputs = group.querySelectorAll(wf.formQuery.input);
         const groupName = group.dataset.personDataGroup;
         if (!personData[groupName]) {
           console.error(`The group "${groupName}" doesn't exist.`);
@@ -2978,7 +2988,7 @@
       this.currentStep = 0;
       this.customComponents = [];
       this.component = component;
-      this.formElement = this.component.querySelector(formQuery2.form);
+      this.formElement = this.component.querySelector(wf.formQuery.form);
       this.options = options;
       if (!this.formElement) {
         throw new Error("Form element not found within the specified component.");
@@ -3105,7 +3115,7 @@ Component:`,
       this.formSteps.forEach((step, index) => {
         step.dataset.stepId = index.toString();
         step.classList.toggle("hide", index !== this.currentStep);
-        step.querySelectorAll(formQuery2.input).forEach((input) => {
+        step.querySelectorAll(wf.formQuery.input).forEach((input) => {
           input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
               event.preventDefault();
@@ -3220,7 +3230,7 @@ Component:`,
     validateCurrentStep(step) {
       const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
       const currentStepElement = this.formSteps[step];
-      const inputs = currentStepElement.querySelectorAll(formQuery2.input);
+      const inputs = currentStepElement.querySelectorAll(wf.formQuery.input);
       const filteredInputs = Array.from(inputs).filter((input) => {
         const isExcluded = this.options.excludeInputSelectors.some(
           (selector) => {
@@ -3244,7 +3254,7 @@ Component:`,
     getFormDataForStep(step) {
       let fields = /* @__PURE__ */ new Map();
       const stepElement = this.formSteps[step];
-      const stepInputs = stepElement.querySelectorAll(formQuery2.input);
+      const stepInputs = stepElement.querySelectorAll(wf.formQuery.input);
       stepInputs.forEach((input, inputIndex) => {
         const entry = fieldFromInput(input, inputIndex);
         if (entry?.id) {
