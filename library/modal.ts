@@ -1,6 +1,6 @@
 import createAttribute from "./attributeselector";
 
-type ModalElement = 'modal' | 'open' | 'close' | 'scroll' | 'sticky-top' | 'sticky-bottom';
+type ModalElement = 'component' | 'modal' | 'open' | 'close' | 'scroll' | 'sticky-top' | 'sticky-bottom';
 type ModalAnimationType = 'fade' | 'slideUp' | 'custom' | 'none';
 
 interface ModalAnimation {
@@ -29,15 +29,17 @@ export const defaultModalSettings: ModalSettings = {
 
 export default class Modal {
   public component: HTMLElement;
+  public modal: HTMLElement;
   public initialized: boolean = false;
   public settings: ModalSettings;
 
   constructor(component: HTMLElement | null, settings: Partial<ModalSettings> = {}) {
     if (!component) {
-      throw new Error(`The component's HTMLElement cannot be undefined.`);
+      throw new Error(`The component HTMLElement cannot be undefined.`);
     }
     this.component = component;
     this.settings = deepMerge(defaultModalSettings, settings);
+    this.modal = this.getModalElement();
 
     // accessibility
     this.component.setAttribute('role', 'dialog');
@@ -46,10 +48,27 @@ export default class Modal {
     this.setInitialState();
     this.setupStickyFooter();
 
+    if (this.modal === this.component) {
+      this.modal = this.component;
+      console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${Modal.select('modal')}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
+    }
+
     this.initialized = true;
   }
 
   public static select = createAttribute<ModalElement>('data-modal-element');
+
+  private getModalElement(): HTMLElement {
+    if (this.component.matches(Modal.select('modal'))) {
+      this.modal = this.component;
+    } else {
+      this.modal = this.component.querySelector(Modal.select('modal'));
+    }
+
+    if (!this.modal) this.modal = this.component;
+
+    return this.modal;
+  }
 
   private setupStickyFooter(): void {
     const modalContent = this.component.querySelector<HTMLElement>(Modal.select('scroll'));
