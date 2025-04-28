@@ -47,7 +47,7 @@ class Renderer {
   }
 
   public render(data: RenderData, canvas: HTMLElement = this.canvas): void {
-    this.clear();
+    this.clear(canvas);
     this._render(data, canvas);
   }
 
