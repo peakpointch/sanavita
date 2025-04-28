@@ -101,7 +101,9 @@ export default class Pdf {
    * @param data Data of type `RenderData`. This data will be given to the Renderer instance to render it.
    */
   public render(data: RenderData): void {
-    this.renderer.render(data);
+    this.pages.forEach(page => {
+      this.renderer.render(data, page);
+    });
   }
 
   /**
