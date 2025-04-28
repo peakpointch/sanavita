@@ -11,6 +11,7 @@ const pageId: string = document.documentElement.dataset.wfPage || "";
 
 // Constants
 export const wfclass: WebflowClassNames = {
+  invisible: "w-condition-invisible",
   input: "w-input",
   select: "w-select",
   wradio: "w-radio",
@@ -28,6 +29,7 @@ const inputSelectorList: InputSelectorList = [
 ];
 
 export const wfselect: WebflowSelectors = {
+  invisible: `.${wfclass.invisible}`,
   input: `.${wfclass.input}`,
   select: `.${wfclass.select}`,
   wradio: `.${wfclass.wradio}`,

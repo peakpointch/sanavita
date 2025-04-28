@@ -1,4 +1,5 @@
 export interface WebflowClassNames {
+  invisible: "w-condition-invisible";
   input: "w-input";
   select: "w-select";
   wradio: "w-radio";
@@ -16,6 +17,7 @@ type InputSelectorList = Array<
 >;
 
 export interface WebflowSelectors {
+  invisible: `.${WebflowClassNames["invisible"]}`;
   input: `.${WebflowClassNames["input"]}`;
   select: `.${WebflowClassNames["select"]}`;
   wradio: `.${WebflowClassNames["wradio"]}`;
