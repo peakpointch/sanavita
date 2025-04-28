@@ -207,6 +207,10 @@ export function validateFields(
   return { valid, invalidField: firstInvalidField };
 }
 
+export function disableWebflowForm(form: HTMLFormElement): void {
+  form?.classList.remove("w-form");
+}
+
 export {
   formElementSelector,
   filterFormSelector,
