@@ -23162,6 +23162,46 @@ var de = {
   }
 };
 
+// library/webflow/webflow.ts
+var siteId = document.documentElement.dataset.wfSite || "";
+var pageId = document.documentElement.dataset.wfPage || "";
+var wfclass = {
+  invisible: "w-condition-invisible",
+  input: "w-input",
+  select: "w-select",
+  wradio: "w-radio",
+  radio: "w-radio-input",
+  wcheckbox: "w-checkbox",
+  checkbox: "w-checkbox-input",
+  checked: "w--redirected-checked"
+};
+var inputSelectorList = [
+  `.${wfclass.input}`,
+  `.${wfclass.select}`,
+  `.${wfclass.wradio} input[type="radio"]`,
+  `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`
+];
+var wfselect = {
+  invisible: `.${wfclass.invisible}`,
+  input: `.${wfclass.input}`,
+  select: `.${wfclass.select}`,
+  wradio: `.${wfclass.wradio}`,
+  radio: `.${wfclass.radio}`,
+  wcheckbox: `.${wfclass.wcheckbox}`,
+  checkbox: `.${wfclass.checkbox}`,
+  checked: `.${wfclass.checked}`,
+  formInput: inputSelectorList.join(", "),
+  radioInput: `.${wfclass.wradio} input[type="radio"]`,
+  checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
+  inputSelectorList
+};
+var wf = {
+  siteId,
+  pageId,
+  class: wfclass,
+  select: wfselect
+};
+
 // library/renderer.ts
 var Renderer = class _Renderer {
   constructor(canvas, attributeName = "render") {
@@ -23178,7 +23218,7 @@ var Renderer = class _Renderer {
     this.emptyStateAttr = `data-${attributeName}-empty-state`;
   }
   render(data, canvas = this.canvas) {
-    this.clear();
+    this.clear(canvas);
     this._render(data, canvas);
   }
   _render(data, canvas = this.canvas) {
@@ -23363,7 +23403,7 @@ var Renderer = class _Renderer {
       visibility: true
     };
     element.instance = instance || void 0;
-    if (child.closest(`.w-condition-invisible`)) {
+    if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
       element.visibility = false;
     } else {
       element.visibility = true;
@@ -23390,7 +23430,7 @@ var Renderer = class _Renderer {
       visibility: true
     };
     field.instance = instance || void 0;
-    if (child.closest(`.w-condition-invisible`)) {
+    if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
       field.visibility = false;
     } else {
       field.visibility = true;
@@ -31812,7 +31852,9 @@ var Pdf = class _Pdf {
    * @param data Data of type `RenderData`. This data will be given to the Renderer instance to render it.
    */
   render(data) {
-    this.renderer.render(data);
+    this.pages.forEach((page) => {
+      this.renderer.render(data, page);
+    });
   }
   /**
    * Scales the PDF to the given value.

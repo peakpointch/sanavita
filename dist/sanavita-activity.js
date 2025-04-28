@@ -23295,6 +23295,46 @@
     }
   };
 
+  // library/webflow/webflow.ts
+  var siteId = document.documentElement.dataset.wfSite || "";
+  var pageId = document.documentElement.dataset.wfPage || "";
+  var wfclass = {
+    invisible: "w-condition-invisible",
+    input: "w-input",
+    select: "w-select",
+    wradio: "w-radio",
+    radio: "w-radio-input",
+    wcheckbox: "w-checkbox",
+    checkbox: "w-checkbox-input",
+    checked: "w--redirected-checked"
+  };
+  var inputSelectorList = [
+    `.${wfclass.input}`,
+    `.${wfclass.select}`,
+    `.${wfclass.wradio} input[type="radio"]`,
+    `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`
+  ];
+  var wfselect = {
+    invisible: `.${wfclass.invisible}`,
+    input: `.${wfclass.input}`,
+    select: `.${wfclass.select}`,
+    wradio: `.${wfclass.wradio}`,
+    radio: `.${wfclass.radio}`,
+    wcheckbox: `.${wfclass.wcheckbox}`,
+    checkbox: `.${wfclass.checkbox}`,
+    checked: `.${wfclass.checked}`,
+    formInput: inputSelectorList.join(", "),
+    radioInput: `.${wfclass.wradio} input[type="radio"]`,
+    checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
+    inputSelectorList
+  };
+  var wf = {
+    siteId,
+    pageId,
+    class: wfclass,
+    select: wfselect
+  };
+
   // library/renderer.ts
   var Renderer = class _Renderer {
     constructor(canvas, attributeName = "render") {
@@ -23311,7 +23351,7 @@
       this.emptyStateAttr = `data-${attributeName}-empty-state`;
     }
     render(data, canvas = this.canvas) {
-      this.clear();
+      this.clear(canvas);
       this._render(data, canvas);
     }
     _render(data, canvas = this.canvas) {
@@ -23496,7 +23536,7 @@
         visibility: true
       };
       element.instance = instance || void 0;
-      if (child.closest(`.w-condition-invisible`)) {
+      if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
         element.visibility = false;
       } else {
         element.visibility = true;
@@ -23523,7 +23563,7 @@
         visibility: true
       };
       field.instance = instance || void 0;
-      if (child.closest(`.w-condition-invisible`)) {
+      if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
         field.visibility = false;
       } else {
         field.visibility = true;
@@ -31945,7 +31985,9 @@
      * @param data Data of type `RenderData`. This data will be given to the Renderer instance to render it.
      */
     render(data) {
-      this.renderer.render(data);
+      this.pages.forEach((page) => {
+        this.renderer.render(data, page);
+      });
     }
     /**
      * Scales the PDF to the given value.
@@ -32093,9 +32135,8 @@ Page:`, page);
       if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
-      this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item") ?? []);
+      this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
       this.renderer = new renderer_default(container, this.rendererName);
-      this.readData();
     }
     log(...args) {
       if (!this.debug) return;
@@ -32179,44 +32220,6 @@ Page:`, page);
       this.log("Filtered Data:", filtered);
       return filtered;
     }
-  };
-
-  // library/webflow/webflow.ts
-  var siteId = document.documentElement.dataset.wfSite || "";
-  var pageId = document.documentElement.dataset.wfPage || "";
-  var wfclass = {
-    input: "w-input",
-    select: "w-select",
-    wradio: "w-radio",
-    radio: "w-radio-input",
-    wcheckbox: "w-checkbox",
-    checkbox: "w-checkbox-input",
-    checked: "w--redirected-checked"
-  };
-  var inputSelectorList = [
-    `.${wfclass.input}`,
-    `.${wfclass.select}`,
-    `.${wfclass.wradio} input[type="radio"]`,
-    `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`
-  ];
-  var wfselect = {
-    input: `.${wfclass.input}`,
-    select: `.${wfclass.select}`,
-    wradio: `.${wfclass.wradio}`,
-    radio: `.${wfclass.radio}`,
-    wcheckbox: `.${wfclass.wcheckbox}`,
-    checkbox: `.${wfclass.checkbox}`,
-    checked: `.${wfclass.checked}`,
-    formInput: inputSelectorList.join(", "),
-    radioInput: `.${wfclass.wradio} input[type="radio"]`,
-    checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
-    inputSelectorList
-  };
-  var wf = {
-    siteId,
-    pageId,
-    class: wfclass,
-    select: wfselect
   };
 
   // library/form/form.ts
@@ -32413,6 +32416,38 @@ Page:`, page);
       this.globalChangeActions.forEach((action) => action(filters, targetId));
     }
     /**
+     * Simulate an onChange event and invoke change actions for specified fields.
+     * @param fields - An array of field IDs OR '*' for all fields.
+     */
+    invokeOnChange(fields) {
+      let invokedBy;
+      let filters = this.getFieldGroup(this.filterFields);
+      if (fields === "*") {
+        invokedBy = "";
+        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
+        filters = this.getFieldGroup(this.filterFields);
+        const done = [];
+        this.fieldChangeActions.forEach((actions) => {
+          actions.forEach((action) => {
+            if (!done.includes(action)) {
+              action(filters, invokedBy);
+              done.push(action);
+            }
+          });
+        });
+      } else {
+        invokedBy = fields.length === 1 ? fields[0] : "";
+        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
+        filters = this.getFieldGroup(this.filterFields);
+        fields.forEach((fieldId) => {
+          invokedBy = fieldId;
+          const actions = this.fieldChangeActions.get(fieldId) || [];
+          actions.forEach((action) => action(filters, invokedBy));
+        });
+      }
+      this.globalChangeActions.forEach((action) => action(filters, invokedBy));
+    }
+    /**
      * Extracts the target ID from an event, whether it's a filter field or an action element.
      */
     getTargetId(event) {
@@ -32425,31 +32460,6 @@ Page:`, page);
         return target.getAttribute("data-action");
       }
       return null;
-    }
-    /**
-     * Simulate an onChange event and invoke change actions for specified fields.
-     * @param fields - An array of field IDs OR '*' for all fields.
-     */
-    invokeOnChange(fields) {
-      let invokedBy;
-      let filters = this.getFieldGroup(this.filterFields);
-      if (fields === "*") {
-        invokedBy = "";
-        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
-        filters = this.getFieldGroup(this.filterFields);
-        this.fieldChangeActions.forEach((actions) => {
-          actions.forEach((action) => action(filters, invokedBy));
-        });
-      } else {
-        invokedBy = fields.length === 1 ? fields[0] : "";
-        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
-        filters = this.getFieldGroup(this.filterFields);
-        fields.forEach((fieldId) => {
-          const actions = this.fieldChangeActions.get(fieldId) || [];
-          actions.forEach((action) => action(filters, invokedBy));
-        });
-      }
-      this.globalChangeActions.forEach((action) => action(filters, invokedBy));
     }
     /**
      * Get the FieldGroup from current form state.
@@ -32863,6 +32873,7 @@ Page:`, page);
     tagActivitySpecial(filterCollectionListElement);
     const pdfStorage = parsePdfLocalStorage();
     const filterCollection = new FilterCollection(filterCollectionListElement, "Aktivit\xE4ten", "pdf");
+    filterCollection.debug = true;
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
@@ -32875,7 +32886,7 @@ Page:`, page);
       filterForm.getFilterInput("startDate").value = format(date, "yyyy-MM-dd");
       filterForm.invokeOnChange(["startDate"]);
     });
-    filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 5));
+    filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 7));
     filterForm.addOnChange(["design"], (filters) => {
       const pages = pdf.getPageWrappers();
       const selectedDesign = filters.getField("design").value;
@@ -32890,10 +32901,7 @@ Page:`, page);
         }
       });
     });
-    filterForm.addOnChange(["save"], () => {
-      filterForm.invokeOnChange(["startDate"]);
-    });
-    filterForm.addOnChange(["startDate", "endDate", "dayRange"], (filters, invokedBy) => {
+    filterForm.addOnChange(["startDate", "endDate", "save"], (filters, invokedBy) => {
       const startDate = parse(filters.getField("startDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
       const endDate = parse(filters.getField("endDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
       cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
