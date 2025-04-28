@@ -156,8 +156,14 @@ export class FilterForm<FieldId extends string = string> {
       this.beforeChangeActions.forEach(action => action(filters, invokedBy));
       filters = this.getFieldGroup(this.filterFields);
       // Invoke all actions
+      const done: FilterAction<FieldId, string>[] = [];
       this.fieldChangeActions.forEach((actions) => {
-        actions.forEach((action) => action(filters, invokedBy));
+        actions.forEach((action) => {
+          if (!done.includes(action)) {
+            action(filters, invokedBy)
+            done.push(action);
+          }
+        });
       });
     } else {
       invokedBy = fields.length === 1 ? fields[0] : "" as FieldId;
@@ -165,6 +171,7 @@ export class FilterForm<FieldId extends string = string> {
       filters = this.getFieldGroup(this.filterFields);
       // Invoke specific actions
       fields.forEach(fieldId => {
+        invokedBy = fieldId;
         const actions = this.fieldChangeActions.get(fieldId) || [];
         actions.forEach((action) => action(filters, invokedBy));
       });
