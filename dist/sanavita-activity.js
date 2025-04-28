@@ -32873,7 +32873,6 @@ Page:`, page);
     tagActivitySpecial(filterCollectionListElement);
     const pdfStorage = parsePdfLocalStorage();
     const filterCollection = new FilterCollection(filterCollectionListElement, "Aktivit\xE4ten", "pdf");
-    filterCollection.debug = true;
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
