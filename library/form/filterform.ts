@@ -144,22 +144,6 @@ export class FilterForm<FieldId extends string = string> {
   }
 
   /**
-   * Extracts the target ID from an event, whether it's a filter field or an action element.
-   */
-  private getTargetId(event: Event): FieldId | null {
-    const target = event.target as HTMLElement;
-    if (!target) return null;
-
-    if (event.type === "input") {
-      return target.id as FieldId;
-    }
-    if (event.type === "click" && target.hasAttribute("data-action")) {
-      return target.getAttribute("data-action") as FieldId;
-    }
-    return null;
-  }
-
-  /**
    * Simulate an onChange event and invoke change actions for specified fields.
    * @param fields - An array of field IDs OR '*' for all fields.
    */
@@ -186,6 +170,22 @@ export class FilterForm<FieldId extends string = string> {
       });
     }
     this.globalChangeActions.forEach((action) => action(filters, invokedBy));
+  }
+
+  /**
+   * Extracts the target ID from an event, whether it's a filter field or an action element.
+   */
+  private getTargetId(event: Event): FieldId | null {
+    const target = event.target as HTMLElement;
+    if (!target) return null;
+
+    if (event.type === "input") {
+      return target.id as FieldId;
+    }
+    if (event.type === "click" && target.hasAttribute("data-action")) {
+      return target.getAttribute("data-action") as FieldId;
+    }
+    return null;
   }
 
   /**
