@@ -20,7 +20,7 @@ class CollectionList {
 
     this.container = container;
     this.listElement = container.querySelector('.w-dyn-items');
-    this.items = Array.from(this.listElement?.querySelectorAll('.w-dyn-item') ?? []);
+    this.items = Array.from(this.listElement?.querySelectorAll('.w-dyn-item:not(.w-dyn-list .w-dyn-list *)') ?? []);
     this.renderer = new Renderer(container, this.rendererName);
 
     // Invoke first read to initialize `this.collectionData`
