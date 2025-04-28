@@ -103,19 +103,24 @@ export default class Modal {
 
   private setInitialState(): void {
     this.component.style.display = 'none';
+    this.component.classList.remove('hide');
     this.hide();
 
     switch (this.settings.animation.type) {
       case 'fade':
         this.component.style.willChange = 'opacity';
         this.component.style.transitionProperty = 'opacity';
-        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`
+        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
         break;
 
       case 'slideUp':
-        this.component.style.willChange = 'opacity, translate';
-        this.component.style.transitionProperty = 'opacity, translate';
-        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`
+        this.component.style.willChange = 'opacity';
+        this.component.style.transitionProperty = 'opacity';
+        this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
+
+        this.modal.style.willChange = 'translate';
+        this.modal.style.transitionProperty = 'translate;'
+        this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
         break;
 
       case 'none':
@@ -125,9 +130,13 @@ export default class Modal {
     this.component.dataset.state = "closed";
   }
 
-  private show(): void {
+  private async show(): Promise<void> {
     this.component.dataset.state = "opening";
     this.component.style.removeProperty('display');
+
+    await new Promise(resolve => setTimeout(resolve, 0));
+    await animationFrame();
+
     switch (this.settings.animation.type) {
       case 'fade':
         this.component.style.opacity = '1';
@@ -135,17 +144,19 @@ export default class Modal {
 
       case 'slideUp':
         this.component.style.opacity = '1';
-        this.component.style.translate = '0px 0vh;'
+        this.modal.style.translate = '0px 0vh';
         break;
 
       default:
         this.component.classList.remove("is-closed");
     }
 
-    this.component.dataset.state = "open";
+    setTimeout(() => {
+      this.component.dataset.state = "open";
+    }, this.settings.animation.duration);
   }
 
-  private hide(): void {
+  private async hide(): Promise<void> {
     this.component.dataset.state = "closing";
     switch (this.settings.animation.type) {
       case 'fade':
@@ -154,17 +165,22 @@ export default class Modal {
 
       case 'slideUp':
         this.component.style.opacity = '0';
-        this.component.style.translate = '0px 20vh';
+        this.modal.style.translate = '0px 10vh';
         break;
 
       default:
         break;
     }
 
-    setTimeout(() => {
-      this.component.style.display = "none";
-    }, this.settings.animation.duration);
-    this.component.dataset.state = "closed";
+    const finish = new Promise<void>(resolve => {
+      setTimeout(() => {
+        this.component.style.display = "none";
+        this.component.dataset.state = "closed";
+        resolve();
+      }, this.settings.animation.duration);
+    });
+
+    await finish;
   }
 
   /**
@@ -212,6 +228,10 @@ function lockBodyScroll(): void {
  */
 function unlockBodyScroll(): void {
   document.body.style.removeProperty("overflow");
+}
+
+function animationFrame(): Promise<void> {
+  return new Promise(resolve => requestAnimationFrame(() => resolve()));
 }
 
 /**
