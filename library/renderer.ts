@@ -2,6 +2,7 @@ import createAttribute from "@library/attributeselector";
 import { toCamelCase } from "./parameterize";
 import { format, parse } from "date-fns";
 import { de } from "date-fns/locale";
+import wf from "./webflow";
 
 type VisibilityControl = boolean | 'emptyState';
 type UnparsedBoolean<T> = Exclude<T, boolean> | "true" | "false";
@@ -270,7 +271,7 @@ class Renderer {
     };
 
     element.instance = instance || undefined;
-    if (child.closest(`.w-condition-invisible`)) {
+    if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
       element.visibility = false;
     } else {
       element.visibility = true;
@@ -305,7 +306,7 @@ class Renderer {
     };
 
     field.instance = instance || undefined;
-    if (child.closest(`.w-condition-invisible`)) {
+    if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
       field.visibility = false;
     } else {
       field.visibility = true;
