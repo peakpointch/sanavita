@@ -9,6 +9,7 @@ import { CalendarweekComponent, FilterForm, filterFormSelector } from '@library/
 import createAttribute from '@library/attributeselector';
 import { addDays, startOfWeek, format, getWeek, addWeeks, getYear, WeekOptions, startOfISOWeek, StartOfWeekOptions, parse, addMinutes, getISOWeekYear, getISOWeek } from 'date-fns';
 import { de } from 'date-fns/locale';
+import wf from '@library/webflow';
 
 // Types
 type ActionElement = 'download' | 'save';
@@ -124,6 +125,20 @@ function getStartDateFormat(startDate: Date, endDate: Date): string {
   return formatString;
 }
 
+function prepareHideCategories(drinksCollection: FilterCollection): void {
+  drinksCollection.getItems().forEach(item => {
+    const conditional = item.querySelector(`[hide-categories]`);
+
+    if (conditional.classList.contains(wf.class.invisible)) return;
+
+    const categories = item.querySelectorAll(
+      '[data-pdf-field="category"], [data-pdf-field="categoryOnly"], [data-pdf-field="subCategory"]'
+    );
+
+    categories.forEach(element => element.classList.add(wf.class.invisible));
+  });
+}
+
 function initialize(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('daily'));
   const drinkLists_collectionListElement = document.querySelector<HTMLElement>(wfCollectionSelector('drink-lists'));
@@ -146,6 +161,7 @@ function initialize(): void {
 
   // Initialize drink-lists collection list
   const drinksCollection = new FilterCollection(drinkLists_collectionListElement, 'Getränke', 'pdf');
+  prepareHideCategories(drinksCollection);
   drinksCollection.renderer.addFilterAttributes({ 'start-date': 'date', 'end-date': 'date' });
   drinksCollection.readData();
 
