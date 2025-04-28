@@ -3,7 +3,7 @@ import wf from "@library/webflow";
 
 // Types
 type HTMLFormInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
-type Validator = () => boolean;
+type CustomValidator = () => boolean;
 type FormComponentElement = 'component' | 'success' | 'error' | 'submit' | 'modal';
 type FilterFormElement = 'component' | 'field';
 
@@ -212,4 +212,4 @@ export {
   filterFormSelector,
 }
 
-export type { HTMLFormInput, FormComponentElement, Validator };
+export type { HTMLFormInput, FormComponentElement, CustomValidator };

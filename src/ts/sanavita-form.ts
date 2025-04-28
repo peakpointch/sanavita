@@ -11,7 +11,7 @@ import {
   fieldFromInput
 } from "@library/form";
 import { wf } from "@library/webflow";
-import { HTMLFormInput, Validator } from "@library/form";
+import { HTMLFormInput, CustomValidator } from "@library/form";
 import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@library/form";
 import Accordion from "@library/accordion";
 import Modal from "@library/modal";
@@ -35,7 +35,7 @@ interface MultiStepFormOptions extends FormOptions {
 type CustomFormComponent = {
   step: number;
   instance: any;
-  validator: Validator;
+  validator: CustomValidator;
   getData?: () => {};
 };
 type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination';
@@ -1102,7 +1102,7 @@ class MultiStepForm {
       return valid;
     }
 
-    const customValidators: Validator[] = this.customComponents
+    const customValidators: CustomValidator[] = this.customComponents
       .filter((entry) => entry.step === step)
       .map((entry) => () => entry.validator());
 
