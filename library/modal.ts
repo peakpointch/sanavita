@@ -13,6 +13,7 @@ interface ModalSettings {
   animation: ModalAnimation;
   stickyFooter: boolean;
   stickyHeader: boolean;
+  lockBodyScroll: boolean;
 }
 
 export const defaultModalAnimation: ModalAnimation = {
@@ -25,6 +26,7 @@ export const defaultModalSettings: ModalSettings = {
   animation: defaultModalAnimation,
   stickyFooter: false,
   stickyHeader: false,
+  lockBodyScroll: true,
 }
 
 export default class Modal {
@@ -172,7 +174,9 @@ export default class Modal {
    */
   public open() {
     this.show();
-    lockBodyScroll();
+    if (this.settings.lockBodyScroll) {
+      lockBodyScroll();
+    }
   }
 
   /**
@@ -181,7 +185,9 @@ export default class Modal {
    * This method calls the `hide` method and unlocks the scroll of the document body.
    */
   public close() {
-    unlockBodyScroll();
+    if (this.settings.lockBodyScroll) {
+      unlockBodyScroll();
+    }
     this.hide();
   }
 }
