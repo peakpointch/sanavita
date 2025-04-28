@@ -169,7 +169,7 @@ function initialize(): void {
   });
 
   //filterCollection.debug = true;
-  filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate', 5));
+  filterForm.addBeforeChange(() => filterForm.validateDateRange('startDate', 'endDate', 7));
 
   filterForm.addOnChange(['design'], (filters) => {
     const pages = pdf.getPageWrappers();
@@ -186,11 +186,7 @@ function initialize(): void {
     });
   });
 
-  filterForm.addOnChange(['save'], () => {
-    filterForm.invokeOnChange(['startDate']);
-  });
-
-  filterForm.addOnChange(['startDate', 'endDate', 'dayRange'], (filters, invokedBy) => {
+  filterForm.addOnChange(['startDate', 'endDate', 'save'], (filters, invokedBy) => {
     // Get FilterForm values
     const startDate = parse(filters.getField('startDate').value, 'yyyy-MM-dd', new Date());
     const endDate = parse(filters.getField('endDate').value, 'yyyy-MM-dd', new Date());
