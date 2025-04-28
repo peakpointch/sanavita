@@ -3902,6 +3902,46 @@
     }
   };
 
+  // library/webflow/webflow.ts
+  var siteId = document.documentElement.dataset.wfSite || "";
+  var pageId = document.documentElement.dataset.wfPage || "";
+  var wfclass = {
+    invisible: "w-condition-invisible",
+    input: "w-input",
+    select: "w-select",
+    wradio: "w-radio",
+    radio: "w-radio-input",
+    wcheckbox: "w-checkbox",
+    checkbox: "w-checkbox-input",
+    checked: "w--redirected-checked"
+  };
+  var inputSelectorList = [
+    `.${wfclass.input}`,
+    `.${wfclass.select}`,
+    `.${wfclass.wradio} input[type="radio"]`,
+    `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`
+  ];
+  var wfselect = {
+    invisible: `.${wfclass.invisible}`,
+    input: `.${wfclass.input}`,
+    select: `.${wfclass.select}`,
+    wradio: `.${wfclass.wradio}`,
+    radio: `.${wfclass.radio}`,
+    wcheckbox: `.${wfclass.wcheckbox}`,
+    checkbox: `.${wfclass.checkbox}`,
+    checked: `.${wfclass.checked}`,
+    formInput: inputSelectorList.join(", "),
+    radioInput: `.${wfclass.wradio} input[type="radio"]`,
+    checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
+    inputSelectorList
+  };
+  var wf = {
+    siteId,
+    pageId,
+    class: wfclass,
+    select: wfselect
+  };
+
   // library/renderer.ts
   var Renderer = class _Renderer {
     constructor(canvas, attributeName = "render") {
@@ -3918,7 +3958,7 @@
       this.emptyStateAttr = `data-${attributeName}-empty-state`;
     }
     render(data, canvas = this.canvas) {
-      this.clear();
+      this.clear(canvas);
       this._render(data, canvas);
     }
     _render(data, canvas = this.canvas) {
@@ -4103,7 +4143,7 @@
         visibility: true
       };
       element.instance = instance || void 0;
-      if (child.closest(`.w-condition-invisible`)) {
+      if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
         element.visibility = false;
       } else {
         element.visibility = true;
@@ -4130,7 +4170,7 @@
         visibility: true
       };
       field.instance = instance || void 0;
-      if (child.closest(`.w-condition-invisible`)) {
+      if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
         field.visibility = false;
       } else {
         field.visibility = true;
@@ -4297,9 +4337,8 @@
       if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
-      this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item") ?? []);
+      this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
       this.renderer = new renderer_default(container, this.rendererName);
-      this.readData();
     }
     log(...args) {
       if (!this.debug) return;
