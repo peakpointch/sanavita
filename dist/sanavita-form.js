@@ -48,6 +48,7 @@
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
+    invisible: "w-condition-invisible",
     input: "w-input",
     select: "w-select",
     wradio: "w-radio",
@@ -63,6 +64,7 @@
     `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`
   ];
   var wfselect = {
+    invisible: `.${wfclass.invisible}`,
     input: `.${wfclass.input}`,
     select: `.${wfclass.select}`,
     wradio: `.${wfclass.wradio}`,
@@ -190,12 +192,17 @@
     if (isCheckboxInput(input)) {
       input.parentElement?.querySelector(wf.select.checkbox)?.classList.add("has-error");
     }
-    input.addEventListener("change", () => {
+    const removeErrorClasses = () => {
       input.classList.remove("has-error");
       if (isCheckboxInput(input)) {
         input.parentElement?.querySelector(wf.select.checkbox)?.classList.remove("has-error");
       }
-    }, { once: true });
+    };
+    if (input.type !== "checkbox" && input.type !== "radio") {
+      input.addEventListener("input", () => removeErrorClasses(), { once: true });
+    } else {
+      input.addEventListener("change", () => removeErrorClasses(), { once: true });
+    }
   }
   function validateFields(inputs, report = true) {
     let valid = true;
@@ -2435,24 +2442,39 @@
   var defaultModalSettings = {
     animation: defaultModalAnimation,
     stickyFooter: false,
-    stickyHeader: false
+    stickyHeader: false,
+    lockBodyScroll: true
   };
   var Modal = class _Modal {
     constructor(component, settings = {}) {
       this.initialized = false;
       if (!component) {
-        throw new Error(`The component's HTMLElement cannot be undefined.`);
+        throw new Error(`The component HTMLElement cannot be undefined.`);
       }
       this.component = component;
       this.settings = deepMerge(defaultModalSettings, settings);
+      this.modal = this.getModalElement();
       this.component.setAttribute("role", "dialog");
       this.component.setAttribute("aria-modal", "true");
       this.setInitialState();
       this.setupStickyFooter();
+      if (this.modal === this.component) {
+        this.modal = this.component;
+        console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.select("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
+      }
       this.initialized = true;
     }
     static {
       this.select = attributeselector_default("data-modal-element");
+    }
+    getModalElement() {
+      if (this.component.matches(_Modal.select("modal"))) {
+        this.modal = this.component;
+      } else {
+        this.modal = this.component.querySelector(_Modal.select("modal"));
+      }
+      if (!this.modal) this.modal = this.component;
+      return this.modal;
     }
     setupStickyFooter() {
       const modalContent = this.component.querySelector(_Modal.select("scroll"));
@@ -2476,6 +2498,7 @@
     }
     setInitialState() {
       this.component.style.display = "none";
+      this.component.classList.remove("hide");
       this.hide();
       switch (this.settings.animation.type) {
         case "fade":
@@ -2484,32 +2507,39 @@
           this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
           break;
         case "slideUp":
-          this.component.style.willChange = "opacity, translate";
-          this.component.style.transitionProperty = "opacity, translate";
+          this.component.style.willChange = "opacity";
+          this.component.style.transitionProperty = "opacity";
           this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
+          this.modal.style.willChange = "translate";
+          this.modal.style.transitionProperty = "translate;";
+          this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
           break;
         case "none":
           break;
       }
       this.component.dataset.state = "closed";
     }
-    show() {
+    async show() {
       this.component.dataset.state = "opening";
       this.component.style.removeProperty("display");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await animationFrame();
       switch (this.settings.animation.type) {
         case "fade":
           this.component.style.opacity = "1";
           break;
         case "slideUp":
           this.component.style.opacity = "1";
-          this.component.style.translate = "0px 0vh;";
+          this.modal.style.translate = "0px 0vh";
           break;
         default:
           this.component.classList.remove("is-closed");
       }
-      this.component.dataset.state = "open";
+      setTimeout(() => {
+        this.component.dataset.state = "open";
+      }, this.settings.animation.duration);
     }
-    hide() {
+    async hide() {
       this.component.dataset.state = "closing";
       switch (this.settings.animation.type) {
         case "fade":
@@ -2517,15 +2547,19 @@
           break;
         case "slideUp":
           this.component.style.opacity = "0";
-          this.component.style.translate = "0px 20vh";
+          this.modal.style.translate = "0px 10vh";
           break;
         default:
           break;
       }
-      setTimeout(() => {
-        this.component.style.display = "none";
-      }, this.settings.animation.duration);
-      this.component.dataset.state = "closed";
+      const finish = new Promise((resolve) => {
+        setTimeout(() => {
+          this.component.style.display = "none";
+          this.component.dataset.state = "closed";
+          resolve();
+        }, this.settings.animation.duration);
+      });
+      await finish;
     }
     /**
      * Opens the modal instance.
@@ -2534,7 +2568,9 @@
      */
     open() {
       this.show();
-      lockBodyScroll();
+      if (this.settings.lockBodyScroll) {
+        lockBodyScroll();
+      }
     }
     /**
      * Closes the modal instance.
@@ -2542,7 +2578,9 @@
      * This method calls the `hide` method and unlocks the scroll of the document body.
      */
     close() {
-      unlockBodyScroll();
+      if (this.settings.lockBodyScroll) {
+        unlockBodyScroll();
+      }
       this.hide();
     }
   };
@@ -2551,6 +2589,9 @@
   }
   function unlockBodyScroll() {
     document.body.style.removeProperty("overflow");
+  }
+  function animationFrame() {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
   function deepMerge(target, source) {
     const result = { ...target };

@@ -1,4 +1,4 @@
-import { FormComponentElement, HTMLFormInput, Validator } from "@library/form";
+import { FormComponentElement, HTMLFormInput } from "@library/form";
 import { isCheckboxInput, isRadioInput } from "@library/form";
 import { parameterize } from "@library/parameterize";
 
