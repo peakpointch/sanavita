@@ -1,8 +1,8 @@
-function setMarqueeSpeed(track: HTMLElement): number {
+function setMarqueeSpeed(speed: number, track: HTMLElement): number {
   if (!track) return;
 
   const distance = track.offsetWidth;
-  const pixelsPerSecond = 100; // Adjust this value to change the speed
+  const pixelsPerSecond = speed; // Adjust this value to change the speed
   const duration = distance / pixelsPerSecond;
   track.style.animationDuration = `${duration}s`;
   return duration;
@@ -11,6 +11,7 @@ function setMarqueeSpeed(track: HTMLElement): number {
 function handleMarquees(main: HTMLElement): void {
   const allMarquees = main.querySelectorAll<HTMLElement>(`[data-marquee-element="component"]`);
   allMarquees.forEach((marquee) => {
+    const speed = parseInt(marquee.dataset.speed || "100");
     const track = marquee.querySelector<HTMLElement>(`[data-marquee-element="track"]`);
     const slides = Array.from(track.children);
     if (slides.length === 1) {
@@ -22,7 +23,7 @@ function handleMarquees(main: HTMLElement): void {
       return;
     }
 
-    setMarqueeSpeed(track);
+    setMarqueeSpeed(speed, track);
   });
 }
 

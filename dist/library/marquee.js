@@ -1,8 +1,8 @@
 // library/marquee.ts
-function setMarqueeSpeed(track) {
+function setMarqueeSpeed(speed, track) {
   if (!track) return;
   const distance = track.offsetWidth;
-  const pixelsPerSecond = 100;
+  const pixelsPerSecond = speed;
   const duration = distance / pixelsPerSecond;
   track.style.animationDuration = `${duration}s`;
   return duration;
@@ -10,6 +10,7 @@ function setMarqueeSpeed(track) {
 function handleMarquees(main) {
   const allMarquees = main.querySelectorAll(`[data-marquee-element="component"]`);
   allMarquees.forEach((marquee) => {
+    const speed = parseInt(marquee.dataset.speed || "100");
     const track = marquee.querySelector(`[data-marquee-element="track"]`);
     const slides = Array.from(track.children);
     if (slides.length === 1) {
@@ -20,7 +21,7 @@ function handleMarquees(main) {
     } else {
       return;
     }
-    setMarqueeSpeed(track);
+    setMarqueeSpeed(speed, track);
   });
 }
 document.addEventListener("DOMContentLoaded", () => {
