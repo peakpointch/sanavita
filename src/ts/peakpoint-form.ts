@@ -1,4 +1,3 @@
-import createAttribute from "@library/attributeselector";
 import { disableWebflowForm, reportValidity } from "@library/form";
 import { inputSync, syncSelector } from "@library/inputsync";
 import Modal from "@library/modal";
