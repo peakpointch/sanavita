@@ -6,8 +6,6 @@ type FilterAction<T extends string = string, Q extends string = string> = (filte
 type ActionElement = 'download' | 'save';
 type HTMLActionElement = HTMLButtonElement;
 
-const actionSelector = createAttribute<ActionElement>('data-action');
-
 export class FilterForm<FieldId extends string = string> {
   public container: HTMLElement;
   public data: FieldGroup<FieldId>;
@@ -18,6 +16,8 @@ export class FilterForm<FieldId extends string = string> {
   private globalChangeActions: FilterAction<FieldId>[] = []; // Stores wildcard ('*') actions
   private defaultDayRange: number = 7;
   private resizeResetFields: Map<FieldId, () => string | number | Date> = new Map();
+
+  public static select = createAttribute<ActionElement>('data-action');
 
   constructor(container: HTMLElement | null, private fieldIds?: readonly FieldId[]) {
     if (!container) throw new Error(`FilterForm container can't be null`)
@@ -35,7 +35,7 @@ export class FilterForm<FieldId extends string = string> {
 
     this.container = container;
     this.filterFields = container.querySelectorAll<HTMLFormInput>(wf.select.formInput);
-    this.actionElements = container.querySelectorAll<HTMLActionElement>(actionSelector());
+    this.actionElements = container.querySelectorAll<HTMLActionElement>(FilterForm.select());
 
     this.attachChangeListeners();
   }

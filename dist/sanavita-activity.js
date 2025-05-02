@@ -32301,8 +32301,7 @@ Page:`, page);
   };
 
   // library/form/filterform.ts
-  var actionSelector = attributeselector_default("data-action");
-  var FilterForm = class {
+  var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
       this.beforeChangeActions = [];
@@ -32325,8 +32324,11 @@ Page:`, page);
       });
       this.container = container;
       this.filterFields = container.querySelectorAll(wf.select.formInput);
-      this.actionElements = container.querySelectorAll(actionSelector());
+      this.actionElements = container.querySelectorAll(_FilterForm.select());
       this.attachChangeListeners();
+    }
+    static {
+      this.select = attributeselector_default("data-action");
     }
     /**
      * Returns the `HTMLElement` of a specific filter input.
@@ -32786,7 +32788,7 @@ Page:`, page);
   // src/ts/sanavita-activity.ts
   var formatDE = (date, formatStr) => format(date, formatStr, { locale: de });
   var wfCollectionSelector = attributeselector_default("wf-collection");
-  var actionSelector2 = attributeselector_default("data-action");
+  var actionSelector = attributeselector_default("data-action");
   var weekOptions = {
     weekStartsOn: 1
   };
@@ -32937,7 +32939,7 @@ Page:`, page);
     });
     filterForm.applyResizeResets();
     filterForm.invokeOnChange("*");
-    const downloadBtn = document.querySelector(actionSelector2("download"));
+    const downloadBtn = document.querySelector(actionSelector("download"));
     downloadBtn.addEventListener("click", () => {
       const startDate = new Date(filterForm.getFilterInput("startDate").value);
       let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
