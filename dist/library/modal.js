@@ -1,4 +1,15 @@
 // library/attributeselector.ts
+var attrMatchTypes = {
+  startsWith: "^",
+  endsWith: "$",
+  includes: "*",
+  whitespace: "~",
+  hyphen: "|",
+  exact: ""
+};
+function getOperator(type) {
+  return attrMatchTypes[type] || "";
+}
 function exclude(selector, ...exclusions) {
   if (exclusions.length === 0) return selector;
   return selector.split(", ").reduce((acc, str) => {
@@ -16,28 +27,7 @@ var createAttribute = (attrName, options = {
       return exclude(`[${attrName}]`, ...options.exclusions);
     }
     const value = String(name);
-    let selector;
-    switch (type) {
-      case "startsWith":
-        selector = `[${attrName}^="${value}"]`;
-        break;
-      case "endsWith":
-        selector = `[${attrName}$="${value}"]`;
-        break;
-      case "includes":
-        selector = `[${attrName}*="${value}"]`;
-        break;
-      case "whitespace":
-        selector = `[${attrName}~="${value}"]`;
-        break;
-      case "hyphen":
-        selector = `[${attrName}|="${value}"]`;
-        break;
-      case "exact":
-      default:
-        selector = `[${attrName}="${value}"]`;
-        break;
-    }
+    const selector = `[${attrName}${getOperator(type)}="${value}"]`;
     return exclude(selector, ...options.exclusions ?? []);
   };
 };

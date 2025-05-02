@@ -19357,6 +19357,17 @@
   };
 
   // library/attributeselector.ts
+  var attrMatchTypes = {
+    startsWith: "^",
+    endsWith: "$",
+    includes: "*",
+    whitespace: "~",
+    hyphen: "|",
+    exact: ""
+  };
+  function getOperator(type) {
+    return attrMatchTypes[type] || "";
+  }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
     return selector.split(", ").reduce((acc, str) => {
@@ -19374,28 +19385,7 @@
         return exclude(`[${attrName}]`, ...options.exclusions);
       }
       const value = String(name);
-      let selector;
-      switch (type) {
-        case "startsWith":
-          selector = `[${attrName}^="${value}"]`;
-          break;
-        case "endsWith":
-          selector = `[${attrName}$="${value}"]`;
-          break;
-        case "includes":
-          selector = `[${attrName}*="${value}"]`;
-          break;
-        case "whitespace":
-          selector = `[${attrName}~="${value}"]`;
-          break;
-        case "hyphen":
-          selector = `[${attrName}|="${value}"]`;
-          break;
-        case "exact":
-        default:
-          selector = `[${attrName}="${value}"]`;
-          break;
-      }
+      const selector = `[${attrName}${getOperator(type)}="${value}"]`;
       return exclude(selector, ...options.exclusions ?? []);
     };
   };
@@ -32301,8 +32291,7 @@ Page:`, page);
   };
 
   // library/form/filterform.ts
-  var actionSelector = attributeselector_default("data-action");
-  var FilterForm = class {
+  var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
       this.beforeChangeActions = [];
@@ -32325,8 +32314,11 @@ Page:`, page);
       });
       this.container = container;
       this.filterFields = container.querySelectorAll(wf.select.formInput);
-      this.actionElements = container.querySelectorAll(actionSelector());
+      this.actionElements = container.querySelectorAll(_FilterForm.select());
       this.attachChangeListeners();
+    }
+    static {
+      this.select = attributeselector_default("data-action");
     }
     /**
      * Returns the `HTMLElement` of a specific filter input.
@@ -32786,7 +32778,7 @@ Page:`, page);
   // src/ts/sanavita-menuplan.ts
   var formatDE = (date, formatStr) => format(date, formatStr, { locale: de });
   var wfCollectionSelector = attributeselector_default("wf-collection");
-  var actionSelector2 = attributeselector_default("data-action");
+  var actionSelector = attributeselector_default("data-action");
   var weekOptions = {
     weekStartsOn: 1
   };
@@ -32948,7 +32940,7 @@ Page:`, page);
     });
     filterForm.applyResizeResets();
     filterForm.invokeOnChange("*");
-    const downloadBtn = document.querySelector(actionSelector2("download"));
+    const downloadBtn = document.querySelector(actionSelector("download"));
     downloadBtn.addEventListener("click", () => {
       const startDate = new Date(filterForm.data.getField("startDate").value);
       const selectedDesign = filterForm.data.getField("design").value;
