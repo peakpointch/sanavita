@@ -4,30 +4,11 @@ import { inputSync, syncSelector } from "@library/inputsync";
 import Modal from "@library/modal";
 import isURL from "validator/lib/isURL";
 
-function disableButton(button: HTMLInputElement | HTMLButtonElement | HTMLAnchorElement, silent: boolean = false): void {
-  if (!silent) {
-    button.classList.add('is-disabled');
-  }
-  button.style.pointerEvents = "none";
-  button.style.cursor = "not-allowed";
-  button.style.userSelect = "none";
-  button.addEventListener('click', event => event.preventDefault());
-}
-
-function enableButton(button: HTMLInputElement | HTMLButtonElement | HTMLAnchorElement): void {
-  button.removeEventListener('click', event => event.preventDefault());
-  button.style.removeProperty('pointer-events');
-  button.style.removeProperty('cursor');
-  button.style.removeProperty('user-select');
-  button.classList.remove('is-disabled');
-}
-
 function setupForm(form: HTMLFormElement, modal: Modal): void {
   disableWebflowForm(form);
 
-  const closeModalButtons = document.querySelectorAll<HTMLElement>(Modal.select('close'));
-  const openModalButton = form.querySelector<HTMLButtonElement>(Modal.select('open'));
-  // disableButton(openModalButton, true);
+  const closeModalButtons = modal.selectAll('close');
+  const openModalButton = form.querySelector<HTMLButtonElement>(Modal.selector('open'));
 
   const enterWebsiteInput = form.querySelector<HTMLInputElement>(syncSelector('enter-website'));
 
@@ -58,12 +39,10 @@ function setupForm(form: HTMLFormElement, modal: Modal): void {
   openModalButton.addEventListener('click', () => tryOpenModal());
 }
 
-// const urlRegex = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+(com|org|net|io|ch|de|co|us|uk|info|biz|app)$/;
-
 document.addEventListener('DOMContentLoaded', () => {
   inputSync();
 
-  const modalElement = document.querySelector<HTMLElement>(Modal.select('component'));
+  const modalElement = Modal.select('component', 'prototype');
   const modal = new Modal(modalElement, {
     animation: {
       type: 'slideUp',
@@ -72,8 +51,29 @@ document.addEventListener('DOMContentLoaded', () => {
     lockBodyScroll: false,
   });
 
-  const forms = document.querySelectorAll<HTMLFormElement>(`form[formstack-element="form:prototype-hook"]`);
-  forms.forEach(form => {
+  const hookForms = document.querySelectorAll<HTMLFormElement>(`form[formstack-element="form:prototype-hook"]`);
+  hookForms.forEach(form => {
     setupForm(form, modal);
+  });
+
+  const navModalElement = Modal.select('component', 'nav');
+  const navModal = new Modal(navModalElement, {
+    animation: {
+      type: 'slideUp',
+      duration: 300,
+    },
+    lockBodyScroll: false,
+  });
+  const openNavModalBtns = navModal.selectAll<HTMLButtonElement>('open', false);
+  const closeNavModalBtns = navModal.selectAll<HTMLButtonElement>('close', true);
+  openNavModalBtns.forEach(button => {
+    button.addEventListener('click', () => {
+      navModal.open();
+    });
+  });
+  closeNavModalBtns.forEach((closeBtn) => {
+    closeBtn.addEventListener('click', () => {
+      navModal.close();
+    });
   });
 });

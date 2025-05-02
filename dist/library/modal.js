@@ -40,6 +40,7 @@ var defaultModalAnimation = {
   className: "is-closed"
 };
 var defaultModalSettings = {
+  id: void 0,
   animation: defaultModalAnimation,
   stickyFooter: false,
   stickyHeader: false,
@@ -54,31 +55,62 @@ var Modal = class _Modal {
     this.component = component;
     this.settings = deepMerge(defaultModalSettings, settings);
     this.modal = this.getModalElement();
+    this.instance = this.settings.id || component.getAttribute(_Modal.attr.id);
     this.component.setAttribute("role", "dialog");
     this.component.setAttribute("aria-modal", "true");
     this.setInitialState();
     this.setupStickyFooter();
     if (this.modal === this.component) {
-      this.modal = this.component;
-      console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.select("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
+      console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.selector("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
     }
     this.initialized = true;
   }
   static {
-    this.select = attributeselector_default("data-modal-element");
+    this.attr = {
+      id: "data-modal-id",
+      element: "data-modal-element"
+    };
+  }
+  static {
+    this.attributeSelector = attributeselector_default(_Modal.attr.element);
+  }
+  /**
+   * Static selector
+   */
+  static selector(element, instance) {
+    const base = _Modal.attributeSelector(element);
+    return instance ? `${base}[${_Modal.attr.id}="${instance}"]` : base;
+  }
+  /**
+   * Instance selector
+   */
+  selector(element, local = true) {
+    return local ? _Modal.selector(element, this.instance) : _Modal.selector(element);
+  }
+  static select(element, instance) {
+    return document.querySelector(_Modal.selector(element, instance));
+  }
+  static selectAll(element, instance) {
+    return document.querySelectorAll(_Modal.selector(element, instance));
+  }
+  select(element, local = true) {
+    return local ? this.component.querySelector(_Modal.selector(element)) : document.querySelector(_Modal.selector(element, this.instance));
+  }
+  selectAll(element, local = true) {
+    return local ? this.component.querySelectorAll(_Modal.selector(element)) : document.querySelectorAll(_Modal.selector(element, this.instance));
   }
   getModalElement() {
-    if (this.component.matches(_Modal.select("modal"))) {
+    if (this.component.matches(_Modal.selector("modal"))) {
       this.modal = this.component;
     } else {
-      this.modal = this.component.querySelector(_Modal.select("modal"));
+      this.modal = this.component.querySelector(this.selector("modal"));
     }
     if (!this.modal) this.modal = this.component;
     return this.modal;
   }
   setupStickyFooter() {
-    const modalContent = this.component.querySelector(_Modal.select("scroll"));
-    const stickyFooter = this.component.querySelector(_Modal.select("sticky-bottom"));
+    const modalContent = this.component.querySelector(_Modal.selector("scroll"));
+    const stickyFooter = this.component.querySelector(_Modal.selector("sticky-bottom"));
     if (!modalContent || !stickyFooter) {
       console.warn("Initialize modal: skip sticky footer");
     } else {
@@ -110,8 +142,8 @@ var Modal = class _Modal {
         this.component.style.willChange = "opacity";
         this.component.style.transitionProperty = "opacity";
         this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
-        this.modal.style.willChange = "translate";
-        this.modal.style.transitionProperty = "translate;";
+        this.modal.style.willChange = "transform";
+        this.modal.style.transitionProperty = "transform";
         this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
         break;
       case "none":
@@ -130,7 +162,7 @@ var Modal = class _Modal {
         break;
       case "slideUp":
         this.component.style.opacity = "1";
-        this.modal.style.translate = "0px 0vh";
+        this.modal.style.transform = "translateY(0vh)";
         break;
       default:
         this.component.classList.remove("is-closed");
@@ -147,7 +179,7 @@ var Modal = class _Modal {
         break;
       case "slideUp":
         this.component.style.opacity = "0";
-        this.modal.style.translate = "0px 10vh";
+        this.modal.style.transform = "translateY(10vh)";
         break;
       default:
         break;

@@ -391,6 +391,17 @@
   });
 
   // library/attributeselector.ts
+  var attrMatchTypes = {
+    startsWith: "^",
+    endsWith: "$",
+    includes: "*",
+    whitespace: "~",
+    hyphen: "|",
+    exact: ""
+  };
+  function getOperator(type) {
+    return attrMatchTypes[type] || "";
+  }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
     return selector.split(", ").reduce((acc, str) => {
@@ -408,28 +419,7 @@
         return exclude(`[${attrName}]`, ...options.exclusions);
       }
       const value = String(name);
-      let selector;
-      switch (type) {
-        case "startsWith":
-          selector = `[${attrName}^="${value}"]`;
-          break;
-        case "endsWith":
-          selector = `[${attrName}$="${value}"]`;
-          break;
-        case "includes":
-          selector = `[${attrName}*="${value}"]`;
-          break;
-        case "whitespace":
-          selector = `[${attrName}~="${value}"]`;
-          break;
-        case "hyphen":
-          selector = `[${attrName}|="${value}"]`;
-          break;
-        case "exact":
-        default:
-          selector = `[${attrName}="${value}"]`;
-          break;
-      }
+      const selector = `[${attrName}${getOperator(type)}="${value}"]`;
       return exclude(selector, ...options.exclusions ?? []);
     };
   };
@@ -478,6 +468,9 @@
   // library/form/form.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
+  function isRadioInput(input) {
+    return input instanceof HTMLInputElement && input.type === "radio";
+  }
   function isCheckboxInput(input) {
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
@@ -503,8 +496,345 @@
     form?.classList.remove("w-form");
   }
 
+  // library/parameterize.ts
+  function parameterize(text) {
+    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+  }
+
+  // library/form/formfield.ts
+  var FormField = class {
+    constructor(data = null) {
+      if (!data) {
+        return;
+      }
+      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
+      this.label = data.label || `Unnamed Field`;
+      this.value = data.value || "";
+      this.required = data.required || false;
+      this.type = data.type || "text";
+      if (this.type === "radio" || "checkbox") {
+        this.checked = data.checked || false;
+      }
+      if (this.type === "checkbox" && !this.checked) {
+        console.log(this.label, this.type, this.checked, data.checked);
+        this.value = "Nicht angew\xE4hlt";
+      }
+    }
+    validate(report = true) {
+      let valid = true;
+      if (this.required) {
+        if (this.type === "radio" || this.type === "checkbox") {
+          if (!this.checked) {
+            valid = false;
+          }
+        } else {
+          if (!this.value.trim()) {
+            valid = false;
+          }
+        }
+      }
+      if (!valid && report) {
+        console.warn(`Field "${this.label}" is invalid.`);
+      }
+      return valid;
+    }
+  };
+  function fieldFromInput(input, index) {
+    if (input.type === "radio" && !input.checked) {
+      return new FormField();
+    }
+    const field = new FormField({
+      id: input.id || parameterize(input.dataset.name || `field ${index}`),
+      label: input.dataset.name || `field ${index}`,
+      value: input.value,
+      required: input.required || false,
+      type: input.type,
+      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
+    });
+    return field;
+  }
+
+  // library/form/fieldgroup.ts
+  var FieldGroup = class {
+    constructor(fields = /* @__PURE__ */ new Map()) {
+      this.fields = fields;
+    }
+    /**
+     * Finds a specific `FormField` instance by id.
+     *
+     * @param fieldId The id attribute of the associated DOM element.
+     */
+    getField(fieldId) {
+      return this.fields.get(fieldId);
+    }
+  };
+
   // library/form/filterform.ts
-  var actionSelector = attributeselector_default("data-action");
+  var FilterForm = class _FilterForm {
+    constructor(container, fieldIds) {
+      this.fieldIds = fieldIds;
+      this.beforeChangeActions = [];
+      this.fieldChangeActions = /* @__PURE__ */ new Map();
+      this.globalChangeActions = [];
+      // Stores wildcard ('*') actions
+      this.defaultDayRange = 7;
+      this.resizeResetFields = /* @__PURE__ */ new Map();
+      if (!container) throw new Error(`FilterForm container can't be null`);
+      container = container;
+      if (container.tagName === "form") {
+        container = container.querySelector("form");
+      }
+      if (!container) {
+        throw new Error(`Form cannot be undefined.`);
+      }
+      container.classList.remove("w-form");
+      container.addEventListener("submit", (event) => {
+        event.preventDefault();
+      });
+      this.container = container;
+      this.filterFields = container.querySelectorAll(wf.select.formInput);
+      this.actionElements = container.querySelectorAll(_FilterForm.select());
+      this.attachChangeListeners();
+    }
+    static {
+      this.select = attributeselector_default("data-action");
+    }
+    /**
+     * Returns the `HTMLElement` of a specific filter input.
+     */
+    getFilterInput(fieldId) {
+      const existingFields = this.getFieldIds(this.filterFields);
+      if (!this.fieldExists(fieldId, existingFields)) {
+        throw new Error(`Field with ID "${fieldId}" was not found`);
+      }
+      return Array.from(this.filterFields).find((field) => field.id === fieldId);
+    }
+    /**
+     * Returns the `HTMLElement` of a specific action element.
+     */
+    getActionElement(id) {
+      return Array.from(this.actionElements).find((element) => element.id === id);
+    }
+    /**
+     * Get all the field-ids inside the current instance.
+     */
+    getFieldIds(fields) {
+      return Array.from(fields).map((input) => input.id);
+    }
+    /**
+     * Check if a field-id exists in a list of field-ids.
+     */
+    fieldExists(fieldId, fieldIds) {
+      const matches = fieldIds.filter((id) => id === fieldId);
+      if (matches.length === 1) {
+        return true;
+      } else if (matches.length > 1) {
+        throw new Error(`FieldId ${fieldId} was found more than once!`);
+      }
+      return false;
+    }
+    /**
+     * Attach all the event listeners needed for the form to function.
+     * These event listeners ensure the instance is always in sync with the
+     * current state of the FilterForm.
+     */
+    attachChangeListeners() {
+      this.filterFields.forEach((field) => {
+        field.addEventListener("input", (event) => this.onChange(event));
+      });
+      this.actionElements.forEach((element) => {
+        element.addEventListener("click", (event) => this.onChange(event));
+      });
+    }
+    /**
+     * Add an action to be exectued before all the onChange actions get called.
+     * Use this function to validate or modify inputs if needed.
+     */
+    addBeforeChange(action) {
+      this.beforeChangeActions.push(action);
+    }
+    /**
+     * Push actions that run when specific fields change. Actions are executed in the order of insertion.
+     * @param fields - An array of field IDs and action element IDs OR '*' for any change event.
+     * @param action - An array of actions to execute when the field(s) change.
+     */
+    addOnChange(fields, action) {
+      if (fields === "*") {
+        this.globalChangeActions.push(action);
+      } else {
+        fields.forEach((fieldId) => {
+          if (!this.fieldChangeActions.has(fieldId)) {
+            this.fieldChangeActions.set(fieldId, []);
+          }
+          this.fieldChangeActions.get(fieldId)?.push(action);
+        });
+      }
+    }
+    /**
+     * Execute change actions for the specific field that changed.
+     * If wildcard actions exist, they run on every change.
+     */
+    onChange(event) {
+      let filters = this.getFieldGroup(this.filterFields);
+      const targetId = this.getTargetId(event);
+      if (!targetId) {
+        throw new Error(`Target is neither a FilterField nor an ActionElement.`);
+      }
+      this.beforeChangeActions.forEach((action) => action(filters, targetId));
+      filters = this.getFieldGroup(this.filterFields);
+      const actions = this.fieldChangeActions.get(targetId) || [];
+      actions.forEach((action) => action(filters, targetId));
+      this.globalChangeActions.forEach((action) => action(filters, targetId));
+    }
+    /**
+     * Simulate an onChange event and invoke change actions for specified fields.
+     * @param fields - An array of field IDs OR '*' for all fields.
+     */
+    invokeOnChange(fields) {
+      let invokedBy;
+      let filters = this.getFieldGroup(this.filterFields);
+      if (fields === "*") {
+        invokedBy = "";
+        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
+        filters = this.getFieldGroup(this.filterFields);
+        const done = [];
+        this.fieldChangeActions.forEach((actions) => {
+          actions.forEach((action) => {
+            if (!done.includes(action)) {
+              action(filters, invokedBy);
+              done.push(action);
+            }
+          });
+        });
+      } else {
+        invokedBy = fields.length === 1 ? fields[0] : "";
+        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
+        filters = this.getFieldGroup(this.filterFields);
+        fields.forEach((fieldId) => {
+          invokedBy = fieldId;
+          const actions = this.fieldChangeActions.get(fieldId) || [];
+          actions.forEach((action) => action(filters, invokedBy));
+        });
+      }
+      this.globalChangeActions.forEach((action) => action(filters, invokedBy));
+    }
+    /**
+     * Extracts the target ID from an event, whether it's a filter field or an action element.
+     */
+    getTargetId(event) {
+      const target = event.target;
+      if (!target) return null;
+      if (event.type === "input") {
+        return target.id;
+      }
+      if (event.type === "click" && target.hasAttribute("data-action")) {
+        return target.getAttribute("data-action");
+      }
+      return null;
+    }
+    /**
+     * Get the FieldGroup from current form state.
+     * Use this method to get all the form field values as structured data 
+     * alongside field metadata.
+     */
+    getFieldGroup(fields) {
+      this.data = new FieldGroup();
+      fields = fields;
+      fields.forEach((input, index) => {
+        const field = fieldFromInput(input, index);
+        if (field?.id) {
+          this.data.fields.set(field.id, field);
+        }
+      });
+      return this.data;
+    }
+    /**
+     * Reset a field to a specific value on `window.resize` event.
+     */
+    addResizeReset(fieldId, getValue) {
+      const existingFields = this.getFieldIds(this.filterFields);
+      if (!this.fieldExists(fieldId, existingFields)) {
+        throw new Error(`Field with ID "${fieldId}" was not found`);
+      }
+      this.resizeResetFields.set(fieldId, getValue);
+      if (this.resizeResetFields.size === 1) {
+        window.addEventListener("resize", () => this.applyResizeResets());
+      }
+    }
+    /**
+     * Remove a field from the reset on resize list. This will no longer reset the field on resize.
+     */
+    removeResizeReset(fieldId) {
+      this.resizeResetFields.delete(fieldId);
+      if (this.resizeResetFields.size === 0) {
+        window.removeEventListener("resize", this.applyResizeResets);
+      }
+    }
+    /**
+     * Applies the reset values to the fields.
+     */
+    applyResizeResets() {
+      this.resizeResetFields.forEach((getValue, fieldId) => {
+        let value = getValue();
+        if (value instanceof Date) {
+          value = value.toISOString().split("T")[0];
+        }
+        this.getFilterInput(fieldId).value = value.toString();
+      });
+    }
+    /**
+     * Set a custom day range for validation.
+     * If no custom range is needed, revert to default.
+     */
+    setDayRange(dayRange) {
+      if (dayRange <= 0) {
+        throw new Error(`Day range must be at least "1".`);
+      }
+      this.defaultDayRange = dayRange;
+      return this.defaultDayRange;
+    }
+    /**
+     * Validate the date range between startDate and endDate.
+     * Ensure they remain within the chosen day range.
+     *
+     * @param startDateFieldId The field id of the startdate `HTMLFormInput`
+     * @param endDateFieldId The field id of the enddate `HTMLFormInput`
+     */
+    validateDateRange(startDateFieldId, endDateFieldId, customDayRange) {
+      const startDateInput = this.getFilterInput(startDateFieldId);
+      const endDateInput = this.getFilterInput(endDateFieldId);
+      const startDate = new Date(startDateInput.value);
+      const endDate = new Date(endDateInput.value);
+      let activeRange = customDayRange ?? this.defaultDayRange;
+      activeRange -= 1;
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        const diffInDays = (endDate.getTime() - startDate.getTime()) / (1e3 * 60 * 60 * 24);
+        let activeField = "other";
+        if (document.activeElement === startDateInput) {
+          activeField = "startDate";
+        } else if (document.activeElement === endDateInput) {
+          activeField = "endDate";
+        }
+        if (activeField === "startDate" || activeField === "other") {
+          if (diffInDays !== activeRange) {
+            const newEndDate = new Date(startDate);
+            newEndDate.setDate(startDate.getDate() + activeRange);
+            endDateInput.value = newEndDate.toISOString().split("T")[0];
+          } else if (diffInDays < 0) {
+            endDateInput.value = startDate.toISOString().split("T")[0];
+          }
+        } else if (activeField === "endDate") {
+          if (diffInDays !== activeRange) {
+            const newStartDate = new Date(endDate);
+            newStartDate.setDate(endDate.getDate() - activeRange);
+            startDateInput.value = newStartDate.toISOString().split("T")[0];
+          } else if (diffInDays < 0) {
+            startDateInput.value = endDate.toISOString().split("T")[0];
+          }
+        }
+      }
+    }
+  };
 
   // node_modules/date-fns/constants.js
   var daysInYear = 365.2425;
@@ -2380,6 +2710,7 @@
     className: "is-closed"
   };
   var defaultModalSettings = {
+    id: void 0,
     animation: defaultModalAnimation,
     stickyFooter: false,
     stickyHeader: false,
@@ -2394,31 +2725,62 @@
       this.component = component;
       this.settings = deepMerge(defaultModalSettings, settings);
       this.modal = this.getModalElement();
+      this.instance = this.settings.id || component.getAttribute(_Modal.attr.id);
       this.component.setAttribute("role", "dialog");
       this.component.setAttribute("aria-modal", "true");
       this.setInitialState();
       this.setupStickyFooter();
       if (this.modal === this.component) {
-        this.modal = this.component;
-        console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.select("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
+        console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.selector("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
       }
       this.initialized = true;
     }
     static {
-      this.select = attributeselector_default("data-modal-element");
+      this.attr = {
+        id: "data-modal-id",
+        element: "data-modal-element"
+      };
+    }
+    static {
+      this.attributeSelector = attributeselector_default(_Modal.attr.element);
+    }
+    /**
+     * Static selector
+     */
+    static selector(element, instance) {
+      const base = _Modal.attributeSelector(element);
+      return instance ? `${base}[${_Modal.attr.id}="${instance}"]` : base;
+    }
+    /**
+     * Instance selector
+     */
+    selector(element, local = true) {
+      return local ? _Modal.selector(element, this.instance) : _Modal.selector(element);
+    }
+    static select(element, instance) {
+      return document.querySelector(_Modal.selector(element, instance));
+    }
+    static selectAll(element, instance) {
+      return document.querySelectorAll(_Modal.selector(element, instance));
+    }
+    select(element, local = true) {
+      return local ? this.component.querySelector(_Modal.selector(element)) : document.querySelector(_Modal.selector(element, this.instance));
+    }
+    selectAll(element, local = true) {
+      return local ? this.component.querySelectorAll(_Modal.selector(element)) : document.querySelectorAll(_Modal.selector(element, this.instance));
     }
     getModalElement() {
-      if (this.component.matches(_Modal.select("modal"))) {
+      if (this.component.matches(_Modal.selector("modal"))) {
         this.modal = this.component;
       } else {
-        this.modal = this.component.querySelector(_Modal.select("modal"));
+        this.modal = this.component.querySelector(this.selector("modal"));
       }
       if (!this.modal) this.modal = this.component;
       return this.modal;
     }
     setupStickyFooter() {
-      const modalContent = this.component.querySelector(_Modal.select("scroll"));
-      const stickyFooter = this.component.querySelector(_Modal.select("sticky-bottom"));
+      const modalContent = this.component.querySelector(_Modal.selector("scroll"));
+      const stickyFooter = this.component.querySelector(_Modal.selector("sticky-bottom"));
       if (!modalContent || !stickyFooter) {
         console.warn("Initialize modal: skip sticky footer");
       } else {
@@ -2450,8 +2812,8 @@
           this.component.style.willChange = "opacity";
           this.component.style.transitionProperty = "opacity";
           this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
-          this.modal.style.willChange = "translate";
-          this.modal.style.transitionProperty = "translate;";
+          this.modal.style.willChange = "transform";
+          this.modal.style.transitionProperty = "transform";
           this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
           break;
         case "none":
@@ -2470,7 +2832,7 @@
           break;
         case "slideUp":
           this.component.style.opacity = "1";
-          this.modal.style.translate = "0px 0vh";
+          this.modal.style.transform = "translateY(0vh)";
           break;
         default:
           this.component.classList.remove("is-closed");
@@ -2487,7 +2849,7 @@
           break;
         case "slideUp":
           this.component.style.opacity = "0";
-          this.modal.style.translate = "0px 10vh";
+          this.modal.style.transform = "translateY(10vh)";
           break;
         default:
           break;
@@ -2549,8 +2911,8 @@
   var import_isURL = __toESM(require_isURL());
   function setupForm(form, modal) {
     disableWebflowForm(form);
-    const closeModalButtons = document.querySelectorAll(Modal.select("close"));
-    const openModalButton = form.querySelector(Modal.select("open"));
+    const closeModalButtons = modal.selectAll("close");
+    const openModalButton = form.querySelector(Modal.selector("open"));
     const enterWebsiteInput = form.querySelector(syncSelector("enter-website"));
     function tryOpenModal() {
       if (!enterWebsiteInput.required) {
@@ -2575,7 +2937,7 @@
   }
   document.addEventListener("DOMContentLoaded", () => {
     inputSync();
-    const modalElement = document.querySelector(Modal.select("component"));
+    const modalElement = Modal.select("component", "prototype");
     const modal = new Modal(modalElement, {
       animation: {
         type: "slideUp",
@@ -2583,9 +2945,29 @@
       },
       lockBodyScroll: false
     });
-    const forms = document.querySelectorAll(`form[formstack-element="form:prototype-hook"]`);
-    forms.forEach((form) => {
+    const hookForms = document.querySelectorAll(`form[formstack-element="form:prototype-hook"]`);
+    hookForms.forEach((form) => {
       setupForm(form, modal);
+    });
+    const navModalElement = Modal.select("component", "nav");
+    const navModal = new Modal(navModalElement, {
+      animation: {
+        type: "slideUp",
+        duration: 300
+      },
+      lockBodyScroll: false
+    });
+    const openNavModalBtns = navModal.selectAll("open", false);
+    const closeNavModalBtns = navModal.selectAll("close", true);
+    openNavModalBtns.forEach((button) => {
+      button.addEventListener("click", () => {
+        navModal.open();
+      });
+    });
+    closeNavModalBtns.forEach((closeBtn) => {
+      closeBtn.addEventListener("click", () => {
+        navModal.close();
+      });
     });
   });
 })();
