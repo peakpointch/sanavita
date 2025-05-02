@@ -1,16 +1,36 @@
-type AttributeSelector = (name: string | null) => string;
-type AttributeType =
+type AttributeMatchType =
   | 'startsWith'    // ^=
   | 'endsWith'      // $=
   | 'includes'      // *=
   | 'whitespace'    // ~=
   | 'hyphen'        // |=
   | 'exact';        // =
+type AttributeMatchOperator = '^' | '$' | '*' | '~' | '|' | '';
+type AttributeMatchTypeMap = {
+  [key in AttributeMatchType]: AttributeMatchOperator;
+};
+type AttributeSelector<T = string> = (name: T | null, type?: AttributeMatchType) => string;
 
 interface AttributeOptions<T> {
-  defaultType?: AttributeType;
+  defaultType?: AttributeMatchType;
   defaultValue: T | null;
   exclusions?: string[];
+}
+
+const attrMatchTypes: AttributeMatchTypeMap = {
+  startsWith: '^',
+  endsWith: '$',
+  includes: '*',
+  whitespace: '~',
+  hyphen: '|',
+  exact: ''
+};
+
+/**
+ * Converts a human-friendly `AttributeType` to a CSS `AttributeOperator`.
+ */
+function getOperator(type: AttributeMatchType): AttributeMatchOperator {
+  return attrMatchTypes[type] || '';
 }
 
 /**
@@ -46,40 +66,18 @@ const createAttribute = <T>(
     defaultValue: null,
     exclusions: [],
   },
-) => {
-  return (name: T | null = options.defaultValue, type: AttributeType = options.defaultType): string => {
+): AttributeSelector<T> => {
+  return (name: T | null = options.defaultValue, type: AttributeMatchType = options.defaultType): string => {
     if (!name) {
       return exclude(`[${attrName}]`, ...options.exclusions);
     }
 
     const value = String(name); // Ensure it's a string for selector use
-    let selector: string;
-
-    switch (type) {
-      case 'startsWith':
-        selector = `[${attrName}^="${value}"]`;
-        break;
-      case 'endsWith':
-        selector = `[${attrName}$="${value}"]`;
-        break;
-      case 'includes':
-        selector = `[${attrName}*="${value}"]`;
-        break;
-      case 'whitespace':
-        selector = `[${attrName}~="${value}"]`;
-        break;
-      case 'hyphen':
-        selector = `[${attrName}|="${value}"]`;
-        break;
-      case 'exact':
-      default:
-        selector = `[${attrName}="${value}"]`;
-        break;
-    }
+    const selector = `[${attrName}${getOperator(type)}="${value}"]`;
 
     return exclude(selector, ...(options.exclusions ?? []));
   };
 }
 
 export default createAttribute;
-export type { AttributeSelector, AttributeType, AttributeOptions };
+export type { AttributeSelector, AttributeOptions };
