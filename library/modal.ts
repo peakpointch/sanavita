@@ -64,20 +64,58 @@ export default class Modal {
     this.setupStickyFooter();
 
     if (this.modal === this.component) {
-      this.modal = this.component;
-      console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${Modal.select('modal')}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
+      console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${Modal.selector('modal')}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
     }
 
     this.initialized = true;
   }
 
-  public static select = createAttribute<ModalElement>('data-modal-element');
+  private static attributeSelector = createAttribute<ModalElement>(Modal.attr.element);
+
+  /**
+   * Static selector
+   */
+  public static selector(element: ModalElement, instance?: string): string {
+    const base = Modal.attributeSelector(element);
+    return instance
+      ? `${base}[${Modal.attr.id}="${instance}"]`
+      : base;
+  }
+
+  /**
+   * Instance selector
+   */
+  public selector(element: ModalElement, local = true): string {
+    return local
+      ? Modal.selector(element, this.instance)
+      : Modal.selector(element);
+  }
+
+  public static select<T extends Element = HTMLElement>(element: ModalElement, instance?: string): T {
+    return document.querySelector<T>(Modal.selector(element, instance));
+  }
+
+  public static selectAll<T extends Element = HTMLElement>(element: ModalElement, instance?: string): NodeListOf<T> {
+    return document.querySelectorAll<T>(Modal.selector(element, instance));
+  }
+
+  public select<T extends Element = HTMLElement>(element: ModalElement, local: boolean = true): T {
+    return local
+      ? this.component.querySelector<T>(Modal.selector(element))
+      : document.querySelector<T>(Modal.selector(element, this.instance))
+  }
+
+  public selectAll<T extends Element = HTMLElement>(element: ModalElement, local: boolean = true): NodeListOf<T> {
+    return local
+      ? this.component.querySelectorAll<T>(Modal.selector(element))
+      : document.querySelectorAll<T>(Modal.selector(element, this.instance))
+  }
 
   private getModalElement(): HTMLElement {
-    if (this.component.matches(Modal.select('modal'))) {
+    if (this.component.matches(Modal.selector('modal'))) {
       this.modal = this.component;
     } else {
-      this.modal = this.component.querySelector(Modal.select('modal'));
+      this.modal = this.component.querySelector(this.selector('modal'));
     }
 
     if (!this.modal) this.modal = this.component;
@@ -86,8 +124,8 @@ export default class Modal {
   }
 
   private setupStickyFooter(): void {
-    const modalContent = this.component.querySelector<HTMLElement>(Modal.select('scroll'));
-    const stickyFooter = this.component.querySelector<HTMLElement>(Modal.select('sticky-bottom'));
+    const modalContent = this.component.querySelector<HTMLElement>(Modal.selector('scroll'));
+    const stickyFooter = this.component.querySelector<HTMLElement>(Modal.selector('sticky-bottom'));
 
     if (!modalContent || !stickyFooter) {
       console.warn("Initialize modal: skip sticky footer");
