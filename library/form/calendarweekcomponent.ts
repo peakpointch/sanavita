@@ -1,8 +1,8 @@
 import { getISOWeek, getISOWeeksInYear, getISOWeekYear, setISOWeekYear, setISOWeek, startOfISOWeek, format } from 'date-fns';
 import createAttribute from '@library/attributeselector';
 
-export type UXMode = 'continuous' | 'loop' | 'fixed';
-export type CalendarweekElements = 'component' | 'week' | 'year';
+type UXMode = 'continuous' | 'loop' | 'fixed';
+type CalendarweekElements = 'component' | 'week' | 'year';
 type Action = (week: number, year: number, date: Date) => any;
 
 function getISOWeeksOfYear(year: number): number {
