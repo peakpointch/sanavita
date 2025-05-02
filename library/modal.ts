@@ -10,10 +10,16 @@ interface ModalAnimation {
 }
 
 interface ModalSettings {
+  id?: string;
   animation: ModalAnimation;
   stickyFooter: boolean;
   stickyHeader: boolean;
   lockBodyScroll: boolean;
+}
+
+interface ModalAttributes {
+  id: string;
+  element: string;
 }
 
 export const defaultModalAnimation: ModalAnimation = {
@@ -23,6 +29,7 @@ export const defaultModalAnimation: ModalAnimation = {
 }
 
 export const defaultModalSettings: ModalSettings = {
+  id: undefined,
   animation: defaultModalAnimation,
   stickyFooter: false,
   stickyHeader: false,
@@ -34,6 +41,11 @@ export default class Modal {
   public modal: HTMLElement;
   public initialized: boolean = false;
   public settings: ModalSettings;
+  public instance: string;
+  public static attr: ModalAttributes = {
+    id: 'data-modal-id',
+    element: 'data-modal-element',
+  };
 
   constructor(component: HTMLElement | null, settings: Partial<ModalSettings> = {}) {
     if (!component) {
@@ -42,6 +54,7 @@ export default class Modal {
     this.component = component;
     this.settings = deepMerge(defaultModalSettings, settings);
     this.modal = this.getModalElement();
+    this.instance = this.settings.id || component.getAttribute(Modal.attr.id);
 
     // accessibility
     this.component.setAttribute('role', 'dialog');
