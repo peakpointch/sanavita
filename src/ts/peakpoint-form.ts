@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'slideUp',
       duration: 300,
     },
-    lockBodyScroll: false,
+    lockBodyScroll: true,
   });
 
   const hookForms = document.querySelectorAll<HTMLFormElement>(`form[formstack-element="form:prototype-hook"]`);
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'slideUp',
       duration: 300,
     },
-    lockBodyScroll: false,
+    lockBodyScroll: true,
   });
   const openNavModalBtns = navModal.selectAll<HTMLButtonElement>('open', false);
   const closeNavModalBtns = navModal.selectAll<HTMLButtonElement>('close', true);

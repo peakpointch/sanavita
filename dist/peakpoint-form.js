@@ -494,6 +494,7 @@
   }
   function disableWebflowForm(form) {
     form?.classList.remove("w-form");
+    form.parentElement.classList.remove("w-form");
   }
 
   // library/parameterize.ts
@@ -2943,7 +2944,7 @@
         type: "slideUp",
         duration: 300
       },
-      lockBodyScroll: false
+      lockBodyScroll: true
     });
     const hookForms = document.querySelectorAll(`form[formstack-element="form:prototype-hook"]`);
     hookForms.forEach((form) => {
@@ -2955,7 +2956,7 @@
         type: "slideUp",
         duration: 300
       },
-      lockBodyScroll: false
+      lockBodyScroll: true
     });
     const openNavModalBtns = navModal.selectAll("open", false);
     const closeNavModalBtns = navModal.selectAll("close", true);
