@@ -62,7 +62,7 @@
   }
   var createAttribute = (attrName, options = {
     defaultType: "exact",
-    defaultValue: null,
+    defaultValue: void 0,
     exclusions: []
   }) => {
     return (name = options.defaultValue, type = options.defaultType) => {
