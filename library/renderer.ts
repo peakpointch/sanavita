@@ -99,6 +99,7 @@ class Renderer {
       case true:
         if (this.shouldHideElement(renderElement)) {
           this.hideElement(htmlRenderCollection);
+          return;
         }
         break;
       case false:
