@@ -6,6 +6,7 @@ import createAttribute from "@library/attributeselector";
 // Types
 export type PdfElement = 'container' | 'scale' | 'page' | 'page-wrapper' | 'weekday' | 'dish';
 export type PdfFieldName = string | 'dishName' | 'dishDescription' | 'price' | 'priceSmall';
+export type PdfFormat = 'a3' | 'a4' | 'a5';
 
 // Variables
 
@@ -89,7 +90,7 @@ export default class Pdf {
     }
 
     const filteredDesigns = designWrappers.filter(wrapper => {
-      designs.includes(wrapper.getAttribute('data-pdf-design') || '');
+      return designs.includes(wrapper.getAttribute('data-pdf-design') || '');
     });
 
     return filteredDesigns;
@@ -212,12 +213,15 @@ export default class Pdf {
       page.offsetHeight === 0;
   }
 
-  private async create(): Promise<jsPDF> {
+  private async create(format: PdfFormat): Promise<jsPDF> {
     this.freeze();
 
-    // Calculate dimensions to fit the A4 page
     const zoom = 0.1; // crop 0.1mm on each side
-    const canvasScale = 2;
+    const canvasScale =
+      format === "a3" ? 4
+        : format === "a4" ? 2
+          : 1;
+
     const getHtml2CanvasOptions = (canvas?: HTMLCanvasElement): Html2CanvasOptions => {
       return {
         scale: canvasScale,
@@ -228,7 +232,7 @@ export default class Pdf {
 
     try {
       // Generate the PDF
-      const pdf = new jsPDF('portrait', 'mm', 'a4');
+      const pdf = new jsPDF('portrait', 'mm', format);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       let firstPage = true;
 
@@ -254,7 +258,7 @@ export default class Pdf {
 
         firstPage = false;
 
-        pdf.addImage(imgData, 'PNG', -zoom, -zoom, adjustedWidth, adjustedHeight, undefined, 'SLOW');
+        pdf.addImage(imgData, 'JPEG', -zoom, -zoom, adjustedWidth, adjustedHeight, undefined, 'SLOW');
       }
 
       return pdf;
@@ -265,7 +269,7 @@ export default class Pdf {
     }
   }
 
-  public async save(filename?: string, clientScale: number = 1): Promise<void> {
+  public async save(format: PdfFormat, filename?: string, clientScale: number = 1): Promise<void> {
     // Save the PDF
     filename = filename || `Dokument generiert am ${new Date().toLocaleDateString('de-DE')}`;
     filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
@@ -275,7 +279,7 @@ export default class Pdf {
 
     setTimeout(async () => {
       // Create the jsPDF instance
-      const pdf = await this.create();
+      const pdf = await this.create(format);
       pdf.save(filename);
 
       this.resetScale();

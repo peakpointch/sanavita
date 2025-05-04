@@ -19377,7 +19377,7 @@
   }
   var createAttribute = (attrName, options = {
     defaultType: "exact",
-    defaultValue: null,
+    defaultValue: void 0,
     exclusions: []
   }) => {
     return (name = options.defaultValue, type = options.defaultType) => {
@@ -31977,7 +31977,7 @@
         return designWrappers;
       }
       const filteredDesigns = designWrappers.filter((wrapper) => {
-        designs.includes(wrapper.getAttribute("data-pdf-design") || "");
+        return designs.includes(wrapper.getAttribute("data-pdf-design") || "");
       });
       return filteredDesigns;
     }
@@ -32075,10 +32075,10 @@
     isPageHidden(page) {
       return window.getComputedStyle(page).getPropertyValue("display") === "none" || window.getComputedStyle(page).getPropertyValue("visibility") === "hidden" || page.classList.contains("hide") || page.offsetWidth === 0 || page.offsetHeight === 0;
     }
-    async create() {
+    async create(format2) {
       this.freeze();
       const zoom = 0.1;
-      const canvasScale = 2;
+      const canvasScale = format2 === "a3" ? 4 : format2 === "a4" ? 2 : 1;
       const getHtml2CanvasOptions = (canvas) => {
         return {
           scale: canvasScale,
@@ -32087,7 +32087,7 @@
         };
       };
       try {
-        const pdf = new E("portrait", "mm", "a4");
+        const pdf = new E("portrait", "mm", format2);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         let firstPage = true;
         for (let i3 = 0; i3 < this.pages.length; i3++) {
@@ -32106,7 +32106,7 @@ Page:`, page);
             pdf.addPage();
           }
           firstPage = false;
-          pdf.addImage(imgData, "PNG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
+          pdf.addImage(imgData, "JPEG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
         }
         return pdf;
       } catch (error) {
@@ -32115,12 +32115,12 @@ Page:`, page);
         this.unFreeze();
       }
     }
-    async save(filename, clientScale = 1) {
+    async save(format2, filename, clientScale = 1) {
       filename = filename || `Dokument generiert am ${(/* @__PURE__ */ new Date()).toLocaleDateString("de-DE")}`;
       filename = filename.endsWith(".pdf") ? filename : `${filename}.pdf`;
       this.scale(clientScale, false);
       setTimeout(async () => {
-        const pdf = await this.create();
+        const pdf = await this.create(format2);
         pdf.save(filename);
         this.resetScale();
       }, 0);
@@ -32944,8 +32944,11 @@ Page:`, page);
     const downloadBtn = document.querySelector(actionSelector("download"));
     downloadBtn.addEventListener("click", () => {
       const startDate = new Date(filterForm.getFilterInput("startDate").value);
+      const format2 = filterForm.data.getField("format").value;
+      const pdfFormat = format2.toLowerCase();
       let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
-      pdf.save(filename, 4.17);
+      filename += ` ${format2}`;
+      pdf.save(pdfFormat, filename, 4.17);
     });
   }
   document.addEventListener("DOMContentLoaded", () => {

@@ -1,6 +1,6 @@
 // Imports
 import EditableCanvas from '@library/canvas';
-import Pdf from '@library/pdf';
+import Pdf, { PdfFormat } from '@library/pdf';
 import { FilterCollection } from '@library/wfcollection';
 import { RenderData, RenderElement, RenderField } from '@library/renderer';
 import { FilterForm, CalendarweekComponent, filterFormSelector } from '@library/form';
@@ -12,7 +12,7 @@ import { de } from 'date-fns/locale';
 
 // Types
 type ActionElement = 'download' | 'save';
-type FieldIds = 'startDate' | 'endDate' | 'dayRange' | 'design' | 'scale' | 'calendarweek' | 'calendaryear' | ActionElement;
+type FieldIds = 'startDate' | 'endDate' | 'dayRange' | 'design' | 'scale' | 'format' | 'calendarweek' | 'calendaryear' | ActionElement;
 
 /**
  * Metadata representing a `Pdf` instance.
@@ -239,9 +239,12 @@ function initialize(): void {
   const downloadBtn = document.querySelector(actionSelector('download'));
   downloadBtn.addEventListener('click', () => {
     const startDate = new Date(filterForm.getFilterInput('startDate').value);
+    const format: string = filterForm.data.getField('format').value;
+    const pdfFormat = format.toLowerCase() as PdfFormat;
     let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+    filename += ` ${format}`;
 
-    pdf.save(filename, 4.17);
+    pdf.save(pdfFormat, filename, 4.17);
   });
 }
 

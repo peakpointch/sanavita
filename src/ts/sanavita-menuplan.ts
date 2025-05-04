@@ -1,6 +1,6 @@
 // Imports
 import EditableCanvas from '@library/canvas';
-import Pdf from '@library/pdf';
+import Pdf, { PdfFormat } from '@library/pdf';
 import { FilterCollection } from '@library/wfcollection';
 import { RenderData, RenderElement, RenderField } from '@library/renderer';
 import { CalendarweekComponent, FilterForm, filterFormSelector } from '@library/form';
@@ -13,7 +13,7 @@ import wf from '@library/webflow';
 
 // Types
 type ActionElement = 'download' | 'save';
-type FieldIds = 'startDate' | 'endDate' | 'dayRange' | 'design' | 'scale' | 'calendarweek' | 'calendaryear' | ActionElement;
+type FieldIds = 'startDate' | 'endDate' | 'dayRange' | 'design' | 'scale' | 'format' | 'calendarweek' | 'calendaryear' | ActionElement;
 
 /**
  * Metadata representing a `Pdf` instance.
@@ -219,19 +219,22 @@ function initialize(): void {
       },
     ];
 
+    const filteredDrinks = drinksCollection.filterByDateRange(startDate, endDate);
     const renderCollections: RenderElement[] = [
       {
         element: 'drink-list-collection',
-        fields: drinksCollection.filterByDateRange(startDate, endDate),
-        visibility: true,
+        fields: filteredDrinks,
+        visibility: filteredDrinks.length === 0 ? false : true,
       }
-    ]
+    ];
 
     const renderData: RenderData = [
       ...staticRenderFields,
       ...filterCollection.filterByDate(startDate, endDate),
       ...renderCollections,
     ];
+
+    console.log("DATA:", renderData);
 
     canvas.showHiddenElements();
     pdf.render(renderData);
@@ -256,13 +259,17 @@ function initialize(): void {
   downloadBtn.addEventListener('click', () => {
     const startDate = new Date(filterForm.data.getField('startDate').value);
     const selectedDesign = filterForm.data.getField('design').value;
+    const format: string = filterForm.data.getField('format').value;
+    const pdfFormat = format.toLowerCase() as PdfFormat;
+
 
     let filename = `Tagesmenus Bistro ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
     if (selectedDesign === "bewohnende") {
       filename = `Menuplan Bewohnende ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
     }
+    filename += ` ${format}`;
 
-    pdf.save(filename, 4.17);
+    pdf.save(pdfFormat, filename, 4.17);
   });
 }
 
