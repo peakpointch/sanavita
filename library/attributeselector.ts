@@ -9,11 +9,11 @@ type AttributeMatchOperator = '^' | '$' | '*' | '~' | '|' | '';
 type AttributeMatchTypeMap = {
   [key in AttributeMatchType]: AttributeMatchOperator;
 };
-type AttributeSelector<T = string> = (name: T | null, type?: AttributeMatchType) => string;
+type AttributeSelector<T = string> = (name?: T, type?: AttributeMatchType) => string;
 
 interface AttributeOptions<T> {
   defaultType?: AttributeMatchType;
-  defaultValue: T | null;
+  defaultValue?: T;
   exclusions?: string[];
 }
 
@@ -63,11 +63,11 @@ const createAttribute = <T>(
   attrName: string,
   options: AttributeOptions<T> = {
     defaultType: 'exact',
-    defaultValue: null,
+    defaultValue: undefined,
     exclusions: [],
   },
 ): AttributeSelector<T> => {
-  return (name: T | null = options.defaultValue, type: AttributeMatchType = options.defaultType): string => {
+  return (name: T | undefined = options.defaultValue, type: AttributeMatchType = options.defaultType): string => {
     if (!name) {
       return exclude(`[${attrName}]`, ...options.exclusions);
     }
