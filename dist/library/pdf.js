@@ -23242,6 +23242,18 @@ var Renderer = class _Renderer {
     });
   }
   renderCollection(renderElement, htmlRenderCollection) {
+    switch (this.readVisibilityControl(htmlRenderCollection)) {
+      case "emptyState":
+        break;
+      case true:
+        if (this.shouldHideElement(renderElement)) {
+          this.hideElement(htmlRenderCollection);
+        }
+        break;
+      case false:
+      default:
+        break;
+    }
     let max2 = parseInt(htmlRenderCollection.getAttribute("data-limit-items") || "-1");
     if (max2 === -1) max2 = renderElement.fields.length;
     max2 = Math.min(renderElement.fields.length, max2);
@@ -23492,7 +23504,7 @@ var Renderer = class _Renderer {
         return !child.value.trim();
       }
       if (_Renderer.isRenderElement(child)) {
-        return this.shouldHideElement(child);
+        return child.fields.length === 0 ? true : this.shouldHideElement(child);
       }
       return false;
     });
