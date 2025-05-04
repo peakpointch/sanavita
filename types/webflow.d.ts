@@ -33,10 +33,26 @@ export interface WebflowSelectors {
   inputSelectorList: InputSelectorList;
 }
 
+export type WfSiteId = string;
+export type WfPageId = string;
+export type WfElementId = string;
+
 export interface Webflow {
-  siteId: string;
-  pageId: string;
+  siteId: WfSiteId;
+  pageId: WfPageId;
   class: WebflowClassNames;
   select: WebflowSelectors;
 }
 
+export interface WfFormData {
+  /** Name of the form. Inferred from `HTMLFormElement.dataset.name` */
+  name: string;
+  pageId: WfPageId;
+  elementId: WfElementId;
+  /** Source URL the form is submitted from */
+  source: string;
+  /** Form data - The submitted fields from the form */
+  fields: any;
+  test: boolean;
+  dolphin: boolean;
+}
