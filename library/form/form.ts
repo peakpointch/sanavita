@@ -1,5 +1,6 @@
 import createAttribute from "@library/attributeselector";
 import wf from "@library/webflow";
+import { WfFormData } from "~/types/webflow";
 
 // Types
 type HTMLFormInput = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
@@ -27,6 +28,26 @@ export function isRadioInput(input: HTMLFormInput): input is HTMLInputElement {
  */
 export function isCheckboxInput(input: HTMLFormInput): input is HTMLInputElement {
   return input instanceof HTMLInputElement && input.type === "checkbox";
+}
+
+export function getWfFormData(form: HTMLFormElement | HTMLElement, fields: any, test: boolean = false): WfFormData {
+  if (!(form instanceof HTMLFormElement)) {
+    form = form.querySelector('form');
+  }
+
+  if (!form || !(form instanceof HTMLFormElement)) {
+    throw new TypeError(`The passed "form" is not a form.`);
+  }
+
+  return {
+    name: form.dataset.name,
+    pageId: wf.pageId,
+    elementId: form.dataset.wfElementId,
+    source: window.location.href,
+    fields: fields,
+    test: test,
+    dolphin: false,
+  };
 }
 
 /**
@@ -216,6 +237,7 @@ export function validateFields(
 
 export function disableWebflowForm(form: HTMLFormElement): void {
   form?.classList.remove("w-form");
+  form.parentElement.classList.remove("w-form");
 }
 
 export {
