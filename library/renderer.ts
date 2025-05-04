@@ -393,7 +393,7 @@ class Renderer {
         return !child.value.trim(); // Empty field
       }
       if (Renderer.isRenderElement(child)) {
-        return this.shouldHideElement(child); // Recursively check child elements
+        return child.fields.length === 0 ? true : this.shouldHideElement(child); // Recursively check child elements
       }
       return false; // Default case
     });
