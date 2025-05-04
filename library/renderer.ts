@@ -92,6 +92,20 @@ class Renderer {
   }
 
   private renderCollection(renderElement: RenderElement, htmlRenderCollection: HTMLElement) {
+    switch (this.readVisibilityControl(htmlRenderCollection)) {
+      case "emptyState":
+        // TODO: Support "emptyState" for render collections
+        break;
+      case true:
+        if (this.shouldHideElement(renderElement)) {
+          this.hideElement(htmlRenderCollection);
+        }
+        break;
+      case false:
+      default:
+        break;
+    }
+
     let max = parseInt(htmlRenderCollection.getAttribute('data-limit-items') || '-1');
     if (max === -1) max = renderElement.fields.length;
     max = Math.min(renderElement.fields.length, max);
