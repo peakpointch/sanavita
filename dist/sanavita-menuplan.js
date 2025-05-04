@@ -7940,7 +7940,7 @@
       Element: Element2,
       NodeFilter,
       NamedNodeMap = window2.NamedNodeMap || window2.MozNamedAttrMap,
-      HTMLFormElement,
+      HTMLFormElement: HTMLFormElement2,
       DOMParser: DOMParser2,
       trustedTypes
     } = window2;
@@ -8312,7 +8312,7 @@
       );
     };
     const _isClobbered = function _isClobbered2(element) {
-      return element instanceof HTMLFormElement && (typeof element.nodeName !== "string" || typeof element.textContent !== "string" || typeof element.removeChild !== "function" || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== "function" || typeof element.setAttribute !== "function" || typeof element.namespaceURI !== "string" || typeof element.insertBefore !== "function" || typeof element.hasChildNodes !== "function");
+      return element instanceof HTMLFormElement2 && (typeof element.nodeName !== "string" || typeof element.textContent !== "string" || typeof element.removeChild !== "function" || !(element.attributes instanceof NamedNodeMap) || typeof element.removeAttribute !== "function" || typeof element.setAttribute !== "function" || typeof element.namespaceURI !== "string" || typeof element.insertBefore !== "function" || typeof element.hasChildNodes !== "function");
     };
     const _isNode = function _isNode2(value) {
       return typeof Node2 === "function" && value instanceof Node2;
