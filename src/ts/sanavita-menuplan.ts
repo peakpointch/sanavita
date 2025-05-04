@@ -234,8 +234,6 @@ function initialize(): void {
       ...renderCollections,
     ];
 
-    console.log("DATA:", renderData);
-
     canvas.showHiddenElements();
     pdf.render(renderData);
     canvas.update();
@@ -261,7 +259,6 @@ function initialize(): void {
     const selectedDesign = filterForm.data.getField('design').value;
     const format: string = filterForm.data.getField('format').value;
     const pdfFormat = format.toLowerCase() as PdfFormat;
-
 
     let filename = `Tagesmenus Bistro ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
     if (selectedDesign === "bewohnende") {

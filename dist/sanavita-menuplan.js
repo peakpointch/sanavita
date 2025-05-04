@@ -32938,7 +32938,6 @@ Page:`, page);
         ...filterCollection.filterByDate(startDate, endDate),
         ...renderCollections
       ];
-      console.log("DATA:", renderData);
       canvas.showHiddenElements();
       pdf.render(renderData);
       canvas.update();
