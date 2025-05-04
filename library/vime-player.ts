@@ -1,4 +1,4 @@
-import '@vime/core';
+import type { } from '@vime/core';
 
 function getCustomPoster(player: HTMLVmPlayerElement): HTMLElement {
   const wrapper = player.parentElement;
