@@ -44,13 +44,19 @@ const sowOptions: StartOfWeekOptions = {
   locale: de,
 }
 
-function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData): Date[] {
+function getMinMaxDate(data: RenderData): Date[] {
   const dates = data.map(weekday => weekday.date.getTime());
   let minDate = new Date(Math.min(...dates));
   let maxDate = new Date(Math.max(...dates));
   if (startOfWeek(minDate, sowOptions).getTime() !== minDate.getTime()) {
     minDate = startOfWeek(addDays(minDate, 7), sowOptions);
   }
+
+  return [minDate, maxDate];
+}
+
+function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData): Date[] {
+  const [minDate, maxDate] = getMinMaxDate(data);
   const minDateStr = formatDE(minDate, 'yyyy-MM-dd');
   const maxDateStr = formatDE(maxDate, 'yyyy-MM-dd');
 
@@ -157,6 +163,7 @@ function initialize(): void {
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
 
+  filterCollection.debug = true;
   filterCollection.readData();
   const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
   setDefaultFilters(filterForm, minDate, maxDate);
@@ -195,19 +202,21 @@ function initialize(): void {
     cweek.setDate(invokedBy === 'endDate' ? endDate : startDate, true);
 
     const startDateTitleFormat = getStartDateFormat(startDate, endDate);
+    const filtered = filterCollection.filterByDate(startDate, endDate);
+    const [minDate, maxDate] = getMinMaxDate(filtered);
 
     // Static render fields
     const staticRenderFields: RenderField[] = [
       {
         element: 'title',
-        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(endDate, 'd. MMMM yyyy')}`,
+        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(maxDate, 'd. MMMM yyyy')}`,
         visibility: true,
       },
     ];
 
     pdf.render([
       ...staticRenderFields,
-      ...filterCollection.filterByDate(startDate, endDate),
+      ...filtered,
     ]);
 
     canvas.showHiddenElements();

@@ -32799,13 +32799,17 @@ Page:`, page);
     ...weekOptions,
     locale: de
   };
-  function setMinMaxDate(form, data) {
+  function getMinMaxDate(data) {
     const dates = data.map((weekday) => weekday.date.getTime());
     let minDate = new Date(Math.min(...dates));
     let maxDate = new Date(Math.max(...dates));
     if (startOfWeek(minDate, sowOptions).getTime() !== minDate.getTime()) {
       minDate = startOfWeek(addDays(minDate, 7), sowOptions);
     }
+    return [minDate, maxDate];
+  }
+  function setMinMaxDate(form, data) {
+    const [minDate, maxDate] = getMinMaxDate(data);
     const minDateStr = formatDE(minDate, "yyyy-MM-dd");
     const maxDateStr = formatDE(maxDate, "yyyy-MM-dd");
     form.getFilterInput("startDate").setAttribute("min", minDateStr);
@@ -32881,6 +32885,7 @@ Page:`, page);
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
+    filterCollection.debug = true;
     filterCollection.readData();
     const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
     setDefaultFilters(filterForm, minDate, maxDate);
@@ -32910,16 +32915,18 @@ Page:`, page);
       const endDate = parse(filters.getField("endDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
       cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
       const startDateTitleFormat = getStartDateFormat(startDate, endDate);
+      const filtered = filterCollection.filterByDate(startDate, endDate);
+      const [minDate2, maxDate2] = getMinMaxDate(filtered);
       const staticRenderFields = [
         {
           element: "title",
-          value: `${formatDE(startDate, startDateTitleFormat)} \u2013 ${formatDE(endDate, "d. MMMM yyyy")}`,
+          value: `${formatDE(startDate, startDateTitleFormat)} \u2013 ${formatDE(maxDate2, "d. MMMM yyyy")}`,
           visibility: true
         }
       ];
       pdf.render([
         ...staticRenderFields,
-        ...filterCollection.filterByDate(startDate, endDate)
+        ...filtered
       ]);
       canvas.showHiddenElements();
     });
