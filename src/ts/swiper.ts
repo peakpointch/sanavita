@@ -138,7 +138,7 @@ function parseSwiperOptions(container: HTMLElement, attributes: SwiperAttribute[
         break;
     }
 
-  })
+  });
   return settings as CustomSwiperOptions;
 }
 
@@ -179,6 +179,11 @@ export function readSwiperOptions(swiperElement: HTMLElement): SwiperOptions {
       el: ".swiper-pagination",
       clickable: true,
     },
+    breakpoints: {
+      991: {
+        slidesPerView: settings.slidesPerView,
+      },
+    },
     autoplay: autoplayOptions,
     allowTouchMove: settings.allowTouchMove,
     centeredSlides: settings.centeredSlides,
@@ -187,7 +192,7 @@ export function readSwiperOptions(swiperElement: HTMLElement): SwiperOptions {
     autoHeight: settings.autoHeight,
     spaceBetween: settings.spaceBetween,
     loop: settings.loop,
-    slidesPerView: settings.slidesPerView,
+    slidesPerView: "auto",
     modules: [Autoplay, Navigation, Pagination]
   }
 

@@ -9810,6 +9810,11 @@
         el: ".swiper-pagination",
         clickable: true
       },
+      breakpoints: {
+        991: {
+          slidesPerView: settings.slidesPerView
+        }
+      },
       autoplay: autoplayOptions,
       allowTouchMove: settings.allowTouchMove,
       centeredSlides: settings.centeredSlides,
@@ -9818,7 +9823,7 @@
       autoHeight: settings.autoHeight,
       spaceBetween: settings.spaceBetween,
       loop: settings.loop,
-      slidesPerView: settings.slidesPerView,
+      slidesPerView: "auto",
       modules: [Autoplay, Navigation, Pagination]
     };
     return swiperOptions;
