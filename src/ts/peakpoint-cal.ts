@@ -1,8 +1,6 @@
 import { loadCal } from "@library/cal/loader";
-import { disableWebflowForm, formElementSelector, getWfFormData, sendFormData } from "@library/form";
+import { disableWebflowForm, formElementSelector, getWfFormData, sendFormData } from "@library/form/utility";
 import Modal from "@library/modal";
-import wf from "@library/webflow";
-import { error } from "jquery";
 
 const modal = Modal.select("component", "prototype");
 const prototypeForm = modal.querySelector("form");

@@ -56,10 +56,6 @@ const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
 
-interface Window {
-  PEAKPOINT: any;
-}
-
 class Person {
   personalData: FieldGroup;
   doctor: FieldGroup;

@@ -1,4 +1,4 @@
-import { disableWebflowForm, reportValidity } from "@library/form";
+import { disableWebflowForm, reportValidity } from "@library/form/utility";
 import { inputSync, syncSelector } from "@library/inputsync";
 import Modal from "@library/modal";
 import isURL from "validator/lib/isURL";
