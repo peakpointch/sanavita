@@ -9951,7 +9951,9 @@
         console.log(`Add "${elementToInsert.getAttribute("data-wf-element")}"`);
         if (element.element === "birthday") {
           elementToInsert.classList.add("swiper-slide");
-          this.swiper.appendSlide(elementToInsert);
+          this.swiper.prependSlide(elementToInsert);
+          this.swiper.autoplay.stop();
+          this.swiper.slideTo(0);
         } else if (element.element === "event" || element.element === "memorial") {
           if (this.uecount === 1) return;
           this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
@@ -9967,6 +9969,7 @@
         console.log(`Remove "${clonedElementToRemove.getAttribute("data-wf-element")}"`);
         clonedElementToRemove.remove();
         this.swiper.update();
+        this.swiper.autoplay.start();
         this.insertedElements.delete(element.instance);
       }
     }

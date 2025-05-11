@@ -84,7 +84,9 @@ class ElementManager {
       if (element.element === 'birthday') {
         // Insert the cloned element into the visible swiper area for birthday elements
         elementToInsert.classList.add("swiper-slide");
-        this.swiper.appendSlide(elementToInsert);
+        this.swiper.prependSlide(elementToInsert);
+        this.swiper.autoplay.stop();
+        this.swiper.slideTo(0);
       } else if (element.element === 'event' || element.element === 'memorial') {
         if (this.uecount === 1) return;
         // Insert the cloned element into the visible swiper area for event/memorial elements
@@ -106,6 +108,7 @@ class ElementManager {
       // Remove the cloned element from the swiper
       clonedElementToRemove.remove();
       this.swiper.update();
+      this.swiper.autoplay.start();
 
       // Remove from the tracked inserted elements map
       this.insertedElements.delete(element.instance);
