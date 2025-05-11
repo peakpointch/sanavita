@@ -1,5 +1,5 @@
 import wf from "@library/webflow";
-import { HTMLFormInput, validateFields } from "./form";
+import { HTMLFormInput, validateFields } from "./utility";
 import { FormMessage } from "./formmessage";
 
 /**

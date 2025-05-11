@@ -1,5 +1,5 @@
 // Export general form functionality
-export * from './form';
+export * from './utility';
 
 // Export FormField class and FieldData interface
 export * from './formfield';

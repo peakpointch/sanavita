@@ -10,7 +10,7 @@ import {
   formElementSelector,
   fieldFromInput
 } from "@library/form";
-import { wf } from "@library/webflow";
+import wf from "@library/webflow";
 import { HTMLFormInput, CustomValidator } from "@library/form";
 import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@library/form";
 import Accordion from "@library/accordion";
