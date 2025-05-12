@@ -4,8 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "serve",
-    "build-vimeo": "esbuild js-library/vimeo-component.ts --bundle --outfile=dist/vimeo-component.js",
+    "serve": "serve -l 7000",
     "build": "node builder.js",
     "livereload": "node esbuild.config.js"
   },
