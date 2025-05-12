@@ -1,6 +1,6 @@
-import { disableWebflowForm, reportValidity } from "@library/form/utility";
-import { inputSync, syncSelector } from "@library/inputsync";
-import Modal from "@library/modal";
+import { disableWebflowForm, reportValidity } from "@peakflow/form/utility";
+import { inputSync, syncSelector } from "@peakflow/inputsync";
+import Modal from "@peakflow/modal";
 import isURL from "validator/lib/isURL";
 
 function setupForm(form: HTMLFormElement, modal: Modal): void {

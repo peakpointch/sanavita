@@ -1,5 +1,5 @@
 // Imports
-import createAttribute from "@library/attributeselector";
+import createAttribute from "@peakflow/attributeselector";
 import {
   isCheckboxInput,
   isRadioInput,
@@ -9,12 +9,12 @@ import {
   validateFields,
   formElementSelector,
   fieldFromInput
-} from "@library/form";
-import wf from "@library/webflow";
-import { HTMLFormInput, CustomValidator } from "@library/form";
-import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@library/form";
-import Accordion from "@library/accordion";
-import Modal from "@library/modal";
+} from "@peakflow/form";
+import wf from "@peakflow/webflow";
+import { HTMLFormInput, CustomValidator } from "@peakflow/form";
+import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@peakflow/form";
+import Accordion from "@peakflow/accordion";
+import Modal from "@peakflow/modal";
 
 // Types
 type GroupName =

@@ -1,6 +1,6 @@
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules"
-import { toCamelCase } from "@library/parameterize";
+import { toCamelCase } from "@peakflow/parameterize";
 import { AutoplayOptions, NavigationOptions, SwiperOptions } from "swiper/types";
 
 type CamelToDash<T extends string> = T extends `${infer Head}${infer Tail}`

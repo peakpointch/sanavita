@@ -1,3 +1,3 @@
-import { inlineCms } from "@library/inlinecms";
+import { inlineCms } from "@peakflow/inlinecms";
 
 inlineCms("[inlinecms], [data-inlinecms-component], [data-inlinecms], [data-cms-unpack]");

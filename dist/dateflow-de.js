@@ -1,5 +1,5 @@
 (() => {
-  // library/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -1603,7 +1603,7 @@
     return matched[1].replace(doubleQuoteRegExp, "'");
   }
 
-  // library/dateflow/dateflow.ts
+  // node_modules/peakflow/src/dateflow/dateflow.ts
   function getDomElements(...elements) {
     const containers = [];
     elements.forEach((entry) => {
@@ -1628,13 +1628,13 @@
   };
   function parseDateflow(element) {
     const dateString = element.getAttribute(attr.date);
+    if (!dateString) {
+      throw new Error(`Date string is empty.`);
+    }
     const time = parseFloat(element.getAttribute(attr.time) || "0.00");
     const [year, month, day] = dateString.split("-").map(Number);
     const hour = Math.floor(time);
     const minute = Math.round(time * 100) % 10 ** 2;
-    if (!dateString) {
-      throw new Error(`Date string is empty.`);
-    }
     const date = new Date(year, month - 1, day, hour, minute);
     if (!(date instanceof Date) || isNaN(date.getTime())) {
       throw new Error(`Invalid date string "${dateString}" or invalid time string "${time}".`);
@@ -1654,7 +1654,11 @@
         try {
           date = parseDateflow(element);
         } catch (error) {
-          console.warn(`Failed to parse date #${i}. ${error.message} Skipping date.`);
+          if (error instanceof Error) {
+            console.warn(`Failed to parse date #${i}. ${error.message} Skipping date.`);
+          } else {
+            console.warn(`Failed to parse date #${i}. Unknown error: ${String(error)} Skipping date.`);
+          }
           return;
         }
         const formatString = element.getAttribute(attr.format);

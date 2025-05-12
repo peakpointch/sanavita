@@ -1,5 +1,5 @@
 (() => {
-  // library/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -34,7 +34,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // library/parameterize.ts
+  // node_modules/peakflow/src/parameterize.ts
   function toCamelCase(str) {
     return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
   }
@@ -3892,7 +3892,7 @@
     }
   };
 
-  // library/webflow/webflow.ts
+  // node_modules/peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -3932,21 +3932,26 @@
     select: wfselect
   };
 
-  // library/renderer.ts
+  // node_modules/peakflow/src/renderer.ts
   var Renderer = class _Renderer {
     constructor(canvas, attributeName = "render") {
       this.attributeName = attributeName;
-      this.collectionAttr = `data-is-collection`;
-      this.filterAttributes = {
-        "data-filter": "string",
-        "data-category": "string"
-      };
       if (!canvas) throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
       this.elementAttr = `data-${attributeName}-element`;
       this.fieldAttr = `data-${attributeName}-field`;
       this.emptyStateAttr = `data-${attributeName}-empty-state`;
     }
+    canvas;
+    data;
+    fieldAttr;
+    elementAttr;
+    emptyStateAttr;
+    collectionAttr = `data-is-collection`;
+    filterAttributes = {
+      "data-filter": "string",
+      "data-category": "string"
+    };
     render(data, canvas = this.canvas) {
       this.clear(canvas);
       this._render(data, canvas);
@@ -4330,19 +4335,23 @@
   };
   var renderer_default = Renderer;
 
-  // library/wfcollection/wfcollection.ts
+  // node_modules/peakflow/src/wfcollection/wfcollection.ts
   var CollectionList = class {
     constructor(container, name = "", rendererName = "wf") {
       this.name = name;
       this.rendererName = rendererName;
-      this.collectionData = [];
-      this.debug = false;
       if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
       this.renderer = new renderer_default(container, this.rendererName);
     }
+    container;
+    renderer;
+    collectionData = [];
+    debug = false;
+    listElement;
+    items;
     log(...args) {
       if (!this.debug) return;
       console.log(`"${this.name}" CollectionList:`, ...args);
@@ -4390,7 +4399,7 @@
     }
   };
 
-  // library/wfcollection/filtercollection.ts
+  // node_modules/peakflow/src/wfcollection/filtercollection.ts
   var FilterCollection = class extends CollectionList {
     constructor(container, name = "", rendererName = "wf") {
       super(container, name, rendererName);

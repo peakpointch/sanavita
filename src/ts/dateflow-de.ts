@@ -1,4 +1,4 @@
-import { dateflow } from "@library/dateflow";
+import { dateflow } from "@peakflow/dateflow";
 import { de } from "date-fns/locale";
 
 document.addEventListener("DOMContentLoaded", () => {

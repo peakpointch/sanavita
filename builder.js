@@ -46,34 +46,12 @@ function buildDevFiles(devFiles) {
   }).catch(() => process.exit(1));
 }
 
-// Build the library separately
-function buildLibrary(libraryDir, outDir) {
-  const files = getFilesFromDirectory(libraryDir, 'ts');
-
-  for (const name of files) {
-    esbuild.build({
-      entryPoints: [`${libraryDir}/${name}.ts`],
-      outfile: `${outDir}/${name}.js`,
-      bundle: true,
-      minify: false, // Keep names for reusability
-      sourcemap: false,
-      format: "esm",
-      minifyIdentifiers: false,
-    }).catch((e) => {
-      process.exit(1);
-    });
-  }
-}
 
 function build() {
   // Define paths
-  const libraryDir = 'library';
   const devFiles = [
     "livereload/livereload.js",
   ];
-
-  // Build the library
-  buildLibrary(libraryDir, 'dist/library');
 
   // Build the scripts
   buildScripts('src/ts', 'dist', 'ts', [], false, "iife");
@@ -85,4 +63,4 @@ function build() {
 
 build();
 
-module.exports = { build, buildScripts, buildLibrary, buildDevFiles };
+module.exports = { build, buildScripts, buildDevFiles };

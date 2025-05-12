@@ -1,15 +1,15 @@
 // Imports
-import EditableCanvas from '@library/canvas';
-import Pdf, { PdfFormat } from '@library/pdf';
-import { FilterCollection } from '@library/wfcollection';
-import { RenderData, RenderElement, RenderField } from '@library/renderer';
-import { CalendarweekComponent, FilterForm, filterFormSelector } from '@library/form';
+import EditableCanvas from '@peakflow/canvas';
+import Pdf, { PdfFormat } from '@peakflow/pdf';
+import { FilterCollection } from '@peakflow/wfcollection';
+import { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
+import { CalendarweekComponent, FilterForm, filterFormSelector } from '@peakflow/form';
 
 // Utility functions
-import createAttribute from '@library/attributeselector';
+import createAttribute from '@peakflow/attributeselector';
 import { addDays, startOfWeek, format, getWeek, addWeeks, getYear, WeekOptions, startOfISOWeek, StartOfWeekOptions, parse, addMinutes, getISOWeekYear, getISOWeek } from 'date-fns';
 import { de } from 'date-fns/locale';
-import wf from '@library/webflow';
+import wf from '@peakflow/webflow';
 
 // Types
 type ActionElement = 'download' | 'save';

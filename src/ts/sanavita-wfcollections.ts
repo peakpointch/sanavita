@@ -1,4 +1,4 @@
-import { initWfCollections } from "@library/wfcollection";
+import { initWfCollections } from "@peakflow/wfcollection";
 
 const sanavitaCollections: Set<string> = new Set([
   'hit',

@@ -1,5 +1,5 @@
 (() => {
-  // library/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -34,7 +34,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // library/webflow/webflow.ts
+  // node_modules/peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -74,7 +74,7 @@
     select: wfselect
   };
 
-  // library/form/utility.ts
+  // node_modules/peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
   function isRadioInput(input) {
@@ -212,13 +212,19 @@
     return { valid, invalidField: firstInvalidField };
   }
 
-  // library/parameterize.ts
+  // node_modules/peakflow/src/parameterize.ts
   function parameterize(text) {
     return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
   }
 
-  // library/form/formfield.ts
+  // node_modules/peakflow/src/form/formfield.ts
   var FormField = class {
+    id;
+    label;
+    value;
+    required;
+    type;
+    checked;
     constructor(data = null) {
       if (!data) {
         return;
@@ -270,8 +276,9 @@
     return field;
   }
 
-  // library/form/fieldgroup.ts
+  // node_modules/peakflow/src/form/fieldgroup.ts
   var FieldGroup = class {
+    fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -285,15 +292,18 @@
     }
   };
 
-  // library/form/formmessage.ts
+  // node_modules/peakflow/src/form/formmessage.ts
   var FormMessage = class {
+    messageFor;
+    component;
+    messageElement;
+    initialized = false;
     /**
      * Constructs a new FormMessage instance.
      * @param componentName The name of the component (used in `data-message-component`).
      * @param messageFor The target form field identifier (used in `data-message-for`).
      */
     constructor(componentName, messageFor) {
-      this.initialized = false;
       this.messageFor = messageFor;
       const component = document.querySelector(
         `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
@@ -364,17 +374,21 @@
     }
   };
 
-  // library/form/formdecision.ts
+  // node_modules/peakflow/src/form/formdecision.ts
   var FormDecision = class {
+    component;
+    paths = [];
+    id;
+    formMessage;
+    decisionInputs;
+    errorMessages = {};
+    defaultErrorMessage = "Please complete the required fields.";
     /**
      * Constructs a new FormDecision instance.
      * @param component The FormDecision element.
      * @param id Unique identifier for the specific instance.
      */
     constructor(component, id) {
-      this.paths = [];
-      this.errorMessages = {};
-      this.defaultErrorMessage = "Please complete the required fields.";
       if (!component || !id) {
         console.error(`FormDecision: Component not found.`);
         return;
@@ -528,16 +542,10 @@
     }
   };
 
-  // library/form/filterform.ts
+  // node_modules/peakflow/src/form/filterform.ts
   var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
-      this.beforeChangeActions = [];
-      this.fieldChangeActions = /* @__PURE__ */ new Map();
-      this.globalChangeActions = [];
-      // Stores wildcard ('*') actions
-      this.defaultDayRange = 7;
-      this.resizeResetFields = /* @__PURE__ */ new Map();
       if (!container) throw new Error(`FilterForm container can't be null`);
       container = container;
       if (container.tagName === "form") {
@@ -555,9 +563,17 @@
       this.actionElements = container.querySelectorAll(_FilterForm.select());
       this.attachChangeListeners();
     }
-    static {
-      this.select = attributeselector_default("data-action");
-    }
+    container;
+    data;
+    filterFields;
+    actionElements;
+    beforeChangeActions = [];
+    fieldChangeActions = /* @__PURE__ */ new Map();
+    globalChangeActions = [];
+    // Stores wildcard ('*') actions
+    defaultDayRange = 7;
+    resizeResetFields = /* @__PURE__ */ new Map();
+    static select = attributeselector_default("data-action");
     /**
      * Returns the `HTMLElement` of a specific filter input.
      */
@@ -2409,22 +2425,35 @@
     return _date;
   }
 
-  // library/form/calendarweekcomponent.ts
+  // node_modules/peakflow/src/form/calendarweekcomponent.ts
   function getISOWeeksOfYear(year) {
     return getISOWeeksInYear(new Date(year, 5, 1));
   }
   var CalendarweekComponent = class _CalendarweekComponent {
+    container;
+    weekInput;
+    yearInput;
+    week;
+    year;
+    minDate = null;
+    maxDate = null;
+    minDateYear;
+    maxDateYear;
+    minDateWeek;
+    maxDateWeek;
+    currentMinWeek;
+    currentMaxWeek;
+    mode = "continuous";
+    onChangeActions = [];
     constructor(container, mode) {
-      this.minDate = null;
-      this.maxDate = null;
-      this.mode = "continuous";
-      this.onChangeActions = [];
       this.container = container;
-      this.weekInput = container.querySelector(_CalendarweekComponent.select("week"));
-      this.yearInput = container.querySelector(_CalendarweekComponent.select("year"));
-      if (!this.weekInput || !this.yearInput) {
+      const weekInput = container.querySelector(_CalendarweekComponent.select("week"));
+      const yearInput = container.querySelector(_CalendarweekComponent.select("year"));
+      if (!weekInput || !yearInput) {
         throw new Error(`Couldn't find required "week" or "year" input element. Check the attribute selector "${_CalendarweekComponent.select()}"`);
       }
+      this.weekInput = weekInput;
+      this.yearInput = yearInput;
       if (!mode) {
         mode = container.getAttribute("data-mode");
         if (!["continuous", "loop", "fixed"].some((validMode) => validMode === mode)) {
@@ -2442,9 +2471,7 @@
       this.weekInput.addEventListener("change", () => this.onWeekChange());
       this.yearInput.addEventListener("change", () => this.onYearChange());
     }
-    static {
-      this.select = attributeselector_default("data-cweek-element");
-    }
+    static select = attributeselector_default("data-cweek-element");
     setDate(date, silent = false) {
       const year = getISOWeekYear(date);
       const week = getISOWeek(date);
@@ -2483,8 +2510,8 @@
         this.minDate = null;
         this.minDateYear = null;
         this.minDateWeek = null;
-        this.yearInput.min = null;
-        this.container.dataset.minDate = null;
+        this.yearInput.min = "";
+        this.container.dataset.minDate = "";
       }
       if (newMaxDate instanceof Date && !isNaN(newMaxDate.getTime())) {
         this.maxDate = newMaxDate;
@@ -2496,8 +2523,8 @@
         this.maxDate = null;
         this.maxDateYear = null;
         this.maxDateWeek = null;
-        this.yearInput.max = null;
-        this.container.dataset.maxDate = null;
+        this.yearInput.max = "";
+        this.container.dataset.maxDate = "";
       }
       this.updateWeekMinMax();
     }
@@ -2627,11 +2654,15 @@
     }
   };
 
-  // library/accordion.ts
+  // node_modules/peakflow/src/accordion.ts
   var modalSelector = attributeselector_default("data-modal-element");
   var Accordion = class {
+    component;
+    trigger;
+    uiTrigger;
+    isOpen = false;
+    icon;
     constructor(component) {
-      this.isOpen = false;
       this.component = component;
       this.trigger = component.querySelector('[data-animate="trigger"]');
       this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]');
@@ -2687,7 +2718,7 @@
     }
   };
 
-  // library/modal.ts
+  // node_modules/peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -2701,8 +2732,16 @@
     lockBodyScroll: true
   };
   var Modal = class _Modal {
+    component;
+    modal;
+    initialized = false;
+    settings;
+    instance;
+    static attr = {
+      id: "data-modal-id",
+      element: "data-modal-element"
+    };
     constructor(component, settings = {}) {
-      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -2719,15 +2758,7 @@
       }
       this.initialized = true;
     }
-    static {
-      this.attr = {
-        id: "data-modal-id",
-        element: "data-modal-element"
-      };
-    }
-    static {
-      this.attributeSelector = attributeselector_default(_Modal.attr.element);
-    }
+    static attributeSelector = attributeselector_default(_Modal.attr.element);
     /**
      * Static selector
      */

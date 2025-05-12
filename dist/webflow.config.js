@@ -1,6 +1,7 @@
 (() => {
-  // library/script.ts
+  // node_modules/peakflow/src/script.ts
   var Script = class {
+    element;
     constructor(src) {
       this.element = document.createElement("script");
       this.element.src = src;
@@ -10,6 +11,7 @@
     }
   };
   var Stylesheet = class {
+    element;
     constructor(href) {
       this.element = document.createElement("link");
       this.element.setAttribute("rel", "stylesheet");

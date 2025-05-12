@@ -1,4 +1,4 @@
-import createAttribute from "@library/attributeselector";
+import createAttribute from "@peakflow/attributeselector";
 
 // type LocalizationElements = 'dropdown' | 'trigger' | 'list';
 // const localizationSelector = createAttribute<LocalizationElements>('data-wf-localization');

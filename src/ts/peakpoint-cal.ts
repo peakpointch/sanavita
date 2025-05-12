@@ -1,6 +1,6 @@
-import { loadCal } from "@library/cal/loader";
-import { disableWebflowForm, formElementSelector, getWfFormData, sendFormData } from "@library/form/utility";
-import Modal from "@library/modal";
+import { loadCal } from "@peakflow/cal/loader";
+import { disableWebflowForm, formElementSelector, getWfFormData, sendFormData } from "@peakflow/form/utility";
+import Modal from "@peakflow/modal";
 
 const modal = Modal.select("component", "prototype");
 const prototypeForm = modal.querySelector("form");

@@ -1,6 +1,6 @@
-import createAttribute from "@library/attributeselector";
-import { FilterCollection } from "@library/wfcollection";
-import { RenderData } from "@library/renderer";
+import createAttribute from "@peakflow/attributeselector";
+import { FilterCollection } from "@peakflow/wfcollection";
+import { RenderData } from "@peakflow/renderer";
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules";
 import { readSwiperOptions } from "./swiper";

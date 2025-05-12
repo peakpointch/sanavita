@@ -1,7 +1,7 @@
 (() => {
-  // library/cal/loader.ts
+  // node_modules/peakflow/src/cal/loader.ts
   async function loadCal(namespace) {
-    if (typeof window.Cal !== "undefined") return;
+    if (typeof window.Cal !== "undefined") return window.Cal;
     (function(windw, embedJS, action) {
       const p = (api, args) => {
         api.q.push(args);
@@ -41,7 +41,7 @@
     return Cal;
   }
 
-  // library/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -76,7 +76,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // library/webflow/webflow.ts
+  // node_modules/peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -116,7 +116,7 @@
     select: wfselect
   };
 
-  // library/form/utility.ts
+  // node_modules/peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
   function getWfFormData(form, fields, test = false) {
@@ -163,7 +163,7 @@
     form.parentElement.classList.remove("w-form");
   }
 
-  // library/modal.ts
+  // node_modules/peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -177,8 +177,16 @@
     lockBodyScroll: true
   };
   var Modal = class _Modal {
+    component;
+    modal;
+    initialized = false;
+    settings;
+    instance;
+    static attr = {
+      id: "data-modal-id",
+      element: "data-modal-element"
+    };
     constructor(component, settings = {}) {
-      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -195,15 +203,7 @@
       }
       this.initialized = true;
     }
-    static {
-      this.attr = {
-        id: "data-modal-id",
-        element: "data-modal-element"
-      };
-    }
-    static {
-      this.attributeSelector = attributeselector_default(_Modal.attr.element);
-    }
+    static attributeSelector = attributeselector_default(_Modal.attr.element);
     /**
      * Static selector
      */
