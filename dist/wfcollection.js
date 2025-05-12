@@ -49,3 +49,4 @@
   window.initWfCollections = initWfCollections;
   window.wfCollections = wfCollections;
 })();
+//# sourceMappingURL=wfcollection.js.map

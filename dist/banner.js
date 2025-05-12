@@ -68,3 +68,4 @@
     setAllSpeeds(main);
   });
 })();
+//# sourceMappingURL=banner.js.map

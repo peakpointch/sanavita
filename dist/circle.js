@@ -15,3 +15,4 @@
   updateOffset();
   window.addEventListener("resize", updateOffset);
 })();
+//# sourceMappingURL=circle.js.map

@@ -17,3 +17,4 @@
     });
   });
 })();
+//# sourceMappingURL=wf-trigger.js.map

@@ -24,7 +24,7 @@ function buildScripts(dir, outDir, extension = 'ts', excludeList = [], minify = 
       outfile: `${outDir}/${name}.js`,
       bundle: true,
       minify: minify,
-      sourcemap: false,
+      sourcemap: true,
       format: format,
       minifyIdentifiers: false,
     }).catch((e) => {
@@ -40,7 +40,7 @@ function buildDevFiles(devFiles) {
     outdir: "dist",
     bundle: true,
     minify: false,
-    sourcemap: false,
+    sourcemap: true,
     format: "esm",
     minifyIdentifiers: false,
   }).catch(() => process.exit(1));

@@ -40,3 +40,4 @@
     }, 1e3);
   });
 })();
+//# sourceMappingURL=timer.js.map

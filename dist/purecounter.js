@@ -36,3 +36,4 @@
     });
   });
 })();
+//# sourceMappingURL=purecounter.js.map

@@ -81,3 +81,4 @@
   // src/ts/inlinecms.ts
   inlineCms("[inlinecms], [data-inlinecms-component], [data-inlinecms], [data-cms-unpack]");
 })();
+//# sourceMappingURL=inlinecms.js.map

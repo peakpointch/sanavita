@@ -44,3 +44,4 @@
   setInterval(updateTimelineProgress, 24 * 60 * 60 * 1e3);
   window.addEventListener("resize", updateTimelineProgress);
 })();
+//# sourceMappingURL=timeline.js.map

@@ -66,3 +66,4 @@
   }
   fsCookieScript.addEventListener("load", initializePopup);
 })();
+//# sourceMappingURL=popup-cookie.js.map

@@ -37,3 +37,4 @@
     removePlaceholderClass();
   });
 })();
+//# sourceMappingURL=sozjobs-job.js.map

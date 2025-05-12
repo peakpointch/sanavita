@@ -53,3 +53,4 @@
   ]);
   initWfCollections(sanavitaCollections);
 })();
+//# sourceMappingURL=sanavita-wfcollections.js.map

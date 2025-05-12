@@ -52,3 +52,4 @@
     setupLocaleSwitcher();
   });
 })();
+//# sourceMappingURL=phra-nakhon-localization.js.map

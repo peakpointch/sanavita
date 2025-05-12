@@ -20,3 +20,4 @@
     urlField.dispatchEvent(new Event("change", { bubbles: true }));
   });
 })();
+//# sourceMappingURL=uploadcare.js.map

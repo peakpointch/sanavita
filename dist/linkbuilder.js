@@ -18,3 +18,4 @@
     initLinkBuilders();
   });
 })();
+//# sourceMappingURL=linkbuilder.js.map

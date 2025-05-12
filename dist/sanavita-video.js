@@ -71,3 +71,4 @@
     });
   });
 })();
+//# sourceMappingURL=sanavita-video.js.map

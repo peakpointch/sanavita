@@ -6,3 +6,4 @@
     }, 1e3);
   });
 })();
+//# sourceMappingURL=w-autoplay.js.map
