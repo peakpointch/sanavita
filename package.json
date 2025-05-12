@@ -6,7 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "serve -l 7000",
     "build": "node builder.js",
-    "livereload": "node esbuild.config.js"
+    "livereload": "node esbuild.config.js",
+    "use-local-lib": "npm install ../peakflow",
+    "use-remote-lib": "npm install github:peakpointch/peakflow"
   },
   "author": "",
   "license": "ISC",
