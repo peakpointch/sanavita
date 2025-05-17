@@ -40,23 +40,23 @@ type CustomFormComponent = {
 };
 type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination';
 type StepsNavElement = 'prev' | 'next';
-type PersonElement = 'template' | 'empty' | 'add' | 'save' | 'cancel';
+type ProspectElement = 'template' | 'empty' | 'add' | 'save' | 'edit' | 'delete' | 'cancel';
 
 // Selector functions
 const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element');
 const stepsTargetSelector = createAttribute<string>('data-step-target');
 const stepsNavSelector = createAttribute<StepsNavElement>('data-steps-nav');
-const personSelector = createAttribute<PersonElement>('data-person-element')
+const prospectSelector = createAttribute<ProspectElement>('data-prospect-element')
 
 const STEPS_PAGINATION_ITEM_SELECTOR: string = `button${stepsTargetSelector()}`;
 const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
-const ARRAY_GROUP_SELECTOR: string = "[data-person-data-group]";
+const ARRAY_GROUP_SELECTOR: string = "[data-prospect-field-group]";
 const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
 
-class Person {
+class ResidentProspect {
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
@@ -80,7 +80,7 @@ class Person {
   public validate(): boolean {
     let valid = true;
 
-    // Loop over the groups within the person object
+    // Loop over the groups within the `ResidentProspect` object
     const groups = Object.keys(this) as GroupName[];
 
     groups.forEach((groupName) => {
@@ -91,7 +91,7 @@ class Person {
         group.fields.forEach((field) => {
           if (!(field instanceof FormField)) {
             console.error(
-              `Validate Person: field object is not of instance "Field"`
+              `Validate Prospect: field object is not of instance "Field"`
             );
             return;
           } else {
@@ -156,9 +156,9 @@ function deserializeFieldGroup(fieldGroupData: any): FieldGroup {
   return new FieldGroup(fieldsMap); // Create a new FieldGroup with the fields
 }
 
-// Main function to deserialize a Person
-function deserializePerson(data: any): Person {
-  return new Person(
+// Main function to deserialize a `ResidentProspect`
+function deserializeResidentProspect(data: any): ResidentProspect {
+  return new ResidentProspect(
     deserializeFieldGroup(data.personalData),
     deserializeFieldGroup(data.doctor),
     deserializeFieldGroup(data.health),
@@ -257,17 +257,15 @@ class FormGroup {
   }
 }
 
-class FormModal extends Modal { }
-
 class FormArray {
   public id: string | number;
-  public people: Map<string, Person>;
+  public prospects: Map<string, ResidentProspect>;
   private container: HTMLElement;
   private list: HTMLElement;
   private template: HTMLElement;
   private formMessage: FormMessage;
   private addButton: HTMLElement;
-  public modal: FormModal;
+  public modal: Modal;
   public modalElement: HTMLElement;
   private modalForm: HTMLFormElement;
   private saveButton: HTMLElement;
@@ -282,21 +280,24 @@ class FormArray {
   constructor(container: HTMLElement, id: string | number) {
     this.id = id;
     this.container = container;
-    this.people = new Map();
+    this.prospects = new Map();
     this.list = this.container.querySelector(ARRAY_LIST_SELECTOR)!;
-    this.template = this.list.querySelector(personSelector('template'))!;
-    this.addButton = this.container.querySelector(personSelector('add'))!;
+    this.template = this.list.querySelector(prospectSelector('template'))!;
+    this.addButton = this.container.querySelector(prospectSelector('add'))!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
     this.modalForm = document.querySelector('form')!;
 
     // Form Modal
-    this.modalElement = document.querySelector(
-      formElementSelector('modal') + `[data-modal-for="person"]`
-    )!;
-    this.modal = new FormModal(this.modalElement);
-    this.saveButton = this.modalElement.querySelector(personSelector('save'))!;
+    this.modalElement = Modal.select('component', 'resident-prospect');
+    this.modal = new Modal(this.modalElement, {
+      animation: {
+        type: "slideUp",
+        duration: 300,
+      },
+    });
+    this.saveButton = this.modalElement.querySelector(prospectSelector('save'))!;
     this.cancelButtons = this.modalElement.querySelectorAll(
-      personSelector('cancel')
+      prospectSelector('cancel')
     )!;
     this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
     this.groupElements =
@@ -314,7 +315,7 @@ class FormArray {
       input.addEventListener("keydown", (event: KeyboardEvent) => {
         if (event.key === "Enter") {
           event.preventDefault();
-          this.savePersonFromModal();
+          this.saveProspectFromModal();
         }
       });
       input.addEventListener("focusin", () => {
@@ -332,8 +333,8 @@ class FormArray {
       });
     });
 
-    this.saveButton.addEventListener("click", () => this.savePersonFromModal()); // Change this for dev, validate: false
-    this.addButton.addEventListener("click", () => this.addPerson());
+    this.saveButton.addEventListener("click", () => this.saveProspectFromModal()); // Change this for dev, validate: false
+    this.addButton.addEventListener("click", () => this.addProspect());
 
     this.renderList();
     this.closeModal();
@@ -361,8 +362,8 @@ class FormArray {
     this.closeModal();
   }
 
-  private addPerson() {
-    if (this.people.size === 2) {
+  private addProspect() {
+    if (this.prospects.size === 2) {
       this.formMessage.error("Sie können nur max. 2 Personen hinzufügen.");
       setTimeout(() => this.formMessage.reset(), 5000);
       return;
@@ -371,20 +372,20 @@ class FormArray {
     this.setLiveText("state", "Hinzufügen");
     this.setLiveText("full-name", "Neue Person");
     this.openModal();
-    this.editingKey = null; // Reset editing state for adding a new person
+    this.editingKey = null; // Reset editing state for adding a new prospect
   }
 
-  private savePersonFromModal(validate: boolean = true) {
+  private saveProspectFromModal(validate: boolean = true) {
     const listValid = this.validateModal(validate);
     if (!listValid) {
       console.warn(
-        `Couldn't save person. Please fill in all the values correctly.`
+        `Couldn't save ResidentProspect. Please fill in all the values correctly.`
       );
       if (validate) return null;
     }
 
-    const person: Person = this.extractData();
-    if (this.savePerson(person)) {
+    const prospect: ResidentProspect = this.extractData();
+    if (this.saveProspect(prospect)) {
       this.renderList();
       this.closeModal();
     }
@@ -392,15 +393,15 @@ class FormArray {
     this.saveProgress();
   }
 
-  private savePerson(person: Person): boolean {
+  private saveProspect(prospect: ResidentProspect): boolean {
     if (this.editingKey !== null) {
-      // Update existing person
-      this.people.set(this.editingKey, person);
+      // Update existing prospect
+      this.prospects.set(this.editingKey, prospect);
     } else {
-      // Generate a truly unique key for a new person
+      // Generate a truly unique key for a new ResidentProspect
       const uniqueSuffix = crypto.randomUUID();
       const newKey = `person-${uniqueSuffix}`;
-      this.people.set(newKey, person);
+      this.prospects.set(newKey, prospect);
     }
     return true;
   }
@@ -421,10 +422,10 @@ class FormArray {
 
   private renderList() {
     this.list.innerHTML = ""; // Clear the current list
-    this.list.dataset.length = this.people.size.toString();
+    this.list.dataset.length = this.prospects.size.toString();
 
-    if (this.people.size) {
-      this.people.forEach((person, key) => this.renderPerson(person, key));
+    if (this.prospects.size) {
+      this.prospects.forEach((prospect, key) => this.renderProspect(prospect, key));
       this.formMessage.reset();
     } else {
       this.formMessage.info(
@@ -434,7 +435,7 @@ class FormArray {
     }
   }
 
-  private renderPerson(person: Person, key: string) {
+  private renderProspect(prospect: ResidentProspect, key: string) {
     const newElement: HTMLElement = this.template.cloneNode(
       true
     ) as HTMLElement;
@@ -442,21 +443,19 @@ class FormArray {
     newElement.style.removeProperty("display");
 
     // Add event listeners for editing and deleting
-    const editButton = newElement.querySelector('[data-person-action="edit"]');
-    const deleteButton = newElement.querySelector(
-      '[data-person-action="delete"]'
-    );
+    const editButton = newElement.querySelector(prospectSelector('edit'));
+    const deleteButton = newElement.querySelector(prospectSelector('delete'));
 
     editButton!.addEventListener("click", () => {
       this.setLiveText("state", "bearbeiten");
-      this.setLiveText("full-name", person.getFullName() || "Neue Person");
-      this.populateModal(person);
+      this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
+      this.populateModal(prospect);
       this.openModal();
       this.editingKey = key; // Set editing key
     });
 
     deleteButton!.addEventListener("click", () => {
-      this.people.delete(key); // Remove the person from the map
+      this.prospects.delete(key); // Remove the ResidentProspect from the map
       this.renderList(); // Re-render the list
       this.closeModal();
       this.saveProgress();
@@ -466,11 +465,11 @@ class FormArray {
       const propSelector = `[data-${prop}]`;
       const el: HTMLElement | null = newElement.querySelector(propSelector);
       if (el && prop === "full-name") {
-        el.innerText = person.getFullName();
+        el.innerText = prospect.getFullName();
       } else if (el) {
-        const currentField = person.personalData.getField(prop);
+        const currentField = prospect.personalData.getField(prop);
         if (!currentField) {
-          console.error(`Render person: A field for "${prop}" doesn't exist.`);
+          console.error(`Render ResidentProspect: A field for "${prop}" doesn't exist.`);
           return;
         }
         el.innerText = currentField.value || currentField.label;
@@ -479,15 +478,15 @@ class FormArray {
     this.list.appendChild(newElement);
   }
 
-  private populateModal(person: Person) {
+  private populateModal(prospect: ResidentProspect) {
     this.groupElements.forEach((group) => {
       const groupInputs: NodeListOf<HTMLFormInput> =
         group.querySelectorAll(wf.select.formInput);
-      const groupName = group.dataset.personDataGroup! as GroupName;
+      const groupName = group.dataset.prospectFieldGroup! as GroupName;
 
       groupInputs.forEach((input) => {
         // Get field
-        const field = person[groupName].getField(input.id);
+        const field = prospect[groupName].getField(input.id);
 
         if (!field) {
           console.warn(`Field not found:`, field, input.id);
@@ -516,8 +515,8 @@ class FormArray {
   public validate(): boolean {
     let valid = true;
 
-    // Validate if there are any people in the array (check if the `people` map has any entries)
-    if (this.people.size === 0) {
+    // Validate if there are any prospects in the array (check if the `prospects` map has any entries)
+    if (this.prospects.size === 0) {
       console.warn("Bitte fügen Sie mindestens eine mietende Person hinzu.");
       this.formMessage.error(
         `Bitte fügen Sie mindestens eine mietende Person hinzu.`
@@ -532,22 +531,22 @@ class FormArray {
       );
       valid = false;
     } else {
-      // Check if each person in the people collection is valid
-      this.people.forEach((person, key) => {
-        if (!person.validate()) {
+      // Check if each ResidentProspect in the prospects collection is valid
+      this.prospects.forEach((prospect, key) => {
+        if (!prospect.validate()) {
           console.warn(
-            `Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`
+            `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
           );
           this.formMessage.error(
-            `Bitte füllen Sie alle Felder für "${person.getFullName()}" aus.`
+            `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
           );
 
           // setTimeout(() => {
-          //   this.populateModal(person);
+          //   this.populateModal(prospect);
           //   this.openModal();
           //   this.validateModal();
           // }, 0);
-          valid = false; // If any person is invalid, set valid to false
+          valid = false; // If any ResidentProspect is invalid, set valid to false
         }
       });
     }
@@ -558,16 +557,16 @@ class FormArray {
   public openModal(): void {
     // Live text for name
     const personalDataGroup = this.modalElement.querySelector(
-      '[data-person-data-group="personalData"]'
+      '[data-prospect-field-group="personalData"]'
     )!;
     const nameInputs: NodeListOf<HTMLFormElement> =
       personalDataGroup.querySelectorAll("#first-name, #name");
     nameInputs.forEach((input) => {
       input.addEventListener("input", () => {
-        const editingPerson: Person = this.extractData();
+        const editingProspect: ResidentProspect = this.extractData();
         this.setLiveText(
           "full-name",
-          editingPerson.getFullName() || "Neue Person"
+          editingProspect.getFullName() || "Neue Person"
         );
       });
     });
@@ -669,15 +668,14 @@ class FormArray {
     return -1; // Return -1 if no accordion is found
   }
 
-  private extractData(): Person {
-    const personData = new Person();
+  private extractData(): ResidentProspect {
+    const prospectData = new ResidentProspect();
 
     this.groupElements.forEach((group) => {
-      const groupInputs: NodeListOf<HTMLFormInput> =
-        group.querySelectorAll(wf.select.formInput);
-      const groupName = group.dataset.personDataGroup! as GroupName;
+      const groupInputs = group.querySelectorAll<HTMLFormInput>(wf.select.formInput);
+      const groupName = group.dataset.prospectFieldGroup! as GroupName;
 
-      if (!personData[groupName]) {
+      if (!prospectData[groupName]) {
         console.error(`The group "${groupName}" doesn't exist.`);
         return;
       }
@@ -685,26 +683,26 @@ class FormArray {
       groupInputs.forEach((input, index) => {
         const field = fieldFromInput(input, index);
         if (field?.id) {
-          personData[groupName].fields.set(field.id, field);
+          prospectData[groupName].fields.set(field.id, field);
         }
       });
     });
 
-    return personData;
+    return prospectData;
   }
 
   /**
    * Save the progress to localStorage
    */
   public saveProgress(): void {
-    // Serialize the people map to an object
-    const serializedPeople = peopleMapToObject(this.people);
+    // Serialize the prospect map to an object
+    const serializedProspects = prospectMapToObject(this.prospects);
 
     // Store the serialized data in localStorage
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedPeople));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedProspects));
       console.log("Form progress saved.");
-      console.log(serializedPeople);
+      console.log(serializedProspects);
     } catch (error) {
       console.error("Error saving form progress to localStorage:", error);
     }
@@ -732,12 +730,12 @@ class FormArray {
       try {
         const deserializedData = JSON.parse(savedData);
 
-        // Loop through the deserialized data and create Person instances
+        // Loop through the deserialized data and create `ResidentProspect` instances
         for (const key in deserializedData) {
           if (deserializedData.hasOwnProperty(key)) {
-            const personData = deserializedData[key];
-            const person = deserializePerson(personData); // Deserialize the person object
-            this.people.set(key, person);
+            const prospectData = deserializedData[key];
+            const prospect = deserializeResidentProspect(prospectData); // Deserialize the ResidentProspect object
+            this.prospects.set(key, prospect);
             this.renderList();
             this.closeModal();
           }
@@ -1186,23 +1184,23 @@ function objectToMap(obj: any, deep: boolean = false): Map<any, any> {
   return map;
 }
 
-function peopleMapToObject(people: Map<string, Person>): any {
-  // Convert a Person's structure, which contains FieldGroups with fields as Maps
-  const peopleObj: any = {};
-  for (const [key, person] of people) {
-    peopleObj[key] = person.serialize();
+function prospectMapToObject(prospects: Map<string, ResidentProspect>): any {
+  // Convert a ResidentProspect's structure, which contains FieldGroups with fields as Maps
+  const prospectsObj: any = {};
+  for (const [key, prospect] of prospects) {
+    prospectsObj[key] = prospect.serialize();
   }
-  return peopleObj;
+  return prospectsObj;
 }
 
-function flattenPeople(people: Map<string, Person>): any {
-  let peopleObj: any = {};
-  let peopleArray = [...people.values()];
-  for (let i = 0; i < peopleArray.length; i++) {
-    let person = peopleArray[i];
-    peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) };
+function flattenProspects(prospects: Map<string, ResidentProspect>): any {
+  let prospectsObj: any = {};
+  let prospectArray = [...prospects.values()];
+  for (let i = 0; i < prospectArray.length; i++) {
+    let prospect = prospectArray[i];
+    prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
   }
-  return peopleObj;
+  return prospectsObj;
 }
 
 function capitalize(str: string): string {
@@ -1320,7 +1318,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const peopleArray = new FormArray(formElement, "personArray");
+  const prospectArray = new FormArray(formElement, "resident-prospects");
   const FORM = new MultiStepForm(formElement, {
     navigation: {
       hideInStep: 0,
@@ -1334,11 +1332,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   FORM.addCustomComponent(
     2,
-    peopleArray,
-    () => peopleArray.validate(),
-    () => flattenPeople(peopleArray.people)
+    prospectArray,
+    () => prospectArray.validate(),
+    () => flattenProspects(prospectArray.prospects)
   );
-  FORM.component.addEventListener("changeStep", () => peopleArray.closeModal());
+  FORM.component.addEventListener("changeStep", () => prospectArray.closeModal());
 
   const errorMessages = {
     beilagenSenden: {
@@ -1351,15 +1349,15 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   initializeOtherFormDecisions(
-    peopleArray.modalElement,
+    prospectArray.modalElement,
     errorMessages,
     defaultMessages
   );
   initializeFormDecisions(FORM, errorMessages, defaultMessages);
   insertSearchParamValues();
-  peopleArray.loadProgress();
+  prospectArray.loadProgress();
   FORM.formElement.addEventListener("formSuccess", () => {
-    peopleArray.clearProgress();
+    prospectArray.clearProgress();
   });
 
   console.log("Form initialized:", FORM.initialized, FORM);

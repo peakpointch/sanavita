@@ -2929,7 +2929,7 @@
   var prospectSelector = attributeselector_default("data-prospect-element");
   var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
-  var ARRAY_GROUP_SELECTOR = "[data-person-data-group]";
+  var ARRAY_GROUP_SELECTOR = "[data-prospect-field-group]";
   var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
   var STORAGE_KEY = "formProgress";
   var ResidentProspect = class {
@@ -2949,7 +2949,7 @@
           group.fields.forEach((field) => {
             if (!(field instanceof FormField)) {
               console.error(
-                `Validate Person: field object is not of instance "Field"`
+                `Validate Prospect: field object is not of instance "Field"`
               );
               return;
             } else {
@@ -3063,7 +3063,7 @@
         });
       });
       this.saveButton.addEventListener("click", () => this.saveProspectFromModal());
-      this.addButton.addEventListener("click", () => this.addPerson());
+      this.addButton.addEventListener("click", () => this.addProspect());
       this.renderList();
       this.closeModal();
       const accordionList = this.container.querySelectorAll(ACCORDION_SELECTOR);
@@ -3085,7 +3085,7 @@
     handleCancel() {
       this.closeModal();
     }
-    addPerson() {
+    addProspect() {
       if (this.prospects.size === 2) {
         this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.");
         setTimeout(() => this.formMessage.reset(), 5e3);
@@ -3187,7 +3187,7 @@
     populateModal(prospect) {
       this.groupElements.forEach((group) => {
         const groupInputs = group.querySelectorAll(wf.select.formInput);
-        const groupName = group.dataset.personDataGroup;
+        const groupName = group.dataset.prospectFieldGroup;
         groupInputs.forEach((input) => {
           const field = prospect[groupName].getField(input.id);
           if (!field) {
@@ -3241,7 +3241,7 @@
     }
     openModal() {
       const personalDataGroup = this.modalElement.querySelector(
-        '[data-person-data-group="personalData"]'
+        '[data-prospect-field-group="personalData"]'
       );
       const nameInputs = personalDataGroup.querySelectorAll("#first-name, #name");
       nameInputs.forEach((input) => {
@@ -3333,32 +3333,32 @@
       return -1;
     }
     extractData() {
-      const personData = new ResidentProspect();
+      const prospectData = new ResidentProspect();
       this.groupElements.forEach((group) => {
         const groupInputs = group.querySelectorAll(wf.select.formInput);
-        const groupName = group.dataset.personDataGroup;
-        if (!personData[groupName]) {
+        const groupName = group.dataset.prospectFieldGroup;
+        if (!prospectData[groupName]) {
           console.error(`The group "${groupName}" doesn't exist.`);
           return;
         }
         groupInputs.forEach((input, index) => {
           const field = fieldFromInput(input, index);
           if (field?.id) {
-            personData[groupName].fields.set(field.id, field);
+            prospectData[groupName].fields.set(field.id, field);
           }
         });
       });
-      return personData;
+      return prospectData;
     }
     /**
      * Save the progress to localStorage
      */
     saveProgress() {
-      const serializedPeople = peopleMapToObject(this.prospects);
+      const serializedProspects = prospectMapToObject(this.prospects);
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedPeople));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedProspects));
         console.log("Form progress saved.");
-        console.log(serializedPeople);
+        console.log(serializedProspects);
       } catch (error) {
         console.error("Error saving form progress to localStorage:", error);
       }
@@ -3383,8 +3383,8 @@
           const deserializedData = JSON.parse(savedData);
           for (const key in deserializedData) {
             if (deserializedData.hasOwnProperty(key)) {
-              const personData = deserializedData[key];
-              const prospect = deserializeResidentProspect(personData);
+              const prospectData = deserializedData[key];
+              const prospect = deserializeResidentProspect(prospectData);
               this.prospects.set(key, prospect);
               this.renderList();
               this.closeModal();
@@ -3698,21 +3698,21 @@ Component:`,
     }
     return obj;
   }
-  function peopleMapToObject(people) {
-    const peopleObj = {};
-    for (const [key, prospect] of people) {
-      peopleObj[key] = prospect.serialize();
+  function prospectMapToObject(prospects) {
+    const prospectsObj = {};
+    for (const [key, prospect] of prospects) {
+      prospectsObj[key] = prospect.serialize();
     }
-    return peopleObj;
+    return prospectsObj;
   }
-  function flattenPeople(people) {
-    let peopleObj = {};
-    let peopleArray = [...people.values()];
-    for (let i = 0; i < peopleArray.length; i++) {
-      let prospect = peopleArray[i];
-      peopleObj = { ...peopleObj, ...prospect.flatten(`person${i + 1}`) };
+  function flattenProspects(prospects) {
+    let prospectsObj = {};
+    let prospectArray = [...prospects.values()];
+    for (let i = 0; i < prospectArray.length; i++) {
+      let prospect = prospectArray[i];
+      prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
     }
-    return peopleObj;
+    return prospectsObj;
   }
   function initFormButtons(form) {
     const buttons = form.querySelectorAll("button");
@@ -3776,7 +3776,7 @@ Component:`,
       console.error("Form not found.");
       return;
     }
-    const peopleArray = new FormArray(formElement, "resident-prospects");
+    const prospectArray = new FormArray(formElement, "resident-prospects");
     const FORM = new MultiStepForm(formElement, {
       navigation: {
         hideInStep: 0
@@ -3789,11 +3789,11 @@ Component:`,
     });
     FORM.addCustomComponent(
       2,
-      peopleArray,
-      () => peopleArray.validate(),
-      () => flattenPeople(peopleArray.prospects)
+      prospectArray,
+      () => prospectArray.validate(),
+      () => flattenProspects(prospectArray.prospects)
     );
-    FORM.component.addEventListener("changeStep", () => peopleArray.closeModal());
+    FORM.component.addEventListener("changeStep", () => prospectArray.closeModal());
     const errorMessages = {
       beilagenSenden: {
         upload: "Bitte laden Sie alle Beilagen hoch."
@@ -3803,15 +3803,15 @@ Component:`,
       beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder w\xE4hlen Sie die Option "Beilagen per Post senden".`
     };
     initializeOtherFormDecisions(
-      peopleArray.modalElement,
+      prospectArray.modalElement,
       errorMessages,
       defaultMessages
     );
     initializeFormDecisions(FORM, errorMessages, defaultMessages);
     insertSearchParamValues();
-    peopleArray.loadProgress();
+    prospectArray.loadProgress();
     FORM.formElement.addEventListener("formSuccess", () => {
-      peopleArray.clearProgress();
+      prospectArray.clearProgress();
     });
     console.log("Form initialized:", FORM.initialized, FORM);
   });
