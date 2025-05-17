@@ -45,7 +45,7 @@
     });
   };
 
-  // src/sanavita/wfcollections.ts
+  // src/sanavita/ts/wfcollections.ts
   var sanavitaCollections = /* @__PURE__ */ new Set([
     "hit",
     "dailyMenu",

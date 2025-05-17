@@ -1,5 +1,5 @@
 (() => {
-  // src/sanavita/circle-tabs.js
+  // src/sanavita/js/circle-tabs.js
   if (window.matchMedia("(min-width: 768px)").matches) {
     const allTabComponents = document.querySelectorAll('[pp-tabs="tabs-component"]');
     allTabComponents.forEach((component) => {

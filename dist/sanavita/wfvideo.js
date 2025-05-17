@@ -1,5 +1,5 @@
 (() => {
-  // src/sanavita/wfvideo.js
+  // src/sanavita/js/wfvideo.js
   var VIDEO_COMPONENT_SELECTOR = "[data-player-component]";
   var VIDEO_SELECTOR = "[data-player-video]";
   var CONTROLS_SELECTOR = '[data-player-element="controls"]';

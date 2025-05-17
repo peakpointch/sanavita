@@ -32823,7 +32823,7 @@ Page:`, page);
     }
   };
 
-  // src/sanavita/activity-pdf.ts
+  // src/sanavita/ts/activity-pdf.ts
   var formatDE = (date, formatStr) => format(date, formatStr, { locale: de });
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector = attributeselector_default("data-action");

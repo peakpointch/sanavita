@@ -1,5 +1,5 @@
 (() => {
-  // src/sanavita/timeline.js
+  // src/sanavita/js/timeline.js
   function updateTimelineProgress() {
     const timelineComponents = document.querySelectorAll('[data-timeline-element="component"]');
     const screenWidth = window.innerWidth;

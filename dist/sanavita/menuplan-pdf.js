@@ -32823,7 +32823,7 @@ Page:`, page);
     }
   };
 
-  // src/sanavita/menuplan-pdf.ts
+  // src/sanavita/ts/menuplan-pdf.ts
   var formatDE = (date, formatStr) => format(date, formatStr, { locale: de });
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector = attributeselector_default("data-action");

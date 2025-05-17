@@ -9901,7 +9901,7 @@
     initDefaultSwipers();
   });
 
-  // src/sanavita/screen.ts
+  // src/sanavita/ts/screen.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var swiperSelector = attributeselector_default("custom-swiper-component");
   var ElementManager = class {

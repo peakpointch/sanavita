@@ -2922,7 +2922,7 @@
     return result;
   }
 
-  // src/sanavita/apartment-form.ts
+  // src/sanavita/ts/apartment-form.ts
   var stepsElementSelector = attributeselector_default("data-steps-element");
   var stepsTargetSelector = attributeselector_default("data-step-target");
   var stepsNavSelector = attributeselector_default("data-steps-nav");

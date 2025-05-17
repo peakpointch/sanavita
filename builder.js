@@ -1,42 +1,53 @@
 const esbuild = require("esbuild");
-const fs = require("fs");
+const fg = require("fast-glob");
 const path = require("path");
 
-// Function to get all files from a directory with a specific extension
-function getFilesFromDirectory(dir, extension) {
-  const files = fs.readdirSync(dir);
-  return files.filter(file => file.endsWith(`.${extension}`)).map(file => path.basename(file, `.${extension}`));
-}
-
 // Function to exclude specific files
-function excludeFiles(files, excludeList) {
-  return files.filter(file => !excludeList.includes(file));
+function excludeFiles(files, ext = "", excludeList) {
+  return files.filter(file => {
+    const base = path.basename(file, `.${ext}`);
+    return !excludeList.includes(base);
+  });
 }
 
 // General build function for both modular and non-modular scripts
-function buildScripts(dir, outDir, extensions = ['ts'], excludeList = [], minify = true, format = "iife") {
+async function buildScripts(options) {
+  const {
+    dir,
+    outDir,
+    excludeList = [],
+    minify = true,
+    format = "iife",
+    recursive = false
+  } = options;
+  let {
+    extensions = ['ts'],
+  } = options;
+
   if (typeof extensions === "string") {
     extensions = [extensions];
   }
 
-  extensions.forEach((extension) => {
-    const files = getFilesFromDirectory(dir, extension);
-    const filteredFiles = excludeFiles(files, excludeList);
+  for (const ext of extensions) {
+    const pattern = recursive ? `${dir}/**/*.${ext}` : `${dir}/*.${ext}`;
+    const files = await fg(pattern);
+    const filteredFiles = excludeFiles(files, ext, excludeList);
 
-    for (const name of filteredFiles) {
-      esbuild.build({
-        entryPoints: [`${dir}/${name}.${extension}`], // Include both TS and JS entry points
-        outfile: `${outDir}/${name}.js`,
+    for (const entry of filteredFiles) {
+      const baseName = path.basename(entry, `.${ext}`);
+      const outFile = path.join(outDir, `${baseName}.js`);
+
+      await esbuild.build({
+        entryPoints: [entry],
+        outfile: outFile,
         bundle: true,
-        minify: minify,
+        minify,
         sourcemap: true,
-        format: format,
+        format,
         minifyIdentifiers: false,
-      }).catch((e) => {
-        process.exit(1);
-      });
+      }).catch(() => process.exit(1));
     }
-  });
+  }
 }
 
 // Helper function for building development files
@@ -60,10 +71,45 @@ function build() {
   ];
 
   // Build the scripts
-  buildScripts('src/sanavita', 'dist/sanavita', ['ts', 'js'], [], false, "iife");
-  buildScripts('src/peakpoint', 'dist/peakpoint', ['ts', 'js'], [], false, "iife");
-  buildScripts('src/ts', 'dist', 'ts', [], false, "iife");
-  buildScripts('src/js', 'dist', 'js', ['admin'], false, "iife");
+  buildScripts({
+    dir: 'src/sanavita',
+    outDir: 'dist/sanavita',
+    extensions: ['ts', 'js'],
+    excludeList: [],
+    minify: false,
+    format: 'iife',
+    recursive: true,
+  });
+
+  buildScripts({
+    dir: 'src/peakpoint',
+    outDir: 'dist/peakpoint',
+    extensions: ['ts', 'js'],
+    excludeList: [],
+    minify: false,
+    format: 'iife',
+    recursive: true,
+  });
+
+  buildScripts({
+    dir: 'src/ts',
+    outDir: 'dist',
+    extensions: 'ts',
+    excludeList: [],
+    minify: false,
+    format: 'iife',
+    recursive: false,
+  });
+
+  buildScripts({
+    dir: 'src/js',
+    outDir: 'dist',
+    extensions: 'js',
+    excludeList: ['admin'],
+    minify: false,
+    format: 'iife',
+    recursive: false,
+  });
 
   // Build development files
   buildDevFiles(devFiles);

@@ -1,5 +1,5 @@
 (() => {
-  // src/sanavita/linkbuilder.ts
+  // src/sanavita/ts/linkbuilder.ts
   var LINKBUILDER_SELECTOR = `a[data-linkbuilder-component]`;
   function initLinkBuilders() {
     const allLinks = document.querySelectorAll(LINKBUILDER_SELECTOR);
