@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // ../peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -33,7 +33,7 @@
     inputSelectorList
   };
 
-  // node_modules/peakflow/src/wfcollection/wfcollection.ts
+  // ../peakflow/src/wfcollection/wfcollection.ts
   var wfCollections = {
     initialized: false
   };
