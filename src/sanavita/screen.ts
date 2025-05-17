@@ -3,7 +3,7 @@ import { FilterCollection } from "@peakflow/wfcollection";
 import { RenderData } from "@peakflow/renderer";
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules";
-import { readSwiperOptions } from "./swiper";
+import { readSwiperOptions } from "../ts/swiper";
 import { SwiperOptions } from "swiper/types";
 
 type WfCollection = "screen";
