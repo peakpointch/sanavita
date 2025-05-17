@@ -1,5 +1,5 @@
 (() => {
-  // src/js/count-down.js
+  // src/sanavita/count-down.js
   function calculateDaysUntil(dateString) {
     const [day, month, year] = dateString.split(".");
     const targetDate = /* @__PURE__ */ new Date(`${year}-${month}-${day}`);

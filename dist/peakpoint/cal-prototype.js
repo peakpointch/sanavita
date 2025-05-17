@@ -367,7 +367,7 @@
     return result;
   }
 
-  // src/ts/peakpoint-cal.ts
+  // src/peakpoint/cal-prototype.ts
   var modal = Modal.select("component", "prototype");
   var prototypeForm = modal.querySelector("form");
   disableWebflowForm(prototypeForm);
@@ -417,4 +417,4 @@
     });
   });
 })();
-//# sourceMappingURL=peakpoint-cal.js.map
+//# sourceMappingURL=cal-prototype.js.map

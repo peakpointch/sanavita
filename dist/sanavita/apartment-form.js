@@ -2922,17 +2922,17 @@
     return result;
   }
 
-  // src/ts/sanavita-form.ts
+  // src/sanavita/apartment-form.ts
   var stepsElementSelector = attributeselector_default("data-steps-element");
   var stepsTargetSelector = attributeselector_default("data-step-target");
   var stepsNavSelector = attributeselector_default("data-steps-nav");
-  var personSelector = attributeselector_default("data-person-element");
+  var prospectSelector = attributeselector_default("data-prospect-element");
   var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
   var ARRAY_GROUP_SELECTOR = "[data-person-data-group]";
   var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
   var STORAGE_KEY = "formProgress";
-  var Person = class {
+  var ResidentProspect = class {
     constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
       this.personalData = personalData;
       this.doctor = doctor;
@@ -3000,8 +3000,8 @@
     const fieldsMap = convertObjectToFields(fieldGroupData);
     return new FieldGroup(fieldsMap);
   }
-  function deserializePerson(data) {
-    return new Person(
+  function deserializeResidentProspect(data) {
+    return new ResidentProspect(
       deserializeFieldGroup(data.personalData),
       deserializeFieldGroup(data.doctor),
       deserializeFieldGroup(data.health),
@@ -3009,8 +3009,6 @@
       deserializeFieldGroup(data.secondaryRelative)
     );
   }
-  var FormModal = class extends Modal {
-  };
   var FormArray = class {
     constructor(container, id) {
       this.accordionList = [];
@@ -3018,19 +3016,22 @@
       this.editingKey = null;
       this.id = id;
       this.container = container;
-      this.people = /* @__PURE__ */ new Map();
+      this.prospects = /* @__PURE__ */ new Map();
       this.list = this.container.querySelector(ARRAY_LIST_SELECTOR);
-      this.template = this.list.querySelector(personSelector("template"));
-      this.addButton = this.container.querySelector(personSelector("add"));
+      this.template = this.list.querySelector(prospectSelector("template"));
+      this.addButton = this.container.querySelector(prospectSelector("add"));
       this.formMessage = new FormMessage("FormArray", this.id.toString());
       this.modalForm = document.querySelector("form");
-      this.modalElement = document.querySelector(
-        formElementSelector("modal") + `[data-modal-for="person"]`
-      );
-      this.modal = new FormModal(this.modalElement);
-      this.saveButton = this.modalElement.querySelector(personSelector("save"));
+      this.modalElement = Modal.select("component", "resident-prospect");
+      this.modal = new Modal(this.modalElement, {
+        animation: {
+          type: "slideUp",
+          duration: 300
+        }
+      });
+      this.saveButton = this.modalElement.querySelector(prospectSelector("save"));
       this.cancelButtons = this.modalElement.querySelectorAll(
-        personSelector("cancel")
+        prospectSelector("cancel")
       );
       this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
       this.groupElements = this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
@@ -3044,7 +3045,7 @@
         input.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
-            this.savePersonFromModal();
+            this.saveProspectFromModal();
           }
         });
         input.addEventListener("focusin", () => {
@@ -3061,7 +3062,7 @@
           }
         });
       });
-      this.saveButton.addEventListener("click", () => this.savePersonFromModal());
+      this.saveButton.addEventListener("click", () => this.saveProspectFromModal());
       this.addButton.addEventListener("click", () => this.addPerson());
       this.renderList();
       this.closeModal();
@@ -3085,7 +3086,7 @@
       this.closeModal();
     }
     addPerson() {
-      if (this.people.size === 2) {
+      if (this.prospects.size === 2) {
         this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.");
         setTimeout(() => this.formMessage.reset(), 5e3);
         return;
@@ -3096,28 +3097,28 @@
       this.openModal();
       this.editingKey = null;
     }
-    savePersonFromModal(validate = true) {
+    saveProspectFromModal(validate = true) {
       const listValid = this.validateModal(validate);
       if (!listValid) {
         console.warn(
-          `Couldn't save person. Please fill in all the values correctly.`
+          `Couldn't save ResidentProspect. Please fill in all the values correctly.`
         );
         if (validate) return null;
       }
-      const person = this.extractData();
-      if (this.savePerson(person)) {
+      const prospect = this.extractData();
+      if (this.saveProspect(prospect)) {
         this.renderList();
         this.closeModal();
       }
       this.saveProgress();
     }
-    savePerson(person) {
+    saveProspect(prospect) {
       if (this.editingKey !== null) {
-        this.people.set(this.editingKey, person);
+        this.prospects.set(this.editingKey, prospect);
       } else {
         const uniqueSuffix = crypto.randomUUID();
         const newKey = `person-${uniqueSuffix}`;
-        this.people.set(newKey, person);
+        this.prospects.set(newKey, prospect);
       }
       return true;
     }
@@ -3135,9 +3136,9 @@
     }
     renderList() {
       this.list.innerHTML = "";
-      this.list.dataset.length = this.people.size.toString();
-      if (this.people.size) {
-        this.people.forEach((person, key) => this.renderPerson(person, key));
+      this.list.dataset.length = this.prospects.size.toString();
+      if (this.prospects.size) {
+        this.prospects.forEach((prospect, key) => this.renderProspect(prospect, key));
         this.formMessage.reset();
       } else {
         this.formMessage.info(
@@ -3146,25 +3147,23 @@
         );
       }
     }
-    renderPerson(person, key) {
+    renderProspect(prospect, key) {
       const newElement = this.template.cloneNode(
         true
       );
       const props = ["full-name", "phone", "email", "street", "zip", "city"];
       newElement.style.removeProperty("display");
-      const editButton = newElement.querySelector('[data-person-action="edit"]');
-      const deleteButton = newElement.querySelector(
-        '[data-person-action="delete"]'
-      );
+      const editButton = newElement.querySelector(prospectSelector("edit"));
+      const deleteButton = newElement.querySelector(prospectSelector("delete"));
       editButton.addEventListener("click", () => {
         this.setLiveText("state", "bearbeiten");
-        this.setLiveText("full-name", person.getFullName() || "Neue Person");
-        this.populateModal(person);
+        this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
+        this.populateModal(prospect);
         this.openModal();
         this.editingKey = key;
       });
       deleteButton.addEventListener("click", () => {
-        this.people.delete(key);
+        this.prospects.delete(key);
         this.renderList();
         this.closeModal();
         this.saveProgress();
@@ -3173,11 +3172,11 @@
         const propSelector = `[data-${prop}]`;
         const el = newElement.querySelector(propSelector);
         if (el && prop === "full-name") {
-          el.innerText = person.getFullName();
+          el.innerText = prospect.getFullName();
         } else if (el) {
-          const currentField = person.personalData.getField(prop);
+          const currentField = prospect.personalData.getField(prop);
           if (!currentField) {
-            console.error(`Render person: A field for "${prop}" doesn't exist.`);
+            console.error(`Render ResidentProspect: A field for "${prop}" doesn't exist.`);
             return;
           }
           el.innerText = currentField.value || currentField.label;
@@ -3185,12 +3184,12 @@
       });
       this.list.appendChild(newElement);
     }
-    populateModal(person) {
+    populateModal(prospect) {
       this.groupElements.forEach((group) => {
         const groupInputs = group.querySelectorAll(wf.select.formInput);
         const groupName = group.dataset.personDataGroup;
         groupInputs.forEach((input) => {
-          const field = person[groupName].getField(input.id);
+          const field = prospect[groupName].getField(input.id);
           if (!field) {
             console.warn(`Field not found:`, field, input.id);
             return;
@@ -3212,7 +3211,7 @@
     }
     validate() {
       let valid = true;
-      if (this.people.size === 0) {
+      if (this.prospects.size === 0) {
         console.warn("Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.");
         this.formMessage.error(
           `Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.`
@@ -3226,13 +3225,13 @@
         );
         valid = false;
       } else {
-        this.people.forEach((person, key) => {
-          if (!person.validate()) {
+        this.prospects.forEach((prospect, key) => {
+          if (!prospect.validate()) {
             console.warn(
-              `Bitte f\xFCllen Sie alle Felder f\xFCr "${person.getFullName()}" aus.`
+              `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
             );
             this.formMessage.error(
-              `Bitte f\xFCllen Sie alle Felder f\xFCr "${person.getFullName()}" aus.`
+              `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
             );
             valid = false;
           }
@@ -3247,10 +3246,10 @@
       const nameInputs = personalDataGroup.querySelectorAll("#first-name, #name");
       nameInputs.forEach((input) => {
         input.addEventListener("input", () => {
-          const editingPerson = this.extractData();
+          const editingProspect = this.extractData();
           this.setLiveText(
             "full-name",
-            editingPerson.getFullName() || "Neue Person"
+            editingProspect.getFullName() || "Neue Person"
           );
         });
       });
@@ -3334,7 +3333,7 @@
       return -1;
     }
     extractData() {
-      const personData = new Person();
+      const personData = new ResidentProspect();
       this.groupElements.forEach((group) => {
         const groupInputs = group.querySelectorAll(wf.select.formInput);
         const groupName = group.dataset.personDataGroup;
@@ -3355,7 +3354,7 @@
      * Save the progress to localStorage
      */
     saveProgress() {
-      const serializedPeople = peopleMapToObject(this.people);
+      const serializedPeople = peopleMapToObject(this.prospects);
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedPeople));
         console.log("Form progress saved.");
@@ -3385,8 +3384,8 @@
           for (const key in deserializedData) {
             if (deserializedData.hasOwnProperty(key)) {
               const personData = deserializedData[key];
-              const person = deserializePerson(personData);
-              this.people.set(key, person);
+              const prospect = deserializeResidentProspect(personData);
+              this.prospects.set(key, prospect);
               this.renderList();
               this.closeModal();
             }
@@ -3701,8 +3700,8 @@ Component:`,
   }
   function peopleMapToObject(people) {
     const peopleObj = {};
-    for (const [key, person] of people) {
-      peopleObj[key] = person.serialize();
+    for (const [key, prospect] of people) {
+      peopleObj[key] = prospect.serialize();
     }
     return peopleObj;
   }
@@ -3710,8 +3709,8 @@ Component:`,
     let peopleObj = {};
     let peopleArray = [...people.values()];
     for (let i = 0; i < peopleArray.length; i++) {
-      let person = peopleArray[i];
-      peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) };
+      let prospect = peopleArray[i];
+      peopleObj = { ...peopleObj, ...prospect.flatten(`person${i + 1}`) };
     }
     return peopleObj;
   }
@@ -3777,7 +3776,7 @@ Component:`,
       console.error("Form not found.");
       return;
     }
-    const peopleArray = new FormArray(formElement, "personArray");
+    const peopleArray = new FormArray(formElement, "resident-prospects");
     const FORM = new MultiStepForm(formElement, {
       navigation: {
         hideInStep: 0
@@ -3792,7 +3791,7 @@ Component:`,
       2,
       peopleArray,
       () => peopleArray.validate(),
-      () => flattenPeople(peopleArray.people)
+      () => flattenPeople(peopleArray.prospects)
     );
     FORM.component.addEventListener("changeStep", () => peopleArray.closeModal());
     const errorMessages = {
@@ -3817,3 +3816,4 @@ Component:`,
     console.log("Form initialized:", FORM.initialized, FORM);
   });
 })();
+//# sourceMappingURL=apartment-form.js.map

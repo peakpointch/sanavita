@@ -1,5 +1,5 @@
 (() => {
-  // src/js/sanavita-video.js
+  // src/sanavita/wfvideo.js
   var VIDEO_COMPONENT_SELECTOR = "[data-player-component]";
   var VIDEO_SELECTOR = "[data-player-video]";
   var CONTROLS_SELECTOR = '[data-player-element="controls"]';
@@ -71,4 +71,4 @@
     });
   });
 })();
-//# sourceMappingURL=sanavita-video.js.map
+//# sourceMappingURL=wfvideo.js.map

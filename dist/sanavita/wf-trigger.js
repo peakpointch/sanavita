@@ -1,5 +1,5 @@
 (() => {
-  // src/js/wf-trigger.js
+  // src/sanavita/wf-trigger.js
   var animateSelector = (component) => {
     return `[data-animate="${component}"]`;
   };

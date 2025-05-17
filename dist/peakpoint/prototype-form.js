@@ -733,7 +733,7 @@
     return result;
   }
 
-  // src/ts/peakpoint-form.ts
+  // src/peakpoint/prototype-form.ts
   var import_isURL = __toESM(require_isURL());
   function setupForm(form, modal) {
     disableWebflowForm(form);
@@ -797,4 +797,4 @@
     });
   });
 })();
-//# sourceMappingURL=peakpoint-form.js.map
+//# sourceMappingURL=prototype-form.js.map

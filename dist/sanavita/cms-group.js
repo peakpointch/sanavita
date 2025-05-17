@@ -1,5 +1,5 @@
 (() => {
-  // src/js/cms-group.js
+  // src/sanavita/cms-group.js
   var MENU_CONTENT_SELECTOR = '[data-menu-element="menu-content"]';
   var MENU_NAME = "menu";
   var MENU_SECTION_NAME = "menu-section";

@@ -3,8 +3,8 @@
     "baseUrl": ".",
     "paths": {
       "@peakflow/*": [
-        "../peakflow/src/*", // local override (when using `file:../peakflow`)
-        "node_modules/peakflow/src/*" // fallback for GitHub/NPM version
+        "node_modules/peakflow/src/*",
+        "../peakflow/src/*"
       ],
       "html2pdf.js": [
         "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"

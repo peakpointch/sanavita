@@ -1,5 +1,5 @@
 (() => {
-  // src/js/sozjobs-job.js
+  // src/sanavita/sozjobs-job.js
   function toKebabCase(str) {
     return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
   }

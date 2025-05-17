@@ -1,5 +1,5 @@
 (() => {
-  // src/js/timer.js
+  // src/sanavita/timer.js
   window.addEventListener("DOMContentLoaded", () => {
     const deadline = (/* @__PURE__ */ new Date("2025-05-01")).getTime();
     const interval = setInterval(() => {

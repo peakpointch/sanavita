@@ -14,23 +14,29 @@ function excludeFiles(files, excludeList) {
 }
 
 // General build function for both modular and non-modular scripts
-function buildScripts(dir, outDir, extension = 'ts', excludeList = [], minify = true, format = "iife") {
-  const files = getFilesFromDirectory(dir, extension);
-  const filteredFiles = excludeFiles(files, excludeList);
-
-  for (const name of filteredFiles) {
-    esbuild.build({
-      entryPoints: [`${dir}/${name}.${extension}`], // Include both TS and JS entry points
-      outfile: `${outDir}/${name}.js`,
-      bundle: true,
-      minify: minify,
-      sourcemap: true,
-      format: format,
-      minifyIdentifiers: false,
-    }).catch((e) => {
-      process.exit(1);
-    });
+function buildScripts(dir, outDir, extensions = ['ts'], excludeList = [], minify = true, format = "iife") {
+  if (typeof extensions === "string") {
+    extensions = [extensions];
   }
+
+  extensions.forEach((extension) => {
+    const files = getFilesFromDirectory(dir, extension);
+    const filteredFiles = excludeFiles(files, excludeList);
+
+    for (const name of filteredFiles) {
+      esbuild.build({
+        entryPoints: [`${dir}/${name}.${extension}`], // Include both TS and JS entry points
+        outfile: `${outDir}/${name}.js`,
+        bundle: true,
+        minify: minify,
+        sourcemap: true,
+        format: format,
+        minifyIdentifiers: false,
+      }).catch((e) => {
+        process.exit(1);
+      });
+    }
+  });
 }
 
 // Helper function for building development files
@@ -54,6 +60,8 @@ function build() {
   ];
 
   // Build the scripts
+  buildScripts('src/sanavita', 'dist/sanavita', ['ts', 'js'], [], false, "iife");
+  buildScripts('src/peakpoint', 'dist/peakpoint', ['ts', 'js'], [], false, "iife");
   buildScripts('src/ts', 'dist', 'ts', [], false, "iife");
   buildScripts('src/js', 'dist', 'js', ['admin'], false, "iife");
 

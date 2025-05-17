@@ -32823,7 +32823,7 @@ Page:`, page);
     }
   };
 
-  // src/ts/sanavita-activity.ts
+  // src/sanavita/menuplan-pdf.ts
   var formatDE = (date, formatStr) => format(date, formatStr, { locale: de });
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector = attributeselector_default("data-action");
@@ -32834,17 +32834,13 @@ Page:`, page);
     ...weekOptions,
     locale: de
   };
-  function getMinMaxDate(data) {
+  function setMinMaxDate(form, data) {
     const dates = data.map((weekday) => weekday.date.getTime());
     let minDate = new Date(Math.min(...dates));
     let maxDate = new Date(Math.max(...dates));
     if (startOfWeek(minDate, sowOptions).getTime() !== minDate.getTime()) {
       minDate = startOfWeek(addDays(minDate, 7), sowOptions);
     }
-    return [minDate, maxDate];
-  }
-  function setMinMaxDate(form, data) {
-    const [minDate, maxDate] = getMinMaxDate(data);
     const minDateStr = formatDE(minDate, "yyyy-MM-dd");
     const maxDateStr = formatDE(maxDate, "yyyy-MM-dd");
     form.getFilterInput("startDate").setAttribute("min", minDateStr);
@@ -32865,26 +32861,15 @@ Page:`, page);
     form.getFilterInput("endDate").value = formatDE(addDays(nextMonday, 6), "yyyy-MM-dd");
     form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
     const pdfStorage = parsePdfLocalStorage();
-    const design = pdfStorage.activity.design;
+    const design = pdfStorage.menuplan.design;
     if (design) {
       form.getFilterInput("design").value = design;
     }
   }
-  function tagActivitySpecial(list) {
-    const activityElements = list.querySelectorAll(`.w-dyn-item`);
-    activityElements.forEach((item) => {
-      const normalItem = item.children[0];
-      const specialItem = item.children[1];
-      const type = normalItem.matches(".w-condition-invisible") ? "special" : "normal";
-      switch (type) {
-        case "normal":
-          specialItem.remove();
-          break;
-        case "special":
-          normalItem.remove();
-          item.setAttribute("data-pdf-element", "activitySpecial");
-          break;
-      }
+  function tagWeeklyHit(list) {
+    const weeklyHitElements = list.querySelectorAll(`.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`);
+    weeklyHitElements.forEach((hit) => {
+      hit.setAttribute("data-pdf-element", "weekly-hit");
     });
   }
   function parsePdfLocalStorage() {
@@ -32909,19 +32894,34 @@ Page:`, page);
     }
     return formatString;
   }
+  function prepareHideCategories(drinksCollection) {
+    drinksCollection.getItems().forEach((item) => {
+      const conditional = item.querySelector(`[hide-categories]`);
+      if (conditional.classList.contains(wf.class.invisible)) return;
+      const categories = item.querySelectorAll(
+        '[data-pdf-field="category"], [data-pdf-field="categoryOnly"], [data-pdf-field="subCategory"]'
+      );
+      categories.forEach((element) => element.classList.add(wf.class.invisible));
+    });
+  }
   function initialize() {
-    const filterCollectionListElement = document.querySelector(wfCollectionSelector("activity"));
+    const filterCollectionListElement = document.querySelector(wfCollectionSelector("daily"));
+    const drinkLists_collectionListElement = document.querySelector(wfCollectionSelector("drink-lists"));
     const pdfContainer = document.querySelector(Pdf.select("container"));
     const filterFormElement = document.querySelector(filterFormSelector("component"));
     const calendarweekElement = document.querySelector(CalendarweekComponent.select("component"));
-    tagActivitySpecial(filterCollectionListElement);
+    tagWeeklyHit(filterCollectionListElement);
     const pdfStorage = parsePdfLocalStorage();
-    const filterCollection = new FilterCollection(filterCollectionListElement, "Aktivit\xE4ten", "pdf");
+    const filterCollection = new FilterCollection(filterCollectionListElement, "Tagesmenus", "pdf");
+    filterCollection.renderer.addFilterAttributes({ "weekly-hit-boolean": "boolean" });
+    filterCollection.readData();
+    const drinksCollection = new FilterCollection(drinkLists_collectionListElement, "Getr\xE4nke", "pdf");
+    prepareHideCategories(drinksCollection);
+    drinksCollection.renderer.addFilterAttributes({ "start-date": "date", "end-date": "date" });
+    drinksCollection.readData();
     const pdf = new Pdf(pdfContainer);
     const filterForm = new FilterForm(filterFormElement);
     const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
-    filterCollection.debug = true;
-    filterCollection.readData();
     const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
     setDefaultFilters(filterForm, minDate, maxDate);
     const cweek = new CalendarweekComponent(calendarweekElement);
@@ -32930,13 +32930,17 @@ Page:`, page);
       filterForm.getFilterInput("startDate").value = format(date, "yyyy-MM-dd");
       filterForm.invokeOnChange(["startDate"]);
     });
-    filterForm.addBeforeChange(() => filterForm.validateDateRange("startDate", "endDate", 7));
+    filterForm.addBeforeChange((filters) => {
+      const dayRange = parseFloat(filters.getField("dayRange").value);
+      filterForm.setDayRange(dayRange);
+      filterForm.validateDateRange("startDate", "endDate");
+    });
     filterForm.addOnChange(["design"], (filters) => {
-      const pages = pdf.getPageWrappers();
+      const designs = pdf.getDesigns();
       const selectedDesign = filters.getField("design").value;
-      pdfStorage.activity.design = selectedDesign;
+      pdfStorage.menuplan.design = selectedDesign;
       localStorage.setItem("pdf", JSON.stringify(pdfStorage));
-      pages.forEach((page) => {
+      designs.forEach((page) => {
         const design = page.getAttribute("data-pdf-design");
         if (design === selectedDesign) {
           page.classList.remove("hide");
@@ -32950,32 +32954,33 @@ Page:`, page);
       const endDate = parse(filters.getField("endDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
       cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
       const startDateTitleFormat = getStartDateFormat(startDate, endDate);
-      const filtered = filterCollection.filterByDate(startDate, endDate);
-      const [minDate2, maxDate2] = getMinMaxDate(filtered);
       const staticRenderFields = [
         {
           element: "title",
-          value: `${formatDE(startDate, startDateTitleFormat)} \u2013 ${formatDE(maxDate2, "d. MMMM yyyy")}`,
+          value: `${formatDE(startDate, startDateTitleFormat)} \u2013 ${formatDE(endDate, "d. MMMM yyyy")}`,
           visibility: true
         }
       ];
-      pdf.render([
+      const filteredDrinks = drinksCollection.filterByDateRange(startDate, endDate);
+      const renderCollections = [
+        {
+          element: "drink-list-collection",
+          fields: filteredDrinks,
+          visibility: filteredDrinks.length === 0 ? false : true
+        }
+      ];
+      const renderData = [
         ...staticRenderFields,
-        ...filtered
-      ]);
+        ...filterCollection.filterByDate(startDate, endDate),
+        ...renderCollections
+      ];
       canvas.showHiddenElements();
+      pdf.render(renderData);
+      canvas.update();
     });
     filterForm.addOnChange(["scale"], (filters) => {
       const scale = parseFloat(filters.getField("scale").value);
       pdf.scale(scale);
-    });
-    filterForm.addOnChange("*", () => {
-      document.querySelectorAll(".pdf-image").forEach((el) => {
-        el.style.removeProperty("display");
-        if (el.offsetHeight < 80) {
-          el.style.display = "none";
-        }
-      });
     });
     filterForm.addResizeReset("scale", () => {
       const defaultScale = pdf.getDefaultScale();
@@ -32986,10 +32991,14 @@ Page:`, page);
     filterForm.invokeOnChange("*");
     const downloadBtn = document.querySelector(actionSelector("download"));
     downloadBtn.addEventListener("click", () => {
-      const startDate = new Date(filterForm.getFilterInput("startDate").value);
+      const startDate = new Date(filterForm.data.getField("startDate").value);
+      const selectedDesign = filterForm.data.getField("design").value;
       const format2 = filterForm.data.getField("format").value;
       const pdfFormat = format2.toLowerCase();
-      let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      let filename = `Tagesmenus Bistro ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      if (selectedDesign === "bewohnende") {
+        filename = `Menuplan Bewohnende ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      }
       filename += ` ${format2}`;
       pdf.save(pdfFormat, filename, 4.17);
     });
@@ -33221,4 +33230,4 @@ jspdf/dist/jspdf.es.min.js:
    * http://opensource.org/licenses/mit-license
    *)
 */
-//# sourceMappingURL=sanavita-activity.js.map
+//# sourceMappingURL=menuplan-pdf.js.map

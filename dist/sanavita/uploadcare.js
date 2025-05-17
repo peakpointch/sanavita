@@ -1,5 +1,5 @@
 (() => {
-  // src/js/uploadcare.js
+  // src/sanavita/uploadcare.js
   var UUID_FIELD_ID = "uploadcare-uuid";
   var URLCDN_FIELD_ID = "uploadcare-file";
   var ctxProvider = document.querySelector("uc-upload-ctx-provider");

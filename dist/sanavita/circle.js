@@ -1,5 +1,5 @@
 (() => {
-  // src/js/circle.js
+  // src/sanavita/circle.js
   function updateOffset() {
     const itemWrap = page.querySelector(".pgc-item_wrap");
     const baseDeg = 10;
