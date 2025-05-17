@@ -41,7 +41,7 @@ type CustomFormComponent = {
 };
 type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination';
 type StepsNavElement = 'prev' | 'next';
-type ProspectElement = 'template' | 'empty' | 'add' | 'save' | 'edit' | 'delete' | 'cancel';
+type ProspectElement = 'template' | 'add' | 'edit' | 'delete' | 'save' | 'draft' | 'cancel';
 
 // Selector functions
 const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element');
@@ -184,8 +184,8 @@ class FormArray {
   private addButton: HTMLElement;
   public modal: Modal;
   public modalElement: HTMLElement;
-  private modalForm: HTMLFormElement;
   private saveButton: HTMLElement;
+  private draftButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
   private modalInputs: NodeListOf<HTMLFormInput>;
   private groupElements: NodeListOf<HTMLFormInput>;
@@ -203,7 +203,6 @@ class FormArray {
     this.template = this.list.querySelector(prospectSelector('template'))!;
     this.addButton = this.container.querySelector(prospectSelector('add'))!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
-    this.modalForm = document.querySelector('form')!;
 
     // Form Modal
     this.modalElement = Modal.select('component', 'resident-prospect');
@@ -214,6 +213,7 @@ class FormArray {
       },
     });
     this.saveButton = this.modalElement.querySelector(prospectSelector('save'))!;
+    this.draftButton = this.modalElement.querySelector(prospectSelector('draft'))!;
     this.cancelButtons = this.modalElement.querySelectorAll(
       prospectSelector('cancel')
     )!;
@@ -251,7 +251,12 @@ class FormArray {
       });
     });
 
-    this.saveButton.addEventListener("click", () => this.saveProspectFromModal()); // Change this for dev, validate: false
+    this.saveButton.addEventListener("click", () => {
+      this.saveProspectFromModal({ validate: true, report: true });
+    });
+    this.draftButton.addEventListener("click", () => {
+      this.saveProspectFromModal({ validate: false, report: false });
+    });
     this.addButton.addEventListener("click", () => this.addProspect());
 
     this.renderList();
@@ -297,12 +302,17 @@ class FormArray {
     this.editingKey = this.draftProspect.key; // Reset editing state for adding a new prospect
   }
 
-  private saveProspectFromModal(report: boolean = true) {
-    const listValid = this.validateModal(report);
-    if (!listValid) {
-      throw new Error(
-        `Couldn't save ResidentProspect. Please fill in all the values correctly.`
-      );
+  private saveProspectFromModal(opts?: {
+    validate?: boolean;
+    report?: boolean;
+  }) {
+    if (opts.validate ?? true) {
+      const listValid = this.validateModal(opts.report ?? true);
+      if (!listValid) {
+        throw new Error(
+          `Couldn't save ResidentProspect. Please fill in all the values correctly.`
+        );
+      }
     }
 
     const prospect: ResidentProspect = this.extractData();
@@ -461,6 +471,8 @@ class FormArray {
             `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
           );
 
+          setTimeout(() => this.formMessage.reset(), 5000);
+
           // setTimeout(() => {
           //   this.populateModal(prospect);
           //   this.openModal();
@@ -490,7 +502,6 @@ class FormArray {
         );
       });
     });
-    this.formMessage.reset();
 
     this.openAccordion(0, this.accordionList);
 

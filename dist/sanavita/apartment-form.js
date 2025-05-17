@@ -3022,7 +3022,6 @@
       this.template = this.list.querySelector(prospectSelector("template"));
       this.addButton = this.container.querySelector(prospectSelector("add"));
       this.formMessage = new FormMessage("FormArray", this.id.toString());
-      this.modalForm = document.querySelector("form");
       this.modalElement = Modal.select("component", "resident-prospect");
       this.modal = new Modal(this.modalElement, {
         animation: {
@@ -3031,6 +3030,7 @@
         }
       });
       this.saveButton = this.modalElement.querySelector(prospectSelector("save"));
+      this.draftButton = this.modalElement.querySelector(prospectSelector("draft"));
       this.cancelButtons = this.modalElement.querySelectorAll(
         prospectSelector("cancel")
       );
@@ -3063,7 +3063,12 @@
           }
         });
       });
-      this.saveButton.addEventListener("click", () => this.saveProspectFromModal());
+      this.saveButton.addEventListener("click", () => {
+        this.saveProspectFromModal({ validate: true, report: true });
+      });
+      this.draftButton.addEventListener("click", () => {
+        this.saveProspectFromModal({ validate: false, report: false });
+      });
       this.addButton.addEventListener("click", () => this.addProspect());
       this.renderList();
       this.closeModal();
@@ -3100,12 +3105,14 @@
       this.openModal();
       this.editingKey = this.draftProspect.key;
     }
-    saveProspectFromModal(report = true) {
-      const listValid = this.validateModal(report);
-      if (!listValid) {
-        throw new Error(
-          `Couldn't save ResidentProspect. Please fill in all the values correctly.`
-        );
+    saveProspectFromModal(opts) {
+      if (opts.validate ?? true) {
+        const listValid = this.validateModal(opts.report ?? true);
+        if (!listValid) {
+          throw new Error(
+            `Couldn't save ResidentProspect. Please fill in all the values correctly.`
+          );
+        }
       }
       const prospect = this.extractData();
       if (this.saveProspect(prospect)) {
@@ -3234,6 +3241,7 @@
             this.formMessage.error(
               `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
             );
+            setTimeout(() => this.formMessage.reset(), 5e3);
             valid = false;
           }
         });
@@ -3254,7 +3262,6 @@
           );
         });
       });
-      this.formMessage.reset();
       this.openAccordion(0, this.accordionList);
       this.modal.open();
     }
