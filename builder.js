@@ -3,10 +3,30 @@ const fg = require("fast-glob");
 const path = require("path");
 
 // Function to exclude specific files
-function excludeFiles(files, ext = "", excludeList) {
+function excludeFiles(files, extensions = [], excludeList = []) {
   return files.filter(file => {
-    const base = path.basename(file, `.${ext}`);
-    return !excludeList.includes(base);
+    const normalizedFile = path.normalize(file);
+    const fileBaseName = path.basename(file);
+    const fileNameNoExt = path.basename(file, path.extname(file));
+
+    return !excludeList.some(exclude => {
+      const normalizedExclude = path.normalize(exclude);
+
+      // 1. Match full path prefix (for directories)
+      if (normalizedFile.startsWith(normalizedExclude)) return true;
+
+      // 2. Match full file name (e.g. "somefile.ts")
+      if (fileBaseName === normalizedExclude) return true;
+
+      // 3. Match name without extension (e.g. "anotherfile" matches anotherfile.ts/js/etc.)
+      if (
+        extensions.some(ext =>
+          normalizedExclude === fileNameNoExt && file.endsWith(`.${ext}`)
+        )
+      ) return true;
+
+      return false;
+    });
   });
 }
 
@@ -31,7 +51,7 @@ async function buildScripts(options) {
   for (const ext of extensions) {
     const pattern = recursive ? `${dir}/**/*.${ext}` : `${dir}/*.${ext}`;
     const files = await fg(pattern);
-    const filteredFiles = excludeFiles(files, ext, excludeList);
+    const filteredFiles = excludeFiles(files, [ext], excludeList);
 
     for (const entry of filteredFiles) {
       const baseName = path.basename(entry, `.${ext}`);
@@ -75,7 +95,10 @@ function build() {
     dir: 'src/sanavita',
     outDir: 'dist/sanavita',
     extensions: ['ts', 'js'],
-    excludeList: [],
+    excludeList: [
+      './src/sanavita/ts/utility/',
+      './src/sanavita/ts/residentprospect.ts'
+    ],
     minify: false,
     format: 'iife',
     recursive: true,

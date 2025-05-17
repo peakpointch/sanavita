@@ -15,14 +15,15 @@ import { HTMLFormInput, CustomValidator } from "@peakflow/form";
 import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@peakflow/form";
 import Accordion from "@peakflow/accordion";
 import Modal from "@peakflow/modal";
+import {
+  ResidentProspect,
+  GroupName,
+  prospectMapToObject,
+  flattenProspects,
+} from "./residentprospect";
+import mapToObject from "./utility/maptoobject";
 
 // Types
-type GroupName =
-  | "personalData"
-  | "doctor"
-  | "health"
-  | "primaryRelative"
-  | "secondaryRelative";
 type FormOptions = {
   excludeInputSelectors: string[];
   recaptcha: boolean;
@@ -55,90 +56,6 @@ const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
-
-class ResidentProspect {
-  personalData: FieldGroup;
-  doctor: FieldGroup;
-  health: FieldGroup;
-  primaryRelative: FieldGroup;
-  secondaryRelative: FieldGroup;
-
-  constructor(
-    personalData = new FieldGroup(),
-    doctor = new FieldGroup(),
-    health = new FieldGroup(),
-    primaryRelative = new FieldGroup(),
-    secondaryRelative = new FieldGroup()
-  ) {
-    this.personalData = personalData;
-    this.doctor = doctor;
-    this.health = health;
-    this.primaryRelative = primaryRelative;
-    this.secondaryRelative = secondaryRelative;
-  }
-
-  public validate(): boolean {
-    let valid = true;
-
-    // Loop over the groups within the `ResidentProspect` object
-    const groups = Object.keys(this) as GroupName[];
-
-    groups.forEach((groupName) => {
-      const group = this[groupName] as FieldGroup;
-
-      // Assuming the group has a `fields` property
-      if (group.fields) {
-        group.fields.forEach((field) => {
-          if (!(field instanceof FormField)) {
-            console.error(
-              `Validate Prospect: field object is not of instance "Field"`
-            );
-            return;
-          } else {
-            const fieldValid = field.validate(true);
-            if (!fieldValid) {
-              valid = false;
-            }
-          }
-        });
-      }
-    });
-    return valid;
-  }
-
-  public getFullName(): string {
-    return (
-      `${this.personalData.getField("first-name")!.value} ${this.personalData.getField("name")!.value
-        }`.trim() || "Neue Person"
-    );
-  }
-
-  public serialize(): object {
-    return {
-      personalData: mapToObject(this.personalData.fields),
-      doctor: mapToObject(this.doctor.fields),
-      health: mapToObject(this.health.fields),
-      primaryRelative: mapToObject(this.primaryRelative.fields),
-      secondaryRelative: mapToObject(this.secondaryRelative.fields),
-    };
-  }
-
-  public flatten(prefix: string): object {
-    const fields: any = {};
-
-    const groupNames = Object.keys(this) as GroupName[];
-    for (const groupName of groupNames) {
-      const group = this[groupName];
-
-      group.fields.forEach((field, index) => {
-        const fieldName = `${prefix}_${groupName}_${field.id}`;
-        fields[fieldName] = field.value;
-      });
-    }
-
-    return fields;
-  }
-}
 
 // Helper function to convert an object to a Map of Field instances
 function convertObjectToFields(fieldsObj: any): Map<string, FormField> {
@@ -1144,63 +1061,6 @@ class MultiStepForm {
 
     return fields;
   }
-}
-
-function mapToObject(map: Map<any, any>, stringify: boolean = false): any {
-  // Convert a Map to a plain object
-  const obj: any = {};
-  for (const [key, value] of map) {
-    obj[key] =
-      value instanceof Map
-        ? mapToObject(value, stringify)
-        : stringify
-          ? JSON.stringify(value)
-          : value; // Recursively convert if value is a Map
-  }
-  return obj;
-}
-
-/**
- * Converts an object to a `Map`. The function can perform either shallow or deep conversion based on the `deep` argument.
- *
- * @param {any} obj - The object to be converted to a `Map`. It can be any type, including nested objects.
- * @param {boolean} [deep=false] - A flag that determines whether the conversion should be deep (recursive) or shallow.
- * If set to `true`, nested objects will be recursively converted into `Map` objects. If set to `false`, only the top-level
- * properties will be converted, and nested objects will remain as plain objects.
- *
- * @returns {Map<any, any>} A `Map` object representing the input `obj`, where keys are the same as the object's
- * properties and values are the corresponding values of those properties.
- */
-function objectToMap(obj: any, deep: boolean = false): Map<any, any> {
-  const map = new Map();
-  for (const [key, value] of Object.entries(obj)) {
-    // Check if deep conversion is requested
-    if (deep && value instanceof Object && !(value instanceof Map)) {
-      map.set(key, objectToMap(value, true)); // Recursively convert nested objects
-    } else {
-      map.set(key, value); // Set the value as is for shallow conversion or non-objects
-    }
-  }
-  return map;
-}
-
-function prospectMapToObject(prospects: Map<string, ResidentProspect>): any {
-  // Convert a ResidentProspect's structure, which contains FieldGroups with fields as Maps
-  const prospectsObj: any = {};
-  for (const [key, prospect] of prospects) {
-    prospectsObj[key] = prospect.serialize();
-  }
-  return prospectsObj;
-}
-
-function flattenProspects(prospects: Map<string, ResidentProspect>): any {
-  let prospectsObj: any = {};
-  let prospectArray = [...prospects.values()];
-  for (let i = 0; i < prospectArray.length; i++) {
-    let prospect = prospectArray[i];
-    prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
-  }
-  return prospectsObj;
 }
 
 function capitalize(str: string): string {

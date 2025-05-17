@@ -2922,16 +2922,32 @@
     return result;
   }
 
-  // src/sanavita/ts/apartment-form.ts
-  var stepsElementSelector = attributeselector_default("data-steps-element");
-  var stepsTargetSelector = attributeselector_default("data-step-target");
-  var stepsNavSelector = attributeselector_default("data-steps-nav");
-  var prospectSelector = attributeselector_default("data-prospect-element");
-  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
-  var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
-  var ARRAY_GROUP_SELECTOR = "[data-prospect-field-group]";
-  var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
-  var STORAGE_KEY = "formProgress";
+  // src/sanavita/ts/utility/maptoobject.ts
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+
+  // src/sanavita/ts/residentprospect.ts
+  function prospectMapToObject(prospects) {
+    const prospectsObj = {};
+    for (const [key, prospect] of prospects) {
+      prospectsObj[key] = prospect.serialize();
+    }
+    return prospectsObj;
+  }
+  function flattenProspects(prospects) {
+    let prospectsObj = {};
+    let prospectArray = [...prospects.values()];
+    for (let i = 0; i < prospectArray.length; i++) {
+      let prospect = prospectArray[i];
+      prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
+    }
+    return prospectsObj;
+  }
   var ResidentProspect = class {
     constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
       this.personalData = personalData;
@@ -2988,6 +3004,17 @@
       return fields;
     }
   };
+
+  // src/sanavita/ts/apartment-form.ts
+  var stepsElementSelector = attributeselector_default("data-steps-element");
+  var stepsTargetSelector = attributeselector_default("data-step-target");
+  var stepsNavSelector = attributeselector_default("data-steps-nav");
+  var prospectSelector = attributeselector_default("data-prospect-element");
+  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
+  var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
+  var ARRAY_GROUP_SELECTOR = "[data-prospect-field-group]";
+  var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
+  var STORAGE_KEY = "formProgress";
   function convertObjectToFields(fieldsObj) {
     const fieldsMap = /* @__PURE__ */ new Map();
     Object.entries(fieldsObj).forEach(([key, fieldData]) => {
@@ -3691,29 +3718,6 @@ Component:`,
       return fields;
     }
   };
-  function mapToObject(map, stringify = false) {
-    const obj = {};
-    for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
-    }
-    return obj;
-  }
-  function prospectMapToObject(prospects) {
-    const prospectsObj = {};
-    for (const [key, prospect] of prospects) {
-      prospectsObj[key] = prospect.serialize();
-    }
-    return prospectsObj;
-  }
-  function flattenProspects(prospects) {
-    let prospectsObj = {};
-    let prospectArray = [...prospects.values()];
-    for (let i = 0; i < prospectArray.length; i++) {
-      let prospect = prospectArray[i];
-      prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
-    }
-    return prospectsObj;
-  }
   function initFormButtons(form) {
     const buttons = form.querySelectorAll("button");
     buttons.forEach((button) => {
