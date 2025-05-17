@@ -35,6 +35,8 @@ export class ResidentProspect {
   primaryRelative: FieldGroup;
   secondaryRelative: FieldGroup;
 
+  key: string = `person-${crypto.randomUUID()}`;
+
   constructor(
     personalData = new FieldGroup(),
     doctor = new FieldGroup(),

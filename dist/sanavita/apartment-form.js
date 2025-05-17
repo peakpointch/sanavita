@@ -2922,6 +2922,7 @@
   }
   var ResidentProspect = class {
     constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
+      this.key = `person-${crypto.randomUUID()}`;
       this.personalData = personalData;
       this.doctor = doctor;
       this.health = health;
@@ -3013,6 +3014,7 @@
       this.accordionList = [];
       this.initialized = false;
       this.editingKey = null;
+      this.draftProspect = null;
       this.id = id;
       this.container = container;
       this.prospects = /* @__PURE__ */ new Map();
@@ -3082,6 +3084,7 @@
       this.initialized = true;
     }
     handleCancel() {
+      this.draftProspect = null;
       this.closeModal();
     }
     addProspect() {
@@ -3093,19 +3096,20 @@
       this.clearModal();
       this.setLiveText("state", "Hinzuf\xFCgen");
       this.setLiveText("full-name", "Neue Person");
+      this.draftProspect = this.extractData();
       this.openModal();
-      this.editingKey = null;
+      this.editingKey = this.draftProspect.key;
     }
-    saveProspectFromModal(validate = true) {
-      const listValid = this.validateModal(validate);
+    saveProspectFromModal(report = true) {
+      const listValid = this.validateModal(report);
       if (!listValid) {
-        console.warn(
+        throw new Error(
           `Couldn't save ResidentProspect. Please fill in all the values correctly.`
         );
-        if (validate) return null;
       }
       const prospect = this.extractData();
       if (this.saveProspect(prospect)) {
+        this.draftProspect = null;
         this.renderList();
         this.closeModal();
       }
@@ -3115,9 +3119,7 @@
       if (this.editingKey !== null) {
         this.prospects.set(this.editingKey, prospect);
       } else {
-        const uniqueSuffix = crypto.randomUUID();
-        const newKey = `person-${uniqueSuffix}`;
-        this.prospects.set(newKey, prospect);
+        this.prospects.set(prospect.key, prospect);
       }
       return true;
     }

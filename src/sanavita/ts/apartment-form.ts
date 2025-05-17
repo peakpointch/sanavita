@@ -193,6 +193,7 @@ class FormArray {
   public initialized: boolean = false;
 
   private editingKey: string | null = null;
+  private draftProspect: ResidentProspect | null = null;
 
   constructor(container: HTMLElement, id: string | number) {
     this.id = id;
@@ -276,6 +277,7 @@ class FormArray {
   }
 
   private handleCancel() {
+    this.draftProspect = null;
     this.closeModal();
   }
 
@@ -288,21 +290,24 @@ class FormArray {
     this.clearModal();
     this.setLiveText("state", "Hinzufügen");
     this.setLiveText("full-name", "Neue Person");
+
+    this.draftProspect = this.extractData();
     this.openModal();
-    this.editingKey = null; // Reset editing state for adding a new prospect
+
+    this.editingKey = this.draftProspect.key; // Reset editing state for adding a new prospect
   }
 
-  private saveProspectFromModal(validate: boolean = true) {
-    const listValid = this.validateModal(validate);
+  private saveProspectFromModal(report: boolean = true) {
+    const listValid = this.validateModal(report);
     if (!listValid) {
-      console.warn(
+      throw new Error(
         `Couldn't save ResidentProspect. Please fill in all the values correctly.`
       );
-      if (validate) return null;
     }
 
     const prospect: ResidentProspect = this.extractData();
     if (this.saveProspect(prospect)) {
+      this.draftProspect = null;
       this.renderList();
       this.closeModal();
     }
@@ -316,9 +321,7 @@ class FormArray {
       this.prospects.set(this.editingKey, prospect);
     } else {
       // Generate a truly unique key for a new ResidentProspect
-      const uniqueSuffix = crypto.randomUUID();
-      const newKey = `person-${uniqueSuffix}`;
-      this.prospects.set(newKey, prospect);
+      this.prospects.set(prospect.key, prospect);
     }
     return true;
   }
