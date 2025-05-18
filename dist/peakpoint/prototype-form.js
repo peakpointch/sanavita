@@ -477,16 +477,16 @@
     if (isCheckboxInput(input)) {
       input.parentElement?.querySelector(wf.select.checkbox)?.classList.add("has-error");
     }
-    const removeErrorClasses = () => {
-      input.classList.remove("has-error");
-      if (isCheckboxInput(input)) {
-        input.parentElement?.querySelector(wf.select.checkbox)?.classList.remove("has-error");
-      }
-    };
     if (input.type !== "checkbox" && input.type !== "radio") {
-      input.addEventListener("input", () => removeErrorClasses(), { once: true });
+      input.addEventListener("input", () => removeErrorClasses(input), { once: true });
     } else {
-      input.addEventListener("change", () => removeErrorClasses(), { once: true });
+      input.addEventListener("change", () => removeErrorClasses(input), { once: true });
+    }
+  }
+  function removeErrorClasses(input) {
+    input.classList.remove("has-error");
+    if (isCheckboxInput(input)) {
+      input.parentElement?.querySelector(wf.select.checkbox)?.classList.remove("has-error");
     }
   }
   function disableWebflowForm(form) {
