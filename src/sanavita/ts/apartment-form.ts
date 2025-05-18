@@ -414,15 +414,19 @@ class FormArray {
   }
 
   private saveProspect(prospect: ResidentProspect): boolean {
-    if (this.prospects.size > 1) {
-      throw new Error(`Sie können nur max. 2 Personen hinzufügen.`);
-    }
+    const prospectLimitError = new Error(`Sie können nur max. 2 Personen hinzufügen.`);
 
     if (!this.editingKey.startsWith('draft') && this.editingKey !== null) {
+      if (this.prospects.size > 2) {
+        throw prospectLimitError;
+      }
       // Update existing prospect
       this.prospects.set(this.editingKey, prospect);
     } else {
-      // Generate a truly unique key for a new ResidentProspect
+      if (this.prospects.size > 1) {
+        throw prospectLimitError;
+      }
+      // Add the new prospect
       this.prospects.set(prospect.key, prospect);
     }
     return true;
@@ -471,9 +475,9 @@ class FormArray {
     editButton!.addEventListener("click", () => {
       this.setLiveText("state", "bearbeiten");
       this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
+      this.editingKey = key; // Set editing key
       this.populateModal(prospect);
       this.openModal();
-      this.editingKey = key; // Set editing key
     });
 
     deleteButton!.addEventListener("click", async () => {
@@ -619,6 +623,7 @@ class FormArray {
       });
     }
     this.clearModal();
+    this.editingKey = null;
   }
 
   private clearModal() {

@@ -3264,12 +3264,16 @@
       this.saveProgress();
     }
     saveProspect(prospect) {
-      if (this.prospects.size > 1) {
-        throw new Error(`Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.`);
-      }
+      const prospectLimitError = new Error(`Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.`);
       if (!this.editingKey.startsWith("draft") && this.editingKey !== null) {
+        if (this.prospects.size > 2) {
+          throw prospectLimitError;
+        }
         this.prospects.set(this.editingKey, prospect);
       } else {
+        if (this.prospects.size > 1) {
+          throw prospectLimitError;
+        }
         this.prospects.set(prospect.key, prospect);
       }
       return true;
@@ -3310,9 +3314,9 @@
       editButton.addEventListener("click", () => {
         this.setLiveText("state", "bearbeiten");
         this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
+        this.editingKey = key;
         this.populateModal(prospect);
         this.openModal();
-        this.editingKey = key;
       });
       deleteButton.addEventListener("click", async () => {
         const confirmed = await this.alertDialog.confirm({
@@ -3427,6 +3431,7 @@
         });
       }
       this.clearModal();
+      this.editingKey = null;
     }
     clearModal() {
       this.setLiveText("state", "hinzuf\xFCgen");
