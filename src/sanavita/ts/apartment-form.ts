@@ -794,7 +794,6 @@ class FormArray {
 
 class MultiStepForm {
   public initialized: boolean = false;
-  public component: HTMLElement;
   public formElement: HTMLFormElement;
   public formSteps: NodeListOf<HTMLElement>;
   private navigationElement: HTMLElement;
@@ -806,40 +805,43 @@ class MultiStepForm {
   private successElement: HTMLElement | null;
   private errorElement: HTMLElement | null;
   private submitButton: HTMLInputElement | null;
-  private options: MultiStepFormOptions;
 
-  constructor(component: HTMLElement, options: MultiStepFormOptions) {
-    this.component = component;
-    this.formElement = this.component.querySelector<HTMLFormElement>('form');
-    this.options = options;
+  constructor(public component: HTMLElement, private options: MultiStepFormOptions) {
+    this.validateComponent();
+    this.cacheDomElements();
+    this.setupForm();
+    this.setupEventListeners();
+    this.initialized = true;
+  }
 
+  private validateComponent(): void {
+    if (!this.component.getAttribute("data-steps-element")) {
+      console.error(
+        `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector('component')}.\nComponent:`,
+        this.component
+      );
+      throw new Error("Component is not a valid multi-step form component.");
+    }
+  }
+
+  private cacheDomElements(): void {
+    this.formElement = this.component.querySelector<HTMLFormElement>('form')!;
     if (!this.formElement) {
       throw new Error("Form element not found within the specified component.");
     }
 
     this.formSteps = this.component.querySelectorAll(stepsElementSelector('step'));
     this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
-    this.navigationElement = this.component.querySelector(stepsElementSelector('navigation'));
+    this.navigationElement = this.component.querySelector(stepsElementSelector('navigation'))!;
     this.buttonsNext = this.component.querySelectorAll(stepsNavSelector('next'));
     this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector('prev'));
 
-    // Handle optional UI elements
     this.successElement = this.component.querySelector(formElementSelector('success'));
     this.errorElement = this.component.querySelector(formElementSelector('error'));
     this.submitButton = this.component.querySelector<HTMLInputElement>(formElementSelector('submit'));
-
-    this.initialize();
   }
 
-  private initialize(): void {
-    if (!this.component.getAttribute("data-steps-element")) {
-      console.error(
-        `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector('component')}.\nComponent:`,
-        this.component
-      );
-      return;
-    }
-
+  private setupForm(): void {
     if (!this.formSteps.length) {
       console.warn(
         `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
@@ -847,22 +849,23 @@ class MultiStepForm {
       );
       return;
     }
-    initFormButtons(this.formElement);
-    initCustomInputs(this.component);
-
-    this.setupSteps();
-    this.initPagination();
-    this.changeToStep(this.currentStep);
 
     this.formElement.setAttribute("novalidate", "");
     this.formElement.dataset.state = "initialized";
 
+    initFormButtons(this.formElement);
+    initCustomInputs(this.component);
+    this.initPagination();
+    this.initChangeStepOnKeydown();
+
+    this.changeToStep(this.currentStep);
+  }
+
+  private setupEventListeners(): void {
     this.formElement.addEventListener("submit", (event) => {
       event.preventDefault();
       this.submitToWebflow();
     });
-
-    this.initialized = true;
   }
 
   public addCustomComponent(component: CustomFormComponent): void {
@@ -958,7 +961,7 @@ class MultiStepForm {
     }
   }
 
-  private setupSteps(): void {
+  private initChangeStepOnKeydown(): void {
     this.formSteps.forEach((step, index) => {
       step.dataset.stepId = index.toString();
       step.classList.toggle("hide", index !== this.currentStep);

@@ -3569,12 +3569,29 @@
   };
   var MultiStepForm = class {
     constructor(component, options) {
+      this.component = component;
+      this.options = options;
       this.initialized = false;
       this.currentStep = 0;
       this.customComponents = [];
-      this.component = component;
+      this.validateComponent();
+      this.cacheDomElements();
+      this.setupForm();
+      this.setupEventListeners();
+      this.initialized = true;
+    }
+    validateComponent() {
+      if (!this.component.getAttribute("data-steps-element")) {
+        console.error(
+          `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector("component")}.
+Component:`,
+          this.component
+        );
+        throw new Error("Component is not a valid multi-step form component.");
+      }
+    }
+    cacheDomElements() {
       this.formElement = this.component.querySelector("form");
-      this.options = options;
       if (!this.formElement) {
         throw new Error("Form element not found within the specified component.");
       }
@@ -3586,17 +3603,8 @@
       this.successElement = this.component.querySelector(formElementSelector("success"));
       this.errorElement = this.component.querySelector(formElementSelector("error"));
       this.submitButton = this.component.querySelector(formElementSelector("submit"));
-      this.initialize();
     }
-    initialize() {
-      if (!this.component.getAttribute("data-steps-element")) {
-        console.error(
-          `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector("component")}.
-Component:`,
-          this.component
-        );
-        return;
-      }
+    setupForm() {
       if (!this.formSteps.length) {
         console.warn(
           `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
@@ -3604,18 +3612,19 @@ Component:`,
         );
         return;
       }
-      initFormButtons(this.formElement);
-      initCustomInputs(this.component);
-      this.setupSteps();
-      this.initPagination();
-      this.changeToStep(this.currentStep);
       this.formElement.setAttribute("novalidate", "");
       this.formElement.dataset.state = "initialized";
+      initFormButtons(this.formElement);
+      initCustomInputs(this.component);
+      this.initPagination();
+      this.initChangeStepOnKeydown();
+      this.changeToStep(this.currentStep);
+    }
+    setupEventListeners() {
       this.formElement.addEventListener("submit", (event) => {
         event.preventDefault();
         this.submitToWebflow();
       });
-      this.initialized = true;
     }
     addCustomComponent(component) {
       this.customComponents.push(component);
@@ -3690,7 +3699,7 @@ Component:`,
         this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
       }
     }
-    setupSteps() {
+    initChangeStepOnKeydown() {
       this.formSteps.forEach((step, index) => {
         step.dataset.stepId = index.toString();
         step.classList.toggle("hide", index !== this.currentStep);
@@ -3725,22 +3734,39 @@ Component:`,
         });
       });
     }
+    /**
+     * Change to the next step.
+     */
     changeToNext() {
       if (this.currentStep < this.formSteps.length - 1) {
         this.changeToStep(this.currentStep + 1);
       }
     }
+    /**
+     * Change to the previous step.
+     */
     changeToPrevious() {
       if (this.currentStep > 0) {
         this.changeToStep(this.currentStep - 1);
       }
     }
-    changeToStep(target) {
-      if (this.currentStep === target && this.initialized) {
+    /**
+     * Change to the specified step by `index`.
+     *
+     * If moving forward, the method will validate all intermediate steps before
+     * allowing navigation. If validation fails on any step, it will halt and move
+     * to the invalid step instead.
+     *
+     * Use the CustomEvent "changeStep" to hook into step changes.
+     *
+     * @param index - The zero-based index of the step to navigate to.
+     */
+    changeToStep(index) {
+      if (this.currentStep === index && this.initialized) {
         return;
       }
-      if (target > this.currentStep && this.initialized) {
-        for (let step = this.currentStep; step < target; step++) {
+      if (index > this.currentStep && this.initialized) {
+        for (let step = this.currentStep; step < index; step++) {
           if (!this.validateCurrentStep(step)) {
             this.changeToStep(step);
             return;
@@ -3752,12 +3778,12 @@ Component:`,
         });
       }
       const event = new CustomEvent("changeStep", {
-        detail: { previousStep: this.currentStep, currentStep: target }
+        detail: { previousStep: this.currentStep, currentStep: index }
       });
       this.component.dispatchEvent(event);
-      this.updateStepVisibility(target);
-      this.updatePagination(target);
-      this.currentStep = target;
+      this.updateStepVisibility(index);
+      this.updatePagination(index);
+      this.currentStep = index;
       console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
     }
     updateStepVisibility(target) {
