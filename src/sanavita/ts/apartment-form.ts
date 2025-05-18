@@ -8,7 +8,8 @@ import {
   sendFormData,
   validateFields,
   formElementSelector,
-  fieldFromInput
+  fieldFromInput,
+  removeErrorClasses
 } from "@peakflow/form";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
@@ -639,6 +640,7 @@ class FormArray {
       } else {
         input.value = "";
       }
+      removeErrorClasses(input);
     });
   }
 
