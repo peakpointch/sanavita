@@ -25,6 +25,7 @@ import {
   flattenProspects,
 } from "./residentprospect";
 import mapToObject from "./utility/maptoobject";
+import deepMerge from "@peakflow/deepmerge";
 
 // Types
 type FormOptions = {
@@ -35,7 +36,13 @@ interface MultiStepFormOptions extends FormOptions {
   navigation: {
     hideInStep: number;
   };
+  onStepChange?: StepChangeCallback;
 };
+type StepChangeCallback = (options: {
+  index: number;
+  currentStep: HTMLElement;
+  targetStep: HTMLElement;
+}) => void;
 type CustomFormComponent = {
   stepIndex: number;
   instance: any;
@@ -794,20 +801,32 @@ class FormArray {
 }
 
 class MultiStepForm {
+  public options: MultiStepFormOptions = {
+    recaptcha: true,
+    navigation: {
+      hideInStep: -1,
+    },
+    excludeInputSelectors: [],
+  };
+
   public initialized: boolean = false;
+  public component: HTMLElement;
   public formElement: HTMLFormElement;
   public formSteps: NodeListOf<HTMLElement>;
+  public currentStep: number = 0;
   private navigationElement: HTMLElement;
   private paginationItems: NodeListOf<HTMLElement>;
   private buttonsNext: NodeListOf<HTMLElement>;
   private buttonsPrev: NodeListOf<HTMLElement>;
-  private currentStep: number = 0;
   private customComponents: Array<CustomFormComponent> = [];
   private successElement: HTMLElement | null;
   private errorElement: HTMLElement | null;
   private submitButton: HTMLInputElement | null;
 
-  constructor(public component: HTMLElement, private options: MultiStepFormOptions) {
+  constructor(component: HTMLElement, options: Partial<MultiStepFormOptions>) {
+    this.component = component;
+    this.options = deepMerge(this.options, options);
+
     this.validateComponent();
     this.cacheDomElements();
     this.setupForm();
@@ -1069,8 +1088,25 @@ class MultiStepForm {
   }
 
   private updateStepVisibility(target: number): void {
-    this.formSteps[this.currentStep].classList.add("hide");
-    this.formSteps[target].classList.remove("hide");
+    const current = this.formSteps[this.currentStep];
+    const next = this.formSteps[target];
+
+    // Call user-defined handler if set
+    if (this.options.onStepChange) {
+      this.options.onStepChange({
+        index: target,
+        currentStep: current,
+        targetStep: next,
+      });
+    } else {
+      // Default behavior
+      current.classList.add("hide");
+      next.classList.remove("hide");
+    }
+  }
+
+  public set onChangeStep(callback: StepChangeCallback) {
+    this.options.onStepChange = callback;
   }
 
   private updatePagination(target: number): void {

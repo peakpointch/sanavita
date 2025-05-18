@@ -2694,6 +2694,19 @@
     }
   };
 
+  // ../peakflow/src/deepmerge.ts
+  function deepMerge(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+      if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+        result[key] = deepMerge(target[key], source[key]);
+      } else if (source[key] !== void 0) {
+        result[key] = source[key];
+      }
+    }
+    return result;
+  }
+
   // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
@@ -2891,17 +2904,6 @@
   }
   function animationFrame() {
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
-  }
-  function deepMerge(target, source) {
-    const result = { ...target };
-    for (const key in source) {
-      if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
-        result[key] = deepMerge(target[key], source[key]);
-      } else if (source[key] !== void 0) {
-        result[key] = source[key];
-      }
-    }
-    return result;
   }
 
   // ../peakflow/src/alertdialog.ts
@@ -3585,11 +3587,18 @@
   };
   var MultiStepForm = class {
     constructor(component, options) {
-      this.component = component;
-      this.options = options;
+      this.options = {
+        recaptcha: true,
+        navigation: {
+          hideInStep: -1
+        },
+        excludeInputSelectors: []
+      };
       this.initialized = false;
       this.currentStep = 0;
       this.customComponents = [];
+      this.component = component;
+      this.options = deepMerge(this.options, options);
       this.validateComponent();
       this.cacheDomElements();
       this.setupForm();
@@ -3803,8 +3812,21 @@ Component:`,
       console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
     }
     updateStepVisibility(target) {
-      this.formSteps[this.currentStep].classList.add("hide");
-      this.formSteps[target].classList.remove("hide");
+      const current = this.formSteps[this.currentStep];
+      const next = this.formSteps[target];
+      if (this.options.onStepChange) {
+        this.options.onStepChange({
+          index: target,
+          currentStep: current,
+          targetStep: next
+        });
+      } else {
+        current.classList.add("hide");
+        next.classList.remove("hide");
+      }
+    }
+    set onChangeStep(callback) {
+      this.options.onStepChange = callback;
     }
     updatePagination(target) {
       this.buttonsPrev.forEach((button) => {
