@@ -2790,18 +2790,15 @@
       this.component.classList.remove("hide");
       this.hide();
       switch (this.settings.animation.type) {
+        case "growIn":
+        case "slideUp":
+          this.modal.style.willChange = "transform";
+          this.modal.style.transitionProperty = "transform";
+          this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
         case "fade":
           this.component.style.willChange = "opacity";
           this.component.style.transitionProperty = "opacity";
           this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
-          break;
-        case "slideUp":
-          this.component.style.willChange = "opacity";
-          this.component.style.transitionProperty = "opacity";
-          this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
-          this.modal.style.willChange = "transform";
-          this.modal.style.transitionProperty = "transform";
-          this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
           break;
         case "none":
           break;
@@ -2821,6 +2818,10 @@
           this.component.style.opacity = "1";
           this.modal.style.transform = "translateY(0vh)";
           break;
+        case "growIn":
+          this.component.style.opacity = "1";
+          this.modal.style.transform = "scale(1)";
+          break;
         default:
           this.component.classList.remove("is-closed");
       }
@@ -2837,6 +2838,10 @@
         case "slideUp":
           this.component.style.opacity = "0";
           this.modal.style.transform = "translateY(10vh)";
+          break;
+        case "growIn":
+          this.component.style.opacity = "0";
+          this.modal.style.transform = "scale(0.9)";
           break;
         default:
           break;
@@ -2893,6 +2898,54 @@
     }
     return result;
   }
+
+  // ../peakflow/src/alertdialog.ts
+  var AlertDialog = class extends Modal {
+    confirm(message2) {
+      this.message = message2;
+      this.open();
+      return new Promise((resolve) => {
+        const confirmBtn = this.select("confirm");
+        const cancelBtn = this.select("cancel");
+        const onConfirm = () => {
+          cleanup();
+          this.close();
+          resolve(true);
+        };
+        const onCancel = () => {
+          cleanup();
+          this.close();
+          resolve(false);
+        };
+        const cleanup = () => {
+          confirmBtn.removeEventListener("click", onConfirm);
+          cancelBtn.removeEventListener("click", onCancel);
+        };
+        confirmBtn.addEventListener("click", onConfirm);
+        cancelBtn.addEventListener("click", onCancel);
+      });
+    }
+    set message(message2) {
+      this._message = message2;
+      this.renderMessage(message2);
+    }
+    get message() {
+      return this._message;
+    }
+    renderMessage(message2) {
+      for (const key in message2) {
+        const element = this.getElement(key);
+        if (element) {
+          element.innerText = message2[key];
+        } else {
+          console.warn(`AlertDialog: Missing element for key "${key}"`);
+        }
+      }
+    }
+    getElement(element) {
+      return this.component.querySelector(`[data-alert-dialog="${element}"]`);
+    }
+  };
 
   // src/sanavita/ts/utility/maptoobject.ts
   function mapToObject(map, stringify = false) {
@@ -3013,6 +3066,7 @@
   }
   var FormArray = class {
     constructor(container, id) {
+      this.alertDialog = getAlertDialog();
       this.accordionList = [];
       this.initialized = false;
       this.editingKey = null;
@@ -3027,7 +3081,7 @@
       this.modalElement = Modal.select("component", "resident-prospect");
       this.modal = new Modal(this.modalElement, {
         animation: {
-          type: "slideUp",
+          type: "growIn",
           duration: 300
         }
       });
@@ -3136,9 +3190,17 @@
         return this.prospects.get(this.editingKey);
       }
     }
-    handleCancel() {
-      this.draftProspect = null;
-      this.closeModal();
+    async handleCancel() {
+      const confirmed = await this.alertDialog.confirm({
+        title: `M\xF6chten Sie die \xC4nderungen verwerfen?`,
+        paragraph: `Mit dieser Aktion gehen alle \xC4nderungen f\xFCr "${this.getEditingProspect().getFullName()}" verworfen. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.`,
+        cancel: "abbrechen",
+        confirm: "\xC4nderungen verwerfen"
+      });
+      if (confirmed) {
+        this.draftProspect = null;
+        this.closeModal();
+      }
     }
     addProspect() {
       if (this.prospects.size === 2) {
@@ -3221,11 +3283,19 @@
         this.openModal();
         this.editingKey = key;
       });
-      deleteButton.addEventListener("click", () => {
-        this.prospects.delete(key);
-        this.renderList();
-        this.closeModal();
-        this.saveProgress();
+      deleteButton.addEventListener("click", async () => {
+        const confirmed = await this.alertDialog.confirm({
+          title: `M\xF6chten Sie die Person "${prospect.getFullName()}" wirklich l\xF6schen?`,
+          paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel\xF6scht. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.`,
+          cancel: "abbrechen",
+          confirm: "Person l\xF6schen"
+        });
+        if (confirmed) {
+          this.prospects.delete(key);
+          this.renderList();
+          this.closeModal();
+          this.saveProgress();
+        }
       });
       props.forEach((prop) => {
         const propSelector = `[data-${prop}]`;
@@ -3802,6 +3872,17 @@ Component:`,
         console.warn(`No matching option for value: ${wohnungValue}`);
       }
     }
+  }
+  function getAlertDialog() {
+    const modalElement = AlertDialog.select("component", "alert-dialog");
+    const modal = new AlertDialog(modalElement, {
+      animation: {
+        type: "growIn",
+        duration: 200
+      },
+      lockBodyScroll: false
+    });
+    return modal;
   }
   var formElement = document.querySelector(
     formElementSelector("component")

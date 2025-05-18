@@ -15,6 +15,7 @@ import { HTMLFormInput, CustomValidator } from "@peakflow/form";
 import { FormMessage, FormDecision, FormField, FieldData, FieldGroup } from "@peakflow/form";
 import Accordion from "@peakflow/accordion";
 import Modal from "@peakflow/modal";
+import AlertDialog from "@peakflow/alertdialog";
 import {
   ResidentProspect,
   GroupName,
@@ -186,6 +187,7 @@ class FormArray {
   private addButton: HTMLElement;
   public modal: Modal;
   public modalElement: HTMLElement;
+  public alertDialog: AlertDialog = getAlertDialog();
   private saveButton: HTMLElement;
   private draftButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
@@ -210,7 +212,7 @@ class FormArray {
     this.modalElement = Modal.select('component', 'resident-prospect');
     this.modal = new Modal(this.modalElement, {
       animation: {
-        type: "slideUp",
+        type: "growIn",
         duration: 300,
       },
     });
@@ -349,9 +351,18 @@ class FormArray {
     }
   }
 
-  private handleCancel() {
-    this.draftProspect = null;
-    this.closeModal();
+  private async handleCancel() {
+    const confirmed = await this.alertDialog.confirm({
+      title: `Möchten Sie die Änderungen verwerfen?`,
+      paragraph: `Mit dieser Aktion gehen alle Änderungen für "${this.getEditingProspect().getFullName()}" verworfen. Diese Aktion kann nicht rückgängig gemacht werden.`,
+      cancel: 'abbrechen',
+      confirm: 'Änderungen verwerfen'
+    });
+
+    if (confirmed) {
+      this.draftProspect = null;
+      this.closeModal();
+    }
   }
 
   private addProspect() {
@@ -456,11 +467,20 @@ class FormArray {
       this.editingKey = key; // Set editing key
     });
 
-    deleteButton!.addEventListener("click", () => {
-      this.prospects.delete(key); // Remove the ResidentProspect from the map
-      this.renderList(); // Re-render the list
-      this.closeModal();
-      this.saveProgress();
+    deleteButton!.addEventListener("click", async () => {
+      const confirmed = await this.alertDialog.confirm({
+        title: `Möchten Sie die Person "${prospect.getFullName()}" wirklich löschen?`,
+        paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
+        cancel: 'abbrechen',
+        confirm: 'Person löschen'
+      });
+
+      if (confirmed) {
+        this.prospects.delete(key); // Remove the ResidentProspect from the map
+        this.renderList(); // Re-render the list
+        this.closeModal();
+        this.saveProgress();
+      }
     });
 
     props.forEach((prop) => {
@@ -555,7 +575,7 @@ class FormArray {
       });
     }
 
-    return valid; // Change this for dev: true | valid
+    return valid;
   }
 
   public openModal(): void {
@@ -1065,6 +1085,7 @@ class MultiStepForm {
   }
 
   public validateCurrentStep(stepIndex: number): boolean {
+    // return true; // Change this for dev
     const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length
       }`;
     const currentStepElement = this.formSteps[stepIndex];
@@ -1246,6 +1267,19 @@ function insertSearchParamValues(): void {
       console.warn(`No matching option for value: ${wohnungValue}`);
     }
   }
+}
+
+function getAlertDialog(): AlertDialog {
+  const modalElement = AlertDialog.select('component', 'alert-dialog');
+  const modal = new AlertDialog(modalElement, {
+    animation: {
+      type: 'growIn',
+      duration: 200,
+    },
+    lockBodyScroll: false,
+  });
+
+  return modal;
 }
 
 const formElement: HTMLElement | null = document.querySelector(
