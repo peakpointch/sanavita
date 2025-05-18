@@ -49,9 +49,11 @@ const stepsTargetSelector = createAttribute<string>('data-step-target');
 const stepsNavSelector = createAttribute<StepsNavElement>('data-steps-nav');
 const prospectSelector = createAttribute<ProspectElement>('data-prospect-element')
 
+const LINK_FIELDS_ATTR = `data-link-fields`;
+const ARRAY_GROUP_ATTR = `data-prospect-field-group`;
 const STEPS_PAGINATION_ITEM_SELECTOR: string = `button${stepsTargetSelector()}`;
 const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
-const ARRAY_GROUP_SELECTOR: string = "[data-prospect-field-group]";
+const ARRAY_GROUP_SELECTOR: string = `[${ARRAY_GROUP_ATTR}]`;
 const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
@@ -233,7 +235,7 @@ class FormArray {
       input.addEventListener("keydown", (event: KeyboardEvent) => {
         if (event.key === "Enter") {
           event.preventDefault();
-          this.saveProspectFromModal();
+          this.saveProspectFromModal({ validate: true, report: true });
         }
       });
       input.addEventListener("focusin", () => {
@@ -259,6 +261,8 @@ class FormArray {
     });
     this.addButton.addEventListener("click", () => this.addProspect());
 
+    this.initializeLinkedFields();
+
     this.renderList();
     this.closeModal();
 
@@ -281,6 +285,70 @@ class FormArray {
     this.initialized = true;
   }
 
+  private initializeLinkedFields(): void {
+    const prospectsLength: number = this.draftProspect === null
+      ? this.prospects.size
+      : this.prospects.size + 1;
+    const links = this.modalElement.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
+
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        const otherProspect = Array.from(this.prospects.values())[0];
+        const inputIds = link.getAttribute(LINK_FIELDS_ATTR)
+          .split(',')
+          .map(id => id.trim());
+
+        if (inputIds.length === 0 || inputIds.some(id => id === '')) {
+          throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+        }
+
+        const fieldGroupElement = link.closest(ARRAY_GROUP_SELECTOR);
+        const fieldGroupName = fieldGroupElement.getAttribute(ARRAY_GROUP_ATTR) as GroupName;
+        const fieldGroup = otherProspect[fieldGroupName];
+
+        inputIds.forEach(id => {
+          const input = fieldGroupElement.querySelector(`#${id}`);
+          if (!(input instanceof HTMLInputElement) &&
+            !(input instanceof HTMLSelectElement) &&
+            !(input instanceof HTMLTextAreaElement)
+          ) {
+            throw new TypeError(
+              `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
+            );
+          }
+
+          input.value = fieldGroup.getField(id).value;
+        });
+      });
+    });
+  }
+
+  private handleLinkedFieldsVisibility(): void {
+    const length: number = this.draftProspect === null
+      ? this.prospects.size
+      : this.prospects.size + 1;
+
+    const links = this.modalElement.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
+
+    if (length < 2) {
+      links.forEach(link => {
+        link.style.display = 'none';
+      });
+    } else {
+      links.forEach(link => {
+        link.style.removeProperty('display');
+      });
+    }
+  }
+
+  private getEditingProspect(): ResidentProspect {
+    if (this.editingKey.startsWith('draft')) {
+      return this.draftProspect;
+    } else {
+      return this.prospects.get(this.editingKey);
+    }
+  }
+
   private handleCancel() {
     this.draftProspect = null;
     this.closeModal();
@@ -299,7 +367,7 @@ class FormArray {
     this.draftProspect = this.extractData();
     this.openModal();
 
-    this.editingKey = this.draftProspect.key; // Reset editing state for adding a new prospect
+    this.editingKey = `draft-${this.draftProspect.key}`;
   }
 
   private saveProspectFromModal(opts?: {
@@ -326,7 +394,11 @@ class FormArray {
   }
 
   private saveProspect(prospect: ResidentProspect): boolean {
-    if (this.editingKey !== null) {
+    if (this.prospects.size > 1) {
+      throw new Error(`Sie können nur max. 2 Personen hinzufügen.`);
+    }
+
+    if (!this.editingKey.startsWith('draft') && this.editingKey !== null) {
       // Update existing prospect
       this.prospects.set(this.editingKey, prospect);
     } else {
@@ -503,6 +575,7 @@ class FormArray {
       });
     });
 
+    this.handleLinkedFieldsVisibility();
     this.openAccordion(0, this.accordionList);
 
     this.modal.open();
@@ -666,6 +739,7 @@ class FormArray {
           if (deserializedData.hasOwnProperty(key)) {
             const prospectData = deserializedData[key];
             const prospect = deserializeResidentProspect(prospectData); // Deserialize the ResidentProspect object
+            prospect.key = key;
             this.prospects.set(key, prospect);
             this.renderList();
             this.closeModal();

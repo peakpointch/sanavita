@@ -2983,9 +2983,11 @@
   var stepsTargetSelector = attributeselector_default("data-step-target");
   var stepsNavSelector = attributeselector_default("data-steps-nav");
   var prospectSelector = attributeselector_default("data-prospect-element");
+  var LINK_FIELDS_ATTR = `data-link-fields`;
+  var ARRAY_GROUP_ATTR = `data-prospect-field-group`;
   var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
-  var ARRAY_GROUP_SELECTOR = "[data-prospect-field-group]";
+  var ARRAY_GROUP_SELECTOR = `[${ARRAY_GROUP_ATTR}]`;
   var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
   var STORAGE_KEY = "formProgress";
   function convertObjectToFields(fieldsObj) {
@@ -3046,7 +3048,7 @@
         input.addEventListener("keydown", (event) => {
           if (event.key === "Enter") {
             event.preventDefault();
-            this.saveProspectFromModal();
+            this.saveProspectFromModal({ validate: true, report: true });
           }
         });
         input.addEventListener("focusin", () => {
@@ -3070,6 +3072,7 @@
         this.saveProspectFromModal({ validate: false, report: false });
       });
       this.addButton.addEventListener("click", () => this.addProspect());
+      this.initializeLinkedFields();
       this.renderList();
       this.closeModal();
       const accordionList = this.container.querySelectorAll(ACCORDION_SELECTOR);
@@ -3088,6 +3091,51 @@
       this.openAccordion(0, this.accordionList);
       this.initialized = true;
     }
+    initializeLinkedFields() {
+      const prospectsLength = this.draftProspect === null ? this.prospects.size : this.prospects.size + 1;
+      const links = this.modalElement.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
+      links.forEach((link) => {
+        link.addEventListener("click", () => {
+          const otherProspect = Array.from(this.prospects.values())[0];
+          const inputIds = link.getAttribute(LINK_FIELDS_ATTR).split(",").map((id) => id.trim());
+          if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+            throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+          }
+          const fieldGroupElement = link.closest(ARRAY_GROUP_SELECTOR);
+          const fieldGroupName = fieldGroupElement.getAttribute(ARRAY_GROUP_ATTR);
+          const fieldGroup = otherProspect[fieldGroupName];
+          inputIds.forEach((id) => {
+            const input = fieldGroupElement.querySelector(`#${id}`);
+            if (!(input instanceof HTMLInputElement) && !(input instanceof HTMLSelectElement) && !(input instanceof HTMLTextAreaElement)) {
+              throw new TypeError(
+                `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
+              );
+            }
+            input.value = fieldGroup.getField(id).value;
+          });
+        });
+      });
+    }
+    handleLinkedFieldsVisibility() {
+      const length = this.draftProspect === null ? this.prospects.size : this.prospects.size + 1;
+      const links = this.modalElement.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
+      if (length < 2) {
+        links.forEach((link) => {
+          link.style.display = "none";
+        });
+      } else {
+        links.forEach((link) => {
+          link.style.removeProperty("display");
+        });
+      }
+    }
+    getEditingProspect() {
+      if (this.editingKey.startsWith("draft")) {
+        return this.draftProspect;
+      } else {
+        return this.prospects.get(this.editingKey);
+      }
+    }
     handleCancel() {
       this.draftProspect = null;
       this.closeModal();
@@ -3103,7 +3151,7 @@
       this.setLiveText("full-name", "Neue Person");
       this.draftProspect = this.extractData();
       this.openModal();
-      this.editingKey = this.draftProspect.key;
+      this.editingKey = `draft-${this.draftProspect.key}`;
     }
     saveProspectFromModal(opts) {
       if (opts.validate ?? true) {
@@ -3123,7 +3171,10 @@
       this.saveProgress();
     }
     saveProspect(prospect) {
-      if (this.editingKey !== null) {
+      if (this.prospects.size > 1) {
+        throw new Error(`Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.`);
+      }
+      if (!this.editingKey.startsWith("draft") && this.editingKey !== null) {
         this.prospects.set(this.editingKey, prospect);
       } else {
         this.prospects.set(prospect.key, prospect);
@@ -3262,6 +3313,7 @@
           );
         });
       });
+      this.handleLinkedFieldsVisibility();
       this.openAccordion(0, this.accordionList);
       this.modal.open();
     }
@@ -3393,6 +3445,7 @@
             if (deserializedData.hasOwnProperty(key)) {
               const prospectData = deserializedData[key];
               const prospect = deserializeResidentProspect(prospectData);
+              prospect.key = key;
               this.prospects.set(key, prospect);
               this.renderList();
               this.closeModal();
