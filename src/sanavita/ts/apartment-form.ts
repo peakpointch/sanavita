@@ -34,7 +34,7 @@ interface MultiStepFormOptions extends FormOptions {
   };
 };
 type CustomFormComponent = {
-  step: number;
+  stepIndex: number;
   instance: any;
   validator: CustomValidator;
   getData?: () => {};
@@ -829,19 +829,8 @@ class MultiStepForm {
     this.initialized = true;
   }
 
-  public addCustomComponent(
-    step: number,
-    instance: any,
-    validator: () => boolean,
-    getData?: () => any
-  ): void {
-    const customComponent: CustomFormComponent = {
-      step: step,
-      instance: instance,
-      validator: validator,
-      getData: getData,
-    };
-    this.customComponents.push(customComponent);
+  public addCustomComponent(component: CustomFormComponent): void {
+    this.customComponents.push(component);
   }
 
   private async submitToWebflow(): Promise<void> {
@@ -1075,10 +1064,10 @@ class MultiStepForm {
     return allValid;
   }
 
-  public validateCurrentStep(step: number): boolean {
-    const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length
+  public validateCurrentStep(stepIndex: number): boolean {
+    const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length
       }`;
-    const currentStepElement = this.formSteps[step];
+    const currentStepElement = this.formSteps[stepIndex];
     const inputs: NodeListOf<HTMLFormInput> =
       currentStepElement.querySelectorAll(wf.select.formInput);
 
@@ -1102,7 +1091,7 @@ class MultiStepForm {
     }
 
     const customValidators: CustomValidator[] = this.customComponents
-      .filter((entry) => entry.step === step)
+      .filter((entry) => entry.stepIndex === stepIndex)
       .map((entry) => () => entry.validator());
 
     // Custom validations
@@ -1212,7 +1201,11 @@ function initializeFormDecisions(
       }
 
       // Add the FormDecision as a custom component to the form
-      form.addCustomComponent(stepIndex, decision, () => decision.validate());
+      form.addCustomComponent({
+        stepIndex,
+        instance: decision,
+        validator: () => decision.validate(),
+      });
     });
   });
 }
@@ -1278,12 +1271,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ],
   });
 
-  FORM.addCustomComponent(
-    2,
-    prospectArray,
-    () => prospectArray.validate(),
-    () => flattenProspects(prospectArray.prospects)
-  );
+  FORM.addCustomComponent({
+    stepIndex: 2,
+    instance: prospectArray,
+    validator: () => prospectArray.validate(),
+    getData: () => flattenProspects(prospectArray.prospects)
+  });
   FORM.component.addEventListener("changeStep", () => prospectArray.closeModal());
 
   const errorMessages = {

@@ -3510,14 +3510,8 @@ Component:`,
       });
       this.initialized = true;
     }
-    addCustomComponent(step, instance, validator, getData) {
-      const customComponent = {
-        step,
-        instance,
-        validator,
-        getData
-      };
-      this.customComponents.push(customComponent);
+    addCustomComponent(component) {
+      this.customComponents.push(component);
     }
     async submitToWebflow() {
       if (this.currentStep !== this.formSteps.length - 1) {
@@ -3705,9 +3699,9 @@ Component:`,
       });
       return allValid;
     }
-    validateCurrentStep(step) {
-      const basicError = `Validation failed for step: ${step + 1}/${this.formSteps.length}`;
-      const currentStepElement = this.formSteps[step];
+    validateCurrentStep(stepIndex) {
+      const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length}`;
+      const currentStepElement = this.formSteps[stepIndex];
       const inputs = currentStepElement.querySelectorAll(wf.select.formInput);
       const filteredInputs = Array.from(inputs).filter((input) => {
         const isExcluded = this.options.excludeInputSelectors.some(
@@ -3722,7 +3716,7 @@ Component:`,
         console.warn(`${basicError}: Standard validation is not valid`);
         return valid;
       }
-      const customValidators = this.customComponents.filter((entry) => entry.step === step).map((entry) => () => entry.validator());
+      const customValidators = this.customComponents.filter((entry) => entry.stepIndex === stepIndex).map((entry) => () => entry.validator());
       const customValid = customValidators?.every((validator) => validator()) ?? true;
       if (!customValid) {
         console.warn(`${basicError}: Custom validation is not valid`);
@@ -3774,7 +3768,11 @@ Component:`,
         if (id && errorMessages[id]) {
           decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
         }
-        form.addCustomComponent(stepIndex, decision, () => decision.validate());
+        form.addCustomComponent({
+          stepIndex,
+          instance: decision,
+          validator: () => decision.validate()
+        });
       });
     });
   }
@@ -3825,12 +3823,12 @@ Component:`,
         "[data-decision-component]"
       ]
     });
-    FORM.addCustomComponent(
-      2,
-      prospectArray,
-      () => prospectArray.validate(),
-      () => flattenProspects(prospectArray.prospects)
-    );
+    FORM.addCustomComponent({
+      stepIndex: 2,
+      instance: prospectArray,
+      validator: () => prospectArray.validate(),
+      getData: () => flattenProspects(prospectArray.prospects)
+    });
     FORM.component.addEventListener("changeStep", () => prospectArray.closeModal());
     const errorMessages = {
       beilagenSenden: {
