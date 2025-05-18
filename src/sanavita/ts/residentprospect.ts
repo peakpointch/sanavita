@@ -112,4 +112,35 @@ export class ResidentProspect {
 
     return fields;
   }
+
+  public static areEqual(a: ResidentProspect, b: ResidentProspect): boolean {
+    const groups: GroupName[] = [
+      "personalData",
+      "doctor",
+      "health",
+      "primaryRelative",
+      "secondaryRelative",
+    ];
+
+    for (const groupName of groups) {
+      const groupA = a[groupName];
+      const groupB = b[groupName];
+
+      if (!groupA || !groupB) return false;
+
+      const fieldsA = groupA.fields;
+      const fieldsB = groupB.fields;
+
+      if (fieldsA.size !== fieldsB.size) return false;
+
+      for (const [fieldId, fieldA] of fieldsA) {
+        const fieldB = fieldsB.get(fieldId);
+        if (!fieldB || fieldA.value !== fieldB.value) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
 }

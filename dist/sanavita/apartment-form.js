@@ -3029,6 +3029,30 @@
       }
       return fields;
     }
+    static areEqual(a, b) {
+      const groups = [
+        "personalData",
+        "doctor",
+        "health",
+        "primaryRelative",
+        "secondaryRelative"
+      ];
+      for (const groupName of groups) {
+        const groupA = a[groupName];
+        const groupB = b[groupName];
+        if (!groupA || !groupB) return false;
+        const fieldsA = groupA.fields;
+        const fieldsB = groupB.fields;
+        if (fieldsA.size !== fieldsB.size) return false;
+        for (const [fieldId, fieldA] of fieldsA) {
+          const fieldB = fieldsB.get(fieldId);
+          if (!fieldB || fieldA.value !== fieldB.value) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
   };
 
   // src/sanavita/ts/apartment-form.ts
@@ -3191,6 +3215,13 @@
       }
     }
     async handleCancel() {
+      const lastSaved = this.getEditingProspect();
+      const currentState = this.extractData();
+      if (ResidentProspect.areEqual(lastSaved, currentState)) {
+        this.draftProspect = null;
+        this.closeModal();
+        return;
+      }
       const confirmed = await this.alertDialog.confirm({
         title: `M\xF6chten Sie die \xC4nderungen verwerfen?`,
         paragraph: `Mit dieser Aktion gehen alle \xC4nderungen f\xFCr "${this.getEditingProspect().getFullName()}" verworfen. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.`,

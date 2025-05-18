@@ -351,7 +351,16 @@ class FormArray {
     }
   }
 
-  private async handleCancel() {
+  private async handleCancel(): Promise<void> {
+    const lastSaved = this.getEditingProspect();
+    const currentState = this.extractData();
+
+    if (ResidentProspect.areEqual(lastSaved, currentState)) {
+      this.draftProspect = null;
+      this.closeModal();
+      return;
+    }
+
     const confirmed = await this.alertDialog.confirm({
       title: `Möchten Sie die Änderungen verwerfen?`,
       paragraph: `Mit dieser Aktion gehen alle Änderungen für "${this.getEditingProspect().getFullName()}" verworfen. Diese Aktion kann nicht rückgängig gemacht werden.`,
