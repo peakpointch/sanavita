@@ -1000,18 +1000,35 @@ class MultiStepForm {
     });
   }
 
+  /**
+   * Change to the next step.
+   */
   public changeToNext() {
     if (this.currentStep < this.formSteps.length - 1) {
       this.changeToStep(this.currentStep + 1);
     }
   }
 
+  /**
+   * Change to the previous step.
+   */
   public changeToPrevious() {
     if (this.currentStep > 0) {
       this.changeToStep(this.currentStep - 1);
     }
   }
 
+  /**
+   * Change to the specified step by `index`.
+   *
+   * If moving forward, the method will validate all intermediate steps before
+   * allowing navigation. If validation fails on any step, it will halt and move
+   * to the invalid step instead.
+   *
+   * Use the CustomEvent "changeStep" to hook into step changes.
+   *
+   * @param index - The zero-based index of the step to navigate to.
+   */
   public changeToStep(index: number): void {
     if (this.currentStep === index && this.initialized) {
       // console.log('Change Form Step: Target step equals current step.');
