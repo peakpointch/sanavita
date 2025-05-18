@@ -116,7 +116,12 @@
       }
     });
   }
-  function initCustomInputs(container) {
+  function enforceButtonTypes(form) {
+    if (!form) return;
+    const buttons = form.querySelectorAll("button:not([type])");
+    buttons.forEach((button) => button.setAttribute("type", "button"));
+  }
+  function initWfInputs(container) {
     const focusClass = "w--redirected-focus";
     const focusVisibleClass = "w--redirected-focus-visible";
     const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
@@ -3625,10 +3630,8 @@ Component:`,
       }
       this.formElement.setAttribute("novalidate", "");
       this.formElement.dataset.state = "initialized";
-      initFormButtons(this.formElement);
-      initCustomInputs(this.component);
-      this.initPagination();
-      this.initChangeStepOnKeydown();
+      enforceButtonTypes(this.formElement);
+      initWfInputs(this.component);
       this.changeToStep(this.currentStep);
     }
     setupEventListeners() {
@@ -3636,6 +3639,8 @@ Component:`,
         event.preventDefault();
         this.submitToWebflow();
       });
+      this.initPagination();
+      this.initChangeStepOnKeydown();
     }
     addCustomComponent(component) {
       this.customComponents.push(component);
@@ -3890,14 +3895,6 @@ Component:`,
       return fields;
     }
   };
-  function initFormButtons(form) {
-    const buttons = form.querySelectorAll("button");
-    buttons.forEach((button) => {
-      button.setAttribute("type", "button");
-      button.addEventListener("click", (event) => {
-      });
-    });
-  }
   function decisionSelector(id) {
     return id ? `[data-decision-component="${id}"]` : `[data-decision-component]`;
   }

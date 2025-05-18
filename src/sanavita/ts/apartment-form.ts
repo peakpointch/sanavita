@@ -3,13 +3,14 @@ import createAttribute from "@peakflow/attributeselector";
 import {
   isCheckboxInput,
   isRadioInput,
-  initCustomInputs,
+  initWfInputs,
   clearRadioGroup,
   sendFormData,
   validateFields,
   formElementSelector,
   fieldFromInput,
-  removeErrorClasses
+  removeErrorClasses,
+  enforceButtonTypes
 } from "@peakflow/form";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
@@ -832,7 +833,7 @@ class MultiStepForm {
 
     this.formSteps = this.component.querySelectorAll(stepsElementSelector('step'));
     this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
-    this.navigationElement = this.component.querySelector(stepsElementSelector('navigation'))!;
+    this.navigationElement = this.component.querySelector(stepsElementSelector('navigation'));
     this.buttonsNext = this.component.querySelectorAll(stepsNavSelector('next'));
     this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector('prev'));
 
@@ -853,10 +854,8 @@ class MultiStepForm {
     this.formElement.setAttribute("novalidate", "");
     this.formElement.dataset.state = "initialized";
 
-    initFormButtons(this.formElement);
-    initCustomInputs(this.component);
-    this.initPagination();
-    this.initChangeStepOnKeydown();
+    enforceButtonTypes(this.formElement);
+    initWfInputs(this.component);
 
     this.changeToStep(this.currentStep);
   }
@@ -866,6 +865,9 @@ class MultiStepForm {
       event.preventDefault();
       this.submitToWebflow();
     });
+
+    this.initPagination();
+    this.initChangeStepOnKeydown();
   }
 
   public addCustomComponent(component: CustomFormComponent): void {
@@ -1222,16 +1224,6 @@ function reinsertElement(element: HTMLElement): void {
     // Focus the element if it's meant to be interactive
     element.focus();
   }, 0);
-}
-
-function initFormButtons(form: HTMLFormElement) {
-  const buttons = form.querySelectorAll("button");
-  buttons.forEach((button) => {
-    button.setAttribute("type", "button");
-    button.addEventListener("click", (event) => {
-      // event.preventDefault();
-    });
-  });
 }
 
 function decisionSelector(id?: number | string) {
