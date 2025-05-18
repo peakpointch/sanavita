@@ -1012,15 +1012,15 @@ class MultiStepForm {
     }
   }
 
-  public changeToStep(target: number): void {
-    if (this.currentStep === target && this.initialized) {
+  public changeToStep(index: number): void {
+    if (this.currentStep === index && this.initialized) {
       // console.log('Change Form Step: Target step equals current step.');
       // console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
       return;
     }
 
-    if (target > this.currentStep && this.initialized) {
-      for (let step = this.currentStep; step < target; step++) {
+    if (index > this.currentStep && this.initialized) {
+      for (let step = this.currentStep; step < index; step++) {
         // Validate standard fields in the current step
         if (!this.validateCurrentStep(step)) {
           this.changeToStep(step);
@@ -1036,13 +1036,13 @@ class MultiStepForm {
 
     // Fire custom event before updating the visibility
     const event = new CustomEvent("changeStep", {
-      detail: { previousStep: this.currentStep, currentStep: target },
+      detail: { previousStep: this.currentStep, currentStep: index },
     });
     this.component.dispatchEvent(event);
 
-    this.updateStepVisibility(target);
-    this.updatePagination(target);
-    this.currentStep = target;
+    this.updateStepVisibility(index);
+    this.updatePagination(index);
+    this.currentStep = index;
     console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
   }
 
