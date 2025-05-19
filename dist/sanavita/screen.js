@@ -9895,6 +9895,10 @@
   // src/sanavita/ts/screen.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var swiperSelector = attributeselector_default("custom-swiper-component");
+  function getScreen() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("id") || "";
+  }
   var ElementManager = class {
     constructor(allElements, swiper, collectionElement) {
       // To track inserted elements
@@ -9903,6 +9907,7 @@
        */
       this.uecount = 0;
       this.data = allElements;
+      this.screen = getScreen();
       this.filteredData = [];
       this.swiper = swiper;
       this.collectionElement = collectionElement;
@@ -9919,11 +9924,18 @@
           hours: Math.floor(entry.endtime),
           minutes: Math.round(entry.endtime * 100) % 10 ** 2
         };
+        if (!entry.screen) entry.screen = "";
+        entry.screen = entry.screen.toLowerCase();
+        let matchScreen = entry.screen === this.screen;
+        if (!entry.screen || !this.screen) {
+          matchScreen = true;
+        }
+        console.log(`"${this.screen}" "${entry.screen}" ${matchScreen}`);
         const date = new Date(entry.date);
         const startdate = new Date(new Date(date).setHours(start.hours, start.minutes));
         const enddate = new Date(new Date(date).setHours(end.hours, end.minutes));
         const now2 = /* @__PURE__ */ new Date();
-        return startdate <= now2 && now2 <= enddate;
+        return startdate <= now2 && now2 <= enddate && matchScreen;
       });
       return this.filteredData;
     }
@@ -10009,7 +10021,8 @@
     collection.renderer.addFilterAttributes({
       "date": "date",
       starttime: "number",
-      endtime: "number"
+      endtime: "number",
+      screen: "string"
     });
     collection.readData();
     const newsSwiperEl = document.body.querySelector(swiperSelector("news"));

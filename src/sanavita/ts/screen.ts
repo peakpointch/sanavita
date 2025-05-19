@@ -12,8 +12,14 @@ type SwiperInstance = "news" | "tagesmenu" | "wochenhit" | "activity";
 const wfCollectionSelector = createAttribute<WfCollection>("wf-collection");
 const swiperSelector = createAttribute<SwiperInstance>("custom-swiper-component");
 
+function getScreen(): string {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('id') || '';
+}
+
 class ElementManager {
   public data: RenderData; // All available elements
+  public screen: string;
   private filteredData: RenderData; // Elements currently visible in the swiper
   private swiper: Swiper; // Assuming swiper is a valid instance.
   private collectionElement: HTMLElement; // Global element containing all possible HTMLElements (hidden designs)
@@ -26,6 +32,7 @@ class ElementManager {
 
   constructor(allElements: RenderData, swiper: Swiper, collectionElement: HTMLElement) {
     this.data = allElements;
+    this.screen = getScreen();
     this.filteredData = []; // Track currently visible elements
     this.swiper = swiper;
     this.collectionElement = collectionElement; // Global element where HTMLElements are located (hidden)
@@ -44,12 +51,21 @@ class ElementManager {
         minutes: Math.round(entry.endtime * 100) % 10 ** 2,
       };
 
+      if (!entry.screen) entry.screen = '';
+      entry.screen = entry.screen.toLowerCase();
+
+      let matchScreen = entry.screen === this.screen;
+      if (!entry.screen || !this.screen) {
+        matchScreen = true;
+      }
+      console.log(`"${this.screen}" "${entry.screen}" ${matchScreen}`);
+
       const date = new Date(entry.date);
       const startdate = new Date(new Date(date).setHours(start.hours, start.minutes));
       const enddate = new Date(new Date(date).setHours(end.hours, end.minutes));
       const now = new Date();
 
-      return startdate <= now && now <= enddate;
+      return startdate <= now && now <= enddate && matchScreen;
     });
 
     return this.filteredData;
@@ -161,7 +177,8 @@ function initialize() {
   collection.renderer.addFilterAttributes({
     "date": "date",
     starttime: "number",
-    endtime: "number"
+    endtime: "number",
+    screen: "string",
   });
   collection.readData();
 
