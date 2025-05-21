@@ -9903,9 +9903,9 @@
     constructor(allElements, swiper, collectionElement) {
       // To track inserted elements
       /**
-       * Count of elements overlaying the swiper
+       * Count of elements overlaying the swiper. Does not include 'birthday' elements.
        */
-      this.uecount = 0;
+      this.overlaycount = 0;
       this.data = allElements;
       this.screen = getScreen();
       this.filteredData = [];
@@ -9918,11 +9918,15 @@
       this.filteredData = [...this.data].filter((entry) => {
         let start = {
           hours: Math.floor(entry.starttime),
-          minutes: Math.round(entry.starttime * 100) % 10 ** 2
+          minutes: Math.round(entry.starttime * 100) % 10 ** 2,
+          sec: 0,
+          ms: 0
         };
         let end = {
           hours: Math.floor(entry.endtime),
-          minutes: Math.round(entry.endtime * 100) % 10 ** 2
+          minutes: Math.round(entry.endtime * 100) % 10 ** 2,
+          sec: 0,
+          ms: 0
         };
         if (!entry.screen) entry.screen = "";
         entry.screen = entry.screen.toLowerCase();
@@ -9930,20 +9934,19 @@
         if (!entry.screen || !this.screen) {
           matchScreen = true;
         }
-        console.log(`"${this.screen}" "${entry.screen}" ${matchScreen}`);
         const date = new Date(entry.date);
-        const startdate = new Date(new Date(date).setHours(start.hours, start.minutes));
-        const enddate = new Date(new Date(date).setHours(end.hours, end.minutes));
+        const startdate = new Date(new Date(date).setHours(start.hours, start.minutes, start.sec, start.ms));
+        const enddate = new Date(new Date(date).setHours(end.hours, end.minutes, end.sec, end.ms));
         const now2 = /* @__PURE__ */ new Date();
         return startdate <= now2 && now2 <= enddate && matchScreen;
       });
       return this.filteredData;
     }
-    sort(data = this.data) {
+    sortByDate(data) {
       return data.sort((a, b) => {
-        if (a.date < b.date) {
+        if (a.date.getTime() < b.date.getTime()) {
           return -1;
-        } else if (a.date === b.date) {
+        } else if (a.date.getTime() === b.date.getTime()) {
           return 0;
         } else {
           return 1;
@@ -9953,63 +9956,76 @@
     // Finds the original HTMLElement for a given entry in the collectionElement (hidden designs)
     findElement(entry) {
       const selector = `[slug="${entry.instance}"]`;
-      return this.collectionElement.querySelector(selector).firstChild;
+      const elementFound = this.collectionElement.querySelector(selector).firstElementChild;
+      if (!elementFound) {
+        throw new Error(`The element "selector" doesn't exist inside the webflow collection list it was parsed from.`);
+      }
+      return elementFound;
     }
     // Inserts elements into the swiper (the visible area)
     insertElement(element) {
       const designToInsert = this.findElement(element);
-      if (designToInsert) {
-        const elementToInsert = designToInsert.cloneNode(true);
-        console.log(`Add "${elementToInsert.getAttribute("data-wf-element")}"`);
-        if (element.element === "birthday") {
-          elementToInsert.classList.add("swiper-slide");
-          this.swiper.prependSlide(elementToInsert);
-          this.swiper.autoplay.stop();
-          this.swiper.slideTo(0);
-        } else if (element.element === "event" || element.element === "memorial") {
-          if (this.uecount === 1) return;
-          this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
-          this.uecount++;
+      const elementToInsert = designToInsert.cloneNode(true);
+      const wfElementId = elementToInsert.getAttribute("data-wf-element");
+      if (element.element === "birthday") {
+        elementToInsert.classList.add("swiper-slide");
+        this.swiper.prependSlide(elementToInsert);
+        this.swiper.autoplay.pause();
+        this.swiper.slideTo(0);
+      } else {
+        if (this.overlaycount >= 1) {
+          console.info(`insertElement: One or more overlays are already active. Skipping "${wfElementId}"`);
+          return;
         }
-        this.insertedElements.set(element.instance, elementToInsert);
+        this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
+        this.overlaycount++;
       }
+      console.log(`insertElement: Inserted "${wfElementId}"`);
+      this.insertedElements.set(element.instance, elementToInsert);
     }
     // Removes elements from the swiper (the visible area)
     removeElement(element) {
       const clonedElementToRemove = this.insertedElements.get(element.instance);
+      const wfElementId = clonedElementToRemove.getAttribute("data-wf-element");
       if (clonedElementToRemove) {
-        console.log(`Remove "${clonedElementToRemove.getAttribute("data-wf-element")}"`);
+        console.log(`Remove "${wfElementId}"`);
         clonedElementToRemove.remove();
         this.swiper.update();
         this.swiper.autoplay.start();
         this.insertedElements.delete(element.instance);
+        if (element.element !== "birthday") {
+          this.overlaycount--;
+        } else {
+          this.swiper.autoplay.resume();
+        }
+      } else {
+        console.warn(`Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`);
       }
     }
     // Updates the swiper with the current visible elements
     update() {
       this.filterElements();
-      this.sort(this.filteredData);
+      this.filteredData = this.sortByDate(this.filteredData);
       let changed = false;
-      this.filteredData.forEach((element) => {
-        if (!this.insertedElements.has(element.instance)) {
-          this.insertElement(element);
-          this.filteredData.push(element);
+      this.filteredData.forEach((filteredEl) => {
+        if (!this.insertedElements.has(filteredEl.instance)) {
+          this.insertElement(filteredEl);
           changed = true;
         }
       });
-      this.insertedElements.forEach((insertedEl, insertedKey) => {
-        const renderElement = this.data.find((entry) => entry.instance === insertedKey);
-        if (!this.filteredData.includes(renderElement)) {
-          this.removeElement(renderElement);
+      this.insertedElements.forEach((insertedHTML, insertedKey) => {
+        const insertedEl = this.data.find((entry) => entry.instance === insertedKey);
+        if (!this.filteredData.includes(insertedEl)) {
+          this.removeElement(insertedEl);
           changed = true;
         }
       });
-      if (changed && this.uecount) {
+      if (!changed) return;
+      if (this.overlaycount > 0) {
         this.swiper.el.classList.add("hide");
         this.swiper.autoplay.pause();
-      } else if (changed) {
+      } else if (this.overlaycount === 0 || this.overlaycount < 0) {
         this.swiper.el.classList.remove("hide");
-        this.swiper.autoplay.resume();
       }
     }
   };
