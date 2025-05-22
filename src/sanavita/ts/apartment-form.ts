@@ -187,23 +187,23 @@ class FormGroup {
 }
 
 class FormArray {
+  public initialized: boolean = false;
   public id: string | number;
   public prospects: Map<string, ResidentProspect>;
+  public modal: Modal;
+  public modalElement: HTMLElement;
+  public alertDialog: AlertDialog = getAlertDialog();
   private container: HTMLElement;
   private list: HTMLElement;
   private template: HTMLElement;
   private formMessage: FormMessage;
   private addButton: HTMLElement;
-  public modal: Modal;
-  public modalElement: HTMLElement;
-  public alertDialog: AlertDialog = getAlertDialog();
   private saveButton: HTMLElement;
   private draftButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
   private modalInputs: NodeListOf<HTMLFormInput>;
   private groupElements: NodeListOf<HTMLFormInput>;
   private accordionList: Accordion[] = [];
-  public initialized: boolean = false;
 
   private editingKey: string | null = null;
   private draftProspect: ResidentProspect | null = null;

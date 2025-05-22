@@ -2981,17 +2981,6 @@
     return prospectsObj;
   }
   var ResidentProspect = class {
-    // linkedTo: string;
-    // linkedFields: LinkedProspectFields = {
-    //   address: false,
-    //   phone: false,
-    //   email: false,
-    //   insurance: false,
-    //   homeplace: false,
-    //   doctor: false,
-    //   primaryRelative: false,
-    //   secondaryRelative: false,
-    // };
     constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
       this.key = `person-${crypto.randomUUID()}`;
       this.personalData = personalData;
@@ -3108,9 +3097,9 @@
   }
   var FormArray = class {
     constructor(container, id) {
+      this.initialized = false;
       this.alertDialog = getAlertDialog();
       this.accordionList = [];
-      this.initialized = false;
       this.editingKey = null;
       this.draftProspect = null;
       this.id = id;
