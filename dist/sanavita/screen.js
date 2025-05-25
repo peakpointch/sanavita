@@ -10482,15 +10482,7 @@
       return this.filteredData;
     }
     sortByDate(data) {
-      return data.sort((a, b) => {
-        if (a.date.getTime() < b.date.getTime()) {
-          return -1;
-        } else if (a.date.getTime() === b.date.getTime()) {
-          return 0;
-        } else {
-          return 1;
-        }
-      });
+      return data.sort((a, b) => a.props.startDate.getTime() - b.props.startDate.getTime());
     }
     // Finds the original HTMLElement for a given entry in the collectionElement (hidden designs)
     findElement(entry) {
