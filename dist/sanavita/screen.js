@@ -10462,29 +10462,22 @@
     // Filters the RenderData and returns the elements that should be shown
     filterElements() {
       this.filteredData = [...this.data].filter((entry) => {
-        let start = {
-          hours: Math.floor(entry.starttime),
-          minutes: Math.round(entry.starttime * 100) % 10 ** 2,
-          sec: 0,
-          ms: 0
-        };
-        let end = {
-          hours: Math.floor(entry.endtime),
-          minutes: Math.round(entry.endtime * 100) % 10 ** 2,
-          sec: 0,
-          ms: 0
-        };
-        if (!entry.screen) entry.screen = "";
-        entry.screen = entry.screen.toLowerCase();
-        let matchScreen = entry.screen === this.screen;
-        if (!entry.screen || !this.screen) {
+        if (!entry.props.screen) entry.props.screen = "";
+        entry.props.screen = entry.props.screen.toLowerCase();
+        let matchScreen = entry.props.screen === this.screen;
+        if (!entry.props.screen || !this.screen) {
           matchScreen = true;
         }
-        const date = new Date(entry.date);
-        const startdate = new Date(new Date(date).setHours(start.hours, start.minutes, start.sec, start.ms));
-        const enddate = new Date(new Date(date).setHours(end.hours, end.minutes, end.sec, end.ms));
+        const startDate = entry.props.startDate;
+        const endDate = entry.props.endDate;
         const now2 = /* @__PURE__ */ new Date();
-        return startdate <= now2 && now2 <= enddate && matchScreen;
+        const inRange = startDate <= now2 && now2 <= endDate;
+        if (entry.props.useTimeOfDayRange) {
+          const inTimeRange = isNowInTimeOfDayRange(startDate, endDate);
+          return matchScreen && inRange && inTimeRange;
+        } else {
+          return matchScreen && inRange;
+        }
       });
       return this.filteredData;
     }
@@ -10575,6 +10568,28 @@
       }
     }
   };
+  function isNowInTimeOfDayRange(startDate, endDate) {
+    const now2 = /* @__PURE__ */ new Date();
+    const todayStart = /* @__PURE__ */ new Date();
+    todayStart.setHours(
+      startDate.getHours(),
+      startDate.getMinutes(),
+      startDate.getSeconds(),
+      startDate.getMilliseconds()
+    );
+    const todayEnd = /* @__PURE__ */ new Date();
+    todayEnd.setHours(
+      endDate.getHours(),
+      endDate.getMinutes(),
+      endDate.getSeconds(),
+      endDate.getMilliseconds()
+    );
+    if (todayEnd >= todayStart) {
+      return todayStart <= now2 && now2 <= todayEnd;
+    } else {
+      return todayStart <= now2 || now2 <= todayEnd;
+    }
+  }
   function initialize() {
     const collectionElement = document.body.querySelector(wfCollectionSelector("screen"));
     let lastElement = null;

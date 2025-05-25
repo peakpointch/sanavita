@@ -42,34 +42,27 @@ class ElementManager {
   // Filters the RenderData and returns the elements that should be shown
   private filterElements(): RenderData {
     this.filteredData = [...this.data].filter((entry) => {
-      let start = {
-        hours: Math.floor(entry.starttime),
-        minutes: Math.round(entry.starttime * 100) % 10 ** 2,
-        sec: 0,
-        ms: 0,
-      };
-      let end = {
-        hours: Math.floor(entry.endtime),
-        minutes: Math.round(entry.endtime * 100) % 10 ** 2,
-        sec: 0,
-        ms: 0,
-      };
+      if (!entry.props.screen) entry.props.screen = '';
+      entry.props.screen = entry.props.screen.toLowerCase();
 
-      if (!entry.screen) entry.screen = '';
-      entry.screen = entry.screen.toLowerCase();
-
-      let matchScreen = entry.screen === this.screen;
-      if (!entry.screen || !this.screen) {
+      let matchScreen = entry.props.screen === this.screen;
+      if (!entry.props.screen || !this.screen) {
         matchScreen = true;
       }
-      // console.log(`"${this.screen}" "${entry.screen}" ${matchScreen}`);
 
-      const date = new Date(entry.date);
-      const startdate = new Date(new Date(date).setHours(start.hours, start.minutes, start.sec, start.ms));
-      const enddate = new Date(new Date(date).setHours(end.hours, end.minutes, end.sec, end.ms));
+      const startDate = entry.props.startDate;
+      const endDate = entry.props.endDate;
+
       const now = new Date();
 
-      return startdate <= now && now <= enddate && matchScreen;
+      const inRange = startDate <= now && now <= endDate;
+
+      if (entry.props.useTimeOfDayRange) {
+        const inTimeRange = isNowInTimeOfDayRange(startDate, endDate);
+        return matchScreen && inRange && inTimeRange;
+      } else {
+        return matchScreen && inRange;
+      }
     });
 
     return this.filteredData;
@@ -189,6 +182,35 @@ class ElementManager {
   }
 }
 
+function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
+  const now = new Date();
+
+  const todayStart = new Date();
+  todayStart.setHours(
+    startDate.getHours(),
+    startDate.getMinutes(),
+    startDate.getSeconds(),
+    startDate.getMilliseconds()
+  );
+
+  const todayEnd = new Date();
+  todayEnd.setHours(
+    endDate.getHours(),
+    endDate.getMinutes(),
+    endDate.getSeconds(),
+    endDate.getMilliseconds()
+  );
+
+  if (todayEnd >= todayStart) {
+    // Normal case
+    return todayStart <= now && now <= todayEnd;
+  } else {
+    // Wrap-around midnight case e.g. 22:00-02:00
+    return todayStart <= now || now <= todayEnd;
+  }
+}
+
+
 interface TestItemConfig {
   index: number;
   starttimeOffset: number;
@@ -206,7 +228,6 @@ function setTestItem(data: RenderData, config: TestItemConfig): void {
 
 function initialize() {
   const collectionElement = document.body.querySelector<HTMLElement>(wfCollectionSelector("screen"));
-  let lastElement: HTMLElement | null = null;
 
   const collection = new FilterCollection(collectionElement);
   collection.removeInvisibleElements();
@@ -242,7 +263,7 @@ function initialize() {
     observer.observe(swiper.el);
   }
 
-  const manager = new ElementManager(collection.getData(), swiper, collectionElement)
+  const manager = new ElementManager(collection.getData(), swiper, collectionElement);
   setInterval(() => {
     manager.update();
   }, 3000);
