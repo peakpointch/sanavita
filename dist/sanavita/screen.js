@@ -10441,6 +10441,11 @@
   // src/sanavita/ts/screen.ts
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var swiperSelector = attributeselector_default("custom-swiper-component");
+  var filterAttributes = renderer_default.defineAttributes({
+    ...FilterCollection.defaultAttributes,
+    "screen": "string",
+    "use-time-of-day-range": "boolean"
+  });
   function getScreen() {
     const params = new URLSearchParams(window.location.search);
     return params.get("id") || "";
@@ -10584,15 +10589,15 @@
   }
   function initialize() {
     const collectionElement = document.body.querySelector(wfCollectionSelector("screen"));
-    let lastElement = null;
-    const collection = new FilterCollection(collectionElement);
-    collection.removeInvisibleElements();
-    collection.renderer.addFilterAttributes({
-      "date": "date",
-      starttime: "number",
-      endtime: "number",
-      screen: "string"
+    const collection = new FilterCollection(collectionElement, {
+      name: "Overlays",
+      rendererOptions: {
+        attributeName: "wf",
+        filterAttributes,
+        timezone: "Europe/Zurich"
+      }
     });
+    collection.removeInvisibleElements();
     collection.readData();
     const newsSwiperEl = document.body.querySelector(swiperSelector("news"));
     const swiperOptions = {

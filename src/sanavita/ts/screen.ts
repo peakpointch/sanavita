@@ -1,6 +1,6 @@
 import createAttribute from "@peakflow/attributeselector";
 import { FilterCollection } from "@peakflow/wfcollection";
-import { RenderData } from "@peakflow/renderer";
+import Renderer, { RenderData } from "@peakflow/renderer";
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules";
 import { readSwiperOptions } from "../../ts/swiper";
@@ -12,15 +12,23 @@ type SwiperInstance = "news" | "tagesmenu" | "wochenhit" | "activity";
 const wfCollectionSelector = createAttribute<WfCollection>("wf-collection");
 const swiperSelector = createAttribute<SwiperInstance>("custom-swiper-component");
 
+const filterAttributes = Renderer.defineAttributes({
+  ...FilterCollection.defaultAttributes,
+  "screen": "string",
+  "use-time-of-day-range": "boolean",
+});
+
+type OverlayFilterAttrs = typeof filterAttributes;
+
 function getScreen(): string {
   const params = new URLSearchParams(window.location.search);
   return params.get('id') || '';
 }
 
 class ElementManager {
-  public data: RenderData; // All available elements
+  public data: RenderData<OverlayFilterAttrs>; // All available elements
   public screen: string;
-  private filteredData: RenderData; // Elements currently visible in the swiper
+  private filteredData: typeof this.data; // Elements currently visible in the swiper
   private swiper: Swiper; // Assuming swiper is a valid instance.
   private collectionElement: HTMLElement; // Global element containing all possible HTMLElements (hidden designs)
   private insertedElements: Map<string, HTMLElement>; // To track inserted elements
@@ -30,7 +38,7 @@ class ElementManager {
    */
   private overlaycount: number = 0;
 
-  constructor(allElements: RenderData, swiper: Swiper, collectionElement: HTMLElement) {
+  constructor(allElements: RenderData<OverlayFilterAttrs>, swiper: Swiper, collectionElement: HTMLElement) {
     this.data = allElements;
     this.screen = getScreen();
     this.filteredData = []; // Track currently visible elements
@@ -240,14 +248,15 @@ function setTestItem(data: RenderData<OverlayFilterAttrs>, config: TestItemConfi
 function initialize() {
   const collectionElement = document.body.querySelector<HTMLElement>(wfCollectionSelector("screen"));
 
-  const collection = new FilterCollection(collectionElement);
-  collection.removeInvisibleElements();
-  collection.renderer.addFilterAttributes({
-    "date": "date",
-    starttime: "number",
-    endtime: "number",
-    screen: "string",
+  const collection = new FilterCollection(collectionElement, {
+    name: "Overlays",
+    rendererOptions: {
+      attributeName: 'wf',
+      filterAttributes: filterAttributes,
+      timezone: "Europe/Zurich"
+    }
   });
+  collection.removeInvisibleElements();
   collection.readData();
 
   const newsSwiperEl = document.body.querySelector<HTMLElement>(swiperSelector("news"));
