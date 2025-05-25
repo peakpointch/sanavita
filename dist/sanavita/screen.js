@@ -4433,20 +4433,41 @@
     select: wfselect
   };
 
+  // ../peakflow/src/deepmerge.ts
+  function deepMerge(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+      if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+        result[key] = deepMerge(target[key], source[key]);
+      } else if (source[key] !== void 0) {
+        result[key] = source[key];
+      }
+    }
+    return result;
+  }
+
   // ../peakflow/src/renderer.ts
   var Renderer = class _Renderer {
-    constructor(canvas, attributeName = "render") {
-      this.attributeName = attributeName;
+    constructor(canvas, options) {
       this.collectionAttr = `data-is-collection`;
-      this.filterAttributes = {
-        "data-filter": "string",
-        "data-category": "string"
-      };
+      this.attributeName = "render";
       if (!canvas) throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
-      this.elementAttr = `data-${attributeName}-element`;
-      this.fieldAttr = `data-${attributeName}-field`;
-      this.emptyStateAttr = `data-${attributeName}-empty-state`;
+      this.options = deepMerge(_Renderer.defaultOptions, options);
+      this.attributeName = this.options.attributeName;
+      this.elementAttr = `data-${this.attributeName}-element`;
+      this.fieldAttr = `data-${this.attributeName}-field`;
+      this.emptyStateAttr = `data-${this.attributeName}-empty-state`;
+    }
+    static {
+      this.defaultOptions = {
+        attributeName: "render",
+        filterAttributes: {},
+        timezone: false
+      };
+    }
+    static defineAttributes(obj) {
+      return obj;
     }
     render(data, canvas = this.canvas) {
       this.clear(canvas);
@@ -4644,7 +4665,8 @@
       const element = {
         element: elementName,
         fields,
-        visibility: true
+        visibility: true,
+        props: {}
       };
       element.instance = instance || void 0;
       if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
@@ -4671,7 +4693,8 @@
         element: fieldName,
         value,
         type,
-        visibility: true
+        visibility: true,
+        props: {}
       };
       field.instance = instance || void 0;
       if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
@@ -4687,7 +4710,7 @@
      * Handles `date` and `boolean` attributes.
      */
     readFilteringProperties(field, child) {
-      for (let [attr, type] of Object.entries(this.filterAttributes)) {
+      for (let [attr, type] of Object.entries(this.options.filterAttributes)) {
         if (!child.hasAttribute(attr)) {
           continue;
         }
@@ -4697,8 +4720,16 @@
         }
         switch (type) {
           case "date":
-            const parsedDate = parse(value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
-            value = isNaN(parsedDate.getTime()) ? null : parsedDate;
+            let parsedDate;
+            parsedDate = parse(value, "yyyy-MM-dd H:mm", /* @__PURE__ */ new Date());
+            if (isNaN(parsedDate.getTime())) {
+              parsedDate = parse(value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
+            }
+            let parsedUTCDate = parsedDate;
+            if (this.options.timezone) {
+              parsedUTCDate = fromZonedTime(parsedDate, this.options.timezone);
+            }
+            value = isNaN(parsedUTCDate.getTime()) ? null : parsedUTCDate;
             break;
           case "boolean":
             if (value === "select") {
@@ -4718,7 +4749,7 @@
           default:
             break;
         }
-        field[toCamelCase(attr)] = value;
+        field.props[toCamelCase(attr)] = value;
       }
       ;
     }
@@ -4787,12 +4818,12 @@
     }
     // Method to add filter attributes
     addFilterAttributes(newAttributes) {
-      Object.assign(this.filterAttributes, newAttributes);
+      Object.assign(this.options.filterAttributes, newAttributes);
     }
     // Method to remove filter attributes
     removeFilterAttributes(...attributesToRemove) {
       attributesToRemove.forEach((attr) => {
-        delete this.filterAttributes[attr];
+        delete this.options.filterAttributes[attr];
       });
     }
     elementSelector(element) {
@@ -4833,25 +4864,24 @@
 
   // ../peakflow/src/wfcollection/wfcollection.ts
   var CollectionList = class {
-    constructor(container, name = "", rendererName = "wf") {
-      this.name = name;
-      this.rendererName = rendererName;
+    constructor(container, options = { name: "", rendererOptions: {} }) {
+      this.options = options;
       this.collectionData = [];
       this.debug = false;
       if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
-      this.renderer = new renderer_default(container, this.rendererName);
+      this.renderer = new renderer_default(container, this.options.rendererOptions);
     }
     log(...args) {
       if (!this.debug) return;
-      console.log(`"${this.name}" CollectionList:`, ...args);
+      console.log(`"${this.options.name}" CollectionList:`, ...args);
     }
     isEmpty() {
       const isEmpty = !this.listElement && this.container.querySelector(".w-dyn-empty") !== null;
       if (isEmpty) {
-        console.warn(`Collection "${this.name}" is empty.`);
+        console.warn(`Collection "${this.options.name}" is empty.`);
       }
       return isEmpty;
     }
@@ -4874,7 +4904,7 @@
      */
     removeInvisibleElements() {
       if (this.isEmpty()) return;
-      this.listElement.querySelectorAll(".w-condition-invisible").forEach((element) => element.remove());
+      this.listElement.querySelectorAll(`.w-condition-invisible:not([data-render-condition="true"])`).forEach((element) => element.remove());
     }
     getAttributeData() {
       let data = [];
@@ -4892,18 +4922,33 @@
   };
 
   // ../peakflow/src/wfcollection/filtercollection.ts
-  var FilterCollection = class extends CollectionList {
-    constructor(container, name = "", rendererName = "wf") {
-      super(container, name, rendererName);
-      this.renderer.addFilterAttributes({
+  var FilterCollection = class _FilterCollection extends CollectionList {
+    constructor(container, options = { name: "", rendererOptions: {} }) {
+      const mergedFilterAttributes = renderer_default.defineAttributes({
+        ..._FilterCollection.defaultAttributes,
+        ...options.rendererOptions.filterAttributes
+      });
+      const newOptions = {
+        ...options,
+        rendererOptions: {
+          ...options.rendererOptions,
+          filterAttributes: mergedFilterAttributes
+        }
+      };
+      super(container, newOptions);
+      this.options = options;
+    }
+    static {
+      this.defaultAttributes = renderer_default.defineAttributes({
         "date": "date",
+        "start-date": "date",
         "end-date": "date"
       });
     }
     filterByDate(startDate, endDate, ...additionalConditions) {
       const filtered = [...this.collectionData].filter(
         (entry) => {
-          const baseCondition = entry.date.getTime() >= startDate.getTime() && entry.date.getTime() <= endDate.getTime();
+          const baseCondition = entry.props.date.getTime() >= startDate.getTime() && entry.props.date.getTime() <= endDate.getTime();
           const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
           return baseCondition && allAdditionalConditions;
         }
@@ -4916,10 +4961,10 @@
         throw new RangeError(`Invalid date range: startDate (${startDate}) is after endDate (${endDate})`);
       }
       let filtered = [...this.collectionData].filter((entry) => {
-        const startDateInRange = entry.startDate.getTime() >= startDate.getTime() && entry.startDate.getTime() <= endDate.getTime();
-        const endDateInRange = entry.endDate.getTime() >= startDate.getTime() && entry.endDate.getTime() <= endDate.getTime();
+        const startDateInRange = entry.props.startDate.getTime() >= startDate.getTime() && entry.props.startDate.getTime() <= endDate.getTime();
+        const endDateInRange = entry.props.endDate.getTime() >= startDate.getTime() && entry.props.endDate.getTime() <= endDate.getTime();
         const startOrEndInRange = startDateInRange || endDateInRange;
-        const startBeforeEndAfter = entry.startDate.getTime() <= startDate.getTime() && entry.endDate.getTime() >= endDate.getTime();
+        const startBeforeEndAfter = entry.props.startDate.getTime() <= startDate.getTime() && entry.props.endDate.getTime() >= endDate.getTime();
         const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
         return (startOrEndInRange || startBeforeEndAfter) && allAdditionalConditions;
       });
