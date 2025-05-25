@@ -210,20 +210,39 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
   }
 }
 
+interface TimeOffset {
+  days?: number;
+  hours?: number;
+  minutes?: number;
+  seconds?: number;
+}
 
 interface TestItemConfig {
   index: number;
-  starttimeOffset: number;
-  endtimeOffset: number;
+  startTimeOffset: TimeOffset;
+  endTimeOffset: TimeOffset;
+  timeOfDayRange: boolean;
 }
 
-function setTestItem(data: RenderData, config: TestItemConfig): void {
-  const firstItem = data[config.index];
+function applyOffset(base: Date, offset: TimeOffset): Date {
+  const d = new Date(base);
+  if (offset.days) d.setDate(d.getDate() + offset.days);
+  if (offset.hours) d.setHours(d.getHours() + offset.hours);
+  if (offset.minutes) d.setMinutes(d.getMinutes() + offset.minutes);
+  if (offset.seconds) d.setSeconds(d.getSeconds() + offset.seconds);
+  d.setMilliseconds(0);
+  return d;
+}
+
+function setTestItem(data: RenderData<OverlayFilterAttrs>, config: TestItemConfig): void {
+  const item = data[config.index];
   const now = new Date();
-  now.setSeconds(0, 0);
-  firstItem.date = now;
-  firstItem.starttime = parseFloat(`${now.getHours()}.${now.getMinutes() + config.starttimeOffset}`);
-  firstItem.endtime = parseFloat(`${now.getHours()}.${now.getMinutes() + config.endtimeOffset}`);
+
+  item.props.startDate = applyOffset(now, config.startTimeOffset);
+  item.props.endDate = applyOffset(now, config.endTimeOffset);
+  item.props.useTimeOfDayRange = config.timeOfDayRange;
+
+  console.log("TestItem:", item.props);
 }
 
 function initialize() {
