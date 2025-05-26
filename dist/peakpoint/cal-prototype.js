@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/cal/loader.ts
+  // ../peakflow/src/cal/loader.ts
   async function loadCal(namespace) {
     if (typeof window.Cal !== "undefined") return window.Cal;
     (function(windw, embedJS, action) {
@@ -41,7 +41,7 @@
     return Cal;
   }
 
-  // node_modules/peakflow/src/attributeselector.ts
+  // ../peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -76,7 +76,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // ../peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -116,7 +116,7 @@
     select: wfselect
   };
 
-  // node_modules/peakflow/src/form/utility.ts
+  // ../peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
   function getWfFormData(form, fields, test = false) {
@@ -163,7 +163,7 @@
     form.parentElement.classList.remove("w-form");
   }
 
-  // node_modules/peakflow/src/deepmerge.ts
+  // ../peakflow/src/deepmerge.ts
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -176,7 +176,7 @@
     return result;
   }
 
-  // node_modules/peakflow/src/modal.ts
+  // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -190,16 +190,8 @@
     lockBodyScroll: true
   };
   var Modal = class _Modal {
-    component;
-    modal;
-    initialized = false;
-    settings;
-    instance;
-    static attr = {
-      id: "data-modal-id",
-      element: "data-modal-element"
-    };
     constructor(component, settings = {}) {
+      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -217,7 +209,15 @@
       }
       this.initialized = true;
     }
-    static attributeSelector = attributeselector_default(_Modal.attr.element);
+    static {
+      this.attr = {
+        id: "data-modal-id",
+        element: "data-modal-element"
+      };
+    }
+    static {
+      this.attributeSelector = attributeselector_default(_Modal.attr.element);
+    }
     /**
      * Static selector
      */
