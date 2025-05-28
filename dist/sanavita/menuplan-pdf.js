@@ -32606,7 +32606,7 @@
     async create(format4) {
       this.freeze();
       const zoom = 0.1;
-      const canvasScale = format4 === "a3" ? 2 : format4 === "a4" ? 1 : 0.5;
+      const canvasScale = format4 === "a3" ? 2 * 4.17 : format4 === "a4" ? 1 * 4.17 : 0.5 * 4.17;
       const getHtml2CanvasOptions = (canvas) => {
         return {
           scale: canvasScale,
@@ -32627,14 +32627,14 @@ Page:`, page);
           }
           const defaultCanvas = this.prepareCanvas(page, canvasScale);
           const canvas = await (0, import_html2canvas.default)(page, getHtml2CanvasOptions(defaultCanvas));
-          const imgData = canvas.toDataURL("image/jpeg");
+          const imgData = canvas.toDataURL("image/png");
           const adjustedWidth = pdfWidth + 2 * zoom;
           const adjustedHeight = canvas.height * adjustedWidth / canvas.width;
           if (!firstPage) {
             pdf.addPage();
           }
           firstPage = false;
-          pdf.addImage(imgData, "JPEG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
+          pdf.addImage(imgData, "PNG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
         }
         return pdf;
       } catch (error) {
@@ -37195,6 +37195,10 @@ Page:`, page);
   };
 
   // src/sanavita/ts/menuplan-pdf.ts
+  var filterAttributes = renderer_default.defineAttributes({
+    ...FilterCollection.defaultAttributes,
+    "weekly-hit-boolean": "boolean"
+  });
   var formatDE = (date, formatStr) => format3(date, formatStr, { locale: de3 });
   var wfCollectionSelector = attributeselector_default("wf-collection");
   var actionSelector = attributeselector_default("data-action");
@@ -37206,7 +37210,7 @@ Page:`, page);
     locale: de3
   };
   function setMinMaxDate(form, data) {
-    const dates = data.map((weekday) => weekday.date.getTime());
+    const dates = data.map((weekday) => weekday.props.date.getTime());
     let minDate = new Date(Math.min(...dates));
     let maxDate = new Date(Math.max(...dates));
     if (startOfWeek2(minDate, sowOptions).getTime() !== minDate.getTime()) {
@@ -37283,10 +37287,22 @@ Page:`, page);
     const calendarweekElement = document.querySelector(CalendarweekComponent.select("component"));
     tagWeeklyHit(filterCollectionListElement);
     const pdfStorage = parsePdfLocalStorage();
-    const filterCollection = new FilterCollection(filterCollectionListElement, "Tagesmenus", "pdf");
+    const filterCollection = new FilterCollection(filterCollectionListElement, {
+      name: "Tagesmenus",
+      rendererOptions: {
+        attributeName: "pdf",
+        filterAttributes,
+        timezone: "Europe/Zurich"
+      }
+    });
     filterCollection.renderer.addFilterAttributes({ "weekly-hit-boolean": "boolean" });
     filterCollection.readData();
-    const drinksCollection = new FilterCollection(drinkLists_collectionListElement, "Getr\xE4nke", "pdf");
+    const drinksCollection = new FilterCollection(drinkLists_collectionListElement, {
+      name: "Getr\xE4nke",
+      rendererOptions: {
+        attributeName: "pdf"
+      }
+    });
     prepareHideCategories(drinksCollection);
     drinksCollection.renderer.addFilterAttributes({ "start-date": "date", "end-date": "date" });
     drinksCollection.readData();
@@ -37371,7 +37387,7 @@ Page:`, page);
         filename = `Menuplan Bewohnende ${getISOWeekYear2(startDate)} KW${getISOWeek2(startDate)}`;
       }
       filename += ` ${format4}`;
-      pdf.save(pdfFormat, filename, 4.17);
+      pdf.save(pdfFormat, filename, 1);
     });
   }
   document.addEventListener("DOMContentLoaded", () => {

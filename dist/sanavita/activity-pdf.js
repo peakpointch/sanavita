@@ -32606,7 +32606,7 @@
     async create(format4) {
       this.freeze();
       const zoom = 0.1;
-      const canvasScale = format4 === "a3" ? 2 : format4 === "a4" ? 1 : 0.5;
+      const canvasScale = format4 === "a3" ? 2 * 4.17 : format4 === "a4" ? 1 * 4.17 : 0.5 * 4.17;
       const getHtml2CanvasOptions = (canvas) => {
         return {
           scale: canvasScale,
@@ -32627,14 +32627,14 @@ Page:`, page);
           }
           const defaultCanvas = this.prepareCanvas(page, canvasScale);
           const canvas = await (0, import_html2canvas.default)(page, getHtml2CanvasOptions(defaultCanvas));
-          const imgData = canvas.toDataURL("image/jpeg");
+          const imgData = canvas.toDataURL("image/png");
           const adjustedWidth = pdfWidth + 2 * zoom;
           const adjustedHeight = canvas.height * adjustedWidth / canvas.width;
           if (!firstPage) {
             pdf.addPage();
           }
           firstPage = false;
-          pdf.addImage(imgData, "JPEG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
+          pdf.addImage(imgData, "PNG", -zoom, -zoom, adjustedWidth, adjustedHeight, void 0, "SLOW");
         }
         return pdf;
       } catch (error) {
