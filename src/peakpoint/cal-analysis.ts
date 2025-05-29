@@ -1,16 +1,16 @@
-import { loadCal } from "@peakflow/cal/loader";
+import { initCal } from "@peakflow/cal/loader";
 import { disableWebflowForm, formElementSelector, reportValidity, getWfFormData, sendFormData } from "@peakflow/form/utility";
 import Modal from "@peakflow/modal";
 import { inputSync, syncSelector } from "@peakflow/inputsync";
 import isURL from "validator/lib/isURL";
 
-type CalEmbedOptions = 'inline' | 'floatingButton';
-interface CalDOMOptions {
-  link: string,
-  embed: CalEmbedOptions,
-}
-
-function setupForm(form: HTMLFormElement, modal: Modal): void {
+/**
+ * Set up a hook form on the peakpoint website.
+ *
+ * - Set up the open and close event listeners for the modal
+ * - Validate the 'enter-website' input and report its validity
+ */
+function setupHookForm(form: HTMLFormElement, modal: Modal): void {
   disableWebflowForm(form);
 
   const closeModalButtons = modal.selectAll('close');
@@ -45,7 +45,17 @@ function setupForm(form: HTMLFormElement, modal: Modal): void {
   openModalButton.addEventListener('click', () => tryOpenModal());
 }
 
-function setupModalFormWCal(form: HTMLFormElement): void {
+/**
+ * Set up the submit event for `form`, a child of a `Modal` with custom error and success states.
+ *
+ * 1. Parse the form data
+ * 2. Submit the form data to the current Webflow site
+ * 3. Depending ot the response, show a custom success or error state:
+ *    <div data-form-element="success" />
+ *    or
+ *    <div data-form-element="error" />
+ */
+function setupFormSubmit(form: HTMLFormElement): void {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -72,59 +82,75 @@ function setupModalFormWCal(form: HTMLFormElement): void {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  inputSync();
-
-  const modalElement = Modal.select('component', 'analysis');
-  const modal = new Modal(modalElement, {
+/**
+ * Initialize the nav form Modal, a Modal that opens up a contact form, shared across all pages.
+ */
+function initNavFormModal(): void {
+  const navModalElement = Modal.select('component', 'nav');
+  const navModal = new Modal(navModalElement, {
     animation: {
-      type: 'slideUp',
+      type: 'growIn',
       duration: 300,
     },
     lockBodyScroll: true,
   });
-
-  const analysisForm = modal.component.querySelector<HTMLFormElement>("form");
-  disableWebflowForm(analysisForm);
-  setupModalFormWCal(analysisForm);
-
-  loadCal("analyse").then((Cal) => {
-    const element = document.querySelector<HTMLElement>('[cal-id="analysis"]');
-    if (!element) throw new Error("Embed container not found");
-
-    const calDOMOptions: CalDOMOptions = {
-      link: element.getAttribute('cal-link') || 'peakpoint/analyse',
-      embed: element.getAttribute('cal-embed') as CalEmbedOptions || 'inline',
-    }
-
-    Cal.ns.analyse(calDOMOptions.embed, {
-      elementOrSelector: element,
-      config: { layout: "month_view" },
-      calLink: calDOMOptions.link,
+  const openNavModalBtns = navModal.selectAll<HTMLButtonElement>('open', false);
+  const closeNavModalBtns = navModal.selectAll<HTMLButtonElement>('close', true);
+  openNavModalBtns.forEach(button => {
+    button.addEventListener('click', () => {
+      navModal.open();
     });
+  });
+  closeNavModalBtns.forEach((closeBtn) => {
+    closeBtn.addEventListener('click', () => {
+      navModal.close();
+    });
+  });
+}
 
-    Cal.ns.analyse("ui", {
-      hideEventTypeDetails: true,
-      layout: "month_view",
-      cssVarsPerTheme: {
-        light: { "cal-brand": "#333" },
-        dark: { "cal-brand": "#eee" },
+/**
+ * Initialize lead magnet forms that consist of a `HookForm`, a `Modal`, and a `Cal` component, all of which share the same `id`.
+ *
+ * @param formIds The `id` list of the lead magnet forms you want to initialize.
+ */
+async function initLeadForms(...formIds: string[]): Promise<void> {
+  formIds.forEach(async (formId) => {
+    const modalElement = Modal.select('component', formId);
+    if (!modalElement) return;
+
+    const modal = new Modal(modalElement, {
+      animation: {
+        type: 'growIn',
+        duration: 300,
       },
+      lockBodyScroll: true,
     });
 
-    Cal.ns.analyse("on", {
+    const modalForm = modal.component.querySelector<HTMLFormElement>("form");
+    disableWebflowForm(modalForm);
+    setupFormSubmit(modalForm);
+
+    const Cal = await initCal(formId);
+
+    Cal.ns[formId]("on", {
       action: "bookingSuccessfulV2",
       callback: () => {
         console.log("BOOKING SUCCESSFUL WORKS");
 
         const event = new Event("submit", { bubbles: true, cancelable: true });
-        analysisForm.dispatchEvent(event);
+        modalForm.dispatchEvent(event);
       }
     });
-  });
 
-  const hookForms = document.querySelectorAll<HTMLFormElement>(`form[formstack-element="form:analysis-hook"]`);
-  hookForms.forEach(form => {
-    setupForm(form, modal);
+    const hookForms = document.querySelectorAll<HTMLFormElement>(`form[formstack-element="hook:${formId}"]`);
+    hookForms.forEach(form => {
+      setupHookForm(form, modal);
+    });
   });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  inputSync();
+  initLeadForms("analysis", "prototype");
+  initNavFormModal();
 });

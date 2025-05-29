@@ -431,6 +431,29 @@
     Cal("init", namespace, { origin: "https://cal.com" });
     return Cal;
   }
+  async function initCal(namespace) {
+    const Cal = await loadCal(namespace);
+    const element = document.querySelector(`[cal-id="${namespace}"]`);
+    if (!element) throw new Error("Embed container not found");
+    const calDOMOptions = {
+      link: element.getAttribute("cal-link"),
+      hideEventTypeDetails: element.getAttribute("cal-hide-event-details") === "true"
+    };
+    Cal.ns[namespace]("inline", {
+      elementOrSelector: element,
+      config: { layout: "month_view" },
+      calLink: calDOMOptions.link
+    });
+    Cal.ns[namespace]("ui", {
+      hideEventTypeDetails: calDOMOptions.hideEventTypeDetails,
+      layout: "month_view",
+      cssVarsPerTheme: {
+        light: { "cal-brand": "#333" },
+        dark: { "cal-brand": "#eee" }
+      }
+    });
+    return Cal;
+  }
 
   // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
@@ -824,7 +847,7 @@
 
   // src/peakpoint/cal-analysis.ts
   var import_isURL = __toESM(require_isURL());
-  function setupForm(form, modal) {
+  function setupHookForm(form, modal) {
     disableWebflowForm(form);
     const closeModalButtons = modal.selectAll("close");
     const openModalButton = form.querySelector(Modal.selector("open"));
@@ -850,7 +873,7 @@
     });
     openModalButton.addEventListener("click", () => tryOpenModal());
   }
-  function setupModalFormWCal(form) {
+  function setupFormSubmit(form) {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const formBlock = form.parentElement;
@@ -872,52 +895,61 @@
       }
     });
   }
-  document.addEventListener("DOMContentLoaded", () => {
-    inputSync();
-    const modalElement = Modal.select("component", "analysis");
-    const modal = new Modal(modalElement, {
+  function initNavFormModal() {
+    const navModalElement = Modal.select("component", "nav");
+    const navModal = new Modal(navModalElement, {
       animation: {
-        type: "slideUp",
+        type: "growIn",
         duration: 300
       },
       lockBodyScroll: true
     });
-    const analysisForm = modal.component.querySelector("form");
-    disableWebflowForm(analysisForm);
-    setupModalFormWCal(analysisForm);
-    loadCal("analyse").then((Cal) => {
-      const element = document.querySelector('[cal-id="analysis"]');
-      if (!element) throw new Error("Embed container not found");
-      const calDOMOptions = {
-        link: element.getAttribute("cal-link") || "peakpoint/analyse",
-        embed: element.getAttribute("cal-embed") || "inline"
-      };
-      Cal.ns.analyse(calDOMOptions.embed, {
-        elementOrSelector: element,
-        config: { layout: "month_view" },
-        calLink: calDOMOptions.link
+    const openNavModalBtns = navModal.selectAll("open", false);
+    const closeNavModalBtns = navModal.selectAll("close", true);
+    openNavModalBtns.forEach((button) => {
+      button.addEventListener("click", () => {
+        navModal.open();
       });
-      Cal.ns.analyse("ui", {
-        hideEventTypeDetails: true,
-        layout: "month_view",
-        cssVarsPerTheme: {
-          light: { "cal-brand": "#333" },
-          dark: { "cal-brand": "#eee" }
-        }
+    });
+    closeNavModalBtns.forEach((closeBtn) => {
+      closeBtn.addEventListener("click", () => {
+        navModal.close();
       });
-      Cal.ns.analyse("on", {
+    });
+  }
+  async function initLeadForms(...formIds) {
+    formIds.forEach(async (formId) => {
+      const modalElement = Modal.select("component", formId);
+      if (!modalElement) return;
+      const modal = new Modal(modalElement, {
+        animation: {
+          type: "growIn",
+          duration: 300
+        },
+        lockBodyScroll: true
+      });
+      const modalForm = modal.component.querySelector("form");
+      disableWebflowForm(modalForm);
+      setupFormSubmit(modalForm);
+      const Cal = await initCal(formId);
+      Cal.ns[formId]("on", {
         action: "bookingSuccessfulV2",
         callback: () => {
           console.log("BOOKING SUCCESSFUL WORKS");
           const event = new Event("submit", { bubbles: true, cancelable: true });
-          analysisForm.dispatchEvent(event);
+          modalForm.dispatchEvent(event);
         }
       });
+      const hookForms = document.querySelectorAll(`form[formstack-element="hook:${formId}"]`);
+      hookForms.forEach((form) => {
+        setupHookForm(form, modal);
+      });
     });
-    const hookForms = document.querySelectorAll(`form[formstack-element="form:analysis-hook"]`);
-    hookForms.forEach((form) => {
-      setupForm(form, modal);
-    });
+  }
+  document.addEventListener("DOMContentLoaded", async () => {
+    inputSync();
+    initLeadForms("analysis", "prototype");
+    initNavFormModal();
   });
 })();
 //# sourceMappingURL=cal-analysis.js.map
