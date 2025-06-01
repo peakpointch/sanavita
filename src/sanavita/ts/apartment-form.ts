@@ -810,7 +810,7 @@ class FormArray {
 
 class MultiStepForm {
   public options: MultiStepFormOptions = {
-    recaptcha: true,
+    recaptcha: false,
     navigation: {
       hideInStep: -1,
     },

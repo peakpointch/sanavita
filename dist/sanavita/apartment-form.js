@@ -3605,7 +3605,7 @@
   var MultiStepForm = class {
     constructor(component, options) {
       this.options = {
-        recaptcha: true,
+        recaptcha: false,
         navigation: {
           hideInStep: -1
         },
