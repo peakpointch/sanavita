@@ -37,6 +37,10 @@ interface MultiStepFormOptions extends FormOptions {
   navigation: {
     hideInStep: number;
   };
+  pagination: {
+    doneClass: string;
+    activeClass: string;
+  }
   onStepChange?: StepChangeCallback;
 };
 type StepChangeCallback = (options: {
@@ -808,6 +812,10 @@ class MultiStepForm {
       hideInStep: -1,
     },
     excludeInputSelectors: [],
+    pagination: {
+      doneClass: "is-done",
+      activeClass: "is-active"
+    }
   };
 
   public initialized: boolean = false;
@@ -1130,8 +1138,8 @@ class MultiStepForm {
     }
 
     this.paginationItems.forEach((step, index) => {
-      step.classList.toggle("is-done", index < target);
-      step.classList.toggle("is-active", index === target);
+      step.classList.toggle(this.options.pagination.doneClass, index < target);
+      step.classList.toggle(this.options.pagination.activeClass, index === target);
     });
   }
 

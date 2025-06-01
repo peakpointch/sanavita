@@ -3607,7 +3607,10 @@
         navigation: {
           hideInStep: -1
         },
-        excludeInputSelectors: []
+        pagination: {
+          doneClass: "is-done",
+          activeClass: "is-active"
+        }
       };
       this.initialized = false;
       this.currentStep = 0;
@@ -3861,8 +3864,8 @@ Component:`,
         this.navigationElement.style.removeProperty("opacity");
       }
       this.paginationItems.forEach((step, index) => {
-        step.classList.toggle("is-done", index < target);
-        step.classList.toggle("is-active", index === target);
+        step.classList.toggle(this.options.pagination.doneClass, index < target);
+        step.classList.toggle(this.options.pagination.activeClass, index === target);
       });
     }
     validateAllSteps() {
