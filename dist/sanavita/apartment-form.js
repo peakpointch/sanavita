@@ -3089,7 +3089,9 @@
   };
 
   // src/sanavita/ts/apartment-form.ts
-  var stepsElementSelector = attributeselector_default("data-steps-element");
+  var stepsElementSelector = attributeselector_default("data-steps-element", {
+    defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
+  });
   var stepsTargetSelector = attributeselector_default("data-step-target");
   var stepsNavSelector = attributeselector_default("data-steps-nav");
   var prospectSelector = attributeselector_default("data-prospect-element");
@@ -3607,6 +3609,7 @@
         navigation: {
           hideInStep: -1
         },
+        nested: false,
         pagination: {
           doneClass: "is-done",
           activeClass: "is-active"
@@ -3635,8 +3638,11 @@ Component:`,
     }
     cacheDomElements() {
       this.formElement = this.component.querySelector("form");
-      if (!this.formElement) {
+      if (!this.options.nested && !this.formElement) {
         throw new Error("Form element not found within the specified component.");
+      }
+      if (this.options.nested) {
+        this.formElement = this.component;
       }
       this.formSteps = this.component.querySelectorAll(stepsElementSelector("step"));
       this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
@@ -3655,17 +3661,21 @@ Component:`,
         );
         return;
       }
-      this.formElement.setAttribute("novalidate", "");
+      if (!this.options.nested) {
+        enforceButtonTypes(this.formElement);
+        this.formElement.setAttribute("novalidate", "");
+      }
       this.formElement.dataset.state = "initialized";
-      enforceButtonTypes(this.formElement);
       initWfInputs(this.component);
       this.changeToStep(this.currentStep);
     }
     setupEventListeners() {
-      this.formElement.addEventListener("submit", (event) => {
-        event.preventDefault();
-        this.submitToWebflow();
-      });
+      if (!this.options.nested) {
+        this.formElement.addEventListener("submit", (event) => {
+          event.preventDefault();
+          this.submitToWebflow();
+        });
+      }
       this.initPagination();
       this.initChangeStepOnKeydown();
     }
@@ -3673,6 +3683,9 @@ Component:`,
       this.customComponents.push(component);
     }
     async submitToWebflow() {
+      if (this.options.nested) {
+        throw new Error(`Can't submit a nested MultiStepForm.`);
+      }
       if (this.currentStep !== this.formSteps.length - 1) {
         console.error(
           "SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step."
@@ -3699,6 +3712,9 @@ Component:`,
       }
     }
     buildJsonForWebflow() {
+      if (this.options.nested) {
+        throw new Error(`Can't get FormData for a nested MultiStepForm.`);
+      }
       const fields = this.getFormData();
       if (this.options.recaptcha) {
         const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
@@ -3914,7 +3930,7 @@ Component:`,
     getFieldMapForStep(step) {
       let fields = /* @__PURE__ */ new Map();
       const stepElement = this.formSteps[step];
-      const stepInputs = stepElement.querySelectorAll(wf.select.formInput);
+      const stepInputs = stepElement.querySelectorAll(exclude(wf.select.formInput, `${stepsElementSelector("custom-component")} ${wf.select.formInput}`));
       stepInputs.forEach((input, inputIndex) => {
         const entry = fieldFromInput(input, inputIndex);
         if (entry?.id) {
@@ -4008,7 +4024,7 @@ Component:`,
     return modal;
   }
   var formElement = document.querySelector(
-    formElementSelector("component")
+    formElementSelector("component", { exclusions: [] })
   );
   formElement?.classList.remove("w-form");
   document.addEventListener("DOMContentLoaded", () => {

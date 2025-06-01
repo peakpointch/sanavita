@@ -1,5 +1,5 @@
 // Imports
-import createAttribute from "@peakflow/attributeselector";
+import createAttribute, { exclude } from "@peakflow/attributeselector";
 import {
   isCheckboxInput,
   isRadioInput,
@@ -42,6 +42,7 @@ interface MultiStepFormOptions extends FormOptions {
     activeClass: string;
   }
   onStepChange?: StepChangeCallback;
+  nested: boolean;
 };
 type StepChangeCallback = (options: {
   index: number;
@@ -54,12 +55,14 @@ type CustomFormComponent = {
   validator: CustomValidator;
   getData?: () => {};
 };
-type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination';
+type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination' | 'custom-component';
 type StepsNavElement = 'prev' | 'next';
 type ProspectElement = 'template' | 'add' | 'edit' | 'delete' | 'save' | 'draft' | 'cancel';
 
 // Selector functions
-const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element');
+const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element', {
+  defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
+});
 const stepsTargetSelector = createAttribute<string>('data-step-target');
 const stepsNavSelector = createAttribute<StepsNavElement>('data-steps-nav');
 const prospectSelector = createAttribute<ProspectElement>('data-prospect-element')
@@ -812,6 +815,7 @@ class MultiStepForm {
       hideInStep: -1,
     },
     excludeInputSelectors: [],
+    nested: false,
     pagination: {
       doneClass: "is-done",
       activeClass: "is-active"
@@ -820,7 +824,7 @@ class MultiStepForm {
 
   public initialized: boolean = false;
   public component: HTMLElement;
-  public formElement: HTMLFormElement;
+  public formElement: HTMLFormElement | HTMLElement;
   public formSteps: NodeListOf<HTMLElement>;
   public currentStep: number = 0;
   private navigationElement: HTMLElement;
@@ -854,9 +858,13 @@ class MultiStepForm {
   }
 
   private cacheDomElements(): void {
-    this.formElement = this.component.querySelector<HTMLFormElement>('form')!;
-    if (!this.formElement) {
+    this.formElement = this.component.querySelector<HTMLFormElement>('form');
+    if (!this.options.nested && !this.formElement) {
       throw new Error("Form element not found within the specified component.");
+    }
+
+    if (this.options.nested) {
+      this.formElement = this.component;
     }
 
     this.formSteps = this.component.querySelectorAll(stepsElementSelector('step'));
@@ -879,20 +887,25 @@ class MultiStepForm {
       return;
     }
 
-    this.formElement.setAttribute("novalidate", "");
+    if (!this.options.nested) {
+      enforceButtonTypes(this.formElement as HTMLFormElement);
+      this.formElement.setAttribute("novalidate", "");
+    }
+
     this.formElement.dataset.state = "initialized";
 
-    enforceButtonTypes(this.formElement);
     initWfInputs(this.component);
 
     this.changeToStep(this.currentStep);
   }
 
   private setupEventListeners(): void {
-    this.formElement.addEventListener("submit", (event) => {
-      event.preventDefault();
-      this.submitToWebflow();
-    });
+    if (!this.options.nested) {
+      this.formElement.addEventListener("submit", (event) => {
+        event.preventDefault();
+        this.submitToWebflow();
+      });
+    }
 
     this.initPagination();
     this.initChangeStepOnKeydown();
@@ -903,6 +916,10 @@ class MultiStepForm {
   }
 
   private async submitToWebflow(): Promise<void> {
+    if (this.options.nested) {
+      throw new Error(`Can't submit a nested MultiStepForm.`);
+    }
+
     if (this.currentStep !== this.formSteps.length - 1) {
       console.error(
         "SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step."
@@ -938,6 +955,10 @@ class MultiStepForm {
   }
 
   private buildJsonForWebflow(): any {
+    if (this.options.nested) {
+      throw new Error(`Can't get FormData for a nested MultiStepForm.`);
+    }
+
     const fields = this.getFormData();
 
     if (this.options.recaptcha) {
@@ -1211,7 +1232,7 @@ class MultiStepForm {
 
     const stepElement = this.formSteps[step];
     const stepInputs: NodeListOf<HTMLFormInput> =
-      stepElement.querySelectorAll(wf.select.formInput);
+      stepElement.querySelectorAll(exclude(wf.select.formInput, `${stepsElementSelector("custom-component")} ${wf.select.formInput}`));
     stepInputs.forEach((input, inputIndex) => {
       const entry = fieldFromInput(input, inputIndex);
       if (entry?.id) {
@@ -1363,7 +1384,7 @@ function getAlertDialog(): AlertDialog {
 }
 
 const formElement: HTMLElement | null = document.querySelector(
-  formElementSelector('component')
+  formElementSelector('component', { exclusions: [] })
 );
 formElement?.classList.remove("w-form");
 
