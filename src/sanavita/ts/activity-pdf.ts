@@ -2,7 +2,7 @@
 import EditableCanvas from '@peakflow/canvas';
 import Pdf, { PdfFormat } from '@peakflow/pdf';
 import { FilterCollection } from '@peakflow/wfcollection';
-import { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
+import Renderer, { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
 import { FilterForm, CalendarweekComponent, filterFormSelector } from '@peakflow/form';
 
 // Utility functions
@@ -29,6 +29,12 @@ interface LocalStoragePdf {
   menuplan?: LocalStoragePdfInstance;
 }
 
+const filterAttributes = Renderer.defineAttributes({
+  ...FilterCollection.defaultAttributes,
+});
+
+type ActivityAttributes = typeof filterAttributes;
+
 const formatDE = (date: Date, formatStr: string) => format(date, formatStr, { locale: de });
 
 // Selector functions
@@ -44,8 +50,8 @@ const sowOptions: StartOfWeekOptions = {
   locale: de,
 }
 
-function getMinMaxDate(data: RenderData): Date[] {
-  const dates = data.map(weekday => weekday.date.getTime());
+function getMinMaxDate(data: RenderData<ActivityAttributes>): Date[] {
+  const dates = data.map(weekday => weekday.props.date.getTime());
   let minDate = new Date(Math.min(...dates));
   let maxDate = new Date(Math.max(...dates));
   if (startOfWeek(minDate, sowOptions).getTime() !== minDate.getTime()) {
@@ -55,7 +61,7 @@ function getMinMaxDate(data: RenderData): Date[] {
   return [minDate, maxDate];
 }
 
-function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData): Date[] {
+function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData<ActivityAttributes>): Date[] {
   const [minDate, maxDate] = getMinMaxDate(data);
   const minDateStr = formatDE(minDate, 'yyyy-MM-dd');
   const maxDateStr = formatDE(maxDate, 'yyyy-MM-dd');
@@ -158,7 +164,14 @@ function initialize(): void {
   const pdfStorage = parsePdfLocalStorage();
 
   // Initialize collection list and pdf
-  const filterCollection = new FilterCollection(filterCollectionListElement, 'Aktivitäten', 'pdf');
+  const filterCollection = new FilterCollection(filterCollectionListElement, {
+    name: "Aktivitäten",
+    rendererOptions: {
+      attributeName: 'pdf',
+      filterAttributes: filterAttributes,
+      timezone: "Europe/Zurich"
+    }
+  });
   const pdf = new Pdf(pdfContainer);
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, '.pdf-h3');
@@ -214,12 +227,13 @@ function initialize(): void {
       },
     ];
 
+    canvas.showHiddenElements();
     pdf.render([
       ...staticRenderFields,
       ...filtered,
     ]);
-
-    canvas.showHiddenElements();
+    pdf.hyphenizePages();
+    canvas.update();
   });
 
   filterForm.addOnChange(['scale'], (filters) => {

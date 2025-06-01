@@ -255,6 +255,7 @@ function initialize(): void {
 
     canvas.showHiddenElements();
     pdf.render(renderData);
+    pdf.hyphenizePages();
     canvas.update();
   });
 
