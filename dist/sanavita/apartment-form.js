@@ -3609,6 +3609,7 @@
         navigation: {
           hideInStep: -1
         },
+        excludeInputSelectors: [],
         nested: false,
         pagination: {
           doneClass: "is-done",
