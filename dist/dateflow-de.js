@@ -1,5 +1,5 @@
 (() => {
-  // ../peakflow/src/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -34,7 +34,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/node_modules/date-fns/constants.js
+  // node_modules/date-fns/constants.js
   var daysInYear = 365.2425;
   var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
   var minTime = -maxTime;
@@ -48,7 +48,7 @@
   var secondsInQuarter = secondsInMonth * 3;
   var constructFromSymbol = Symbol.for("constructDateFrom");
 
-  // ../peakflow/node_modules/date-fns/constructFrom.js
+  // node_modules/date-fns/constructFrom.js
   function constructFrom(date, value) {
     if (typeof date === "function") return date(value);
     if (date && typeof date === "object" && constructFromSymbol in date)
@@ -57,18 +57,18 @@
     return new Date(value);
   }
 
-  // ../peakflow/node_modules/date-fns/toDate.js
+  // node_modules/date-fns/toDate.js
   function toDate(argument, context) {
     return constructFrom(context || argument, argument);
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/defaultOptions.js
+  // node_modules/date-fns/_lib/defaultOptions.js
   var defaultOptions = {};
   function getDefaultOptions() {
     return defaultOptions;
   }
 
-  // ../peakflow/node_modules/date-fns/startOfWeek.js
+  // node_modules/date-fns/startOfWeek.js
   function startOfWeek(date, options) {
     const defaultOptions2 = getDefaultOptions();
     const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
@@ -80,12 +80,12 @@
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/startOfISOWeek.js
+  // node_modules/date-fns/startOfISOWeek.js
   function startOfISOWeek(date, options) {
     return startOfWeek(date, { ...options, weekStartsOn: 1 });
   }
 
-  // ../peakflow/node_modules/date-fns/getISOWeekYear.js
+  // node_modules/date-fns/getISOWeekYear.js
   function getISOWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
@@ -106,7 +106,7 @@
     }
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
+  // node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
   function getTimezoneOffsetInMilliseconds(date) {
     const _date = toDate(date);
     const utcDate = new Date(
@@ -124,7 +124,7 @@
     return +date - +utcDate;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/normalizeDates.js
+  // node_modules/date-fns/_lib/normalizeDates.js
   function normalizeDates(context, ...dates) {
     const normalize = constructFrom.bind(
       null,
@@ -133,14 +133,14 @@
     return dates.map(normalize);
   }
 
-  // ../peakflow/node_modules/date-fns/startOfDay.js
+  // node_modules/date-fns/startOfDay.js
   function startOfDay(date, options) {
     const _date = toDate(date, options?.in);
     _date.setHours(0, 0, 0, 0);
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/differenceInCalendarDays.js
+  // node_modules/date-fns/differenceInCalendarDays.js
   function differenceInCalendarDays(laterDate, earlierDate, options) {
     const [laterDate_, earlierDate_] = normalizeDates(
       options?.in,
@@ -154,7 +154,7 @@
     return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
   }
 
-  // ../peakflow/node_modules/date-fns/startOfISOWeekYear.js
+  // node_modules/date-fns/startOfISOWeekYear.js
   function startOfISOWeekYear(date, options) {
     const year = getISOWeekYear(date, options);
     const fourthOfJanuary = constructFrom(options?.in || date, 0);
@@ -163,17 +163,17 @@
     return startOfISOWeek(fourthOfJanuary);
   }
 
-  // ../peakflow/node_modules/date-fns/isDate.js
+  // node_modules/date-fns/isDate.js
   function isDate(value) {
     return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
   }
 
-  // ../peakflow/node_modules/date-fns/isValid.js
+  // node_modules/date-fns/isValid.js
   function isValid(date) {
     return !(!isDate(date) && typeof date !== "number" || isNaN(+toDate(date)));
   }
 
-  // ../peakflow/node_modules/date-fns/startOfYear.js
+  // node_modules/date-fns/startOfYear.js
   function startOfYear(date, options) {
     const date_ = toDate(date, options?.in);
     date_.setFullYear(date_.getFullYear(), 0, 1);
@@ -181,7 +181,7 @@
     return date_;
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatDistance.js
+  // node_modules/date-fns/locale/en-US/_lib/formatDistance.js
   var formatDistanceLocale = {
     lessThanXSeconds: {
       one: "less than a second",
@@ -265,7 +265,7 @@
     return result;
   };
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildFormatLongFn.js
+  // node_modules/date-fns/locale/_lib/buildFormatLongFn.js
   function buildFormatLongFn(args) {
     return (options = {}) => {
       const width = options.width ? String(options.width) : args.defaultWidth;
@@ -274,7 +274,7 @@
     };
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatLong.js
+  // node_modules/date-fns/locale/en-US/_lib/formatLong.js
   var dateFormats = {
     full: "EEEE, MMMM do, y",
     long: "MMMM do, y",
@@ -308,7 +308,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatRelative.js
+  // node_modules/date-fns/locale/en-US/_lib/formatRelative.js
   var formatRelativeLocale = {
     lastWeek: "'last' eeee 'at' p",
     yesterday: "'yesterday at' p",
@@ -319,7 +319,7 @@
   };
   var formatRelative = (token, _date, _baseDate, _options) => formatRelativeLocale[token];
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildLocalizeFn.js
+  // node_modules/date-fns/locale/_lib/buildLocalizeFn.js
   function buildLocalizeFn(args) {
     return (value, options) => {
       const context = options?.context ? String(options.context) : "standalone";
@@ -338,7 +338,7 @@
     };
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/localize.js
+  // node_modules/date-fns/locale/en-US/_lib/localize.js
   var eraValues = {
     narrow: ["B", "A"],
     abbreviated: ["BC", "AD"],
@@ -500,7 +500,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildMatchFn.js
+  // node_modules/date-fns/locale/_lib/buildMatchFn.js
   function buildMatchFn(args) {
     return (string, options = {}) => {
       const width = options.width;
@@ -542,7 +542,7 @@
     return void 0;
   }
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
+  // node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
   function buildMatchPatternFn(args) {
     return (string, options = {}) => {
       const matchResult = string.match(args.matchPattern);
@@ -557,7 +557,7 @@
     };
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/match.js
+  // node_modules/date-fns/locale/en-US/_lib/match.js
   var matchOrdinalNumberPattern = /^(\d+)(th|st|nd|rd)?/i;
   var parseOrdinalNumberPattern = /\d+/i;
   var matchEraPatterns = {
@@ -676,7 +676,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/en-US.js
+  // node_modules/date-fns/locale/en-US.js
   var enUS = {
     code: "en-US",
     formatDistance,
@@ -690,7 +690,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/getDayOfYear.js
+  // node_modules/date-fns/getDayOfYear.js
   function getDayOfYear(date, options) {
     const _date = toDate(date, options?.in);
     const diff = differenceInCalendarDays(_date, startOfYear(_date));
@@ -698,14 +698,14 @@
     return dayOfYear;
   }
 
-  // ../peakflow/node_modules/date-fns/getISOWeek.js
+  // node_modules/date-fns/getISOWeek.js
   function getISOWeek(date, options) {
     const _date = toDate(date, options?.in);
     const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
     return Math.round(diff / millisecondsInWeek) + 1;
   }
 
-  // ../peakflow/node_modules/date-fns/getWeekYear.js
+  // node_modules/date-fns/getWeekYear.js
   function getWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
@@ -728,7 +728,7 @@
     }
   }
 
-  // ../peakflow/node_modules/date-fns/startOfWeekYear.js
+  // node_modules/date-fns/startOfWeekYear.js
   function startOfWeekYear(date, options) {
     const defaultOptions2 = getDefaultOptions();
     const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
@@ -740,21 +740,21 @@
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/getWeek.js
+  // node_modules/date-fns/getWeek.js
   function getWeek(date, options) {
     const _date = toDate(date, options?.in);
     const diff = +startOfWeek(_date, options) - +startOfWeekYear(_date, options);
     return Math.round(diff / millisecondsInWeek) + 1;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/addLeadingZeros.js
+  // node_modules/date-fns/_lib/addLeadingZeros.js
   function addLeadingZeros(number, targetLength) {
     const sign = number < 0 ? "-" : "";
     const output = Math.abs(number).toString().padStart(targetLength, "0");
     return sign + output;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/format/lightFormatters.js
+  // node_modules/date-fns/_lib/format/lightFormatters.js
   var lightFormatters = {
     // Year
     y(date, token) {
@@ -814,7 +814,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/_lib/format/formatters.js
+  // node_modules/date-fns/_lib/format/formatters.js
   var dayPeriodEnum = {
     am: "am",
     pm: "pm",
@@ -1460,7 +1460,7 @@
     return sign + hours + delimiter + minutes;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/format/longFormatters.js
+  // node_modules/date-fns/_lib/format/longFormatters.js
   var dateLongFormatter = (pattern, formatLong3) => {
     switch (pattern) {
       case "P":
@@ -1517,7 +1517,7 @@
     P: dateTimeLongFormatter
   };
 
-  // ../peakflow/node_modules/date-fns/_lib/protectedTokens.js
+  // node_modules/date-fns/_lib/protectedTokens.js
   var dayOfYearTokenRE = /^D+$/;
   var weekYearTokenRE = /^Y+$/;
   var throwTokens = ["D", "DD", "YY", "YYYY"];
@@ -1537,7 +1537,7 @@
     return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format2}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
   }
 
-  // ../peakflow/node_modules/date-fns/format.js
+  // node_modules/date-fns/format.js
   var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
   var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
   var escapedStringRegExp = /^'([^]*?)'?$/;
@@ -1603,7 +1603,7 @@
     return matched[1].replace(doubleQuoteRegExp, "'");
   }
 
-  // ../peakflow/src/dateflow/dateflow.ts
+  // node_modules/peakflow/src/dateflow/dateflow.ts
   function getDomElements(...elements) {
     const containers = [];
     elements.forEach((entry) => {
@@ -1630,6 +1630,10 @@
     const dateString = element.getAttribute(attr.date);
     if (!dateString) {
       throw new Error(`Date string is empty.`);
+    } else if (dateString === "today") {
+      const now = /* @__PURE__ */ new Date();
+      now.setHours(0, 0, 0, 0);
+      return now;
     }
     const time = parseFloat(element.getAttribute(attr.time) || "0.00");
     const [year, month, day] = dateString.split("-").map(Number);
@@ -1669,91 +1673,6 @@
         element.innerText = format(date, formatString, { locale });
       });
     });
-  }
-
-  // node_modules/date-fns/locale/_lib/buildFormatLongFn.js
-  function buildFormatLongFn2(args) {
-    return (options = {}) => {
-      const width = options.width ? String(options.width) : args.defaultWidth;
-      const format2 = args.formats[width] || args.formats[args.defaultWidth];
-      return format2;
-    };
-  }
-
-  // node_modules/date-fns/locale/_lib/buildLocalizeFn.js
-  function buildLocalizeFn2(args) {
-    return (value, options) => {
-      const context = options?.context ? String(options.context) : "standalone";
-      let valuesArray;
-      if (context === "formatting" && args.formattingValues) {
-        const defaultWidth = args.defaultFormattingWidth || args.defaultWidth;
-        const width = options?.width ? String(options.width) : defaultWidth;
-        valuesArray = args.formattingValues[width] || args.formattingValues[defaultWidth];
-      } else {
-        const defaultWidth = args.defaultWidth;
-        const width = options?.width ? String(options.width) : args.defaultWidth;
-        valuesArray = args.values[width] || args.values[defaultWidth];
-      }
-      const index = args.argumentCallback ? args.argumentCallback(value) : value;
-      return valuesArray[index];
-    };
-  }
-
-  // node_modules/date-fns/locale/_lib/buildMatchFn.js
-  function buildMatchFn2(args) {
-    return (string, options = {}) => {
-      const width = options.width;
-      const matchPattern = width && args.matchPatterns[width] || args.matchPatterns[args.defaultMatchWidth];
-      const matchResult = string.match(matchPattern);
-      if (!matchResult) {
-        return null;
-      }
-      const matchedString = matchResult[0];
-      const parsePatterns = width && args.parsePatterns[width] || args.parsePatterns[args.defaultParseWidth];
-      const key = Array.isArray(parsePatterns) ? findIndex2(parsePatterns, (pattern) => pattern.test(matchedString)) : (
-        // [TODO] -- I challenge you to fix the type
-        findKey2(parsePatterns, (pattern) => pattern.test(matchedString))
-      );
-      let value;
-      value = args.valueCallback ? args.valueCallback(key) : key;
-      value = options.valueCallback ? (
-        // [TODO] -- I challenge you to fix the type
-        options.valueCallback(value)
-      ) : value;
-      const rest = string.slice(matchedString.length);
-      return { value, rest };
-    };
-  }
-  function findKey2(object, predicate) {
-    for (const key in object) {
-      if (Object.prototype.hasOwnProperty.call(object, key) && predicate(object[key])) {
-        return key;
-      }
-    }
-    return void 0;
-  }
-  function findIndex2(array, predicate) {
-    for (let key = 0; key < array.length; key++) {
-      if (predicate(array[key])) {
-        return key;
-      }
-    }
-    return void 0;
-  }
-
-  // node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
-  function buildMatchPatternFn2(args) {
-    return (string, options = {}) => {
-      const matchResult = string.match(args.matchPattern);
-      if (!matchResult) return null;
-      const matchedString = matchResult[0];
-      const parseResult = string.match(args.parsePattern);
-      if (!parseResult) return null;
-      let value = args.valueCallback ? args.valueCallback(parseResult[0]) : parseResult[0];
-      value = options.valueCallback ? options.valueCallback(value) : value;
-      const rest = string.slice(matchedString.length);
-      return { value, rest };
-    };
   }
 
   // node_modules/date-fns/locale/de/_lib/formatDistance.js
@@ -1957,15 +1876,15 @@
     short: "{{date}} {{time}}"
   };
   var formatLong2 = {
-    date: buildFormatLongFn2({
+    date: buildFormatLongFn({
       formats: dateFormats2,
       defaultWidth: "full"
     }),
-    time: buildFormatLongFn2({
+    time: buildFormatLongFn({
       formats: timeFormats2,
       defaultWidth: "full"
     }),
-    dateTime: buildFormatLongFn2({
+    dateTime: buildFormatLongFn({
       formats: dateTimeFormats2,
       defaultWidth: "full"
     })
@@ -2126,25 +2045,25 @@
   };
   var localize2 = {
     ordinalNumber: ordinalNumber2,
-    era: buildLocalizeFn2({
+    era: buildLocalizeFn({
       values: eraValues2,
       defaultWidth: "wide"
     }),
-    quarter: buildLocalizeFn2({
+    quarter: buildLocalizeFn({
       values: quarterValues2,
       defaultWidth: "wide",
       argumentCallback: (quarter) => quarter - 1
     }),
-    month: buildLocalizeFn2({
+    month: buildLocalizeFn({
       values: monthValues2,
       formattingValues: formattingMonthValues,
       defaultWidth: "wide"
     }),
-    day: buildLocalizeFn2({
+    day: buildLocalizeFn({
       values: dayValues2,
       defaultWidth: "wide"
     }),
-    dayPeriod: buildLocalizeFn2({
+    dayPeriod: buildLocalizeFn({
       values: dayPeriodValues2,
       defaultWidth: "wide",
       formattingValues: formattingDayPeriodValues2,
@@ -2235,37 +2154,37 @@
     }
   };
   var match2 = {
-    ordinalNumber: buildMatchPatternFn2({
+    ordinalNumber: buildMatchPatternFn({
       matchPattern: matchOrdinalNumberPattern2,
       parsePattern: parseOrdinalNumberPattern2,
       valueCallback: (value) => parseInt(value)
     }),
-    era: buildMatchFn2({
+    era: buildMatchFn({
       matchPatterns: matchEraPatterns2,
       defaultMatchWidth: "wide",
       parsePatterns: parseEraPatterns2,
       defaultParseWidth: "any"
     }),
-    quarter: buildMatchFn2({
+    quarter: buildMatchFn({
       matchPatterns: matchQuarterPatterns2,
       defaultMatchWidth: "wide",
       parsePatterns: parseQuarterPatterns2,
       defaultParseWidth: "any",
       valueCallback: (index) => index + 1
     }),
-    month: buildMatchFn2({
+    month: buildMatchFn({
       matchPatterns: matchMonthPatterns2,
       defaultMatchWidth: "wide",
       parsePatterns: parseMonthPatterns2,
       defaultParseWidth: "any"
     }),
-    day: buildMatchFn2({
+    day: buildMatchFn({
       matchPatterns: matchDayPatterns2,
       defaultMatchWidth: "wide",
       parsePatterns: parseDayPatterns2,
       defaultParseWidth: "any"
     }),
-    dayPeriod: buildMatchFn2({
+    dayPeriod: buildMatchFn({
       matchPatterns: matchDayPeriodPatterns2,
       defaultMatchWidth: "wide",
       parsePatterns: parseDayPeriodPatterns2,

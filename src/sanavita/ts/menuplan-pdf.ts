@@ -2,7 +2,7 @@
 import EditableCanvas from '@peakflow/canvas';
 import Pdf, { PdfFormat } from '@peakflow/pdf';
 import { FilterCollection } from '@peakflow/wfcollection';
-import { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
+import Renderer, { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
 import { CalendarweekComponent, FilterForm, filterFormSelector } from '@peakflow/form';
 
 // Utility functions
@@ -30,6 +30,13 @@ interface LocalStoragePdf {
   menuplan?: LocalStoragePdfInstance;
 }
 
+const filterAttributes = Renderer.defineAttributes({
+  ...FilterCollection.defaultAttributes,
+  "weekly-hit-boolean": "boolean",
+});
+
+type TagesmenuAttributes = typeof filterAttributes;
+
 const formatDE = (date: Date, formatStr: string) => format(date, formatStr, { locale: de });
 
 // Selector functions
@@ -45,8 +52,8 @@ const sowOptions: StartOfWeekOptions = {
   locale: de,
 }
 
-function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData): Date[] {
-  const dates = data.map(weekday => weekday.date.getTime());
+function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData<TagesmenuAttributes>): Date[] {
+  const dates = data.map(weekday => weekday.props.date.getTime());
   let minDate = new Date(Math.min(...dates));
   let maxDate = new Date(Math.max(...dates));
   if (startOfWeek(minDate, sowOptions).getTime() !== minDate.getTime()) {
@@ -155,12 +162,24 @@ function initialize(): void {
   const pdfStorage = parsePdfLocalStorage();
 
   // Initialize collection list
-  const filterCollection = new FilterCollection(filterCollectionListElement, 'Tagesmenus', 'pdf');
+  const filterCollection = new FilterCollection(filterCollectionListElement, {
+    name: 'Tagesmenus',
+    rendererOptions: {
+      attributeName: 'pdf',
+      filterAttributes: filterAttributes,
+      timezone: 'Europe/Zurich'
+    }
+  });
   filterCollection.renderer.addFilterAttributes({ 'weekly-hit-boolean': 'boolean' });
   filterCollection.readData();
 
   // Initialize drink-lists collection list
-  const drinksCollection = new FilterCollection(drinkLists_collectionListElement, 'Getränke', 'pdf');
+  const drinksCollection = new FilterCollection(drinkLists_collectionListElement, {
+    name: 'Getränke',
+    rendererOptions: {
+      attributeName: 'pdf',
+    }
+  });
   prepareHideCategories(drinksCollection);
   drinksCollection.renderer.addFilterAttributes({ 'start-date': 'date', 'end-date': 'date' });
   drinksCollection.readData();
@@ -236,6 +255,7 @@ function initialize(): void {
 
     canvas.showHiddenElements();
     pdf.render(renderData);
+    pdf.hyphenizePages();
     canvas.update();
   });
 
@@ -266,7 +286,7 @@ function initialize(): void {
     }
     filename += ` ${format}`;
 
-    pdf.save(pdfFormat, filename, 4.17);
+    pdf.save(pdfFormat, filename, 1);
   });
 }
 

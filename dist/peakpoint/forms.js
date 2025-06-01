@@ -390,7 +390,73 @@
     }
   });
 
-  // ../peakflow/src/attributeselector.ts
+  // node_modules/peakflow/src/cal/loader.ts
+  async function loadCal(namespace) {
+    if (typeof window.Cal !== "undefined") return window.Cal;
+    (function(windw, embedJS, action) {
+      const p = (api, args) => {
+        api.q.push(args);
+      };
+      const doc = windw.document;
+      windw.Cal = function() {
+        const cal = windw.Cal;
+        const ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          const script = doc.createElement("script");
+          script.src = embedJS;
+          doc.head.appendChild(script);
+          cal.loaded = true;
+        }
+        if (ar[0] === action) {
+          const api = function() {
+            p(api, arguments);
+          };
+          const namespace2 = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace2 === "string") {
+            cal.ns[namespace2] = cal.ns[namespace2] || api;
+            p(cal.ns[namespace2], ar);
+            p(cal, ["initNamespace", namespace2]);
+          } else {
+            p(cal, ar);
+          }
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+    const Cal = window.Cal;
+    Cal("init", namespace, { origin: "https://cal.com" });
+    return Cal;
+  }
+  async function initCal(namespace) {
+    const Cal = await loadCal(namespace);
+    const element = document.querySelector(`[cal-id="${namespace}"]`);
+    if (!element) throw new Error("Embed container not found");
+    const calDOMOptions = {
+      link: element.getAttribute("cal-link"),
+      hideEventTypeDetails: element.getAttribute("cal-hide-event-details") === "true"
+    };
+    Cal.ns[namespace]("inline", {
+      elementOrSelector: element,
+      config: { layout: "month_view" },
+      calLink: calDOMOptions.link
+    });
+    Cal.ns[namespace]("ui", {
+      hideEventTypeDetails: calDOMOptions.hideEventTypeDetails,
+      layout: "month_view",
+      cssVarsPerTheme: {
+        light: { "cal-brand": "#333" },
+        dark: { "cal-brand": "#eee" }
+      },
+      theme: "light"
+    });
+    return Cal;
+  }
+
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -425,7 +491,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -465,11 +531,50 @@
     select: wfselect
   };
 
-  // ../peakflow/src/form/utility.ts
+  // node_modules/peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
   function isCheckboxInput(input) {
     return input instanceof HTMLInputElement && input.type === "checkbox";
+  }
+  function getWfFormData(form, fields, test = false) {
+    if (!(form instanceof HTMLFormElement)) {
+      form = form.querySelector("form");
+    }
+    if (!form || !(form instanceof HTMLFormElement)) {
+      throw new TypeError(`The passed "form" is not a form.`);
+    }
+    return {
+      name: form.dataset.name,
+      pageId: wf.pageId,
+      elementId: form.dataset.wfElementId,
+      source: window.location.href,
+      fields,
+      test,
+      dolphin: false
+    };
+  }
+  async function sendFormData(formData) {
+    const url = `https://webflow.com/api/v1/form/${wf.siteId}`;
+    const request = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json, text/javascript, */*; q=0.01"
+      },
+      body: JSON.stringify(formData)
+    };
+    try {
+      const response = await fetch(url, request);
+      if (!response.ok) {
+        throw new Error(`Network response "${response.status}" was not okay`);
+      }
+      console.log("Form submission success! Status", response.status);
+      return true;
+    } catch (error) {
+      console.error("Form submission failed:", error);
+      return false;
+    }
   }
   function reportValidity(input) {
     input.reportValidity();
@@ -494,42 +599,7 @@
     form.parentElement.classList.remove("w-form");
   }
 
-  // ../peakflow/src/inputsync.ts
-  var syncSelector = attributeselector_default("input-sync");
-  function constructInputMap(inputs) {
-    const inputMap = /* @__PURE__ */ new Map();
-    inputs.forEach((input) => {
-      const value = input.getAttribute("input-sync");
-      if (inputMap.has(value)) {
-        inputMap.get(value).push(input);
-      } else {
-        inputMap.set(value, [input]);
-      }
-    });
-    return inputMap;
-  }
-  function syncGroup(input, groupInputs) {
-    groupInputs.filter((otherInput) => otherInput !== input).forEach((otherInput) => otherInput.value = input.value);
-  }
-  function inputSync(container = document.body) {
-    if (!container) throw new Error(`Container cannot be undefined.`);
-    const inputs = Array.from(container.querySelectorAll(syncSelector()));
-    const inputMap = constructInputMap(inputs);
-    const inputGroups = Array.from(inputMap.entries());
-    inputGroups.forEach(([groupName, groupInputs]) => {
-      if (groupInputs.length < 2) {
-        console.warn(`Input group "${groupName}" has less than 2 inputs. Skipping group.`);
-        return;
-      }
-      groupInputs.forEach((currentInput) => {
-        currentInput.addEventListener("change", () => {
-          syncGroup(currentInput, groupInputs);
-        });
-      });
-    });
-  }
-
-  // ../peakflow/src/deepmerge.ts
+  // node_modules/peakflow/src/deepmerge.ts
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -542,7 +612,7 @@
     return result;
   }
 
-  // ../peakflow/src/modal.ts
+  // node_modules/peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -556,8 +626,16 @@
     lockBodyScroll: true
   };
   var Modal = class _Modal {
+    component;
+    modal;
+    initialized = false;
+    settings;
+    instance;
+    static attr = {
+      id: "data-modal-id",
+      element: "data-modal-element"
+    };
     constructor(component, settings = {}) {
-      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -575,15 +653,7 @@
       }
       this.initialized = true;
     }
-    static {
-      this.attr = {
-        id: "data-modal-id",
-        element: "data-modal-element"
-      };
-    }
-    static {
-      this.attributeSelector = attributeselector_default(_Modal.attr.element);
-    }
+    static attributeSelector = attributeselector_default(_Modal.attr.element);
     /**
      * Static selector
      */
@@ -741,9 +811,44 @@
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
 
-  // src/peakpoint/prototype-form.ts
+  // node_modules/peakflow/src/inputsync.ts
+  var syncSelector = attributeselector_default("input-sync");
+  function constructInputMap(inputs) {
+    const inputMap = /* @__PURE__ */ new Map();
+    inputs.forEach((input) => {
+      const value = input.getAttribute("input-sync");
+      if (inputMap.has(value)) {
+        inputMap.get(value).push(input);
+      } else {
+        inputMap.set(value, [input]);
+      }
+    });
+    return inputMap;
+  }
+  function syncGroup(input, groupInputs) {
+    groupInputs.filter((otherInput) => otherInput !== input).forEach((otherInput) => otherInput.value = input.value);
+  }
+  function inputSync(container = document.body) {
+    if (!container) throw new Error(`Container cannot be undefined.`);
+    const inputs = Array.from(container.querySelectorAll(syncSelector()));
+    const inputMap = constructInputMap(inputs);
+    const inputGroups = Array.from(inputMap.entries());
+    inputGroups.forEach(([groupName, groupInputs]) => {
+      if (groupInputs.length < 2) {
+        console.warn(`Input group "${groupName}" has less than 2 inputs. Skipping group.`);
+        return;
+      }
+      groupInputs.forEach((currentInput) => {
+        currentInput.addEventListener("change", () => {
+          syncGroup(currentInput, groupInputs);
+        });
+      });
+    });
+  }
+
+  // src/peakpoint/forms.ts
   var import_isURL = __toESM(require_isURL());
-  function setupForm(form, modal) {
+  function setupHookForm(form, modal) {
     disableWebflowForm(form);
     const closeModalButtons = modal.selectAll("close");
     const openModalButton = form.querySelector(Modal.selector("open"));
@@ -769,24 +874,33 @@
     });
     openModalButton.addEventListener("click", () => tryOpenModal());
   }
-  document.addEventListener("DOMContentLoaded", () => {
-    inputSync();
-    const modalElement = Modal.select("component", "prototype");
-    const modal = new Modal(modalElement, {
-      animation: {
-        type: "slideUp",
-        duration: 300
-      },
-      lockBodyScroll: true
+  function setupFormSubmit(form) {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formBlock = form.parentElement;
+      const fields = Object.fromEntries(new FormData(form).entries());
+      const wfFormData = getWfFormData(form, fields);
+      const success = await sendFormData(wfFormData);
+      if (success) {
+        const successEl = formBlock.querySelector(formElementSelector("success"));
+        successEl.classList.remove("hide");
+        successEl.style.display = "block";
+      } else {
+        const errorEl = formBlock.querySelector(formElementSelector("error"));
+        errorEl.classList.remove("hide");
+        errorEl.style.display = "block";
+        errorEl.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }
     });
-    const hookForms = document.querySelectorAll(`form[formstack-element="form:prototype-hook"]`);
-    hookForms.forEach((form) => {
-      setupForm(form, modal);
-    });
+  }
+  function initNavFormModal() {
     const navModalElement = Modal.select("component", "nav");
     const navModal = new Modal(navModalElement, {
       animation: {
-        type: "slideUp",
+        type: "growIn",
         duration: 300
       },
       lockBodyScroll: true
@@ -803,6 +917,40 @@
         navModal.close();
       });
     });
+  }
+  async function initLeadForms(...formIds) {
+    formIds.forEach(async (formId) => {
+      const modalElement = Modal.select("component", formId);
+      if (!modalElement) return;
+      const modal = new Modal(modalElement, {
+        animation: {
+          type: "growIn",
+          duration: 300
+        },
+        lockBodyScroll: true
+      });
+      const modalForm = modal.component.querySelector("form");
+      disableWebflowForm(modalForm);
+      setupFormSubmit(modalForm);
+      const Cal = await initCal(formId);
+      Cal.ns[formId]("on", {
+        action: "bookingSuccessfulV2",
+        callback: () => {
+          console.log("BOOKING SUCCESSFUL WORKS");
+          const event = new Event("submit", { bubbles: true, cancelable: true });
+          modalForm.dispatchEvent(event);
+        }
+      });
+      const hookForms = document.querySelectorAll(`form[formstack-element="hook:${formId}"]`);
+      hookForms.forEach((form) => {
+        setupHookForm(form, modal);
+      });
+    });
+  }
+  document.addEventListener("DOMContentLoaded", async () => {
+    inputSync();
+    initLeadForms("analysis", "prototype");
+    initNavFormModal();
   });
 })();
-//# sourceMappingURL=prototype-form.js.map
+//# sourceMappingURL=forms.js.map
