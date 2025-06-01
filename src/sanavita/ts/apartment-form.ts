@@ -10,7 +10,8 @@ import {
   formElementSelector,
   fieldFromInput,
   removeErrorClasses,
-  enforceButtonTypes
+  enforceButtonTypes,
+  FormFieldMap
 } from "@peakflow/form";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
@@ -402,7 +403,7 @@ class FormArray {
   private saveProspectFromModal(opts?: {
     validate?: boolean;
     report?: boolean;
-  }) {
+  }): void {
     if (opts.validate ?? true) {
       const listValid = this.validateModal(opts.report ?? true);
       if (!listValid) {
@@ -929,17 +930,7 @@ class MultiStepForm {
   }
 
   private buildJsonForWebflow(): any {
-    const customFields = this.customComponents.reduce((acc, entry) => {
-      return {
-        ...acc,
-        ...(entry.getData ? entry.getData() : {}),
-      };
-    }, {});
-
-    const fields = {
-      ...mapToObject(this.getAllFormData(), false),
-      ...customFields,
-    }
+    const fields = this.getFormData();
 
     if (this.options.recaptcha) {
       const recaptcha = (this.formElement.querySelector("#g-recaptcha-response") as HTMLFormInput).value;
@@ -1199,8 +1190,16 @@ class MultiStepForm {
     return valid && customValid;
   }
 
-  public getFormDataForStep(step: number): Map<string, FormField> {
-    let fields: Map<string, FormField> = new Map();
+  /**
+   * Gets data of all form fields in a `FormFieldMap`.
+   *
+   * @step Step index of the multi step form
+   * @returns `FormFieldMap` - A map of field id (string) to a `FormField` class instance
+   *
+   * Fields that are a descendant of '[data-steps-element="custom-component"]' are excluded.
+   */
+  public getFieldMapForStep(step: number): FormFieldMap {
+    let fields: FormFieldMap = new Map();
 
     const stepElement = this.formSteps[step];
     const stepInputs: NodeListOf<HTMLFormInput> =
@@ -1215,21 +1214,30 @@ class MultiStepForm {
     return fields;
   }
 
-  public getAllFormData(): Map<string, FormField> {
-    //let fields: Map<string, FormField> = new Map();
-    //
-    //this.formSteps.forEach((step, stepIndex) => {
-    //  const stepData = this.getFormDataForStep(stepIndex);
-    //  fields = new Map([...fields, ...stepData]);
-    //});
-
+  public getFieldMap(): FormFieldMap {
     const fields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
-      const stepData = this.getFormDataForStep(stepIndex);
+      const stepData = this.getFieldMapForStep(stepIndex);
       return new Map([
         ...acc,
         ...stepData
       ]);
-    }, new Map());
+    }, new Map() as FormFieldMap);
+
+    return fields;
+  }
+
+  public getFormData(): any {
+    const customFields = this.customComponents.reduce((acc, entry) => {
+      return {
+        ...acc,
+        ...(entry.getData ? entry.getData() : {}),
+      };
+    }, {});
+
+    const fields = {
+      ...mapToObject(this.getFieldMap(), false),
+      ...customFields,
+    }
 
     return fields;
   }

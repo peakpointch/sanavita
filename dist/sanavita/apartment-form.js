@@ -3696,16 +3696,7 @@ Component:`,
       }
     }
     buildJsonForWebflow() {
-      const customFields = this.customComponents.reduce((acc, entry) => {
-        return {
-          ...acc,
-          ...entry.getData ? entry.getData() : {}
-        };
-      }, {});
-      const fields = {
-        ...mapToObject(this.getAllFormData(), false),
-        ...customFields
-      };
+      const fields = this.getFormData();
       if (this.options.recaptcha) {
         const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
         fields["g-recaptcha-response"] = recaptcha;
@@ -3909,7 +3900,15 @@ Component:`,
       }
       return valid && customValid;
     }
-    getFormDataForStep(step) {
+    /**
+     * Gets data of all form fields in a `FormFieldMap`.
+     *
+     * @step Step index of the multi step form
+     * @returns `FormFieldMap` - A map of field id (string) to a `FormField` class instance
+     *
+     * Fields that are a descendant of '[data-steps-element="custom-component"]' are excluded.
+     */
+    getFieldMapForStep(step) {
       let fields = /* @__PURE__ */ new Map();
       const stepElement = this.formSteps[step];
       const stepInputs = stepElement.querySelectorAll(wf.select.formInput);
@@ -3921,14 +3920,27 @@ Component:`,
       });
       return fields;
     }
-    getAllFormData() {
+    getFieldMap() {
       const fields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
-        const stepData = this.getFormDataForStep(stepIndex);
+        const stepData = this.getFieldMapForStep(stepIndex);
         return new Map([
           ...acc,
           ...stepData
         ]);
       }, /* @__PURE__ */ new Map());
+      return fields;
+    }
+    getFormData() {
+      const customFields = this.customComponents.reduce((acc, entry) => {
+        return {
+          ...acc,
+          ...entry.getData ? entry.getData() : {}
+        };
+      }, {});
+      const fields = {
+        ...mapToObject(this.getFieldMap(), false),
+        ...customFields
+      };
       return fields;
     }
   };
