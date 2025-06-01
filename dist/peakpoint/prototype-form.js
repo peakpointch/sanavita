@@ -390,7 +390,7 @@
     }
   });
 
-  // ../peakflow/src/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -425,7 +425,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -465,7 +465,7 @@
     select: wfselect
   };
 
-  // ../peakflow/src/form/utility.ts
+  // node_modules/peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
   function isCheckboxInput(input) {
@@ -494,7 +494,7 @@
     form.parentElement.classList.remove("w-form");
   }
 
-  // ../peakflow/src/inputsync.ts
+  // node_modules/peakflow/src/inputsync.ts
   var syncSelector = attributeselector_default("input-sync");
   function constructInputMap(inputs) {
     const inputMap = /* @__PURE__ */ new Map();
@@ -529,7 +529,7 @@
     });
   }
 
-  // ../peakflow/src/deepmerge.ts
+  // node_modules/peakflow/src/deepmerge.ts
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -542,7 +542,7 @@
     return result;
   }
 
-  // ../peakflow/src/modal.ts
+  // node_modules/peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -556,8 +556,16 @@
     lockBodyScroll: true
   };
   var Modal = class _Modal {
+    component;
+    modal;
+    initialized = false;
+    settings;
+    instance;
+    static attr = {
+      id: "data-modal-id",
+      element: "data-modal-element"
+    };
     constructor(component, settings = {}) {
-      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -575,15 +583,7 @@
       }
       this.initialized = true;
     }
-    static {
-      this.attr = {
-        id: "data-modal-id",
-        element: "data-modal-element"
-      };
-    }
-    static {
-      this.attributeSelector = attributeselector_default(_Modal.attr.element);
-    }
+    static attributeSelector = attributeselector_default(_Modal.attr.element);
     /**
      * Static selector
      */
