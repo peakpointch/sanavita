@@ -278,7 +278,7 @@ class FormArray {
     this.draftButton.addEventListener("click", () => {
       this.saveProspectFromModal({ validate: false, report: false });
     });
-    this.addButton.addEventListener("click", () => this.addProspect());
+    this.addButton.addEventListener("click", () => this.startNewProspect());
 
     this.initializeLinkedFields();
 
@@ -391,7 +391,7 @@ class FormArray {
     }
   }
 
-  private addProspect() {
+  private startNewProspect() {
     if (this.prospects.size === 2) {
       this.formMessage.error("Sie können nur max. 2 Personen hinzufügen.");
       setTimeout(() => this.formMessage.reset(), 5000);

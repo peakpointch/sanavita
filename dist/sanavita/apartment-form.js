@@ -3184,7 +3184,7 @@
       this.draftButton.addEventListener("click", () => {
         this.saveProspectFromModal({ validate: false, report: false });
       });
-      this.addButton.addEventListener("click", () => this.addProspect());
+      this.addButton.addEventListener("click", () => this.startNewProspect());
       this.initializeLinkedFields();
       this.renderList();
       this.closeModal();
@@ -3268,7 +3268,7 @@
         this.closeModal();
       }
     }
-    addProspect() {
+    startNewProspect() {
       if (this.prospects.size === 2) {
         this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.");
         setTimeout(() => this.formMessage.reset(), 5e3);
