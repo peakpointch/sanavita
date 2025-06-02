@@ -3242,6 +3242,9 @@
         });
       }
     }
+    /**
+     * Gets the ResidentProspect currently being edited via the `editingKey` property.
+     */
     getEditingProspect() {
       if (this.editingKey.startsWith("draft")) {
         return this.draftProspect;
@@ -3249,6 +3252,9 @@
         return this.prospects.get(this.editingKey);
       }
     }
+    /**
+     * Opens an alert dialog to confirm canceling the changes made to the current ResidentProspect.
+     */
     async discardChanges() {
       const lastSaved = this.getEditingProspect();
       const currentState = this.extractData();
@@ -3268,6 +3274,9 @@
         this.closeModal();
       }
     }
+    /**
+     * Opens the modal form to start a new `ResidentProspect`. Creates a draft prospect.
+     */
     startNewProspect() {
       if (this.prospects.size === 2) {
         this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.");

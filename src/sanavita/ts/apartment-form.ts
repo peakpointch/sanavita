@@ -360,6 +360,9 @@ class FormArray {
     }
   }
 
+  /**
+   * Gets the ResidentProspect currently being edited via the `editingKey` property.
+   */
   private getEditingProspect(): ResidentProspect {
     if (this.editingKey.startsWith('draft')) {
       return this.draftProspect;
@@ -368,6 +371,9 @@ class FormArray {
     }
   }
 
+  /**
+   * Opens an alert dialog to confirm canceling the changes made to the current ResidentProspect.
+   */
   private async discardChanges(): Promise<void> {
     const lastSaved = this.getEditingProspect();
     const currentState = this.extractData();
@@ -391,6 +397,9 @@ class FormArray {
     }
   }
 
+  /**
+   * Opens the modal form to start a new `ResidentProspect`. Creates a draft prospect.
+   */
   private startNewProspect() {
     if (this.prospects.size === 2) {
       this.formMessage.error("Sie können nur max. 2 Personen hinzufügen.");
