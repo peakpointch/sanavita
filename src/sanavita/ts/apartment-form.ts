@@ -68,10 +68,10 @@ const stepsNavSelector = createAttribute<StepsNavElement>('data-steps-nav');
 const prospectSelector = createAttribute<ProspectElement>('data-prospect-element')
 
 const LINK_FIELDS_ATTR = `data-link-fields`;
-const ARRAY_GROUP_ATTR = `data-prospect-field-group`;
+const FIELD_GROUP_ATTR = `data-prospect-field-group`;
 const STEPS_PAGINATION_ITEM_SELECTOR: string = `button${stepsTargetSelector()}`;
 const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
-const ARRAY_GROUP_SELECTOR: string = `[${ARRAY_GROUP_ATTR}]`;
+const FIELD_GROUP_SELECTOR: string = `[${FIELD_GROUP_ATTR}]`;
 const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
@@ -240,7 +240,7 @@ class FormArray {
     )!;
     this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
     this.groupElements =
-      this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
+      this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
 
     this.initialize();
   }
@@ -321,8 +321,8 @@ class FormArray {
           throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
         }
 
-        const fieldGroupElement = link.closest(ARRAY_GROUP_SELECTOR);
-        const fieldGroupName = fieldGroupElement.getAttribute(ARRAY_GROUP_ATTR) as GroupName;
+        const fieldGroupElement = link.closest(FIELD_GROUP_SELECTOR);
+        const fieldGroupName = fieldGroupElement?.getAttribute(FIELD_GROUP_ATTR) as GroupName;
         const fieldGroup = otherProspect[fieldGroupName];
 
         inputIds.forEach(id => {
