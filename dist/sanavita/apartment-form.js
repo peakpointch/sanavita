@@ -3155,7 +3155,7 @@
     }
     initialize() {
       this.cancelButtons.forEach((button) => {
-        button.addEventListener("click", () => this.handleCancel());
+        button.addEventListener("click", () => this.discardChanges());
       });
       this.modalInputs.forEach((input) => {
         input.addEventListener("keydown", (event) => {
@@ -3249,7 +3249,7 @@
         return this.prospects.get(this.editingKey);
       }
     }
-    async handleCancel() {
+    async discardChanges() {
       const lastSaved = this.getEditingProspect();
       const currentState = this.extractData();
       if (ResidentProspect.areEqual(lastSaved, currentState)) {

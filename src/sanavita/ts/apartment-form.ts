@@ -247,7 +247,7 @@ class FormArray {
 
   private initialize() {
     this.cancelButtons.forEach((button) => {
-      button.addEventListener("click", () => this.handleCancel());
+      button.addEventListener("click", () => this.discardChanges());
     });
 
     (this.modalInputs as NodeListOf<HTMLInputElement>).forEach((input) => {
@@ -368,7 +368,7 @@ class FormArray {
     }
   }
 
-  private async handleCancel(): Promise<void> {
+  private async discardChanges(): Promise<void> {
     const lastSaved = this.getEditingProspect();
     const currentState = this.extractData();
 
