@@ -2989,6 +2989,18 @@
     }
   };
 
+  // ../peakflow/src/objecttomap.ts
+  function objectToMap(obj, deep = false) {
+    const map = /* @__PURE__ */ new Map();
+    for (const [key, value] of Object.entries(obj)) {
+      if (deep && value instanceof Object && !(value instanceof Map)) {
+        map.set(key, objectToMap(value, true));
+      } else {
+        map.set(key, value);
+      }
+    }
+    return map;
+  }
 
   // src/sanavita/ts/residentprospect.ts
   function prospectMapToObject(prospects) {
@@ -3007,14 +3019,23 @@
     }
     return prospectsObj;
   }
-  var ResidentProspect = class {
-    constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup()) {
+  var ResidentProspect = class _ResidentProspect {
+    constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup(), linkedFields = /* @__PURE__ */ new Map()) {
       this.key = `person-${crypto.randomUUID()}`;
       this.personalData = personalData;
       this.doctor = doctor;
       this.health = health;
       this.primaryRelative = primaryRelative;
       this.secondaryRelative = secondaryRelative;
+      this.linkedFields = linkedFields;
+    }
+    linkFields(groupId, fields) {
+      if (!groupId) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${groupId}" for linking fields is not valid.`);
+      const inputIds = fields?.split(",").map((id) => id.trim());
+      if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+        throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+      }
+      this.linkedFields.set(groupId, inputIds);
     }
     validate() {
       let valid = true;
@@ -3042,15 +3063,6 @@
     getFullName() {
       return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
     }
-    serialize() {
-      return {
-        personalData: mapToObject(this.personalData.fields),
-        doctor: mapToObject(this.doctor.fields),
-        health: mapToObject(this.health.fields),
-        primaryRelative: mapToObject(this.primaryRelative.fields),
-        secondaryRelative: mapToObject(this.secondaryRelative.fields)
-      };
-    }
     flatten(prefix) {
       const fields = {};
       const groupNames = Object.keys(this);
@@ -3063,6 +3075,29 @@
       }
       return fields;
     }
+    serialize() {
+      return {
+        personalData: this.personalData.serialize(),
+        doctor: this.doctor.serialize(),
+        health: this.health.serialize(),
+        primaryRelative: this.primaryRelative.serialize(),
+        secondaryRelative: this.secondaryRelative.serialize(),
+        linkedFields: mapToObject(this.linkedFields)
+      };
+    }
+    /**
+     * Main function to deserialize a `ResidentProspect`
+     */
+    static deserialize(data) {
+      return new _ResidentProspect(
+        FieldGroup.deserialize(data.personalData),
+        FieldGroup.deserialize(data.doctor),
+        FieldGroup.deserialize(data.health),
+        FieldGroup.deserialize(data.primaryRelative),
+        FieldGroup.deserialize(data.secondaryRelative),
+        objectToMap(data.linkedFields)
+      );
+    }
     static areEqual(a, b) {
       const groups = [
         "personalData",
@@ -3071,6 +3106,7 @@
         "primaryRelative",
         "secondaryRelative"
       ];
+      if (!a || !b) return false;
       for (const groupName of groups) {
         const groupA = a[groupName];
         const groupB = b[groupName];

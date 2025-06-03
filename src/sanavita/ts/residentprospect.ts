@@ -1,4 +1,5 @@
 import { FieldGroup } from "@peakflow/form/fieldgroup";
+import { FormField, FieldData } from "@peakflow/form/formfield";
 import mapToObject from "@peakflow/maptoobject";
 import objectToMap from "@peakflow/objecttomap";
 
@@ -17,6 +18,15 @@ type LinkedFieldsId =
   | "doctor"
   | "primaryRelative"
   | "secondaryRelative";
+
+export interface SerializedProspect {
+  personalData?: any;
+  doctor?: any;
+  health?: any;
+  primaryRelative?: any;
+  secondaryRelative?: any;
+  linkedFields?: any;
+}
 
 /**
  * Used to save the prospect to local storage.
@@ -119,17 +129,7 @@ export class ResidentProspect {
     );
   }
 
-  public serialize(): object {
-    return {
-      personalData: mapToObject(this.personalData.fields),
-      doctor: mapToObject(this.doctor.fields),
-      health: mapToObject(this.health.fields),
-      primaryRelative: mapToObject(this.primaryRelative.fields),
-      secondaryRelative: mapToObject(this.secondaryRelative.fields),
-    };
-  }
-
-  public flatten(prefix: string): object {
+  public flatten(prefix: string): Object {
     const fields: any = {};
 
     const groupNames = Object.keys(this) as GroupName[];
@@ -143,6 +143,31 @@ export class ResidentProspect {
     }
 
     return fields;
+  }
+
+  public serialize(): SerializedProspect {
+    return {
+      personalData: this.personalData.serialize(),
+      doctor: this.doctor.serialize(),
+      health: this.health.serialize(),
+      primaryRelative: this.primaryRelative.serialize(),
+      secondaryRelative: this.secondaryRelative.serialize(),
+      linkedFields: mapToObject(this.linkedFields),
+    };
+  }
+
+  /**
+   * Main function to deserialize a `ResidentProspect`
+   */
+  public static deserialize(data: SerializedProspect): ResidentProspect {
+    return new ResidentProspect(
+      FieldGroup.deserialize(data.personalData),
+      FieldGroup.deserialize(data.doctor),
+      FieldGroup.deserialize(data.health),
+      FieldGroup.deserialize(data.primaryRelative),
+      FieldGroup.deserialize(data.secondaryRelative),
+      objectToMap(data.linkedFields)
+    );
   }
 
   public static areEqual(a: ResidentProspect, b: ResidentProspect): boolean {
