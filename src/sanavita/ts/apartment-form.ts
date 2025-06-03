@@ -77,33 +77,6 @@ const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
 
-// Helper function to convert an object to a Map of Field instances
-function convertObjectToFields(fieldsObj: any): Map<string, FormField> {
-  const fieldsMap = new Map<string, FormField>();
-  Object.entries(fieldsObj).forEach(([key, fieldData]) => {
-    const field = new FormField(fieldData as FieldData);
-    fieldsMap.set(key, field);
-  });
-  return fieldsMap;
-}
-
-// Helper function to deserialize a FieldGroup
-function deserializeFieldGroup(fieldGroupData: any): FieldGroup {
-  const fieldsMap = convertObjectToFields(fieldGroupData); // Convert object fields to Field instances
-  return new FieldGroup(fieldsMap); // Create a new FieldGroup with the fields
-}
-
-// Main function to deserialize a `ResidentProspect`
-function deserializeResidentProspect(data: any): ResidentProspect {
-  return new ResidentProspect(
-    deserializeFieldGroup(data.personalData),
-    deserializeFieldGroup(data.doctor),
-    deserializeFieldGroup(data.health),
-    deserializeFieldGroup(data.primaryRelative),
-    deserializeFieldGroup(data.secondaryRelative)
-  );
-}
-
 class FormGroup {
   private form: HTMLFormElement;
   private container: HTMLElement;
