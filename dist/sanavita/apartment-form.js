@@ -301,6 +301,15 @@
     return field;
   }
 
+  // ../peakflow/src/maptoobject.ts
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+
   // ../peakflow/src/form/fieldgroup.ts
   var FieldGroup = class {
     constructor(fields = /* @__PURE__ */ new Map()) {
@@ -2980,14 +2989,6 @@
     }
   };
 
-  // src/sanavita/ts/utility/maptoobject.ts
-  function mapToObject(map, stringify = false) {
-    const obj = {};
-    for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
-    }
-    return obj;
-  }
 
   // src/sanavita/ts/residentprospect.ts
   function prospectMapToObject(prospects) {

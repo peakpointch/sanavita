@@ -1,6 +1,6 @@
 import { FieldGroup } from "@peakflow/form/fieldgroup";
-import { FormField } from "@peakflow/form/formfield";
-import mapToObject from "./utility/maptoobject";
+import mapToObject from "@peakflow/maptoobject";
+import objectToMap from "@peakflow/objecttomap";
 
 export type GroupName =
   | "personalData"

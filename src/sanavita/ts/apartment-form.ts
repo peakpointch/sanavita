@@ -25,7 +25,7 @@ import {
   prospectMapToObject,
   flattenProspects,
 } from "./residentprospect";
-import mapToObject from "./utility/maptoobject";
+import mapToObject from "@peakflow/maptoobject"
 import deepMerge from "@peakflow/deepmerge";
 
 // Types
