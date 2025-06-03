@@ -18,6 +18,9 @@ type LinkedFieldsId =
   | "primaryRelative"
   | "secondaryRelative";
 
+/**
+ * Used to save the prospect to local storage.
+ */
 export function prospectMapToObject(prospects: Map<string, ResidentProspect>): any {
   // Convert a ResidentProspect's structure, which contains FieldGroups with fields as Maps
   const prospectsObj: any = {};
@@ -27,6 +30,9 @@ export function prospectMapToObject(prospects: Map<string, ResidentProspect>): a
   return prospectsObj;
 }
 
+/**
+ * Used to submit a prospect.
+ */
 export function flattenProspects(prospects: Map<string, ResidentProspect>): any {
   let prospectsObj: any = {};
   let prospectArray = [...prospects.values()];
