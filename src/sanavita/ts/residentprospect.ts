@@ -154,6 +154,8 @@ export class ResidentProspect {
       "secondaryRelative",
     ];
 
+    if (!a || !b) return false;
+
     for (const groupName of groups) {
       const groupA = a[groupName];
       const groupB = b[groupName];
