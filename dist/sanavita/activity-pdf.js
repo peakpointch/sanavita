@@ -33848,7 +33848,7 @@ Page:`, page);
       const pdfFormat = format3.toLowerCase();
       let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
       filename += ` ${format3}`;
-      pdf.save(pdfFormat, filename, 4.17);
+      pdf.save(pdfFormat, filename, 1);
     });
   }
   document.addEventListener("DOMContentLoaded", () => {
