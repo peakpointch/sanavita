@@ -314,8 +314,17 @@
     return field;
   }
 
+  // node_modules/peakflow/src/maptoobject.ts
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+
   // node_modules/peakflow/src/form/fieldgroup.ts
-  var FieldGroup = class {
+  var FieldGroup = class _FieldGroup {
     fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
@@ -327,6 +336,27 @@
      */
     getField(fieldId) {
       return this.fields.get(fieldId);
+    }
+    /**
+     * Serialize this `FieldGroup`.
+     *
+     * @returns `this.fields` as an object
+     */
+    serialize() {
+      return mapToObject(this.fields);
+    }
+    /**
+     * Deserialize a `FieldGroup`.
+     *
+     * @returns A new `FieldGroup` instance
+     */
+    static deserialize(fieldGroupData) {
+      const fieldsMap = /* @__PURE__ */ new Map();
+      Object.entries(fieldGroupData).forEach(([key, fieldData]) => {
+        const field = new FormField(fieldData);
+        fieldsMap.set(key, field);
+      });
+      return new _FieldGroup(fieldsMap);
     }
   };
 
@@ -3018,10 +3048,10 @@
   };
 
   // src/sanavita/ts/utility/maptoobject.ts
-  function mapToObject(map, stringify = false) {
+  function mapToObject2(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+      obj[key] = value instanceof Map ? mapToObject2(value, stringify) : stringify ? JSON.stringify(value) : value;
     }
     return obj;
   }
@@ -3080,11 +3110,11 @@
     }
     serialize() {
       return {
-        personalData: mapToObject(this.personalData.fields),
-        doctor: mapToObject(this.doctor.fields),
-        health: mapToObject(this.health.fields),
-        primaryRelative: mapToObject(this.primaryRelative.fields),
-        secondaryRelative: mapToObject(this.secondaryRelative.fields)
+        personalData: mapToObject2(this.personalData.fields),
+        doctor: mapToObject2(this.doctor.fields),
+        health: mapToObject2(this.health.fields),
+        primaryRelative: mapToObject2(this.primaryRelative.fields),
+        secondaryRelative: mapToObject2(this.secondaryRelative.fields)
       };
     }
     flatten(prefix) {
@@ -3740,7 +3770,7 @@ Component:`,
         };
       }, {});
       const fields = {
-        ...mapToObject(this.getAllFormData(), false),
+        ...mapToObject2(this.getAllFormData(), false),
         ...customFields
       };
       if (this.options.recaptcha) {
