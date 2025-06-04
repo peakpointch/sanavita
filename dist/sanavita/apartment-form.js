@@ -256,6 +256,7 @@
     required;
     type;
     checked;
+    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
       if (!data) {
         return;
@@ -269,9 +270,15 @@
         this.checked = data.checked || false;
       }
       if (this.type === "checkbox" && !this.checked) {
-        console.log(this.label, this.type, this.checked, data.checked);
         this.value = "Nicht angew\xE4hlt";
       }
+    }
+    setValue(newValue) {
+      this.value = newValue;
+      this.listeners.forEach((callback) => callback(newValue));
+    }
+    onChange(callback) {
+      this.listeners.add(callback);
     }
     validate(report = true) {
       let valid = true;
