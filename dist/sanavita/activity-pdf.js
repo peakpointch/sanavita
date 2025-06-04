@@ -19501,23 +19501,49 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
-    return selector.split(", ").reduce((acc, str) => {
-      let separator = acc === "" ? "" : ", ";
-      return acc + separator + `${str}:not(${exclusions.join(", ")})`;
-    }, "");
+    const result = [];
+    let current = "";
+    let depth = 0;
+    let i3 = 0;
+    while (i3 < selector.length) {
+      const char = selector[i3];
+      if (char === "(") {
+        depth++;
+      } else if (char === ")") {
+        depth--;
+      }
+      if (char === "," && depth === 0) {
+        result.push(current.trim());
+        current = "";
+        i3++;
+        while (selector[i3] === " ") i3++;
+        continue;
+      }
+      current += char;
+      i3++;
+    }
+    if (current.trim()) {
+      result.push(current.trim());
+    }
+    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
   }
-  var createAttribute = (attrName, options = {
-    defaultType: "exact",
-    defaultValue: void 0,
-    exclusions: []
-  }) => {
-    return (name = options.defaultValue, type = options.defaultType) => {
+  var createAttribute = (attrName, defaultOptions2) => {
+    const mergedDefaultOptions = {
+      defaultMatchType: defaultOptions2?.defaultMatchType ?? "exact",
+      defaultValue: defaultOptions2?.defaultValue ?? void 0,
+      defaultExclusions: defaultOptions2?.defaultExclusions ?? []
+    };
+    return (name = mergedDefaultOptions.defaultValue, options) => {
+      const mergedOptions = {
+        matchType: options?.matchType ?? mergedDefaultOptions.defaultMatchType,
+        exclusions: options?.exclusions ?? mergedDefaultOptions.defaultExclusions
+      };
       if (!name) {
-        return exclude(`[${attrName}]`, ...options.exclusions);
+        return exclude(`[${attrName}]`, ...mergedOptions.exclusions);
       }
       const value = String(name);
-      const selector = `[${attrName}${getOperator(type)}="${value}"]`;
-      return exclude(selector, ...options.exclusions ?? []);
+      const selector = `[${attrName}${getOperator(mergedOptions.matchType)}="${value}"]`;
+      return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
   var attributeselector_default = createAttribute;
