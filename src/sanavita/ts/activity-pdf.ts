@@ -267,7 +267,7 @@ function initialize(): void {
     let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
     filename += ` ${format}`;
 
-    pdf.save(pdfFormat, filename, 4.17);
+    pdf.save(pdfFormat, filename, 1);
   });
 }
 

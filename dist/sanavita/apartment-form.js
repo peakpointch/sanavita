@@ -13,23 +13,49 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
-    return selector.split(", ").reduce((acc, str) => {
-      let separator = acc === "" ? "" : ", ";
-      return acc + separator + `${str}:not(${exclusions.join(", ")})`;
-    }, "");
+    const result = [];
+    let current = "";
+    let depth = 0;
+    let i = 0;
+    while (i < selector.length) {
+      const char = selector[i];
+      if (char === "(") {
+        depth++;
+      } else if (char === ")") {
+        depth--;
+      }
+      if (char === "," && depth === 0) {
+        result.push(current.trim());
+        current = "";
+        i++;
+        while (selector[i] === " ") i++;
+        continue;
+      }
+      current += char;
+      i++;
+    }
+    if (current.trim()) {
+      result.push(current.trim());
+    }
+    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
   }
-  var createAttribute = (attrName, options = {
-    defaultType: "exact",
-    defaultValue: void 0,
-    exclusions: []
-  }) => {
-    return (name = options.defaultValue, type = options.defaultType) => {
+  var createAttribute = (attrName, defaultOptions2) => {
+    const mergedDefaultOptions = {
+      defaultMatchType: defaultOptions2?.defaultMatchType ?? "exact",
+      defaultValue: defaultOptions2?.defaultValue ?? void 0,
+      defaultExclusions: defaultOptions2?.defaultExclusions ?? []
+    };
+    return (name = mergedDefaultOptions.defaultValue, options) => {
+      const mergedOptions = {
+        matchType: options?.matchType ?? mergedDefaultOptions.defaultMatchType,
+        exclusions: options?.exclusions ?? mergedDefaultOptions.defaultExclusions
+      };
       if (!name) {
-        return exclude(`[${attrName}]`, ...options.exclusions);
+        return exclude(`[${attrName}]`, ...mergedOptions.exclusions);
       }
       const value = String(name);
-      const selector = `[${attrName}${getOperator(type)}="${value}"]`;
-      return exclude(selector, ...options.exclusions ?? []);
+      const selector = `[${attrName}${getOperator(mergedOptions.matchType)}="${value}"]`;
+      return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
   var attributeselector_default = createAttribute;
@@ -230,6 +256,7 @@
     required;
     type;
     checked;
+    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
       if (!data) {
         return;
@@ -243,9 +270,15 @@
         this.checked = data.checked || false;
       }
       if (this.type === "checkbox" && !this.checked) {
-        console.log(this.label, this.type, this.checked, data.checked);
         this.value = "Nicht angew\xE4hlt";
       }
+    }
+    setValue(newValue) {
+      this.value = newValue;
+      this.listeners.forEach((callback) => callback(newValue));
+    }
+    onChange(callback) {
+      this.listeners.add(callback);
     }
     validate(report = true) {
       let valid = true;
@@ -281,8 +314,17 @@
     return field;
   }
 
+  // node_modules/peakflow/src/maptoobject.ts
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+
   // node_modules/peakflow/src/form/fieldgroup.ts
-  var FieldGroup = class {
+  var FieldGroup = class _FieldGroup {
     fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
@@ -294,6 +336,27 @@
      */
     getField(fieldId) {
       return this.fields.get(fieldId);
+    }
+    /**
+     * Serialize this `FieldGroup`.
+     *
+     * @returns `this.fields` as an object
+     */
+    serialize() {
+      return mapToObject(this.fields);
+    }
+    /**
+     * Deserialize a `FieldGroup`.
+     *
+     * @returns A new `FieldGroup` instance
+     */
+    static deserialize(fieldGroupData) {
+      const fieldsMap = /* @__PURE__ */ new Map();
+      Object.entries(fieldGroupData).forEach(([key, fieldData]) => {
+        const field = new FormField(fieldData);
+        fieldsMap.set(key, field);
+      });
+      return new _FieldGroup(fieldsMap);
     }
   };
 
@@ -2985,10 +3048,10 @@
   };
 
   // src/sanavita/ts/utility/maptoobject.ts
-  function mapToObject(map, stringify = false) {
+  function mapToObject2(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+      obj[key] = value instanceof Map ? mapToObject2(value, stringify) : stringify ? JSON.stringify(value) : value;
     }
     return obj;
   }
@@ -3047,11 +3110,11 @@
     }
     serialize() {
       return {
-        personalData: mapToObject(this.personalData.fields),
-        doctor: mapToObject(this.doctor.fields),
-        health: mapToObject(this.health.fields),
-        primaryRelative: mapToObject(this.primaryRelative.fields),
-        secondaryRelative: mapToObject(this.secondaryRelative.fields)
+        personalData: mapToObject2(this.personalData.fields),
+        doctor: mapToObject2(this.doctor.fields),
+        health: mapToObject2(this.health.fields),
+        primaryRelative: mapToObject2(this.primaryRelative.fields),
+        secondaryRelative: mapToObject2(this.secondaryRelative.fields)
       };
     }
     flatten(prefix) {
@@ -3707,7 +3770,7 @@ Component:`,
         };
       }, {});
       const fields = {
-        ...mapToObject(this.getAllFormData(), false),
+        ...mapToObject2(this.getAllFormData(), false),
         ...customFields
       };
       if (this.options.recaptcha) {
