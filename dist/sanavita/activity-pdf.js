@@ -33862,6 +33862,10 @@ Page:`, page);
           page.classList.add("hide");
         }
       });
+      requestAnimationFrame(() => {
+        pdf.hyphenizePages();
+        canvas.update();
+      });
     });
     filterForm.addOnChange(["startDate", "endDate", "save"], (filters, invokedBy) => {
       const startDate = parse(filters.getField("startDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
