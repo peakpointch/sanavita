@@ -217,6 +217,11 @@ function initialize(): void {
         page.classList.add('hide');
       }
     });
+
+    requestAnimationFrame(() => {
+      pdf.hyphenizePages();
+      canvas.update();
+    });
   });
 
   filterForm.addOnChange(['startDate', 'endDate', 'save'], (filters, invokedBy) => {
