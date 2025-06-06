@@ -250,6 +250,13 @@
 
   // ../peakflow/src/form/formfield.ts
   var FormField = class {
+    id;
+    label;
+    value;
+    required;
+    type;
+    checked;
+    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
       if (!data) {
         return;
@@ -263,9 +270,15 @@
         this.checked = data.checked || false;
       }
       if (this.type === "checkbox" && !this.checked) {
-        console.log(this.label, this.type, this.checked, data.checked);
         this.value = "Nicht angew\xE4hlt";
       }
+    }
+    setValue(newValue) {
+      this.value = newValue;
+      this.listeners.forEach((callback) => callback(newValue));
+    }
+    onChange(callback) {
+      this.listeners.add(callback);
     }
     validate(report = true) {
       let valid = true;
@@ -301,7 +314,7 @@
     return field;
   }
 
-  // ../peakflow/src/maptoobject.ts
+  // node_modules/peakflow/src/maptoobject.ts
   function mapToObject(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
@@ -310,8 +323,9 @@
     return obj;
   }
 
-  // ../peakflow/src/form/fieldgroup.ts
-  var FieldGroup = class {
+  // node_modules/peakflow/src/form/fieldgroup.ts
+  var FieldGroup = class _FieldGroup {
+    fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -323,9 +337,30 @@
     getField(fieldId) {
       return this.fields.get(fieldId);
     }
+    /**
+     * Serialize this `FieldGroup`.
+     *
+     * @returns `this.fields` as an object
+     */
+    serialize() {
+      return mapToObject(this.fields);
+    }
+    /**
+     * Deserialize a `FieldGroup`.
+     *
+     * @returns A new `FieldGroup` instance
+     */
+    static deserialize(fieldGroupData) {
+      const fieldsMap = /* @__PURE__ */ new Map();
+      Object.entries(fieldGroupData).forEach(([key, fieldData]) => {
+        const field = new FormField(fieldData);
+        fieldsMap.set(key, field);
+      });
+      return new _FieldGroup(fieldsMap);
+    }
   };
 
-  // ../peakflow/src/form/formmessage.ts
+  // node_modules/peakflow/src/form/formmessage.ts
   var FormMessage = class {
     /**
      * Constructs a new FormMessage instance.
@@ -2989,15 +3024,11 @@
     }
   };
 
-  // ../peakflow/src/objecttomap.ts
-  function objectToMap(obj, deep = false) {
-    const map = /* @__PURE__ */ new Map();
-    for (const [key, value] of Object.entries(obj)) {
-      if (deep && value instanceof Object && !(value instanceof Map)) {
-        map.set(key, objectToMap(value, true));
-      } else {
-        map.set(key, value);
-      }
+  // src/sanavita/ts/utility/maptoobject.ts
+  function mapToObject2(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject2(value, stringify) : stringify ? JSON.stringify(value) : value;
     }
     return map;
   }
@@ -3062,6 +3093,15 @@
     }
     getFullName() {
       return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
+    }
+    serialize() {
+      return {
+        personalData: mapToObject2(this.personalData.fields),
+        doctor: mapToObject2(this.doctor.fields),
+        health: mapToObject2(this.health.fields),
+        primaryRelative: mapToObject2(this.primaryRelative.fields),
+        secondaryRelative: mapToObject2(this.secondaryRelative.fields)
+      };
     }
     flatten(prefix) {
       const fields = {};
@@ -3759,10 +3799,16 @@ Component:`,
       }
     }
     buildJsonForWebflow() {
-      if (this.options.nested) {
-        throw new Error(`Can't get FormData for a nested MultiStepForm.`);
-      }
-      const fields = this.getFormData();
+      const customFields = this.customComponents.reduce((acc, entry) => {
+        return {
+          ...acc,
+          ...entry.getData ? entry.getData() : {}
+        };
+      }, {});
+      const fields = {
+        ...mapToObject2(this.getAllFormData(), false),
+        ...customFields
+      };
       if (this.options.recaptcha) {
         const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
         fields["g-recaptcha-response"] = recaptcha;

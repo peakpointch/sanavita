@@ -19526,11 +19526,11 @@
     }
     return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
   }
-  var createAttribute = (attrName, defaultOptions3) => {
+  var createAttribute = (attrName, defaultOptions2) => {
     const mergedDefaultOptions = {
-      defaultMatchType: defaultOptions3?.defaultMatchType ?? "exact",
-      defaultValue: defaultOptions3?.defaultValue ?? void 0,
-      defaultExclusions: defaultOptions3?.defaultExclusions ?? []
+      defaultMatchType: defaultOptions2?.defaultMatchType ?? "exact",
+      defaultValue: defaultOptions2?.defaultValue ?? void 0,
+      defaultExclusions: defaultOptions2?.defaultExclusions ?? []
     };
     return (name = mergedDefaultOptions.defaultValue, options) => {
       const mergedOptions = {
@@ -33106,6 +33106,13 @@ Page:`, page);
 
   // ../peakflow/src/form/formfield.ts
   var FormField = class {
+    id;
+    label;
+    value;
+    required;
+    type;
+    checked;
+    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
       if (!data) {
         return;
@@ -33119,9 +33126,15 @@ Page:`, page);
         this.checked = data.checked || false;
       }
       if (this.type === "checkbox" && !this.checked) {
-        console.log(this.label, this.type, this.checked, data.checked);
         this.value = "Nicht angew\xE4hlt";
       }
+    }
+    setValue(newValue) {
+      this.value = newValue;
+      this.listeners.forEach((callback) => callback(newValue));
+    }
+    onChange(callback) {
+      this.listeners.add(callback);
     }
     validate(report = true) {
       let valid = true;
@@ -33157,8 +33170,18 @@ Page:`, page);
     return field;
   }
 
-  // ../peakflow/src/form/fieldgroup.ts
-  var FieldGroup = class {
+  // node_modules/peakflow/src/maptoobject.ts
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+
+  // node_modules/peakflow/src/form/fieldgroup.ts
+  var FieldGroup = class _FieldGroup {
+    fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -33170,9 +33193,30 @@ Page:`, page);
     getField(fieldId) {
       return this.fields.get(fieldId);
     }
+    /**
+     * Serialize this `FieldGroup`.
+     *
+     * @returns `this.fields` as an object
+     */
+    serialize() {
+      return mapToObject(this.fields);
+    }
+    /**
+     * Deserialize a `FieldGroup`.
+     *
+     * @returns A new `FieldGroup` instance
+     */
+    static deserialize(fieldGroupData) {
+      const fieldsMap = /* @__PURE__ */ new Map();
+      Object.entries(fieldGroupData).forEach(([key, fieldData]) => {
+        const field = new FormField(fieldData);
+        fieldsMap.set(key, field);
+      });
+      return new _FieldGroup(fieldsMap);
+    }
   };
 
-  // ../peakflow/src/form/filterform.ts
+  // node_modules/peakflow/src/form/filterform.ts
   var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
@@ -37653,6 +37697,10 @@ Page:`, page);
           page.classList.add("hide");
         }
       });
+      requestAnimationFrame(() => {
+        pdf.hyphenizePages();
+        canvas.update();
+      });
     });
     filterForm.addOnChange(["startDate", "endDate", "save"], (filters, invokedBy) => {
       const startDate = parse2(filters.getField("startDate").value, "yyyy-MM-dd", /* @__PURE__ */ new Date());
@@ -37698,11 +37746,11 @@ Page:`, page);
     const downloadBtn = document.querySelector(actionSelector("download"));
     downloadBtn.addEventListener("click", () => {
       const startDate = new Date(filterForm.getFilterInput("startDate").value);
-      const format4 = filterForm.data.getField("format").value;
-      const pdfFormat = format4.toLowerCase();
-      let filename = `Wochenprogramm ${getISOWeekYear2(startDate)} KW${getISOWeek2(startDate)}`;
-      filename += ` ${format4}`;
-      pdf.save(pdfFormat, filename, 4.17);
+      const format3 = filterForm.data.getField("format").value;
+      const pdfFormat = format3.toLowerCase();
+      let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+      filename += ` ${format3}`;
+      pdf.save(pdfFormat, filename, 1);
     });
   }
   document.addEventListener("DOMContentLoaded", () => {

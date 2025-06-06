@@ -204,6 +204,11 @@ function initialize(): void {
         page.classList.add('hide');
       }
     });
+
+    requestAnimationFrame(() => {
+      pdf.hyphenizePages();
+      canvas.update();
+    });
   });
 
   filterForm.addOnChange(['startDate', 'endDate', 'save'], (filters, invokedBy) => {
@@ -267,7 +272,7 @@ function initialize(): void {
     let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
     filename += ` ${format}`;
 
-    pdf.save(pdfFormat, filename, 4.17);
+    pdf.save(pdfFormat, filename, 1);
   });
 }
 
