@@ -19526,11 +19526,11 @@
     }
     return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
   }
-  var createAttribute = (attrName, defaultOptions2) => {
+  var createAttribute = (attrName, defaultOptions3) => {
     const mergedDefaultOptions = {
-      defaultMatchType: defaultOptions2?.defaultMatchType ?? "exact",
-      defaultValue: defaultOptions2?.defaultValue ?? void 0,
-      defaultExclusions: defaultOptions2?.defaultExclusions ?? []
+      defaultMatchType: defaultOptions3?.defaultMatchType ?? "exact",
+      defaultValue: defaultOptions3?.defaultValue ?? void 0,
+      defaultExclusions: defaultOptions3?.defaultExclusions ?? []
     };
     return (name = mergedDefaultOptions.defaultValue, options) => {
       const mergedOptions = {
@@ -33106,14 +33106,8 @@ Page:`, page);
 
   // ../peakflow/src/form/formfield.ts
   var FormField = class {
-    id;
-    label;
-    value;
-    required;
-    type;
-    checked;
-    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
+      this.listeners = /* @__PURE__ */ new Set();
       if (!data) {
         return;
       }
@@ -33170,7 +33164,7 @@ Page:`, page);
     return field;
   }
 
-  // node_modules/peakflow/src/maptoobject.ts
+  // ../peakflow/src/maptoobject.ts
   function mapToObject(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
@@ -33179,9 +33173,8 @@ Page:`, page);
     return obj;
   }
 
-  // node_modules/peakflow/src/form/fieldgroup.ts
+  // ../peakflow/src/form/fieldgroup.ts
   var FieldGroup = class _FieldGroup {
-    fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -33216,7 +33209,7 @@ Page:`, page);
     }
   };
 
-  // node_modules/peakflow/src/form/filterform.ts
+  // ../peakflow/src/form/filterform.ts
   var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
@@ -37746,10 +37739,10 @@ Page:`, page);
     const downloadBtn = document.querySelector(actionSelector("download"));
     downloadBtn.addEventListener("click", () => {
       const startDate = new Date(filterForm.getFilterInput("startDate").value);
-      const format3 = filterForm.data.getField("format").value;
-      const pdfFormat = format3.toLowerCase();
-      let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
-      filename += ` ${format3}`;
+      const format4 = filterForm.data.getField("format").value;
+      const pdfFormat = format4.toLowerCase();
+      let filename = `Wochenprogramm ${getISOWeekYear2(startDate)} KW${getISOWeek2(startDate)}`;
+      filename += ` ${format4}`;
       pdf.save(pdfFormat, filename, 1);
     });
   }
