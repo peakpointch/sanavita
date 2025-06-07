@@ -697,7 +697,17 @@ class FormArray {
     } else {
       // Check if each ResidentProspect in the prospects collection is valid
       this.prospects.forEach((prospect, key) => {
-        if (!prospect.validate()) {
+        if (prospect.draft) {
+          console.warn(
+            `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
+          );
+          this.formMessage.error(
+            `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
+          );
+
+          setTimeout(() => this.formMessage.reset(), 5000);
+          valid = false; // If any ResidentProspect is invalid, set valid to false
+        } else if (!prospect.validate()) {
           console.warn(
             `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
           );

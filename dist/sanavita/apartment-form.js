@@ -3681,7 +3681,16 @@
         valid = false;
       } else {
         this.prospects.forEach((prospect, key) => {
-          if (!prospect.validate()) {
+          if (prospect.draft) {
+            console.warn(
+              `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder l\xF6schen Sie diese Person.`
+            );
+            this.formMessage.error(
+              `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder l\xF6schen Sie diese Person.`
+            );
+            setTimeout(() => this.formMessage.reset(), 5e3);
+            valid = false;
+          } else if (!prospect.validate()) {
             console.warn(
               `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
             );
