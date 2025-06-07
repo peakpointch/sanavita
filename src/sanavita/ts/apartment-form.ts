@@ -401,7 +401,7 @@ class FormArray {
   private startNewProspect() {
     if (this.prospects.size === 2) {
       this.formMessage.error("Sie können nur max. 2 Personen hinzufügen.");
-      setTimeout(() => this.formMessage.reset(), 5000);
+      this.formMessage.setTimedReset(5000);
       return;
     }
     this.clearModal();
@@ -622,17 +622,10 @@ class FormArray {
     // Validate if there are any prospects in the array (check if the `prospects` map has any entries)
     if (this.prospects.size === 0) {
       console.warn("Bitte fügen Sie mindestens eine mietende Person hinzu.");
-      this.formMessage.error(
-        `Bitte fügen Sie mindestens eine mietende Person hinzu.`
-      );
-      setTimeout(
-        () =>
-          this.formMessage.info(
-            "Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.",
-            true
-          ),
-        5000
-      );
+      this.formMessage.error(`Bitte fügen Sie mindestens eine mietende Person hinzu.`);
+      this.formMessage.setTimedReset(5000, () => {
+        this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.", true)
+      });
       valid = false;
     } else {
       // Check if each ResidentProspect in the prospects collection is valid
@@ -645,7 +638,7 @@ class FormArray {
             `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
           );
 
-          setTimeout(() => this.formMessage.reset(), 8000);
+          this.formMessage.setTimedReset(8000);
           valid = false; // If any ResidentProspect is invalid, set valid to false
         } else if (!prospect.validate()) {
           console.warn(
@@ -655,7 +648,7 @@ class FormArray {
             `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
           );
 
-          setTimeout(() => this.formMessage.reset(), 5000);
+          this.formMessage.setTimedReset(5000);
 
           // setTimeout(() => {
           //   this.populateModal(prospect);

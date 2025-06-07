@@ -3554,7 +3554,7 @@
     startNewProspect() {
       if (this.prospects.size === 2) {
         this.formMessage.error("Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.");
-        setTimeout(() => this.formMessage.reset(), 5e3);
+        this.formMessage.setTimedReset(5e3);
         return;
       }
       this.clearModal();
@@ -3723,16 +3723,10 @@
       let valid = true;
       if (this.prospects.size === 0) {
         console.warn("Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.");
-        this.formMessage.error(
-          `Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.`
-        );
-        setTimeout(
-          () => this.formMessage.info(
-            "Bitte f\xFCgen Sie die Mieter (max. 2 Personen) hinzu.",
-            true
-          ),
-          5e3
-        );
+        this.formMessage.error(`Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.`);
+        this.formMessage.setTimedReset(5e3, () => {
+          this.formMessage.info("Bitte f\xFCgen Sie die Mieter (max. 2 Personen) hinzu.", true);
+        });
         valid = false;
       } else {
         this.prospects.forEach((prospect) => {
@@ -3743,7 +3737,7 @@
             this.formMessage.error(
               `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder l\xF6schen Sie diese Person.`
             );
-            setTimeout(() => this.formMessage.reset(), 8e3);
+            this.formMessage.setTimedReset(8e3);
             valid = false;
           } else if (!prospect.validate()) {
             console.warn(
@@ -3752,7 +3746,7 @@
             this.formMessage.error(
               `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
             );
-            setTimeout(() => this.formMessage.reset(), 5e3);
+            this.formMessage.setTimedReset(5e3);
             valid = false;
           }
         });
