@@ -613,8 +613,8 @@ class FormArray {
     this.modal.open();
   }
 
-  public closeModal(): void {
-    this.modal.close();
+  public async closeModal(): Promise<void> {
+    await this.modal.close();
     if (this.initialized) {
       this.list.scrollIntoView({
         behavior: "smooth",

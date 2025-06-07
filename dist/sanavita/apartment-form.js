@@ -3543,8 +3543,8 @@
       this.openAccordion(0, this.accordionList);
       this.modal.open();
     }
-    closeModal() {
-      this.modal.close();
+    async closeModal() {
+      await this.modal.close();
       if (this.initialized) {
         this.list.scrollIntoView({
           behavior: "smooth",
