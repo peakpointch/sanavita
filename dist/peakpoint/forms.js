@@ -638,6 +638,72 @@
     return result;
   }
 
+  // ../peakflow/src/utils/scroll-lock.ts
+  var scrollLockCount = 0;
+  function lockBodyScroll(smooth) {
+    scrollLockCount++;
+    if (scrollLockCount === 1) {
+      if (smooth) adjustPaddingForScrollbar(document.body);
+      document.body.style.overflow = "hidden";
+    }
+  }
+  function unlockBodyScroll(smooth) {
+    if (scrollLockCount > 0) scrollLockCount--;
+    if (scrollLockCount === 0) {
+      if (smooth) resetScrollbarPadding(document.body);
+      document.body.style.removeProperty("overflow");
+    }
+  }
+  function isScrollbarVisible(element) {
+    const style = getComputedStyle(element);
+    const overflowY = style.overflowY;
+    if (overflowY === "hidden" || overflowY === "clip") {
+      return false;
+    }
+    if (element === document.body || element === document.documentElement) {
+      return window.innerWidth > document.documentElement.clientWidth;
+    }
+    return element.scrollHeight > element.clientHeight;
+  }
+  function getScrollbarWidth(element) {
+    const scrollDiv = document.createElement("div");
+    scrollDiv.style.visibility = "hidden";
+    scrollDiv.style.overflow = "scroll";
+    scrollDiv.style.position = "absolute";
+    scrollDiv.style.top = "-9999px";
+    scrollDiv.style.width = "100px";
+    element.appendChild(scrollDiv);
+    const innerDiv = document.createElement("div");
+    innerDiv.style.width = "100%";
+    scrollDiv.appendChild(innerDiv);
+    const scrollbarWidth = scrollDiv.offsetWidth - innerDiv.offsetWidth;
+    scrollDiv.remove();
+    return scrollbarWidth;
+  }
+  function getVisibleScrollbarWidth(element) {
+    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
+  }
+  function adjustPaddingForScrollbar(element, scrollbarElement) {
+    if (!scrollbarElement) scrollbarElement = element;
+    const scrollbarWidth = getVisibleScrollbarWidth(scrollbarElement);
+    const currentPadding = parseFloat(getComputedStyle(element).paddingRight || "0");
+    if (scrollbarWidth === 0) return;
+    if (!element.dataset.originalPaddingRight) {
+      element.dataset.originalPaddingRight = currentPadding.toString();
+    }
+    element.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+  }
+  function resetScrollbarPadding(element) {
+    const originalPadding = element.dataset.originalPaddingRight;
+    if (originalPadding !== void 0) {
+      element.style.paddingRight = `${originalPadding}px`;
+      if (originalPadding === "0") {
+        element.style.removeProperty("paddingRight");
+      }
+      delete element.dataset.originalPaddingRight;
+    }
+  }
+
   // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
@@ -649,7 +715,10 @@
     animation: defaultModalAnimation,
     stickyFooter: false,
     stickyHeader: false,
-    lockBodyScroll: true
+    bodyScroll: {
+      lock: true,
+      smooth: false
+    }
   };
   var Modal = class _Modal {
     constructor(component, settings = {}) {
@@ -755,9 +824,7 @@
       this.component.dataset.state = "closed";
     }
     async show() {
-      this.component.dataset.state = "opening";
       this.component.style.removeProperty("display");
-      await new Promise((resolve) => setTimeout(resolve, 0));
       await animationFrame();
       switch (this.settings.animation.type) {
         case "fade":
@@ -775,11 +842,15 @@
           this.component.classList.remove("is-closed");
       }
       setTimeout(() => {
-        this.component.dataset.state = "open";
       }, this.settings.animation.duration);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, this.settings.animation.duration);
+      });
     }
     async hide() {
-      this.component.dataset.state = "closing";
+      await animationFrame();
       switch (this.settings.animation.type) {
         case "fade":
           this.component.style.opacity = "0";
@@ -795,44 +866,44 @@
         default:
           break;
       }
-      const finish = new Promise((resolve) => {
+      return new Promise((resolve) => {
         setTimeout(() => {
           this.component.style.display = "none";
-          this.component.dataset.state = "closed";
           resolve();
         }, this.settings.animation.duration);
       });
-      await finish;
     }
     /**
      * Opens the modal instance.
      *
      * This method calls the `show` method and locks the scroll of the document body.
      */
-    open() {
-      this.show();
-      if (this.settings.lockBodyScroll) {
-        lockBodyScroll();
+    async open() {
+      this.component.dataset.state = "opening";
+      if (this.settings.bodyScroll.lock) {
+        adjustPaddingForScrollbar(this.component, document.body);
+        lockBodyScroll(this.settings.bodyScroll.smooth);
       }
+      await this.show();
+      this.opened = true;
+      this.component.dataset.state = "open";
     }
     /**
      * Closes the modal instance.
      *
      * This method calls the `hide` method and unlocks the scroll of the document body.
      */
-    close() {
-      if (this.settings.lockBodyScroll) {
-        unlockBodyScroll();
+    async close() {
+      this.component.dataset.state = "closing";
+      if (this.settings.bodyScroll.lock) {
+        resetScrollbarPadding(this.component);
+        unlockBodyScroll(this.settings.bodyScroll.smooth);
       }
-      this.hide();
+      await this.hide();
+      this.opened = false;
+      this.component.dataset.state = "closed";
     }
   };
-  function lockBodyScroll() {
-    document.body.style.overflow = "hidden";
-  }
-  function unlockBodyScroll() {
-    document.body.style.removeProperty("overflow");
-  }
   function animationFrame() {
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
