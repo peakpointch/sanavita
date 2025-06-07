@@ -643,7 +643,7 @@ class FormArray {
         const field = prospect[groupName].getField(input.id);
 
         if (!field) {
-          console.warn(`Field not found:`, field, input.id);
+          console.warn(`Field not found:`, input.id);
           return;
         }
 

@@ -3640,7 +3640,7 @@
         groupInputs.forEach((input) => {
           const field = prospect[groupName].getField(input.id);
           if (!field) {
-            console.warn(`Field not found:`, field, input.id);
+            console.warn(`Field not found:`, input.id);
             return;
           }
           if (!isRadioInput(input) && !isCheckboxInput(input)) {
