@@ -250,14 +250,8 @@
 
   // ../peakflow/src/form/formfield.ts
   var FormField = class {
-    id;
-    label;
-    value;
-    required;
-    type;
-    checked;
-    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
+      this.listeners = /* @__PURE__ */ new Set();
       if (!data) {
         return;
       }
@@ -314,7 +308,7 @@
     return field;
   }
 
-  // node_modules/peakflow/src/maptoobject.ts
+  // ../peakflow/src/maptoobject.ts
   function mapToObject(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
@@ -323,9 +317,8 @@
     return obj;
   }
 
-  // node_modules/peakflow/src/form/fieldgroup.ts
+  // ../peakflow/src/form/fieldgroup.ts
   var FieldGroup = class _FieldGroup {
-    fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -360,7 +353,7 @@
     }
   };
 
-  // node_modules/peakflow/src/form/formmessage.ts
+  // ../peakflow/src/form/formmessage.ts
   var FormMessage = class {
     /**
      * Constructs a new FormMessage instance.
@@ -3029,11 +3022,15 @@
     }
   };
 
-  // src/sanavita/ts/utility/maptoobject.ts
-  function mapToObject2(map, stringify = false) {
-    const obj = {};
-    for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject2(value, stringify) : stringify ? JSON.stringify(value) : value;
+  // ../peakflow/src/objecttomap.ts
+  function objectToMap(obj, deep = false) {
+    const map = /* @__PURE__ */ new Map();
+    for (const [key, value] of Object.entries(obj)) {
+      if (deep && value instanceof Object && !(value instanceof Map)) {
+        map.set(key, objectToMap(value, true));
+      } else {
+        map.set(key, value);
+      }
     }
     return map;
   }
