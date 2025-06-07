@@ -3466,6 +3466,9 @@
       }
     }
     getOtherProspect() {
+      if (!this.editingKey) {
+        throw new Error(`Can't get other prospect if no prospect is currently being edited.`);
+      }
       const editingProspect = this.getEditingProspect();
       return Array.from(this.prospects.values()).find((prospect) => {
         return !ResidentProspect.areEqual(prospect, editingProspect);

@@ -429,6 +429,10 @@ class FormArray {
     // TODO: Getting the prospect which is currently not being edited this way might not be accurate.
     // Update: is this done now @chatgpt?
 
+    if (!this.editingKey) {
+      throw new Error(`Can't get other prospect if no prospect is currently being edited.`);
+    }
+
     const editingProspect = this.getEditingProspect();
     return Array.from(this.prospects.values())
       .find((prospect) => {
