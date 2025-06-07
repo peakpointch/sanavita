@@ -197,7 +197,7 @@ class FormArray {
 
     links.forEach(link => {
       const checkbox: HTMLInputElement = link.querySelector(wf.select.checkboxInput);
-      checkbox.addEventListener('change', (event) => {
+      checkbox.addEventListener('change', () => {
         if (!this.initialized || !this.modal.opened) return;
         if (checkbox.checked) {
           this.linkFields(link);
@@ -569,7 +569,7 @@ class FormArray {
   }
 
   private populateModal(prospect: ResidentProspect) {
-    for (const [id, fieldIds] of Array.from(prospect.linkedFields.entries())) {
+    for (const [id] of prospect.linkedFields.entries()) {
       const linkElement = this.modalElement.querySelector<HTMLElement>(`[${LINK_FIELDS_ATTR}][data-id="${id}"]`);
       if (!linkElement) return;
       const linkCheckbox = linkElement.querySelector<HTMLInputElement>(wf.select.checkboxInput);
@@ -635,7 +635,7 @@ class FormArray {
       valid = false;
     } else {
       // Check if each ResidentProspect in the prospects collection is valid
-      this.prospects.forEach((prospect, key) => {
+      this.prospects.forEach((prospect) => {
         if (prospect.draft) {
           console.warn(
             `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
@@ -1244,7 +1244,7 @@ class MultiStepForm {
   public validateAllSteps(): boolean {
     let allValid = true;
 
-    this.formSteps.forEach((step, index) => {
+    this.formSteps.forEach((_, index) => {
       if (!this.validateCurrentStep(index)) {
         console.warn(`Step ${index + 1} is invalid.`);
         allValid = false; // Set the flag to false if any step is invalid
@@ -1322,7 +1322,7 @@ class MultiStepForm {
   }
 
   public getFieldMap(): FormFieldMap {
-    const fields = Array.from(this.formSteps).reduce((acc, entry, stepIndex) => {
+    const fields = Array.from(this.formSteps).reduce((acc, _, stepIndex) => {
       const stepData = this.getFieldMapForStep(stepIndex);
       return new Map([
         ...acc,
