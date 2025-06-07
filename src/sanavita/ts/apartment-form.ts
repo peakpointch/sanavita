@@ -413,6 +413,25 @@ class FormArray {
   }
 
   /**
+   * Retrieves a `ResidentProspect` instance from a given key or returns the provided `ResidentProspect` directly.
+   * 
+   * @param prospectOrKey - Either the key of the prospect or the prospect object itself.
+   * @returns {ResidentProspect} The corresponding `ResidentProspect` object.
+   * @throws Error if the prospect with the given key is not found.
+   */
+  private getProspect(prospectOrKey: ResidentProspect | string): ResidentProspect {
+    const prospect = typeof prospectOrKey === "string"
+      ? this.prospects.get(prospectOrKey)
+      : prospectOrKey;
+
+    if (!prospect) {
+      throw new Error(`Prospect not found: ${prospectOrKey}`);
+    }
+
+    return prospect;
+  }
+
+  /**
    * Gets the ResidentProspect currently being edited via the `editingKey` property.
    */
   private getEditingProspect(): ResidentProspect | undefined {
@@ -553,7 +572,7 @@ class FormArray {
     this.list.dataset.length = this.prospects.size.toString();
 
     if (this.prospects.size) {
-      this.prospects.forEach((prospect, key) => this.renderProspect(prospect, key));
+      this.prospects.forEach((prospect) => this.renderProspect(prospect));
       this.formMessage.reset();
     } else {
       this.formMessage.info(
@@ -563,10 +582,11 @@ class FormArray {
     }
   }
 
-  private renderProspect(prospect: ResidentProspect, key: string) {
-    const newElement: HTMLElement = this.template.cloneNode(
-      true
-    ) as HTMLElement;
+  private renderProspect(key: string): void;
+  private renderProspect(prospect: ResidentProspect): void;
+  private renderProspect(prospectOrKey: ResidentProspect | string): void {
+    const prospect = this.getProspect(prospectOrKey)
+    const newElement: HTMLElement = this.template.cloneNode(true) as HTMLElement;
     const props = ["full-name", "phone", "email", "street", "zip", "city"];
     newElement.style.removeProperty("display");
 
@@ -598,7 +618,10 @@ class FormArray {
     this.list.appendChild(newElement);
   }
 
-  private editProspect(prospect: ResidentProspect): void {
+  private editProspect(key: string): void;
+  private editProspect(prospect: ResidentProspect): void;
+  private editProspect(prospectOrKey: ResidentProspect | string): void {
+    const prospect = this.getProspect(prospectOrKey);
     this.setLiveText("state", "bearbeiten");
     this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
     this.editingKey = prospect.key; // Set editing key
@@ -606,7 +629,10 @@ class FormArray {
     this.openModal();
   }
 
-  private async onDeleteProspect(prospect: ResidentProspect): Promise<void> {
+  private async onDeleteProspect(key: string): Promise<void>;
+  private async onDeleteProspect(prospect: ResidentProspect): Promise<void>;
+  private async onDeleteProspect(prospectOrKey: ResidentProspect | string): Promise<void> {
+    const prospect = this.getProspect(prospectOrKey);
     const confirmed = await this.alertDialog.confirm({
       title: `M├Âchten Sie die Person "${prospect.getFullName()}" wirklich l├Âschen?`,
       paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel├Âscht. Diese Aktion kann nicht r├╝ckg├ñngig gemacht werden.`,
@@ -617,7 +643,10 @@ class FormArray {
     if (confirmed) this.deleteProspect(prospect);
   }
 
-  private deleteProspect(prospect: ResidentProspect): void {
+  private deleteProspect(key: string): void;
+  private deleteProspect(prospect: ResidentProspect): void;
+  private deleteProspect(prospectOrKey: ResidentProspect | string): void {
+    const prospect = this.getProspect(prospectOrKey);
     this.prospects.delete(prospect.key); // Remove the ResidentProspect from the map
 
     // Unlink all fields for all prospects.

@@ -3454,6 +3454,20 @@
       }
     }
     /**
+     * Retrieves a `ResidentProspect` instance from a given key or returns the provided `ResidentProspect` directly.
+     * 
+     * @param prospectOrKey - Either the key of the prospect or the prospect object itself.
+     * @returns {ResidentProspect} The corresponding `ResidentProspect` object.
+     * @throws Error if the prospect with the given key is not found.
+     */
+    getProspect(prospectOrKey) {
+      const prospect = typeof prospectOrKey === "string" ? this.prospects.get(prospectOrKey) : prospectOrKey;
+      if (!prospect) {
+        throw new Error(`Prospect not found: ${prospectOrKey}`);
+      }
+      return prospect;
+    }
+    /**
      * Gets the ResidentProspect currently being edited via the `editingKey` property.
      */
     getEditingProspect() {
@@ -3567,7 +3581,7 @@
       this.list.innerHTML = "";
       this.list.dataset.length = this.prospects.size.toString();
       if (this.prospects.size) {
-        this.prospects.forEach((prospect, key) => this.renderProspect(prospect, key));
+        this.prospects.forEach((prospect) => this.renderProspect(prospect));
         this.formMessage.reset();
       } else {
         this.formMessage.info(
@@ -3576,10 +3590,9 @@
         );
       }
     }
-    renderProspect(prospect, key) {
-      const newElement = this.template.cloneNode(
-        true
-      );
+    renderProspect(prospectOrKey) {
+      const prospect = this.getProspect(prospectOrKey);
+      const newElement = this.template.cloneNode(true);
       const props = ["full-name", "phone", "email", "street", "zip", "city"];
       newElement.style.removeProperty("display");
       const editButton = newElement.querySelector(prospectSelector("edit"));
@@ -3604,14 +3617,16 @@
       badge.classList.toggle("hide", !prospect.draft);
       this.list.appendChild(newElement);
     }
-    editProspect(prospect) {
+    editProspect(prospectOrKey) {
+      const prospect = this.getProspect(prospectOrKey);
       this.setLiveText("state", "bearbeiten");
       this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
       this.editingKey = prospect.key;
       this.populateModal(prospect);
       this.openModal();
     }
-    async onDeleteProspect(prospect) {
+    async onDeleteProspect(prospectOrKey) {
+      const prospect = this.getProspect(prospectOrKey);
       const confirmed = await this.alertDialog.confirm({
         title: `M\u251C\xC2chten Sie die Person "${prospect.getFullName()}" wirklich l\u251C\xC2schen?`,
         paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel\u251C\xC2scht. Diese Aktion kann nicht r\u251C\u255Dckg\u251C\xF1ngig gemacht werden.`,
@@ -3620,7 +3635,8 @@
       });
       if (confirmed) this.deleteProspect(prospect);
     }
-    deleteProspect(prospect) {
+    deleteProspect(prospectOrKey) {
+      const prospect = this.getProspect(prospectOrKey);
       this.prospects.delete(prospect.key);
       this.unlinkAllProspects();
       this.renderList();
