@@ -58,7 +58,7 @@ type CustomFormComponent = {
 };
 type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination' | 'custom-component';
 type StepsNavElement = 'prev' | 'next';
-type ProspectElement = 'template' | 'add' | 'edit' | 'delete' | 'save' | 'draft' | 'cancel';
+type ProspectElement = 'template' | 'add' | 'edit' | 'delete' | 'save' | 'draft' | 'draft-badge' | 'cancel';
 
 // Selector functions
 const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element', {
@@ -479,7 +479,7 @@ class FormArray {
     this.setLiveText("state", "Hinzufügen");
     this.setLiveText("full-name", "Neue Person");
 
-    this.unsavedProspect = this.extractData();
+    this.unsavedProspect = this.extractData(true);
     this.editingKey = `unsaved-${this.unsavedProspect.key}`;
     this.openModal();
   }
@@ -497,7 +497,8 @@ class FormArray {
       }
     }
 
-    const prospect: ResidentProspect = this.extractData();
+    const draft = !opts.validate;
+    const prospect: ResidentProspect = this.extractData(draft);
     const otherProspect = this.getOtherProspect();
     if (!otherProspect) {
       this.unlinkAllProspects();
@@ -616,6 +617,10 @@ class FormArray {
         el.innerText = currentField.value || currentField.label;
       }
     });
+
+    const badge = newElement.querySelector(prospectSelector('draft-badge'));
+    badge.classList.toggle('hide', !prospect.draft);
+
     this.list.appendChild(newElement);
   }
 
@@ -719,7 +724,7 @@ class FormArray {
       personalDataGroup.querySelectorAll("#first-name, #name");
     nameInputs.forEach((input) => {
       input.addEventListener("input", () => {
-        const editingProspect: ResidentProspect = this.extractData();
+        const editingProspect = this.extractData(this.editingKey.startsWith('unsaved'));
         this.setLiveText(
           "full-name",
           editingProspect.getFullName() || "Neue Person"
@@ -826,8 +831,8 @@ class FormArray {
     return -1; // Return -1 if no accordion is found
   }
 
-  private extractData(): ResidentProspect {
-    const prospectData = new ResidentProspect();
+  private extractData(draft: boolean = false): ResidentProspect {
+    const prospectData = new ResidentProspect({ draft: draft });
 
     this.groupElements.forEach((group) => {
       const groupInputs = group.querySelectorAll<HTMLFormInput>(wf.select.formInput);
@@ -918,6 +923,12 @@ class FormArray {
     } else {
       console.log("No saved form progress found.");
     }
+  }
+}
+
+class SaveOptionsComponent {
+  constructor() {
+
   }
 }
 

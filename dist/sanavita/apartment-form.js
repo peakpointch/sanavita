@@ -3508,7 +3508,7 @@
       this.clearModal();
       this.setLiveText("state", "Hinzuf\xFCgen");
       this.setLiveText("full-name", "Neue Person");
-      this.unsavedProspect = this.extractData();
+      this.unsavedProspect = this.extractData(true);
       this.editingKey = `unsaved-${this.unsavedProspect.key}`;
       this.openModal();
     }
@@ -3521,7 +3521,8 @@
           );
         }
       }
-      const prospect = this.extractData();
+      const draft = !opts.validate;
+      const prospect = this.extractData(draft);
       const otherProspect = this.getOtherProspect();
       if (!otherProspect) {
         this.unlinkAllProspects();
@@ -3619,6 +3620,8 @@
           el.innerText = currentField.value || currentField.label;
         }
       });
+      const badge = newElement.querySelector(prospectSelector("draft-badge"));
+      badge.classList.toggle("hide", !prospect.draft);
       this.list.appendChild(newElement);
     }
     populateModal(prospect) {
@@ -3696,7 +3699,7 @@
       const nameInputs = personalDataGroup.querySelectorAll("#first-name, #name");
       nameInputs.forEach((input) => {
         input.addEventListener("input", () => {
-          const editingProspect = this.extractData();
+          const editingProspect = this.extractData(this.editingKey.startsWith("unsaved"));
           this.setLiveText(
             "full-name",
             editingProspect.getFullName() || "Neue Person"
@@ -3784,8 +3787,8 @@
       }
       return -1;
     }
-    extractData() {
-      const prospectData = new ResidentProspect();
+    extractData(draft = false) {
+      const prospectData = new ResidentProspect({ draft });
       this.groupElements.forEach((group) => {
         const groupInputs = group.querySelectorAll(wf.select.formInput);
         const groupName = group.dataset.prospectFieldGroup;
