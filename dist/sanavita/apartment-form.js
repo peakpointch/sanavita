@@ -4142,7 +4142,9 @@ Component:`,
       validator: () => prospectArray.validate(),
       getData: () => flattenProspects(prospectArray.prospects)
     });
-    FORM.component.addEventListener("changeStep", () => prospectArray.closeModal());
+    FORM.component.addEventListener("changeStep", () => {
+      if (prospectArray.modal.opened) prospectArray.closeModal();
+    });
     const errorMessages = {
       beilagenSenden: {
         upload: "Bitte laden Sie alle Beilagen hoch."
