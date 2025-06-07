@@ -26,6 +26,17 @@ export interface SerializedProspect {
   primaryRelative?: any;
   secondaryRelative?: any;
   linkedFields?: any;
+  draft?: any;
+}
+
+export interface ResidentProspectData {
+  personalData: FieldGroup;
+  doctor: FieldGroup;
+  health: FieldGroup;
+  primaryRelative: FieldGroup;
+  secondaryRelative: FieldGroup;
+  linkedFields: LinkedFields;
+  draft: boolean;
 }
 
 /**
@@ -62,29 +73,38 @@ interface LinkedField {
 type LinkedFields = Map<LinkedFieldsId | string, LinkedField>;
 
 export class ResidentProspect {
-  personalData: FieldGroup;
-  doctor: FieldGroup;
-  health: FieldGroup;
-  primaryRelative: FieldGroup;
-  secondaryRelative: FieldGroup;
+  public personalData: FieldGroup;
+  public doctor: FieldGroup;
+  public health: FieldGroup;
+  public primaryRelative: FieldGroup;
+  public secondaryRelative: FieldGroup;
 
-  key: string = `person-${crypto.randomUUID()}`;
-  linkedFields: LinkedFields;
+  public key: string = `person-${crypto.randomUUID()}`;
+  public linkedFields: LinkedFields;
+  public draft: boolean;
 
-  constructor(
-    personalData = new FieldGroup(),
-    doctor = new FieldGroup(),
-    health = new FieldGroup(),
-    primaryRelative = new FieldGroup(),
-    secondaryRelative = new FieldGroup(),
-    linkedFields = new Map<LinkedFieldsId | string, LinkedField>
-  ) {
-    this.personalData = personalData;
-    this.doctor = doctor;
-    this.health = health;
-    this.primaryRelative = primaryRelative;
-    this.secondaryRelative = secondaryRelative;
-    this.linkedFields = linkedFields;
+  public static get defaultData(): ResidentProspectData {
+    return {
+      personalData: new FieldGroup(),
+      doctor: new FieldGroup(),
+      health: new FieldGroup(),
+      primaryRelative: new FieldGroup(),
+      secondaryRelative: new FieldGroup(),
+      linkedFields: new Map<LinkedFieldsId | string, LinkedField>(),
+      draft: false
+    }
+  }
+
+  constructor(data?: Partial<ResidentProspectData>) {
+    const defaults = ResidentProspect.defaultData;
+    const resolved = data ?? {};
+    this.personalData = resolved.personalData ?? defaults.personalData;
+    this.doctor = resolved.doctor ?? defaults.doctor;
+    this.health = resolved.health ?? defaults.health;
+    this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
+    this.secondaryRelative = resolved.secondaryRelative ?? defaults.secondaryRelative;
+    this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
+    this.draft = resolved.draft ?? defaults.draft;
   }
 
   public linkFields(id: LinkedFieldsId | string, groupName: GroupName, fields: string | string[]): void {
@@ -171,6 +191,7 @@ export class ResidentProspect {
       primaryRelative: this.primaryRelative.serialize(),
       secondaryRelative: this.secondaryRelative.serialize(),
       linkedFields: mapToObject(this.linkedFields),
+      draft: this.draft,
     };
   }
 
@@ -178,14 +199,15 @@ export class ResidentProspect {
    * Main function to deserialize a `ResidentProspect`
    */
   public static deserialize(data: SerializedProspect): ResidentProspect {
-    return new ResidentProspect(
-      FieldGroup.deserialize(data.personalData),
-      FieldGroup.deserialize(data.doctor),
-      FieldGroup.deserialize(data.health),
-      FieldGroup.deserialize(data.primaryRelative),
-      FieldGroup.deserialize(data.secondaryRelative),
-      objectToMap(data.linkedFields)
-    );
+    return new ResidentProspect({
+      personalData: FieldGroup.deserialize(data.personalData),
+      doctor: FieldGroup.deserialize(data.doctor),
+      health: FieldGroup.deserialize(data.health),
+      primaryRelative: FieldGroup.deserialize(data.primaryRelative),
+      secondaryRelative: FieldGroup.deserialize(data.secondaryRelative),
+      linkedFields: objectToMap(data.linkedFields),
+      draft: data.draft,
+    });
   }
 
   public static areEqual(a: ResidentProspect, b: ResidentProspect): boolean {

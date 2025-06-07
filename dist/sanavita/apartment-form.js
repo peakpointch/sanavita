@@ -3127,14 +3127,28 @@
     return prospectsObj;
   }
   var ResidentProspect = class _ResidentProspect {
-    constructor(personalData = new FieldGroup(), doctor = new FieldGroup(), health = new FieldGroup(), primaryRelative = new FieldGroup(), secondaryRelative = new FieldGroup(), linkedFields = /* @__PURE__ */ new Map()) {
+    constructor(data) {
       this.key = `person-${crypto.randomUUID()}`;
-      this.personalData = personalData;
-      this.doctor = doctor;
-      this.health = health;
-      this.primaryRelative = primaryRelative;
-      this.secondaryRelative = secondaryRelative;
-      this.linkedFields = linkedFields;
+      const defaults = _ResidentProspect.defaultData;
+      const resolved = data ?? {};
+      this.personalData = resolved.personalData ?? defaults.personalData;
+      this.doctor = resolved.doctor ?? defaults.doctor;
+      this.health = resolved.health ?? defaults.health;
+      this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
+      this.secondaryRelative = resolved.secondaryRelative ?? defaults.secondaryRelative;
+      this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
+      this.draft = resolved.draft ?? defaults.draft;
+    }
+    static get defaultData() {
+      return {
+        personalData: new FieldGroup(),
+        doctor: new FieldGroup(),
+        health: new FieldGroup(),
+        primaryRelative: new FieldGroup(),
+        secondaryRelative: new FieldGroup(),
+        linkedFields: /* @__PURE__ */ new Map(),
+        draft: false
+      };
     }
     linkFields(id, groupName, fields) {
       if (!id) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`);
@@ -3198,21 +3212,23 @@
         health: this.health.serialize(),
         primaryRelative: this.primaryRelative.serialize(),
         secondaryRelative: this.secondaryRelative.serialize(),
-        linkedFields: mapToObject(this.linkedFields)
+        linkedFields: mapToObject(this.linkedFields),
+        draft: this.draft
       };
     }
     /**
      * Main function to deserialize a `ResidentProspect`
      */
     static deserialize(data) {
-      return new _ResidentProspect(
-        FieldGroup.deserialize(data.personalData),
-        FieldGroup.deserialize(data.doctor),
-        FieldGroup.deserialize(data.health),
-        FieldGroup.deserialize(data.primaryRelative),
-        FieldGroup.deserialize(data.secondaryRelative),
-        objectToMap(data.linkedFields)
-      );
+      return new _ResidentProspect({
+        personalData: FieldGroup.deserialize(data.personalData),
+        doctor: FieldGroup.deserialize(data.doctor),
+        health: FieldGroup.deserialize(data.health),
+        primaryRelative: FieldGroup.deserialize(data.primaryRelative),
+        secondaryRelative: FieldGroup.deserialize(data.secondaryRelative),
+        linkedFields: objectToMap(data.linkedFields),
+        draft: data.draft
+      });
     }
     static areEqual(a, b) {
       const groups = [
