@@ -875,8 +875,7 @@ class FormArray {
     // Store the serialized data in localStorage
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedProspects));
-      console.log("Form progress saved.");
-      console.log(serializedProspects);
+      console.info("Form progress saved.");
     } catch (error) {
       console.error("Error saving form progress to localStorage:", error);
     }
