@@ -3584,28 +3584,8 @@
       newElement.style.removeProperty("display");
       const editButton = newElement.querySelector(prospectSelector("edit"));
       const deleteButton = newElement.querySelector(prospectSelector("delete"));
-      editButton.addEventListener("click", () => {
-        this.setLiveText("state", "bearbeiten");
-        this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
-        this.editingKey = key;
-        this.populateModal(prospect);
-        this.openModal();
-      });
-      deleteButton.addEventListener("click", async () => {
-        const confirmed = await this.alertDialog.confirm({
-          title: `M\xF6chten Sie die Person "${prospect.getFullName()}" wirklich l\xF6schen?`,
-          paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel\xF6scht. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.`,
-          cancel: "abbrechen",
-          confirm: "Person l\xF6schen"
-        });
-        if (confirmed) {
-          this.prospects.delete(key);
-          this.unlinkAllProspects();
-          this.renderList();
-          this.closeModal();
-          this.saveProgress();
-        }
-      });
+      editButton.addEventListener("click", () => this.editProspect(prospect));
+      deleteButton.addEventListener("click", async () => await this.onDeleteProspect(prospect));
       props.forEach((prop) => {
         const propSelector = `[data-${prop}]`;
         const el = newElement.querySelector(propSelector);
@@ -3623,6 +3603,29 @@
       const badge = newElement.querySelector(prospectSelector("draft-badge"));
       badge.classList.toggle("hide", !prospect.draft);
       this.list.appendChild(newElement);
+    }
+    editProspect(prospect) {
+      this.setLiveText("state", "bearbeiten");
+      this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
+      this.editingKey = prospect.key;
+      this.populateModal(prospect);
+      this.openModal();
+    }
+    async onDeleteProspect(prospect) {
+      const confirmed = await this.alertDialog.confirm({
+        title: `M\u251C\xC2chten Sie die Person "${prospect.getFullName()}" wirklich l\u251C\xC2schen?`,
+        paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel\u251C\xC2scht. Diese Aktion kann nicht r\u251C\u255Dckg\u251C\xF1ngig gemacht werden.`,
+        cancel: "abbrechen",
+        confirm: "Person l\u251C\xC2schen"
+      });
+      if (confirmed) this.deleteProspect(prospect);
+    }
+    deleteProspect(prospect) {
+      this.prospects.delete(prospect.key);
+      this.unlinkAllProspects();
+      this.renderList();
+      this.closeModal();
+      this.saveProgress();
     }
     populateModal(prospect) {
       for (const [id, fieldIds] of Array.from(prospect.linkedFields.entries())) {

@@ -574,34 +574,8 @@ class FormArray {
     const editButton = newElement.querySelector(prospectSelector('edit'));
     const deleteButton = newElement.querySelector(prospectSelector('delete'));
 
-    editButton!.addEventListener("click", () => {
-      this.setLiveText("state", "bearbeiten");
-      this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
-      this.editingKey = key; // Set editing key
-      this.populateModal(prospect);
-      this.openModal();
-    });
-
-    deleteButton!.addEventListener("click", async () => {
-      const confirmed = await this.alertDialog.confirm({
-        title: `Möchten Sie die Person "${prospect.getFullName()}" wirklich löschen?`,
-        paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
-        cancel: 'abbrechen',
-        confirm: 'Person löschen'
-      });
-
-      if (confirmed) {
-        this.prospects.delete(key); // Remove the ResidentProspect from the map
-
-        // Unlink all fields for all prospects.
-        // Since there can only be 2 prospects total, and one was just deleted,
-        // there are no other prospects left to link fields to.
-        this.unlinkAllProspects();
-        this.renderList(); // Re-render the list
-        this.closeModal();
-        this.saveProgress();
-      }
-    });
+    editButton!.addEventListener("click", () => this.editProspect(prospect));
+    deleteButton!.addEventListener("click", async () => await this.onDeleteProspect(prospect));
 
     props.forEach((prop) => {
       const propSelector = `[data-${prop}]`;
@@ -622,6 +596,37 @@ class FormArray {
     badge.classList.toggle('hide', !prospect.draft);
 
     this.list.appendChild(newElement);
+  }
+
+  private editProspect(prospect: ResidentProspect): void {
+    this.setLiveText("state", "bearbeiten");
+    this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
+    this.editingKey = prospect.key; // Set editing key
+    this.populateModal(prospect);
+    this.openModal();
+  }
+
+  private async onDeleteProspect(prospect: ResidentProspect): Promise<void> {
+    const confirmed = await this.alertDialog.confirm({
+      title: `M├Âchten Sie die Person "${prospect.getFullName()}" wirklich l├Âschen?`,
+      paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel├Âscht. Diese Aktion kann nicht r├╝ckg├ñngig gemacht werden.`,
+      cancel: 'abbrechen',
+      confirm: 'Person l├Âschen'
+    });
+
+    if (confirmed) this.deleteProspect(prospect);
+  }
+
+  private deleteProspect(prospect: ResidentProspect): void {
+    this.prospects.delete(prospect.key); // Remove the ResidentProspect from the map
+
+    // Unlink all fields for all prospects.
+    // Since there can only be 2 prospects total, and one was just deleted,
+    // there are no other prospects left to link fields to.
+    this.unlinkAllProspects();
+    this.renderList(); // Re-render the list
+    this.closeModal();
+    this.saveProgress();
   }
 
   private populateModal(prospect: ResidentProspect) {
