@@ -11,7 +11,8 @@ import {
   fieldFromInput,
   removeErrorClasses,
   enforceButtonTypes,
-  FormFieldMap
+  FormFieldMap,
+  isFormInput
 } from "@peakflow/form";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
@@ -317,11 +318,7 @@ class FormArray {
 
     inputIds.forEach(id => {
       const input = fieldGroupElement.querySelector(`#${id}`);
-      if (!input ||
-        !(input instanceof HTMLInputElement) &&
-        !(input instanceof HTMLSelectElement) &&
-        !(input instanceof HTMLTextAreaElement)
-      ) {
+      if (!input || !isFormInput(input)) {
         throw new TypeError(
           `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
         );

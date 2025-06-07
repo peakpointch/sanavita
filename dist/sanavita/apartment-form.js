@@ -109,6 +109,9 @@
   function isCheckboxInput(input) {
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
+  function isFormInput(input) {
+    return input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement;
+  }
   async function sendFormData(formData) {
     const url = `https://webflow.com/api/v1/form/${wf.siteId}`;
     const request = {
@@ -3359,7 +3362,7 @@
       const sourceFieldGroup = otherProspect[fieldGroupName];
       inputIds.forEach((id) => {
         const input = fieldGroupElement.querySelector(`#${id}`);
-        if (!input || !(input instanceof HTMLInputElement) && !(input instanceof HTMLSelectElement) && !(input instanceof HTMLTextAreaElement)) {
+        if (!input || !isFormInput(input)) {
           throw new TypeError(
             `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
           );
