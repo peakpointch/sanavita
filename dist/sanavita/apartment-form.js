@@ -3556,6 +3556,7 @@
         if (this.prospects.size > 2) {
           throw prospectLimitError;
         }
+        prospect.key = this.editingKey;
         this.prospects.set(this.editingKey, prospect);
       } else {
         if (this.prospects.size > 1) {

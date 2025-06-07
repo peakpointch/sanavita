@@ -452,6 +452,7 @@ class FormArray {
         throw prospectLimitError;
       }
       // Update existing prospect
+      prospect.key = this.editingKey;
       this.prospects.set(this.editingKey, prospect);
     } else {
       if (this.prospects.size > 1) {
