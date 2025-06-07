@@ -218,7 +218,7 @@ class FormArray {
     this.initialize();
   }
 
-  private initialize() {
+  private initialize(): void {
     this.cancelButtons.forEach((button) => {
       button.addEventListener("click", () => this.discardChanges());
     });
