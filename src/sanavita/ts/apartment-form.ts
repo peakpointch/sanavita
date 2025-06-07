@@ -396,9 +396,6 @@ class FormArray {
       ? this.prospects.size
       : this.prospects.size + 1;
 
-    const otherProspect = this.getOtherProspect();
-    if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
-
     const links = this.modalElement.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
 
     if (length < 2) {
@@ -406,6 +403,8 @@ class FormArray {
         link.style.display = 'none';
       });
     } else {
+      const otherProspect = this.getOtherProspect();
+      if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
       links.forEach(link => {
         this.setLiveText('other-prospect-full-name', otherProspect.getFullName());
         link.style.removeProperty('display');
