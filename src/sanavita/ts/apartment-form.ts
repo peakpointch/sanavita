@@ -734,7 +734,7 @@ class FormArray {
             `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
           );
 
-          setTimeout(() => this.formMessage.reset(), 5000);
+          setTimeout(() => this.formMessage.reset(), 8000);
           valid = false; // If any ResidentProspect is invalid, set valid to false
         } else if (!prospect.validate()) {
           console.warn(

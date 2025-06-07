@@ -3704,7 +3704,7 @@
             this.formMessage.error(
               `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder l\xF6schen Sie diese Person.`
             );
-            setTimeout(() => this.formMessage.reset(), 5e3);
+            setTimeout(() => this.formMessage.reset(), 8e3);
             valid = false;
           } else if (!prospect.validate()) {
             console.warn(
