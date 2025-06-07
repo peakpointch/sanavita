@@ -3261,7 +3261,7 @@
       this.alertDialog = getAlertDialog();
       this.accordionList = [];
       this.editingKey = null;
-      this.draftProspect = null;
+      this.unsavedProspect = null;
       this.id = id;
       this.container = container;
       this.prospects = /* @__PURE__ */ new Map();
@@ -3422,7 +3422,7 @@
       });
     }
     handleLinkedFieldsVisibility() {
-      const length = this.draftProspect === null ? this.prospects.size : this.prospects.size + 1;
+      const length = this.unsavedProspect === null ? this.prospects.size : this.prospects.size + 1;
       const links = this.modalElement.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
       if (length < 2) {
         links.forEach((link) => {
@@ -3443,8 +3443,8 @@
     getEditingProspect() {
       if (this.editingKey === null) {
         return void 0;
-      } else if (this.editingKey.startsWith("draft")) {
-        return this.draftProspect;
+      } else if (this.editingKey.startsWith("unsaved")) {
+        return this.unsavedProspect;
       } else {
         return this.prospects.get(this.editingKey);
       }
@@ -3462,7 +3462,7 @@
       const lastSaved = this.getEditingProspect();
       const currentState = this.extractData();
       if (ResidentProspect.areEqual(lastSaved, currentState)) {
-        this.draftProspect = null;
+        this.unsavedProspect = null;
         this.closeModal();
         return;
       }
@@ -3473,12 +3473,12 @@
         confirm: "\xC4nderungen verwerfen"
       });
       if (confirmed) {
-        this.draftProspect = null;
+        this.unsavedProspect = null;
         this.closeModal();
       }
     }
     /**
-     * Opens the modal form to start a new `ResidentProspect`. Creates a draft prospect.
+     * Opens the modal form to start a new `ResidentProspect`. Creates an unsaved prospect.
      */
     startNewProspect() {
       if (this.prospects.size === 2) {
@@ -3489,9 +3489,9 @@
       this.clearModal();
       this.setLiveText("state", "Hinzuf\xFCgen");
       this.setLiveText("full-name", "Neue Person");
-      this.draftProspect = this.extractData();
+      this.unsavedProspect = this.extractData();
       this.openModal();
-      this.editingKey = `draft-${this.draftProspect.key}`;
+      this.editingKey = `unsaved-${this.unsavedProspect.key}`;
     }
     saveProspectFromModal(opts) {
       if (opts.validate ?? true) {
@@ -3510,7 +3510,7 @@
         this.syncLinkedFieldsAll(prospect, otherProspect);
       }
       if (this.saveProspect(prospect)) {
-        this.draftProspect = null;
+        this.unsavedProspect = null;
         this.renderList();
         this.closeModal();
       }
@@ -3518,7 +3518,7 @@
     }
     saveProspect(prospect) {
       const prospectLimitError = new Error(`Sie k\xF6nnen nur max. 2 Personen hinzuf\xFCgen.`);
-      if (!this.editingKey.startsWith("draft") && this.editingKey !== null) {
+      if (!this.editingKey.startsWith("unsaved") && this.editingKey !== null) {
         if (this.prospects.size > 2) {
           throw prospectLimitError;
         }

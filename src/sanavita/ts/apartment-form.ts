@@ -188,7 +188,7 @@ class FormArray {
   private accordionList: Accordion[] = [];
 
   private editingKey: string | null = null;
-  private draftProspect: ResidentProspect | null = null;
+  private unsavedProspect: ResidentProspect | null = null;
 
   constructor(container: HTMLElement, id: string | number) {
     this.id = id;
@@ -392,7 +392,7 @@ class FormArray {
   }
 
   private handleLinkedFieldsVisibility(): void {
-    const length: number = this.draftProspect === null
+    const length: number = this.unsavedProspect === null
       ? this.prospects.size
       : this.prospects.size + 1;
 
@@ -418,8 +418,8 @@ class FormArray {
   private getEditingProspect(): ResidentProspect | undefined {
     if (this.editingKey === null) {
       return undefined;
-    } else if (this.editingKey.startsWith('draft')) {
-      return this.draftProspect;
+    } else if (this.editingKey.startsWith('unsaved')) {
+      return this.unsavedProspect;
     } else {
       return this.prospects.get(this.editingKey);
     }
@@ -444,7 +444,7 @@ class FormArray {
     const currentState = this.extractData();
 
     if (ResidentProspect.areEqual(lastSaved, currentState)) {
-      this.draftProspect = null;
+      this.unsavedProspect = null;
       this.closeModal();
       return;
     }
@@ -457,13 +457,13 @@ class FormArray {
     });
 
     if (confirmed) {
-      this.draftProspect = null;
+      this.unsavedProspect = null;
       this.closeModal();
     }
   }
 
   /**
-   * Opens the modal form to start a new `ResidentProspect`. Creates a draft prospect.
+   * Opens the modal form to start a new `ResidentProspect`. Creates an unsaved prospect.
    */
   private startNewProspect() {
     if (this.prospects.size === 2) {
@@ -475,10 +475,10 @@ class FormArray {
     this.setLiveText("state", "Hinzufügen");
     this.setLiveText("full-name", "Neue Person");
 
-    this.draftProspect = this.extractData();
+    this.unsavedProspect = this.extractData();
     this.openModal();
 
-    this.editingKey = `draft-${this.draftProspect.key}`;
+    this.editingKey = `unsaved-${this.unsavedProspect.key}`;
   }
 
   private saveProspectFromModal(opts?: {
@@ -503,7 +503,7 @@ class FormArray {
     }
 
     if (this.saveProspect(prospect)) {
-      this.draftProspect = null;
+      this.unsavedProspect = null;
       this.renderList();
       this.closeModal();
     }
@@ -514,7 +514,7 @@ class FormArray {
   private saveProspect(prospect: ResidentProspect): boolean {
     const prospectLimitError = new Error(`Sie können nur max. 2 Personen hinzufügen.`);
 
-    if (!this.editingKey.startsWith('draft') && this.editingKey !== null) {
+    if (!this.editingKey.startsWith('unsaved') && this.editingKey !== null) {
       if (this.prospects.size > 2) {
         throw prospectLimitError;
       }
