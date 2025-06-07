@@ -3241,33 +3241,12 @@
   var stepsNavSelector = attributeselector_default("data-steps-nav");
   var prospectSelector = attributeselector_default("data-prospect-element");
   var LINK_FIELDS_ATTR = `data-link-fields`;
-  var ARRAY_GROUP_ATTR = `data-prospect-field-group`;
+  var FIELD_GROUP_ATTR = `data-prospect-field-group`;
   var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
-  var ARRAY_GROUP_SELECTOR = `[${ARRAY_GROUP_ATTR}]`;
+  var FIELD_GROUP_SELECTOR = `[${FIELD_GROUP_ATTR}]`;
   var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
   var STORAGE_KEY = "formProgress";
-  function convertObjectToFields(fieldsObj) {
-    const fieldsMap = /* @__PURE__ */ new Map();
-    Object.entries(fieldsObj).forEach(([key, fieldData]) => {
-      const field = new FormField(fieldData);
-      fieldsMap.set(key, field);
-    });
-    return fieldsMap;
-  }
-  function deserializeFieldGroup(fieldGroupData) {
-    const fieldsMap = convertObjectToFields(fieldGroupData);
-    return new FieldGroup(fieldsMap);
-  }
-  function deserializeResidentProspect(data) {
-    return new ResidentProspect(
-      deserializeFieldGroup(data.personalData),
-      deserializeFieldGroup(data.doctor),
-      deserializeFieldGroup(data.health),
-      deserializeFieldGroup(data.primaryRelative),
-      deserializeFieldGroup(data.secondaryRelative)
-    );
-  }
   var FormArray = class {
     constructor(container, id) {
       this.initialized = false;
@@ -3299,7 +3278,7 @@
         prospectSelector("cancel")
       );
       this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
-      this.groupElements = this.modalElement.querySelectorAll(ARRAY_GROUP_SELECTOR);
+      this.groupElements = this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
       this.initialize();
     }
     initialize() {
@@ -3744,7 +3723,7 @@
           for (const key in deserializedData) {
             if (deserializedData.hasOwnProperty(key)) {
               const prospectData = deserializedData[key];
-              const prospect = deserializeResidentProspect(prospectData);
+              const prospect = ResidentProspect.deserialize(prospectData);
               prospect.key = key;
               this.prospects.set(key, prospect);
               this.renderList();
@@ -3871,16 +3850,10 @@ Component:`,
       }
     }
     buildJsonForWebflow() {
-      const customFields = this.customComponents.reduce((acc, entry) => {
-        return {
-          ...acc,
-          ...entry.getData ? entry.getData() : {}
-        };
-      }, {});
-      const fields = {
-        ...mapToObject2(this.getAllFormData(), false),
-        ...customFields
-      };
+      if (this.options.nested) {
+        throw new Error(`Can't get FormData for a nested MultiStepForm.`);
+      }
+      const fields = this.getFormData();
       if (this.options.recaptcha) {
         const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
         fields["g-recaptcha-response"] = recaptcha;

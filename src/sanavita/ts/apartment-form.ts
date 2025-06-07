@@ -776,7 +776,7 @@ class FormArray {
         for (const key in deserializedData) {
           if (deserializedData.hasOwnProperty(key)) {
             const prospectData = deserializedData[key];
-            const prospect = deserializeResidentProspect(prospectData); // Deserialize the ResidentProspect object
+            const prospect = ResidentProspect.deserialize(prospectData); // Deserialize the ResidentProspect object
             prospect.key = key;
             this.prospects.set(key, prospect);
             this.renderList();
