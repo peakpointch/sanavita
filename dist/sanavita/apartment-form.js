@@ -365,6 +365,7 @@
      */
     constructor(componentName, messageFor) {
       this.initialized = false;
+      this.resetTimeoutId = null;
       this.messageFor = messageFor;
       const component = document.querySelector(
         `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
@@ -387,6 +388,7 @@
      */
     info(message2 = null, silent = false) {
       if (!this.initialized) return;
+      this.clearTimeout();
       if (!silent) {
         this.component.setAttribute("aria-live", "polite");
       }
@@ -399,6 +401,7 @@
      */
     error(message2 = null, silent = false) {
       if (!this.initialized) return;
+      this.clearTimeout();
       if (!silent) {
         this.component.setAttribute("role", "alert");
         this.component.setAttribute("aria-live", "assertive");
@@ -410,7 +413,42 @@
      */
     reset() {
       if (!this.initialized) return;
+      this.clearTimeout();
       this.component.classList.remove("info", "error");
+      if (this.messageElement) {
+        this.messageElement.textContent = "";
+      }
+      this.component.removeAttribute("aria-live");
+      this.component.removeAttribute("role");
+    }
+    /**
+     * Schedules an automatic reset or custom action of the message component after a `delay`.
+     * Cancels any existing reset timer.
+     *
+     * @param delay - Time in milliseconds after which the reset or callback is triggered.
+     * @param callback - Optional function to execute when the timer fires instead of the default reset.
+     */
+    setTimedReset(delay, callback) {
+      if (!this.initialized) return;
+      this.clearTimeout();
+      this.resetTimeoutId = setTimeout(() => {
+        if (callback) {
+          callback();
+        } else {
+          this.reset();
+        }
+        this.resetTimeoutId = null;
+      }, delay);
+    }
+    /**
+     * Cancels any existing timer.
+     */
+    clearTimeout() {
+      if (!this.initialized) return;
+      if (this.resetTimeoutId !== null) {
+        clearTimeout(this.resetTimeoutId);
+        this.resetTimeoutId = null;
+      }
     }
     /**
      * Sets the message text and type (private method).
