@@ -3509,8 +3509,8 @@
       this.setLiveText("state", "Hinzuf\xFCgen");
       this.setLiveText("full-name", "Neue Person");
       this.unsavedProspect = this.extractData();
-      this.openModal();
       this.editingKey = `unsaved-${this.unsavedProspect.key}`;
+      this.openModal();
     }
     saveProspectFromModal(opts) {
       if (opts.validate ?? true) {

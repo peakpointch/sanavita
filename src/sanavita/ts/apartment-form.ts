@@ -480,9 +480,8 @@ class FormArray {
     this.setLiveText("full-name", "Neue Person");
 
     this.unsavedProspect = this.extractData();
-    this.openModal();
-
     this.editingKey = `unsaved-${this.unsavedProspect.key}`;
+    this.openModal();
   }
 
   private saveProspectFromModal(opts?: {
