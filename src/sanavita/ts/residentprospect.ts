@@ -53,6 +53,14 @@ export function flattenProspects(prospects: Map<string, ResidentProspect>): any 
   return prospectsObj;
 }
 
+interface LinkedField {
+  id?: string;
+  group: GroupName;
+  fields: string[];
+}
+
+type LinkedFields = Map<LinkedFieldsId | string, LinkedField>;
+
 export class ResidentProspect {
   personalData: FieldGroup;
   doctor: FieldGroup;
@@ -61,7 +69,7 @@ export class ResidentProspect {
   secondaryRelative: FieldGroup;
 
   key: string = `person-${crypto.randomUUID()}`;
-  linkedFields: Map<LinkedFieldsId | string, string[]>;
+  linkedFields: LinkedFields;
 
   constructor(
     personalData = new FieldGroup(),
@@ -69,7 +77,7 @@ export class ResidentProspect {
     health = new FieldGroup(),
     primaryRelative = new FieldGroup(),
     secondaryRelative = new FieldGroup(),
-    linkedFields = new Map<LinkedFieldsId | string, string[]>
+    linkedFields = new Map<LinkedFieldsId | string, LinkedField>
   ) {
     this.personalData = personalData;
     this.doctor = doctor;
@@ -79,8 +87,8 @@ export class ResidentProspect {
     this.linkedFields = linkedFields;
   }
 
-  public linkFields(groupId: LinkedFieldsId | string, fields: string): void {
-    if (!groupId) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${groupId}" for linking fields is not valid.`);
+  public linkFields(id: LinkedFieldsId | string, groupName: GroupName, fields: string | string[]): void {
+    if (!id) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`);
 
     const inputIds = fields
       ?.split(',')
@@ -90,7 +98,7 @@ export class ResidentProspect {
       throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
     }
 
-    this.linkedFields.set(groupId, inputIds);
+    this.linkedFields.set(id, { group: groupName, fields: inputIds });
   }
 
   public validate(): boolean {
