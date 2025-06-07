@@ -420,9 +420,10 @@ class FormArray {
     if (opts.validate ?? true) {
       const listValid = this.validateModal(opts.report ?? true);
       if (!listValid) {
-        throw new Error(
+        console.warn(
           `Couldn't save ResidentProspect. Please fill in all the values correctly.`
         );
+        return;
       }
     }
 
