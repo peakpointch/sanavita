@@ -303,6 +303,7 @@ class FormArray {
     checkbox.checked = true;
 
     const otherProspect = this.getOtherProspect();
+    if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
 
     const inputIds = linkElement.getAttribute(LINK_FIELDS_ATTR)
       ?.split(',')
@@ -396,6 +397,7 @@ class FormArray {
       : this.prospects.size + 1;
 
     const otherProspect = this.getOtherProspect();
+    if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
 
     const links = this.modalElement.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
 

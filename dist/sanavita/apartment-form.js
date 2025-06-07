@@ -3353,6 +3353,7 @@
       const checkbox = linkElement.querySelector(wf.select.checkboxInput);
       checkbox.checked = true;
       const otherProspect = this.getOtherProspect();
+      if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
       const inputIds = linkElement.getAttribute(LINK_FIELDS_ATTR)?.split(",").map((id) => id.trim());
       if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
         throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
@@ -3418,6 +3419,7 @@
     handleLinkedFieldsVisibility() {
       const length = this.draftProspect === null ? this.prospects.size : this.prospects.size + 1;
       const otherProspect = this.getOtherProspect();
+      if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
       const links = this.modalElement.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
       if (length < 2) {
         links.forEach((link) => {
