@@ -28,6 +28,7 @@ import {
 } from "./residentprospect";
 import mapToObject from "@peakflow/maptoobject"
 import deepMerge from "@peakflow/deepmerge";
+import { SaveOptions } from "./save-options";
 
 // Types
 type FormOptions = {
@@ -90,9 +91,8 @@ class FormArray {
   private template: HTMLElement;
   private formMessage: FormMessage;
   private addButton: HTMLElement;
-  private saveButton: HTMLElement;
-  private draftButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
+  private saveOptions: SaveOptions<'draft' | 'save'>;
   private modalInputs: NodeListOf<HTMLFormInput>;
   private groupElements: NodeListOf<HTMLFormInput>;
   private accordionList: Accordion[] = [];
@@ -121,8 +121,7 @@ class FormArray {
         smooth: true,
       }
     });
-    this.saveButton = this.modalElement.querySelector(prospectSelector('save'))!;
-    this.draftButton = this.modalElement.querySelector(prospectSelector('draft'))!;
+    this.saveOptions = new SaveOptions(SaveOptions.select('component', 'save-prospect'));
     this.cancelButtons = this.modalElement.querySelectorAll(
       prospectSelector('cancel')
     )!;
@@ -160,10 +159,10 @@ class FormArray {
       });
     });
 
-    this.saveButton.addEventListener("click", () => {
+    this.saveOptions.setActionHandler('save', () => {
       this.saveProspectFromModal({ validate: true, report: true });
     });
-    this.draftButton.addEventListener("click", () => {
+    this.saveOptions.setActionHandler('draft', () => {
       this.saveProspectFromModal({ validate: false, report: false });
     });
     this.addButton.addEventListener("click", () => this.startNewProspect());
@@ -410,6 +409,7 @@ class FormArray {
 
     this.unsavedProspect = this.extractData(true);
     this.editingKey = `unsaved-${this.unsavedProspect.key}`;
+    this.saveOptions.setAction('save')
     this.openModal();
   }
 
@@ -537,6 +537,7 @@ class FormArray {
     this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
     this.editingKey = prospect.key; // Set editing key
     this.populateModal(prospect);
+    this.saveOptions.setAction(prospect.draft ? 'draft' : 'save');
     this.openModal();
   }
 
@@ -870,12 +871,6 @@ class FormArray {
     } else {
       console.log("No saved form progress found.");
     }
-  }
-}
-
-class SaveOptionsComponent {
-  constructor() {
-
   }
 }
 
