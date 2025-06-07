@@ -3224,6 +3224,10 @@
         animation: {
           type: "growIn",
           duration: 300
+        },
+        bodyScroll: {
+          lock: true,
+          smooth: true
         }
       });
       this.saveButton = this.modalElement.querySelector(prospectSelector("save"));
@@ -4117,7 +4121,10 @@ Component:`,
         type: "growIn",
         duration: 200
       },
-      lockBodyScroll: false
+      bodyScroll: {
+        lock: true,
+        smooth: true
+      }
     });
     return modal;
   }

@@ -205,6 +205,10 @@ class FormArray {
         type: "growIn",
         duration: 300,
       },
+      bodyScroll: {
+        lock: true,
+        smooth: true,
+      }
     });
     this.saveButton = this.modalElement.querySelector(prospectSelector('save'))!;
     this.draftButton = this.modalElement.querySelector(prospectSelector('draft'))!;
@@ -1359,7 +1363,10 @@ function getAlertDialog(): AlertDialog {
       type: 'growIn',
       duration: 200,
     },
-    lockBodyScroll: false,
+    bodyScroll: {
+      lock: true,
+      smooth: true,
+    },
   });
 
   return modal;
