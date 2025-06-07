@@ -3628,10 +3628,10 @@
     async onDeleteProspect(prospectOrKey) {
       const prospect = this.getProspect(prospectOrKey);
       const confirmed = await this.alertDialog.confirm({
-        title: `M\u251C\xC2chten Sie die Person "${prospect.getFullName()}" wirklich l\u251C\xC2schen?`,
-        paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel\u251C\xC2scht. Diese Aktion kann nicht r\u251C\u255Dckg\u251C\xF1ngig gemacht werden.`,
-        cancel: "abbrechen",
-        confirm: "Person l\u251C\xC2schen"
+        title: `M\xF6chten Sie die Person "${prospect.getFullName()}" wirklich l\xF6schen?`,
+        paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel\xF6scht. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.`,
+        cancel: "Abbrechen",
+        confirm: "Person l\xF6schen"
       });
       if (confirmed) this.deleteProspect(prospect);
     }

@@ -544,10 +544,10 @@ class FormArray {
   private async onDeleteProspect(prospectOrKey: ResidentProspect | string): Promise<void> {
     const prospect = this.getProspect(prospectOrKey);
     const confirmed = await this.alertDialog.confirm({
-      title: `M├Âchten Sie die Person "${prospect.getFullName()}" wirklich l├Âschen?`,
-      paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gel├Âscht. Diese Aktion kann nicht r├╝ckg├ñngig gemacht werden.`,
-      cancel: 'abbrechen',
-      confirm: 'Person l├Âschen'
+      title: `Möchten Sie die Person "${prospect.getFullName()}" wirklich löschen?`,
+      paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
+      cancel: 'Abbrechen',
+      confirm: 'Person löschen'
     });
 
     if (confirmed) this.deleteProspect(prospect);
