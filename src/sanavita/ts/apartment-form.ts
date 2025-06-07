@@ -1488,6 +1488,9 @@ document.addEventListener("DOMContentLoaded", () => {
     ],
   });
 
+  // @ts-ignore
+  window.prospectArray = prospectArray;
+
   FORM.addCustomComponent({
     stepIndex: 2,
     instance: prospectArray,
