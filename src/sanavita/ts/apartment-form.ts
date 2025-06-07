@@ -436,7 +436,7 @@ class FormArray {
     const editingProspect = this.getEditingProspect();
     return Array.from(this.prospects.values())
       .find((prospect) => {
-        return !ResidentProspect.areEqual(prospect, editingProspect);
+        return prospect.key !== editingProspect.key;
       });
   }
 
