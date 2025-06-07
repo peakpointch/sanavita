@@ -104,6 +104,13 @@ export class ResidentProspect {
     this.linkedFields.set(id, { group: groupName, fields: inputIds });
   }
 
+  /**
+   * @returns true if the fields existed and have been unlinked, or false if the fields were not linked.
+   */
+  public unlinkFields(id: LinkedFieldsId | string): boolean {
+    return this.linkedFields.delete(id);
+  }
+
   public validate(): boolean {
     let valid = true;
 
