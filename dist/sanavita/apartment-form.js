@@ -3128,13 +3128,22 @@
       this.secondaryRelative = secondaryRelative;
       this.linkedFields = linkedFields;
     }
-    linkFields(groupId, fields) {
-      if (!groupId) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${groupId}" for linking fields is not valid.`);
-      const inputIds = fields?.split(",").map((id) => id.trim());
-      if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+    linkFields(id, groupName, fields) {
+      if (!id) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`);
+      let inputIds = fields;
+      if (typeof inputIds === "string") {
+        inputIds = inputIds?.split(",").map((id2) => id2.trim());
+      }
+      if (inputIds.length === 0 || inputIds.some((id2) => id2 === "")) {
         throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
       }
-      this.linkedFields.set(groupId, inputIds);
+      this.linkedFields.set(id, { group: groupName, fields: inputIds });
+    }
+    /**
+     * @returns true if the fields existed and have been unlinked, or false if the fields were not linked.
+     */
+    unlinkFields(id) {
+      return this.linkedFields.delete(id);
     }
     validate() {
       let valid = true;
@@ -3161,15 +3170,6 @@
     }
     getFullName() {
       return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
-    }
-    serialize() {
-      return {
-        personalData: mapToObject2(this.personalData.fields),
-        doctor: mapToObject2(this.doctor.fields),
-        health: mapToObject2(this.health.fields),
-        primaryRelative: mapToObject2(this.primaryRelative.fields),
-        secondaryRelative: mapToObject2(this.secondaryRelative.fields)
-      };
     }
     flatten(prefix) {
       const fields = {};
