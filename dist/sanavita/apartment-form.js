@@ -3333,32 +3333,88 @@
       this.initialized = true;
     }
     initializeLinkedFields() {
-      const prospectsLength = this.draftProspect === null ? this.prospects.size : this.prospects.size + 1;
       const links = this.modalElement.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
       links.forEach((link) => {
-        link.addEventListener("click", () => {
-          const otherProspect = Array.from(this.prospects.values())[0];
-          const inputIds = link.getAttribute(LINK_FIELDS_ATTR).split(",").map((id) => id.trim());
-          if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
-            throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+        const checkbox = link.querySelector(wf.select.checkboxInput);
+        checkbox.addEventListener("change", (event) => {
+          if (!this.initialized || !this.modal.opened) return;
+          if (checkbox.checked) {
+            this.linkFields(link);
+          } else {
+            this.unlinkFields(link);
           }
-          const fieldGroupElement = link.closest(ARRAY_GROUP_SELECTOR);
-          const fieldGroupName = fieldGroupElement.getAttribute(ARRAY_GROUP_ATTR);
-          const fieldGroup = otherProspect[fieldGroupName];
-          inputIds.forEach((id) => {
-            const input = fieldGroupElement.querySelector(`#${id}`);
-            if (!(input instanceof HTMLInputElement) && !(input instanceof HTMLSelectElement) && !(input instanceof HTMLTextAreaElement)) {
-              throw new TypeError(
-                `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
-              );
-            }
-            input.value = fieldGroup.getField(id).value;
-          });
         });
+      });
+    }
+    linkFields(linkElement) {
+      const checkbox = linkElement.querySelector(wf.select.checkboxInput);
+      checkbox.checked = true;
+      const otherProspect = this.getOtherProspect();
+      const inputIds = linkElement.getAttribute(LINK_FIELDS_ATTR)?.split(",").map((id) => id.trim());
+      if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+        throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+      }
+      const fieldGroupElement = linkElement.closest(FIELD_GROUP_SELECTOR);
+      const fieldGroupName = fieldGroupElement?.getAttribute(FIELD_GROUP_ATTR);
+      const sourceFieldGroup = otherProspect[fieldGroupName];
+      inputIds.forEach((id) => {
+        const input = fieldGroupElement.querySelector(`#${id}`);
+        if (!input || !(input instanceof HTMLInputElement) && !(input instanceof HTMLSelectElement) && !(input instanceof HTMLTextAreaElement)) {
+          throw new TypeError(
+            `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
+          );
+        }
+        input.value = sourceFieldGroup.getField(id)?.value;
+      });
+    }
+    unlinkFields(linkElement) {
+      const checkbox = linkElement.querySelector(wf.select.checkboxInput);
+      checkbox.checked = false;
+      const inputIds = linkElement.getAttribute(LINK_FIELDS_ATTR)?.split(",").map((id) => id.trim());
+      if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+        throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+      }
+      const fieldGroupElement = linkElement.closest(FIELD_GROUP_SELECTOR);
+      inputIds.forEach((id) => {
+        const input = fieldGroupElement.querySelector(`#${id}`);
+        if (!input || !(input instanceof HTMLInputElement) && !(input instanceof HTMLSelectElement) && !(input instanceof HTMLTextAreaElement)) {
+          throw new TypeError(
+            `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
+          );
+        }
+        input.value = null;
+      });
+    }
+    unlinkAllProspects() {
+      this.prospects.forEach((prospect) => prospect.linkedFields.clear());
+    }
+    /**
+     * Updates the values of the linked fields inside `target` with the ones from `source`.
+     *
+     * @param id The id of the group of the linked fields
+     */
+    syncLinkedFields(id, source, target) {
+      if (!source || !target) throw new Error(`The source or target ResidentProspect is not defined.`);
+      const linkedFields = source.linkedFields.get(id);
+      target.linkFields(id, linkedFields.group, linkedFields.fields);
+      linkedFields.fields.forEach((fieldId) => {
+        const sourceValue = source[linkedFields.group].getField(fieldId).value;
+        target[linkedFields.group].getField(fieldId).setValue(sourceValue);
+      });
+    }
+    /**
+     * Sync all linked fields of `target` with the ones from `source`.
+     */
+    syncLinkedFieldsAll(source, target) {
+      if (!source || !target) throw new Error(`The source or target ResidentProspect is not defined.`);
+      Array.from(source.linkedFields.keys()).forEach((groupId) => {
+        target.linkedFields.clear();
+        this.syncLinkedFields(groupId, source, target);
       });
     }
     handleLinkedFieldsVisibility() {
       const length = this.draftProspect === null ? this.prospects.size : this.prospects.size + 1;
+      const otherProspect = this.getOtherProspect();
       const links = this.modalElement.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
       if (length < 2) {
         links.forEach((link) => {
@@ -3366,6 +3422,7 @@
         });
       } else {
         links.forEach((link) => {
+          this.setLiveText("other-prospect-full-name", otherProspect.getFullName());
           link.style.removeProperty("display");
         });
       }
@@ -3374,11 +3431,19 @@
      * Gets the ResidentProspect currently being edited via the `editingKey` property.
      */
     getEditingProspect() {
-      if (this.editingKey.startsWith("draft")) {
+      if (this.editingKey === null) {
+        return void 0;
+      } else if (this.editingKey.startsWith("draft")) {
         return this.draftProspect;
       } else {
         return this.prospects.get(this.editingKey);
       }
+    }
+    getOtherProspect() {
+      const editingProspect = this.getEditingProspect();
+      return Array.from(this.prospects.values()).find((prospect) => {
+        return !ResidentProspect.areEqual(prospect, editingProspect);
+      });
     }
     /**
      * Opens an alert dialog to confirm canceling the changes made to the current ResidentProspect.
@@ -3428,6 +3493,12 @@
         }
       }
       const prospect = this.extractData();
+      const otherProspect = this.getOtherProspect();
+      if (!otherProspect) {
+        this.unlinkAllProspects();
+      } else {
+        this.syncLinkedFieldsAll(prospect, otherProspect);
+      }
       if (this.saveProspect(prospect)) {
         this.draftProspect = null;
         this.renderList();
@@ -3499,6 +3570,7 @@
         });
         if (confirmed) {
           this.prospects.delete(key);
+          this.unlinkAllProspects();
           this.renderList();
           this.closeModal();
           this.saveProgress();
@@ -3521,9 +3593,21 @@
       this.list.appendChild(newElement);
     }
     populateModal(prospect) {
+      for (const [id, fieldIds] of Array.from(prospect.linkedFields.entries())) {
+        const linkElement = this.modalElement.querySelector(`[${LINK_FIELDS_ATTR}][data-id="${id}"]`);
+        if (!linkElement) return;
+        const linkCheckbox = linkElement.querySelector(wf.select.checkboxInput);
+        linkCheckbox.checked = true;
+        linkCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+      }
       this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(wf.select.formInput);
+        const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
+        const groupInputs = group.querySelectorAll(selector);
         const groupName = group.dataset.prospectFieldGroup;
+        if (!prospect[groupName]) {
+          console.error(`The group "${groupName}" doesn't exist.`);
+          return;
+        }
         groupInputs.forEach((input) => {
           const field = prospect[groupName].getField(input.id);
           if (!field) {
@@ -3676,6 +3760,7 @@
       this.groupElements.forEach((group) => {
         const groupInputs = group.querySelectorAll(wf.select.formInput);
         const groupName = group.dataset.prospectFieldGroup;
+        const linkElements = group.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
         if (!prospectData[groupName]) {
           console.error(`The group "${groupName}" doesn't exist.`);
           return;
@@ -3684,6 +3769,14 @@
           const field = fieldFromInput(input, index);
           if (field?.id) {
             prospectData[groupName].fields.set(field.id, field);
+          }
+        });
+        linkElements.forEach((linkElement) => {
+          const linkCheckbox = linkElement.querySelector(wf.select.checkboxInput);
+          const id = linkCheckbox.dataset.name;
+          const fieldsToLink = linkElement.getAttribute(LINK_FIELDS_ATTR);
+          if (linkCheckbox.checked) {
+            prospectData.linkFields(id, groupName, fieldsToLink);
           }
         });
       });
