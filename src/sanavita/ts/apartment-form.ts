@@ -1298,6 +1298,7 @@ class MultiStepForm {
     const inputs: NodeListOf<HTMLFormInput> =
       currentStepElement.querySelectorAll(wf.select.formInput);
 
+    // TODO: Fix this overkill approach
     const filteredInputs = Array.from(inputs).filter((input) => {
       // Check if the input matches any exclude selectors or is inside an excluded wrapper
       const isExcluded = this.options.excludeInputSelectors.some(
