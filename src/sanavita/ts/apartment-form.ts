@@ -385,8 +385,8 @@ class FormArray {
   private syncLinkedFieldsAll(source: ResidentProspect, target: ResidentProspect): void {
     if (!source || !target) throw new Error(`The source or target ResidentProspect is not defined.`);
 
+    target.linkedFields.clear();
     Array.from(source.linkedFields.keys()).forEach((groupId) => {
-      target.linkedFields.clear();
       this.syncLinkedFields(groupId, source, target);
     });
   }
