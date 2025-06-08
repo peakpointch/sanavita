@@ -1341,11 +1341,11 @@ class MultiStepForm {
       return !isExcluded;
     });
 
-    let { valid } = validateFields(filteredInputs);
+    let { isValid } = validateFields(filteredInputs);
 
-    if (!valid) {
+    if (!isValid) {
       console.warn(`${basicError}: Standard validation is not valid`);
-      return valid;
+      return isValid;
     }
 
     const customValidators: CustomValidator[] = this.customComponents
@@ -1359,7 +1359,7 @@ class MultiStepForm {
       console.warn(`${basicError}: Custom validation is not valid`);
     }
 
-    return valid && customValid;
+    return isValid && customValid;
   }
 
   /**

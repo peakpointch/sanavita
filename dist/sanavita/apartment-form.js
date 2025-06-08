@@ -229,21 +229,21 @@
     }
   }
   function validateFields(inputs, report = true) {
-    let valid = true;
-    let firstInvalidField = null;
+    let isValid2 = true;
+    let invalidFields = [];
     for (const input of Array.from(inputs)) {
       if (!input.checkValidity()) {
-        valid = false;
-        if (report && !firstInvalidField) {
+        invalidFields.push(input);
+        isValid2 = false;
+        if (report) {
           reportValidity(input);
-          firstInvalidField = input;
         }
         break;
       } else {
         input.classList.remove("has-error");
       }
     }
-    return { valid, invalidField: firstInvalidField };
+    return { isValid: isValid2, invalidFields };
   }
 
   // ../peakflow/src/parameterize.ts
@@ -566,7 +566,7 @@
      */
     validate() {
       const selectedInput = this.getSelectedInput();
-      const { valid: decisionValid } = validateFields(this.decisionInputs);
+      const { isValid: decisionValid } = validateFields(this.decisionInputs);
       if (!decisionValid || !selectedInput) {
         console.warn("No decision selected!");
         this.handleValidationMessages(false);
@@ -599,8 +599,8 @@
     checkPathValidity(pathIndex) {
       const pathElement = this.paths[pathIndex];
       const inputs = pathElement.querySelectorAll(wf.select.formInput);
-      const { valid, invalidField } = validateFields(inputs, true);
-      return valid;
+      const { isValid: isValid2 } = validateFields(inputs, true);
+      return isValid2;
     }
     /**
      * Updates the required attributes of input fields within the paths based on the selected decision input.
@@ -4417,17 +4417,17 @@ Component:`,
         );
         return !isExcluded;
       });
-      let { valid } = validateFields(filteredInputs);
-      if (!valid) {
+      let { isValid: isValid2 } = validateFields(filteredInputs);
+      if (!isValid2) {
         console.warn(`${basicError}: Standard validation is not valid`);
-        return valid;
+        return isValid2;
       }
       const customValidators = this.customComponents.filter((entry) => entry.stepIndex === stepIndex).map((entry) => () => entry.validator());
       const customValid = customValidators?.every((validator) => validator()) ?? true;
       if (!customValid) {
         console.warn(`${basicError}: Custom validation is not valid`);
       }
-      return valid && customValid;
+      return isValid2 && customValid;
     }
     /**
      * Gets data of all form fields in a `FormFieldMap`.
