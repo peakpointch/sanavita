@@ -33191,6 +33191,17 @@ Page:`, page);
     getField(fieldId) {
       return this.fields.get(fieldId);
     }
+    validate(report = true) {
+      const invalidFields = [];
+      for (const field of this.fields.values()) {
+        if (field.validate(report)) continue;
+        invalidFields.push(field);
+      }
+      return {
+        isValid: invalidFields.length === 0,
+        invalidFields
+      };
+    }
     /**
      * Serialize this `FieldGroup`.
      *
