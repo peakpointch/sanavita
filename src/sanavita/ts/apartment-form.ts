@@ -94,7 +94,7 @@ class FormArray {
   private cancelButtons: NodeListOf<HTMLButtonElement>;
   private saveOptions: SaveOptions<'draft' | 'save'>;
   private modalInputs: NodeListOf<HTMLFormInput>;
-  private groupElements: NodeListOf<HTMLFormInput>;
+  private groupElements: NodeListOf<HTMLElement>;
   private accordionList: Accordion[] = [];
 
   private editingKey: string | null = null;
