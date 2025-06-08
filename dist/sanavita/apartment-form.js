@@ -2743,13 +2743,20 @@
   var Accordion = class {
     constructor(component) {
       this.isOpen = false;
+      this.onClickCallback = () => {
+      };
       this.component = component;
       this.trigger = component.querySelector('[data-animate="trigger"]');
       this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]');
       this.icon = component.querySelector('[data-animate="icon"]');
-      this.uiTrigger.addEventListener("click", () => {
-        this.toggle();
-      });
+    }
+    onClick(callback) {
+      this.removeOnClick();
+      this.onClickCallback = callback;
+      this.uiTrigger.addEventListener("click", this.onClickCallback);
+    }
+    removeOnClick() {
+      this.uiTrigger.removeEventListener("click", this.onClickCallback);
     }
     open() {
       if (!this.isOpen) {
@@ -3471,7 +3478,7 @@
           const accordionIndex = this.accordionIndexOf(input);
           const accordionInstance = this.accordionList[accordionIndex];
           if (!accordionInstance.isOpen) {
-            this.openAccordion(accordionIndex, this.accordionList);
+            this.toggleAccordion(accordionIndex);
             setTimeout(() => {
               input.scrollIntoView({
                 behavior: "smooth",
@@ -3491,8 +3498,7 @@
       this.initializeLinkedFields();
       this.renderList();
       this.closeModal();
-      this.initAccordionListeners();
-      this.openAccordion(0, this.accordionList);
+      this.initAccordions();
       this.initialized = true;
     }
     initializeLinkedFields() {
@@ -3872,7 +3878,7 @@
         });
       });
       this.handleLinkedFieldsVisibility();
-      this.openAccordion(0, this.accordionList);
+      this.toggleAccordion(0);
       this.modal.open();
     }
     async closeModal() {
@@ -3910,7 +3916,7 @@
       } else if (invalidField) {
         const accordionIndex = this.accordionIndexOf(invalidField);
         if (accordionIndex !== -1) {
-          this.openAccordion(accordionIndex, this.accordionList);
+          this.toggleAccordion(accordionIndex);
           setTimeout(() => {
             invalidField.scrollIntoView({
               behavior: "smooth",
@@ -3922,27 +3928,38 @@
       }
       return false;
     }
+    initAccordions() {
+      const accordionElements = Array.from(
+        this.container.querySelectorAll(ACCORDION_SELECTOR)
+      );
+      const accordionList = accordionElements.reduce(
+        (acc, accordionEl, index) => {
+          return [...acc, new Accordion(accordionEl)];
+        },
+        []
+      );
+      this.accordionList = accordionList;
+      this.initAccordionListeners();
+    }
     initAccordionListeners() {
-      const accordionList = this.container.querySelectorAll(ACCORDION_SELECTOR);
-      for (let i = 0; i < accordionList.length; i++) {
-        const accordionElement = accordionList[i];
-        accordionElement.dataset.index = i.toString();
-        const accordion = new Accordion(accordionElement);
-        this.accordionList.push(accordion);
-        accordion.uiTrigger.addEventListener("click", () => {
-          this.openAccordion(i, this.accordionList);
+      for (let i = 0; i < this.accordionList.length; i++) {
+        const accordion = this.accordionList[i];
+        accordion.component.dataset.index = i.toString();
+        accordion.onClick(() => {
+          this.toggleAccordion(i);
           setTimeout(() => {
             accordion.scrollIntoView();
           }, 500);
         });
       }
     }
-    openAccordion(index, accordionList) {
-      for (let i = 0; i < accordionList.length; i++) {
-        const accordion = accordionList[i];
-        if (i === index && !accordion.isOpen) {
-          accordion.open();
-        } else if (i !== index && accordion.isOpen) {
+    toggleAccordion(index) {
+      console.log("OPEN ACCORDION", index);
+      for (let i = 0; i < this.accordionList.length; i++) {
+        const accordion = this.accordionList[i];
+        if (i === index) {
+          accordion.toggle();
+        } else {
           accordion.close();
         }
       }
