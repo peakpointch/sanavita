@@ -3491,19 +3491,7 @@
       this.initializeLinkedFields();
       this.renderList();
       this.closeModal();
-      const accordionList = this.container.querySelectorAll(ACCORDION_SELECTOR);
-      for (let i = 0; i < accordionList.length; i++) {
-        const accordionElement = accordionList[i];
-        accordionElement.dataset.index = i.toString();
-        const accordion = new Accordion(accordionElement);
-        this.accordionList.push(accordion);
-        accordion.uiTrigger.addEventListener("click", () => {
-          this.openAccordion(i, this.accordionList);
-          setTimeout(() => {
-            accordion.scrollIntoView();
-          }, 500);
-        });
-      }
+      this.initAccordionListeners();
       this.openAccordion(0, this.accordionList);
       this.initialized = true;
     }
@@ -3933,6 +3921,21 @@
         return false;
       }
       return false;
+    }
+    initAccordionListeners() {
+      const accordionList = this.container.querySelectorAll(ACCORDION_SELECTOR);
+      for (let i = 0; i < accordionList.length; i++) {
+        const accordionElement = accordionList[i];
+        accordionElement.dataset.index = i.toString();
+        const accordion = new Accordion(accordionElement);
+        this.accordionList.push(accordion);
+        accordion.uiTrigger.addEventListener("click", () => {
+          this.openAccordion(i, this.accordionList);
+          setTimeout(() => {
+            accordion.scrollIntoView();
+          }, 500);
+        });
+      }
     }
     openAccordion(index, accordionList) {
       for (let i = 0; i < accordionList.length; i++) {
