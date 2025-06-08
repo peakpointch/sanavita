@@ -72,9 +72,9 @@ const prospectSelector = createAttribute<ProspectElement>('data-prospect-element
 const LINK_FIELDS_ATTR = `data-link-fields`;
 const FIELD_GROUP_ATTR = `data-prospect-field-group`;
 const STEPS_PAGINATION_ITEM_SELECTOR: string = `button${stepsTargetSelector()}`;
-const ARRAY_LIST_SELECTOR: string = '[data-form-array-element="list"]';
-const FIELD_GROUP_SELECTOR: string = `[${FIELD_GROUP_ATTR}]`;
-const ACCORDION_SELECTOR: string = `[data-animate="accordion"]`;
+const ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
+const FIELD_GROUP_SELECTOR = `[${FIELD_GROUP_ATTR}]`;
+const ACCORDION_SELECTOR = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
