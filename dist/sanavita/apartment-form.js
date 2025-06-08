@@ -4406,7 +4406,6 @@ Component:`,
       return allValid;
     }
     validateCurrentStep(stepIndex) {
-      return true;
       const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length}`;
       const currentStepElement = this.formSteps[stepIndex];
       const inputs = currentStepElement.querySelectorAll(wf.select.formInput);

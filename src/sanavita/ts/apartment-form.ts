@@ -1321,7 +1321,7 @@ class MultiStepForm {
   }
 
   public validateCurrentStep(stepIndex: number): boolean {
-    return true; // Change this for dev
+    //return true; // Change this for dev
     const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length
       }`;
     const currentStepElement = this.formSteps[stepIndex];
