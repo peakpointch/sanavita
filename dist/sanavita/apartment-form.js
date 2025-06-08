@@ -3271,54 +3271,6 @@
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
 
-  // ../peakflow/src/alertdialog.ts
-  var AlertDialog = class extends Modal {
-    confirm(message2) {
-      this.message = message2;
-      this.open();
-      return new Promise((resolve) => {
-        const confirmBtn = this.select("confirm");
-        const cancelBtn = this.select("cancel");
-        const onConfirm = () => {
-          cleanup();
-          this.close();
-          resolve(true);
-        };
-        const onCancel = () => {
-          cleanup();
-          this.close();
-          resolve(false);
-        };
-        const cleanup = () => {
-          confirmBtn.removeEventListener("click", onConfirm);
-          cancelBtn.removeEventListener("click", onCancel);
-        };
-        confirmBtn.addEventListener("click", onConfirm);
-        cancelBtn.addEventListener("click", onCancel);
-      });
-    }
-    set message(message2) {
-      this._message = message2;
-      this.renderMessage(message2);
-    }
-    get message() {
-      return this._message;
-    }
-    renderMessage(message2) {
-      for (const key in message2) {
-        const element = this.getElement(key);
-        if (element) {
-          element.innerText = message2[key];
-        } else {
-          console.warn(`AlertDialog: Missing element for key "${key}"`);
-        }
-      }
-    }
-    getElement(element) {
-      return this.component.querySelector(`[data-alert-dialog="${element}"]`);
-    }
-  };
-
   // src/sanavita/ts/form/save-options.ts
   var SaveOptions = class _SaveOptions {
     constructor(component, settings = {}) {
@@ -3432,6 +3384,70 @@
       }
     }
   };
+
+  // ../peakflow/src/alertdialog.ts
+  var AlertDialog = class extends Modal {
+    confirm(message2) {
+      this.message = message2;
+      this.open();
+      return new Promise((resolve) => {
+        const confirmBtn = this.select("confirm");
+        const cancelBtn = this.select("cancel");
+        const onConfirm = () => {
+          cleanup();
+          this.close();
+          resolve(true);
+        };
+        const onCancel = () => {
+          cleanup();
+          this.close();
+          resolve(false);
+        };
+        const cleanup = () => {
+          confirmBtn.removeEventListener("click", onConfirm);
+          cancelBtn.removeEventListener("click", onCancel);
+        };
+        confirmBtn.addEventListener("click", onConfirm);
+        cancelBtn.addEventListener("click", onCancel);
+      });
+    }
+    set message(message2) {
+      this._message = message2;
+      this.renderMessage(message2);
+    }
+    get message() {
+      return this._message;
+    }
+    renderMessage(message2) {
+      for (const key in message2) {
+        const element = this.getElement(key);
+        if (element) {
+          element.innerText = message2[key];
+        } else {
+          console.warn(`AlertDialog: Missing element for key "${key}"`);
+        }
+      }
+    }
+    getElement(element) {
+      return this.component.querySelector(`[data-alert-dialog="${element}"]`);
+    }
+  };
+
+  // src/sanavita/ts/form/alert-dialog.ts
+  function getAlertDialog() {
+    const modalElement = AlertDialog.select("component", "alert-dialog");
+    const modal = new AlertDialog(modalElement, {
+      animation: {
+        type: "growIn",
+        duration: 200
+      },
+      bodyScroll: {
+        lock: true,
+        smooth: true
+      }
+    });
+    return modal;
+  }
 
   // src/sanavita/ts/form/prospect-array.ts
   var prospectSelector = attributeselector_default("data-prospect-element");
@@ -4127,20 +4143,6 @@
       }
     }
   };
-  function getAlertDialog() {
-    const modalElement = AlertDialog.select("component", "alert-dialog");
-    const modal = new AlertDialog(modalElement, {
-      animation: {
-        type: "growIn",
-        duration: 200
-      },
-      bodyScroll: {
-        lock: true,
-        smooth: true
-      }
-    });
-    return modal;
-  }
 
   // src/sanavita/ts/apartment-form.ts
   var stepsElementSelector = attributeselector_default("data-steps-element", {

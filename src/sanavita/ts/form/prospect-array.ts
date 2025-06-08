@@ -23,6 +23,7 @@ import Accordion from "@peakflow/accordion";
 import Modal from "@peakflow/modal";
 import AlertDialog from "@peakflow/alertdialog";
 import { SaveOptions } from "./save-options";
+import { getAlertDialog } from "./alert-dialog";
 
 type ProspectElement =
   'template'
@@ -931,20 +932,3 @@ export class ProspectArray {
     }
   }
 }
-
-function getAlertDialog(): AlertDialog {
-  const modalElement = AlertDialog.select('component', 'alert-dialog');
-  const modal = new AlertDialog(modalElement, {
-    animation: {
-      type: 'growIn',
-      duration: 200,
-    },
-    bodyScroll: {
-      lock: true,
-      smooth: true,
-    },
-  });
-
-  return modal;
-}
-
