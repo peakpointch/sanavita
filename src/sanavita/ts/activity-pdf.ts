@@ -3,7 +3,9 @@ import EditableCanvas from '@peakflow/canvas';
 import Pdf, { PdfFormat } from '@peakflow/pdf';
 import { FilterCollection } from '@peakflow/wfcollection';
 import Renderer, { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
-import { FilterForm, CalendarweekComponent, filterFormSelector } from '@peakflow/form';
+import { FilterForm } from '@peakflow/form/filterform';
+import { filterFormSelector } from '@peakflow/form/utility';
+import { CalendarweekComponent } from '@peakflow/form/calendarweekcomponent';
 
 // Utility functions
 import createAttribute from '@peakflow/attributeselector';
