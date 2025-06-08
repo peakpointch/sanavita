@@ -3178,7 +3178,7 @@
     return map;
   }
 
-  // src/sanavita/ts/residentprospect.ts
+  // src/sanavita/ts/resident-prospect.ts
   function prospectMapToObject(prospects) {
     const prospectsObj = {};
     for (const [key, prospect] of prospects) {

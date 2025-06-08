@@ -28,7 +28,7 @@ import {
   GroupName,
   prospectMapToObject,
   flattenProspects,
-} from "./residentprospect";
+} from "./resident-prospect";
 import mapToObject from "@peakflow/maptoobject"
 import deepMerge from "@peakflow/deepmerge";
 import { SaveOptions } from "./save-options";

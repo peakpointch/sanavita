@@ -97,7 +97,7 @@ function build() {
     extensions: ['ts', 'js'],
     excludeList: [
       './src/sanavita/ts/utility/',
-      './src/sanavita/ts/residentprospect.ts'
+      './src/sanavita/ts/resident-prospect.ts'
     ],
     minify: false,
     format: 'iife',
