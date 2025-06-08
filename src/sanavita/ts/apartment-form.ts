@@ -919,7 +919,13 @@ class MultiStepForm {
   public component: HTMLElement;
   public formElement: HTMLFormElement | HTMLElement;
   public formSteps: NodeListOf<HTMLElement>;
-  public currentStep: number = 0;
+  private set currentStep(index: number) {
+    this._currentStep = index;
+  }
+  public get currentStep(): number {
+    return this._currentStep;
+  }
+  private _currentStep: number = 0;
   private navigationElement: HTMLElement;
   private paginationItems: NodeListOf<HTMLElement>;
   private buttonsNext: NodeListOf<HTMLElement>;

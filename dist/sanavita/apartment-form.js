@@ -4087,7 +4087,7 @@
         }
       };
       this.initialized = false;
-      this.currentStep = 0;
+      this._currentStep = 0;
       this.customComponents = [];
       this.component = component;
       this.options = deepMerge(this.options, options);
@@ -4096,6 +4096,12 @@
       this.setupForm();
       this.setupEventListeners();
       this.initialized = true;
+    }
+    set currentStep(index) {
+      this._currentStep = index;
+    }
+    get currentStep() {
+      return this._currentStep;
     }
     validateComponent() {
       if (!this.component.getAttribute("data-steps-element")) {
