@@ -661,41 +661,6 @@ class FormArray {
     return valid;
   }
 
-  public openModal(): void {
-    // Live text for name
-    const personalDataGroup = this.modalElement.querySelector(
-      '[data-prospect-field-group="personalData"]'
-    )!;
-    const nameInputs: NodeListOf<HTMLFormElement> =
-      personalDataGroup.querySelectorAll("#first-name, #name");
-    nameInputs.forEach((input) => {
-      input.addEventListener("input", () => {
-        const editingProspect = this.extractData(this.editingKey.startsWith('unsaved'));
-        this.setLiveText(
-          "full-name",
-          editingProspect.getFullName() || "Neue Person"
-        );
-      });
-    });
-
-    this.handleLiveProgress();
-    this.handleLinkedFieldsVisibility();
-    this.openAccordion(0);
-
-    this.modal.open();
-  }
-
-  private handleLiveProgress(): void {
-    this.groupElements.forEach(groupEl => this.handleLiveProgressForGroup(groupEl));
-
-    this.modalInputs.forEach(input => {
-      input.addEventListener("input", () => {
-        const groupEl = this.getClosestGroup(input);
-        this.handleLiveProgressForGroup(groupEl);
-      });
-    });
-  }
-
   private handleLiveProgressForGroup(groupEl: HTMLElement): void {
     const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
     const groupInputs = groupEl.querySelectorAll<HTMLFormInput>(wf.select.formInput);
@@ -710,32 +675,14 @@ class FormArray {
     }
   }
 
-  public async closeModal(): Promise<void> {
-    await this.modal.close();
-    if (this.initialized) {
-      this.list.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
-    this.clearModal();
-    this.editingKey = null;
-  }
+  private handleLiveProgress(): void {
+    this.groupElements.forEach(groupEl => this.handleLiveProgressForGroup(groupEl));
 
-  private clearModal() {
-    this.setLiveText("state", "hinzufügen");
-    this.setLiveText("full-name", "Neue Person");
-    this.modalInputs.forEach((input) => {
-      if (isRadioInput(input)) {
-        input.checked = false;
-        clearRadioGroup(this.modalElement, input.name);
-      } else if (isCheckboxInput(input)) {
-        input.checked = false;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      } else {
-        input.value = "";
-      }
-      removeErrorClasses(input);
+    this.modalInputs.forEach(input => {
+      input.addEventListener("input", () => {
+        const groupEl = this.getClosestGroup(input);
+        this.handleLiveProgressForGroup(groupEl);
+      });
     });
   }
 
@@ -767,6 +714,59 @@ class FormArray {
     }
 
     return false;
+  }
+
+  private clearModal() {
+    this.setLiveText("state", "hinzufügen");
+    this.setLiveText("full-name", "Neue Person");
+    this.modalInputs.forEach((input) => {
+      if (isRadioInput(input)) {
+        input.checked = false;
+        clearRadioGroup(this.modalElement, input.name);
+      } else if (isCheckboxInput(input)) {
+        input.checked = false;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      } else {
+        input.value = "";
+      }
+      removeErrorClasses(input);
+    });
+  }
+
+  public openModal(): void {
+    // Live text for name
+    const personalDataGroup = this.modalElement.querySelector(
+      '[data-prospect-field-group="personalData"]'
+    )!;
+    const nameInputs: NodeListOf<HTMLFormElement> =
+      personalDataGroup.querySelectorAll("#first-name, #name");
+    nameInputs.forEach((input) => {
+      input.addEventListener("input", () => {
+        const editingProspect = this.extractData(this.editingKey.startsWith('unsaved'));
+        this.setLiveText(
+          "full-name",
+          editingProspect.getFullName() || "Neue Person"
+        );
+      });
+    });
+
+    this.handleLiveProgress();
+    this.handleLinkedFieldsVisibility();
+    this.openAccordion(0);
+
+    this.modal.open();
+  }
+
+  public async closeModal(): Promise<void> {
+    await this.modal.close();
+    if (this.initialized) {
+      this.list.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+    this.clearModal();
+    this.editingKey = null;
   }
 
   private initAccordions(): void {
