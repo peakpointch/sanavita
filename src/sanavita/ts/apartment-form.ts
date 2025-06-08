@@ -12,8 +12,8 @@ import {
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
 import { FormDecision } from "@peakflow/form";
-import { ProspectArray } from "./prospect-array";
-import { flattenProspects } from "./resident-prospect";
+import { ProspectArray } from "./form/prospect-array";
+import { flattenProspects } from "./form/resident-prospect";
 import mapToObject from "@peakflow/maptoobject"
 import deepMerge from "@peakflow/deepmerge";
 

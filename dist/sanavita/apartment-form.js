@@ -2775,7 +2775,7 @@
     return map;
   }
 
-  // src/sanavita/ts/resident-prospect.ts
+  // src/sanavita/ts/form/resident-prospect.ts
   function prospectMapToObject(prospects) {
     const prospectsObj = {};
     for (const [key, prospect] of prospects) {
@@ -3319,7 +3319,7 @@
     }
   };
 
-  // src/sanavita/ts/save-options.ts
+  // src/sanavita/ts/form/save-options.ts
   var SaveOptions = class _SaveOptions {
     constructor(component, settings = {}) {
       this.actions = /* @__PURE__ */ new Map();
@@ -3433,7 +3433,7 @@
     }
   };
 
-  // src/sanavita/ts/prospect-array.ts
+  // src/sanavita/ts/form/prospect-array.ts
   var prospectSelector = attributeselector_default("data-prospect-element");
   var LINK_FIELDS_ATTR = `data-link-fields`;
   var FIELD_GROUP_ATTR = `data-prospect-field-group`;
