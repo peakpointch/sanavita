@@ -59,7 +59,16 @@ type CustomFormComponent = {
 };
 type StepsComponentElement = 'component' | 'list' | 'step' | 'navigation' | 'pagination' | 'custom-component';
 type StepsNavElement = 'prev' | 'next';
-type ProspectElement = 'template' | 'add' | 'edit' | 'delete' | 'save' | 'draft' | 'draft-badge' | 'cancel';
+type ProspectElement =
+  'template'
+  | 'add'
+  | 'edit'
+  | 'delete'
+  | 'save'
+  | 'draft'
+  | 'draft-badge'
+  | 'cancel'
+  | 'circle';
 
 // Selector functions
 const stepsElementSelector = createAttribute<StepsComponentElement>('data-steps-element', {
@@ -669,10 +678,44 @@ class FormArray {
       });
     });
 
+    this.handleLiveProgress();
     this.handleLinkedFieldsVisibility();
     this.openAccordion(0);
 
     this.modal.open();
+  }
+
+  private getClosestGroup(element: HTMLElement): HTMLElement {
+    const groupEl: HTMLElement | null = element.closest(FIELD_GROUP_SELECTOR);
+    if (!groupEl) {
+      throw new Error(`The given element is not part of a group element.`);
+    }
+    return groupEl;
+  }
+
+  private handleLiveProgress(): void {
+    this.groupElements.forEach(groupEl => this.handleLiveProgressForGroup(groupEl));
+
+    this.modalInputs.forEach(input => {
+      input.addEventListener("input", () => {
+        const groupEl = this.getClosestGroup(input);
+        this.handleLiveProgressForGroup(groupEl);
+      });
+    });
+  }
+
+  private handleLiveProgressForGroup(groupEl: HTMLElement): void {
+    const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
+    const groupInputs = groupEl.querySelectorAll<HTMLFormInput>(wf.select.formInput);
+    const { valid } = validateFields(groupInputs, false);
+
+    const circle = groupEl.querySelector(prospectSelector('circle'));
+    if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
+    if (valid) {
+      circle.classList.add('is-valid');
+    } else {
+      circle.classList.remove('is-valid');
+    }
   }
 
   public async closeModal(): Promise<void> {

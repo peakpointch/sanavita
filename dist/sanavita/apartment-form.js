@@ -3883,9 +3883,38 @@
           );
         });
       });
+      this.handleLiveProgress();
       this.handleLinkedFieldsVisibility();
       this.openAccordion(0);
       this.modal.open();
+    }
+    getClosestGroup(element) {
+      const groupEl = element.closest(FIELD_GROUP_SELECTOR);
+      if (!groupEl) {
+        throw new Error(`The given element is not part of a group element.`);
+      }
+      return groupEl;
+    }
+    handleLiveProgress() {
+      this.groupElements.forEach((groupEl) => this.handleLiveProgressForGroup(groupEl));
+      this.modalInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          const groupEl = this.getClosestGroup(input);
+          this.handleLiveProgressForGroup(groupEl);
+        });
+      });
+    }
+    handleLiveProgressForGroup(groupEl) {
+      const groupName = groupEl.dataset.prospectFieldGroup;
+      const groupInputs = groupEl.querySelectorAll(wf.select.formInput);
+      const { valid } = validateFields(groupInputs, false);
+      const circle = groupEl.querySelector(prospectSelector("circle"));
+      if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
+      if (valid) {
+        circle.classList.add("is-valid");
+      } else {
+        circle.classList.remove("is-valid");
+      }
     }
     async closeModal() {
       await this.modal.close();
