@@ -3878,7 +3878,7 @@
         });
       });
       this.handleLinkedFieldsVisibility();
-      this.toggleAccordion(0);
+      this.openAccordion(0);
       this.modal.open();
     }
     async closeModal() {
@@ -3916,7 +3916,7 @@
       } else if (invalidField) {
         const accordionIndex = this.accordionIndexOf(invalidField);
         if (accordionIndex !== -1) {
-          this.toggleAccordion(accordionIndex);
+          this.openAccordion(accordionIndex);
           setTimeout(() => {
             invalidField.scrollIntoView({
               behavior: "smooth",
@@ -3954,11 +3954,20 @@
       }
     }
     toggleAccordion(index) {
-      console.log("OPEN ACCORDION", index);
       for (let i = 0; i < this.accordionList.length; i++) {
         const accordion = this.accordionList[i];
         if (i === index) {
           accordion.toggle();
+        } else {
+          accordion.close();
+        }
+      }
+    }
+    openAccordion(index) {
+      for (let i = 0; i < this.accordionList.length; i++) {
+        const accordion = this.accordionList[i];
+        if (i === index) {
+          accordion.open();
         } else {
           accordion.close();
         }

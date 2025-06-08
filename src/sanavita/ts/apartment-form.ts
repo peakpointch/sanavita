@@ -668,7 +668,7 @@ class FormArray {
     });
 
     this.handleLinkedFieldsVisibility();
-    this.toggleAccordion(0);
+    this.openAccordion(0);
 
     this.modal.open();
   }
@@ -715,7 +715,7 @@ class FormArray {
 
       if (accordionIndex !== -1) {
         // Open the accordion containing the invalid field using the index
-        this.toggleAccordion(accordionIndex);
+        this.openAccordion(accordionIndex);
         // Optionally, you can scroll the accordion into view
         setTimeout(() => {
           invalidField.scrollIntoView({
@@ -759,11 +759,21 @@ class FormArray {
   }
 
   private toggleAccordion(index: number) {
-    console.log("OPEN ACCORDION", index);
     for (let i = 0; i < this.accordionList.length; i++) {
       const accordion = this.accordionList[i];
       if (i === index) {
         accordion.toggle();
+      } else {
+        accordion.close();
+      }
+    }
+  }
+
+  private openAccordion(index: number) {
+    for (let i = 0; i < this.accordionList.length; i++) {
+      const accordion = this.accordionList[i];
+      if (i === index) {
+        accordion.open();
       } else {
         accordion.close();
       }
