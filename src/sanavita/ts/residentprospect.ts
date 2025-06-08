@@ -1,5 +1,4 @@
-import { FieldGroup } from "@peakflow/form/fieldgroup";
-import { FormField, FieldData } from "@peakflow/form/formfield";
+import { FieldGroup, FieldGroupValidation } from "@peakflow/form/fieldgroup";
 import mapToObject from "@peakflow/maptoobject";
 import objectToMap from "@peakflow/objecttomap";
 
@@ -18,6 +17,8 @@ type LinkedFieldsId =
   | "doctor"
   | "primaryRelative"
   | "secondaryRelative";
+
+export type ProspectValidation = Record<GroupName, FieldGroupValidation>;
 
 export interface SerializedProspect {
   personalData?: any;
@@ -131,33 +132,26 @@ export class ResidentProspect {
     return this.linkedFields.delete(id);
   }
 
-  public validate(): boolean {
-    let valid = true;
+  public validateGroups(): ProspectValidation;
+  public validateGroups(...groups: GroupName[]): Partial<ProspectValidation>;
+  public validateGroups(...groups: GroupName[]): Partial<ProspectValidation> | ProspectValidation {
+    const groupNames = groups.length ? groups : Object.keys(this) as GroupName[];
+    const validatedGroups: Partial<ProspectValidation> = {};
 
-    // Loop over the groups within the `ResidentProspect` object
-    const groups = Object.keys(this) as GroupName[];
-
-    groups.forEach((groupName) => {
-      const group = this[groupName] as FieldGroup;
-
-      // Assuming the group has a `fields` property
-      if (group.fields) {
-        group.fields.forEach((field) => {
-          if (!(field instanceof FormField)) {
-            console.error(
-              `Validate Prospect: field object is not of instance "Field"`
-            );
-            return;
-          } else {
-            const fieldValid = field.validate(true);
-            if (!fieldValid) {
-              valid = false;
-            }
-          }
-        });
+    for (const groupName of groupNames) {
+      const group = this[groupName];
+      if (group instanceof FieldGroup) {
+        const { isValid, invalidFields } = group.validate();
+        validatedGroups[groupName] = { isValid, invalidFields };
       }
-    });
-    return valid;
+    }
+
+    return validatedGroups;
+  }
+
+  public validate(): boolean {
+    const validated = this.validateGroups();
+    return !Object.values(validated).some(group => group.isValid === false);
   }
 
   public getFullName(): string {

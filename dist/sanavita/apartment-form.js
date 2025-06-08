@@ -3223,28 +3223,21 @@
     unlinkFields(id) {
       return this.linkedFields.delete(id);
     }
-    validate() {
-      let valid = true;
-      const groups = Object.keys(this);
-      groups.forEach((groupName) => {
+    validateGroups(...groups) {
+      const groupNames = groups.length ? groups : Object.keys(this);
+      const validatedGroups = {};
+      for (const groupName of groupNames) {
         const group = this[groupName];
-        if (group.fields) {
-          group.fields.forEach((field) => {
-            if (!(field instanceof FormField)) {
-              console.error(
-                `Validate Prospect: field object is not of instance "Field"`
-              );
-              return;
-            } else {
-              const fieldValid = field.validate(true);
-              if (!fieldValid) {
-                valid = false;
-              }
-            }
-          });
+        if (group instanceof FieldGroup) {
+          const { isValid: isValid2, invalidFields } = group.validate();
+          validatedGroups[groupName] = { isValid: isValid2, invalidFields };
         }
-      });
-      return valid;
+      }
+      return validatedGroups;
+    }
+    validate() {
+      const validated = this.validateGroups();
+      return !Object.values(validated).some((group) => group.isValid === false);
     }
     getFullName() {
       return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
