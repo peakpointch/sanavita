@@ -2762,6 +2762,160 @@
     }
   };
 
+  // ../peakflow/src/objecttomap.ts
+  function objectToMap(obj, deep = false) {
+    const map = /* @__PURE__ */ new Map();
+    for (const [key, value] of Object.entries(obj)) {
+      if (deep && value instanceof Object && !(value instanceof Map)) {
+        map.set(key, objectToMap(value, true));
+      } else {
+        map.set(key, value);
+      }
+    }
+    return map;
+  }
+
+  // src/sanavita/ts/resident-prospect.ts
+  function prospectMapToObject(prospects) {
+    const prospectsObj = {};
+    for (const [key, prospect] of prospects) {
+      prospectsObj[key] = prospect.serialize();
+    }
+    return prospectsObj;
+  }
+  function flattenProspects(prospects) {
+    let prospectsObj = {};
+    let prospectArray = [...prospects.values()];
+    for (let i = 0; i < prospectArray.length; i++) {
+      let prospect = prospectArray[i];
+      prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
+    }
+    return prospectsObj;
+  }
+  var ResidentProspect = class _ResidentProspect {
+    constructor(data) {
+      this.key = `person-${crypto.randomUUID()}`;
+      const defaults = _ResidentProspect.defaultData;
+      const resolved = data ?? {};
+      this.personalData = resolved.personalData ?? defaults.personalData;
+      this.doctor = resolved.doctor ?? defaults.doctor;
+      this.health = resolved.health ?? defaults.health;
+      this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
+      this.secondaryRelative = resolved.secondaryRelative ?? defaults.secondaryRelative;
+      this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
+      this.draft = resolved.draft ?? defaults.draft;
+    }
+    static get defaultData() {
+      return {
+        personalData: new FieldGroup(),
+        doctor: new FieldGroup(),
+        health: new FieldGroup(),
+        primaryRelative: new FieldGroup(),
+        secondaryRelative: new FieldGroup(),
+        linkedFields: /* @__PURE__ */ new Map(),
+        draft: false
+      };
+    }
+    linkFields(id, groupName, fields) {
+      if (!id) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`);
+      let inputIds = fields;
+      if (typeof inputIds === "string") {
+        inputIds = inputIds?.split(",").map((id2) => id2.trim());
+      }
+      if (inputIds.length === 0 || inputIds.some((id2) => id2 === "")) {
+        throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+      }
+      this.linkedFields.set(id, { group: groupName, fields: inputIds });
+    }
+    /**
+     * @returns true if the fields existed and have been unlinked, or false if the fields were not linked.
+     */
+    unlinkFields(id) {
+      return this.linkedFields.delete(id);
+    }
+    validateGroups(...groups) {
+      const groupNames = groups.length ? groups : Object.keys(this);
+      const validatedGroups = {};
+      for (const groupName of groupNames) {
+        const group = this[groupName];
+        if (group instanceof FieldGroup) {
+          const { isValid: isValid2, invalidFields } = group.validate();
+          validatedGroups[groupName] = { isValid: isValid2, invalidFields };
+        }
+      }
+      return validatedGroups;
+    }
+    validate() {
+      const validated = this.validateGroups();
+      return !Object.values(validated).some((group) => group.isValid === false);
+    }
+    getFullName() {
+      return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
+    }
+    flatten(prefix) {
+      const fields = {};
+      const groupNames = Object.keys(this);
+      for (const groupName of groupNames) {
+        const group = this[groupName];
+        group.fields.forEach((field, index) => {
+          const fieldName = `${prefix}_${groupName}_${field.id}`;
+          fields[fieldName] = field.value;
+        });
+      }
+      return fields;
+    }
+    serialize() {
+      return {
+        personalData: this.personalData.serialize(),
+        doctor: this.doctor.serialize(),
+        health: this.health.serialize(),
+        primaryRelative: this.primaryRelative.serialize(),
+        secondaryRelative: this.secondaryRelative.serialize(),
+        linkedFields: mapToObject(this.linkedFields),
+        draft: this.draft
+      };
+    }
+    /**
+     * Main function to deserialize a `ResidentProspect`
+     */
+    static deserialize(data) {
+      return new _ResidentProspect({
+        personalData: FieldGroup.deserialize(data.personalData),
+        doctor: FieldGroup.deserialize(data.doctor),
+        health: FieldGroup.deserialize(data.health),
+        primaryRelative: FieldGroup.deserialize(data.primaryRelative),
+        secondaryRelative: FieldGroup.deserialize(data.secondaryRelative),
+        linkedFields: objectToMap(data.linkedFields),
+        draft: data.draft
+      });
+    }
+    static areEqual(a, b) {
+      const groups = [
+        "personalData",
+        "doctor",
+        "health",
+        "primaryRelative",
+        "secondaryRelative"
+      ];
+      if (!a || !b) return false;
+      for (const groupName of groups) {
+        const groupA = a[groupName];
+        const groupB = b[groupName];
+        if (!groupA || !groupB) return false;
+        const fieldsA = groupA.fields;
+        const fieldsB = groupB.fields;
+        if (fieldsA.size !== fieldsB.size) return false;
+        for (const [fieldId, fieldA] of fieldsA) {
+          const fieldB = fieldsB.get(fieldId);
+          if (!fieldB || fieldA.value !== fieldB.value) {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+  };
+
   // ../peakflow/src/accordion.ts
   var modalSelector = attributeselector_default("data-modal-element");
   var Accordion = class {
@@ -3165,160 +3319,6 @@
     }
   };
 
-  // ../peakflow/src/objecttomap.ts
-  function objectToMap(obj, deep = false) {
-    const map = /* @__PURE__ */ new Map();
-    for (const [key, value] of Object.entries(obj)) {
-      if (deep && value instanceof Object && !(value instanceof Map)) {
-        map.set(key, objectToMap(value, true));
-      } else {
-        map.set(key, value);
-      }
-    }
-    return map;
-  }
-
-  // src/sanavita/ts/resident-prospect.ts
-  function prospectMapToObject(prospects) {
-    const prospectsObj = {};
-    for (const [key, prospect] of prospects) {
-      prospectsObj[key] = prospect.serialize();
-    }
-    return prospectsObj;
-  }
-  function flattenProspects(prospects) {
-    let prospectsObj = {};
-    let prospectArray = [...prospects.values()];
-    for (let i = 0; i < prospectArray.length; i++) {
-      let prospect = prospectArray[i];
-      prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
-    }
-    return prospectsObj;
-  }
-  var ResidentProspect = class _ResidentProspect {
-    constructor(data) {
-      this.key = `person-${crypto.randomUUID()}`;
-      const defaults = _ResidentProspect.defaultData;
-      const resolved = data ?? {};
-      this.personalData = resolved.personalData ?? defaults.personalData;
-      this.doctor = resolved.doctor ?? defaults.doctor;
-      this.health = resolved.health ?? defaults.health;
-      this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
-      this.secondaryRelative = resolved.secondaryRelative ?? defaults.secondaryRelative;
-      this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
-      this.draft = resolved.draft ?? defaults.draft;
-    }
-    static get defaultData() {
-      return {
-        personalData: new FieldGroup(),
-        doctor: new FieldGroup(),
-        health: new FieldGroup(),
-        primaryRelative: new FieldGroup(),
-        secondaryRelative: new FieldGroup(),
-        linkedFields: /* @__PURE__ */ new Map(),
-        draft: false
-      };
-    }
-    linkFields(id, groupName, fields) {
-      if (!id) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`);
-      let inputIds = fields;
-      if (typeof inputIds === "string") {
-        inputIds = inputIds?.split(",").map((id2) => id2.trim());
-      }
-      if (inputIds.length === 0 || inputIds.some((id2) => id2 === "")) {
-        throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
-      }
-      this.linkedFields.set(id, { group: groupName, fields: inputIds });
-    }
-    /**
-     * @returns true if the fields existed and have been unlinked, or false if the fields were not linked.
-     */
-    unlinkFields(id) {
-      return this.linkedFields.delete(id);
-    }
-    validateGroups(...groups) {
-      const groupNames = groups.length ? groups : Object.keys(this);
-      const validatedGroups = {};
-      for (const groupName of groupNames) {
-        const group = this[groupName];
-        if (group instanceof FieldGroup) {
-          const { isValid: isValid2, invalidFields } = group.validate();
-          validatedGroups[groupName] = { isValid: isValid2, invalidFields };
-        }
-      }
-      return validatedGroups;
-    }
-    validate() {
-      const validated = this.validateGroups();
-      return !Object.values(validated).some((group) => group.isValid === false);
-    }
-    getFullName() {
-      return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
-    }
-    flatten(prefix) {
-      const fields = {};
-      const groupNames = Object.keys(this);
-      for (const groupName of groupNames) {
-        const group = this[groupName];
-        group.fields.forEach((field, index) => {
-          const fieldName = `${prefix}_${groupName}_${field.id}`;
-          fields[fieldName] = field.value;
-        });
-      }
-      return fields;
-    }
-    serialize() {
-      return {
-        personalData: this.personalData.serialize(),
-        doctor: this.doctor.serialize(),
-        health: this.health.serialize(),
-        primaryRelative: this.primaryRelative.serialize(),
-        secondaryRelative: this.secondaryRelative.serialize(),
-        linkedFields: mapToObject(this.linkedFields),
-        draft: this.draft
-      };
-    }
-    /**
-     * Main function to deserialize a `ResidentProspect`
-     */
-    static deserialize(data) {
-      return new _ResidentProspect({
-        personalData: FieldGroup.deserialize(data.personalData),
-        doctor: FieldGroup.deserialize(data.doctor),
-        health: FieldGroup.deserialize(data.health),
-        primaryRelative: FieldGroup.deserialize(data.primaryRelative),
-        secondaryRelative: FieldGroup.deserialize(data.secondaryRelative),
-        linkedFields: objectToMap(data.linkedFields),
-        draft: data.draft
-      });
-    }
-    static areEqual(a, b) {
-      const groups = [
-        "personalData",
-        "doctor",
-        "health",
-        "primaryRelative",
-        "secondaryRelative"
-      ];
-      if (!a || !b) return false;
-      for (const groupName of groups) {
-        const groupA = a[groupName];
-        const groupB = b[groupName];
-        if (!groupA || !groupB) return false;
-        const fieldsA = groupA.fields;
-        const fieldsB = groupB.fields;
-        if (fieldsA.size !== fieldsB.size) return false;
-        for (const [fieldId, fieldA] of fieldsA) {
-          const fieldB = fieldsB.get(fieldId);
-          if (!fieldB || fieldA.value !== fieldB.value) {
-            return false;
-          }
-        }
-      }
-      return true;
-    }
-  };
-
   // src/sanavita/ts/save-options.ts
   var SaveOptions = class _SaveOptions {
     constructor(component, settings = {}) {
@@ -3433,21 +3433,15 @@
     }
   };
 
-  // src/sanavita/ts/apartment-form.ts
-  var stepsElementSelector = attributeselector_default("data-steps-element", {
-    defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
-  });
-  var stepsTargetSelector = attributeselector_default("data-step-target");
-  var stepsNavSelector = attributeselector_default("data-steps-nav");
+  // src/sanavita/ts/prospect-array.ts
   var prospectSelector = attributeselector_default("data-prospect-element");
   var LINK_FIELDS_ATTR = `data-link-fields`;
   var FIELD_GROUP_ATTR = `data-prospect-field-group`;
-  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
   var FIELD_GROUP_SELECTOR = `[${FIELD_GROUP_ATTR}]`;
   var ACCORDION_SELECTOR = `[data-animate="accordion"]`;
   var STORAGE_KEY = "formProgress";
-  var FormArray = class {
+  var ProspectArray = class {
     constructor(container, id) {
       this.initialized = false;
       this.alertDialog = getAlertDialog();
@@ -3978,7 +3972,7 @@
         this.container.querySelectorAll(ACCORDION_SELECTOR)
       );
       const accordionList = accordionElements.reduce(
-        (acc, accordionEl, index) => {
+        (acc, accordionEl) => {
           return [...acc, new Accordion(accordionEl)];
         },
         []
@@ -4133,6 +4127,28 @@
       }
     }
   };
+  function getAlertDialog() {
+    const modalElement = AlertDialog.select("component", "alert-dialog");
+    const modal = new AlertDialog(modalElement, {
+      animation: {
+        type: "growIn",
+        duration: 200
+      },
+      bodyScroll: {
+        lock: true,
+        smooth: true
+      }
+    });
+    return modal;
+  }
+
+  // src/sanavita/ts/apartment-form.ts
+  var stepsElementSelector = attributeselector_default("data-steps-element", {
+    defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
+  });
+  var stepsTargetSelector = attributeselector_default("data-step-target");
+  var stepsNavSelector = attributeselector_default("data-steps-nav");
+  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var MultiStepForm = class {
     constructor(component, options) {
       this.options = {
@@ -4550,20 +4566,6 @@ Component:`,
       }
     }
   }
-  function getAlertDialog() {
-    const modalElement = AlertDialog.select("component", "alert-dialog");
-    const modal = new AlertDialog(modalElement, {
-      animation: {
-        type: "growIn",
-        duration: 200
-      },
-      bodyScroll: {
-        lock: true,
-        smooth: true
-      }
-    });
-    return modal;
-  }
   var formElement = document.querySelector(
     formElementSelector("component", { exclusions: [] })
   );
@@ -4573,7 +4575,7 @@ Component:`,
       console.error("Form not found.");
       return;
     }
-    const prospectArray = new FormArray(formElement, "resident-prospects");
+    const prospectArray = new ProspectArray(formElement, "resident-prospects");
     const FORM = new MultiStepForm(formElement, {
       navigation: {
         hideInStep: 0
