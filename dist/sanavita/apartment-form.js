@@ -112,6 +112,19 @@
   function isFormInput(input) {
     return input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement;
   }
+  function findFormInput(containers, inputId, selectorPrefix = wf.select.formInput) {
+    const selector = `${selectorPrefix}#${inputId}`;
+    const matches = Array.from(containers).flatMap(
+      (container) => Array.from(container.querySelectorAll(selector))
+    );
+    if (matches.length === 0) {
+      throw new Error(`No form input found with selector "${selector}".`);
+    }
+    if (matches.length > 1) {
+      throw new Error(`Multiple form inputs found with selector "${selector}" - expected only one.`);
+    }
+    return matches[0];
+  }
   async function sendFormData(formData) {
     const url = `https://webflow.com/api/v1/form/${wf.siteId}`;
     const request = {
@@ -4033,6 +4046,13 @@
       return Array.from(
         this.modal.component.querySelectorAll(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
       );
+    }
+    getFormInput(fieldOrId, groupName) {
+      if (isFormInput(fieldOrId)) {
+        return fieldOrId;
+      }
+      const groupElements = this.getGroupsByName(groupName);
+      return findFormInput(groupElements, fieldOrId);
     }
     extractData(draft = false) {
       const prospectData = new ResidentProspect({ draft });

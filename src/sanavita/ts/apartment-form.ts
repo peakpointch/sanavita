@@ -12,7 +12,8 @@ import {
   removeErrorClasses,
   enforceButtonTypes,
   FormFieldMap,
-  isFormInput
+  isFormInput,
+  findFormInput,
 } from "@peakflow/form";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
@@ -854,6 +855,28 @@ class FormArray {
     return Array.from(
       this.modal.component.querySelectorAll<HTMLElement>(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
     );
+  }
+
+  private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
+    field: T
+  ): T;
+  private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
+    fieldId: string,
+    groupName: GroupName
+  ): T;
+  private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
+    fieldOrId: T | string,
+    groupName?: GroupName | undefined
+  ): T;
+  private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
+    fieldOrId: T | string,
+    groupName?: GroupName | undefined
+  ): T {
+    if (isFormInput(fieldOrId)) {
+      return fieldOrId as T;
+    }
+    const groupElements = this.getGroupsByName(groupName);
+    return findFormInput<T>(groupElements, fieldOrId);
   }
 
   private extractData(draft: boolean = false): ResidentProspect {
