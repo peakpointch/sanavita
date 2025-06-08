@@ -3469,12 +3469,14 @@
       });
       this.modalInputs.forEach((input) => {
         input.addEventListener("keydown", (event) => {
+          if (!this.modal.opened) return;
           if (event.key === "Enter") {
             event.preventDefault();
             this.saveProspectFromModal({ validate: true, report: true });
           }
         });
         input.addEventListener("focusin", () => {
+          if (!this.modal.opened) return;
           const accordionIndex = this.accordionIndexOf(input);
           const accordionInstance = this.accordionList[accordionIndex];
           if (!accordionInstance.isOpen) {
@@ -3914,6 +3916,7 @@
       if (valid === true) {
         return true;
       } else if (invalidField) {
+        if (!report || !this.modal.opened) return false;
         const accordionIndex = this.accordionIndexOf(invalidField);
         if (accordionIndex !== -1) {
           this.openAccordion(accordionIndex);

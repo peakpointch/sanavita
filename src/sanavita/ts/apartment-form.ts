@@ -137,14 +137,16 @@ class FormArray {
       button.addEventListener("click", () => this.discardChanges());
     });
 
-    (this.modalInputs as NodeListOf<HTMLInputElement>).forEach((input) => {
+    this.modalInputs.forEach((input) => {
       input.addEventListener("keydown", (event: KeyboardEvent) => {
+        if (!this.modal.opened) return;
         if (event.key === "Enter") {
           event.preventDefault();
           this.saveProspectFromModal({ validate: true, report: true });
         }
       });
       input.addEventListener("focusin", () => {
+        if (!this.modal.opened) return;
         const accordionIndex = this.accordionIndexOf(input);
         const accordionInstance = this.accordionList[accordionIndex];
         if (!accordionInstance.isOpen) {
@@ -710,6 +712,7 @@ class FormArray {
     if (valid === true) {
       return true;
     } else if (invalidField) {
+      if (!report || !this.modal.opened) return false;
       // Find the index of the accordion that contains the invalid field
       const accordionIndex = this.accordionIndexOf(invalidField);
 
