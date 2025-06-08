@@ -3506,6 +3506,10 @@
             }, 500);
           }
         });
+        const groupEl = this.getClosestGroup(input);
+        input.addEventListener("input", () => {
+          this.validateModalGroup(groupEl);
+        });
       });
       this.saveOptions.setActionHandler("save", () => {
         this.saveProspectFromModal({ validate: true, report: true });
@@ -3882,47 +3886,46 @@
       }
       return valid;
     }
-    handleLiveProgressForGroup(groupEl) {
+    validateModalGroup(groupEl) {
       const groupName = groupEl.dataset.prospectFieldGroup;
       const groupInputs = groupEl.querySelectorAll(wf.select.formInput);
-      const { valid } = validateFields(groupInputs, false);
+      const validation = validateFields(groupInputs, false);
       const circle = groupEl.querySelector(prospectSelector("circle"));
       if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
-      if (valid) {
+      if (validation.isValid) {
         circle.classList.add("is-valid");
       } else {
         circle.classList.remove("is-valid");
       }
-    }
-    handleLiveProgress() {
-      this.groupElements.forEach((groupEl) => this.handleLiveProgressForGroup(groupEl));
-      this.modalInputs.forEach((input) => {
-        input.addEventListener("input", () => {
-          const groupEl = this.getClosestGroup(input);
-          this.handleLiveProgressForGroup(groupEl);
-        });
-      });
+      return validation;
     }
     validateModal(report = true) {
-      const allModalFields = this.modalElement.querySelectorAll(wf.select.formInput);
-      const { valid, invalidField } = validateFields(allModalFields, report);
-      if (valid === true) {
-        return true;
-      } else if (invalidField) {
-        if (!report || !this.modal.opened) return false;
-        const accordionIndex = this.accordionIndexOf(invalidField);
-        if (accordionIndex !== -1) {
-          this.openAccordion(accordionIndex);
-          setTimeout(() => {
-            invalidField.scrollIntoView({
-              behavior: "smooth",
-              block: "center"
-            });
-          }, 500);
-        }
-        return false;
+      let valid = true;
+      const invalidFields = [];
+      this.groupElements.forEach((groupEl) => {
+        const groupValid = this.validateModalGroup(groupEl);
+        invalidFields.push(...groupValid.invalidFields);
+        if (groupValid.isValid) return;
+        valid = false;
+      });
+      if (!valid && invalidFields.length && report && this.modal.opened) {
+        this.reportInvalidField(invalidFields[0]);
       }
-      return false;
+      return valid;
+    }
+    reportInvalidField(fieldOrId, groupName) {
+      const field = this.getFormInput(fieldOrId, groupName);
+      reportValidity(field);
+      const accordionIndex = this.accordionIndexOf(field);
+      if (accordionIndex !== -1) {
+        this.openAccordion(accordionIndex);
+        setTimeout(() => {
+          field.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }, 500);
+      }
     }
     clearModal() {
       this.setLiveText("state", "hinzuf\xFCgen");
@@ -3954,7 +3957,7 @@
           );
         });
       });
-      this.handleLiveProgress();
+      this.validateModal(false);
       this.handleLinkedFieldsVisibility();
       this.openAccordion(0);
       this.modal.open();

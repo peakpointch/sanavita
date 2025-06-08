@@ -14,6 +14,8 @@ import {
   FormFieldMap,
   isFormInput,
   findFormInput,
+  FieldGroupValidation,
+  reportValidity
 } from "@peakflow/form";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput, CustomValidator } from "@peakflow/form";
@@ -168,6 +170,10 @@ class FormArray {
             });
           }, 500);
         }
+      });
+      const groupEl = this.getClosestGroup(input);
+      input.addEventListener("input", () => {
+        this.validateModalGroup(groupEl); // Never report invalid fields here
       });
     });
 
@@ -662,59 +668,57 @@ class FormArray {
     return valid;
   }
 
-  private handleLiveProgressForGroup(groupEl: HTMLElement): void {
+  private validateModalGroup(groupEl: HTMLElement): FieldGroupValidation {
     const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
     const groupInputs = groupEl.querySelectorAll<HTMLFormInput>(wf.select.formInput);
-    const { valid } = validateFields(groupInputs, false);
+    const validation = validateFields(groupInputs, false);
 
     const circle = groupEl.querySelector(prospectSelector('circle'));
     if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
-    if (valid) {
+    if (validation.isValid) {
       circle.classList.add('is-valid');
     } else {
       circle.classList.remove('is-valid');
     }
-  }
 
-  private handleLiveProgress(): void {
-    this.groupElements.forEach(groupEl => this.handleLiveProgressForGroup(groupEl));
-
-    this.modalInputs.forEach(input => {
-      input.addEventListener("input", () => {
-        const groupEl = this.getClosestGroup(input);
-        this.handleLiveProgressForGroup(groupEl);
-      });
-    });
+    return validation;
   }
 
   private validateModal(report: boolean = true): boolean {
-    const allModalFields: NodeListOf<HTMLFormInput> =
-      this.modalElement.querySelectorAll(wf.select.formInput);
-    const { valid, invalidField } = validateFields(allModalFields, report);
+    let valid = true;
+    const invalidFields: HTMLFormInput[] = [];
 
-    if (valid === true) {
-      return true;
-    } else if (invalidField) {
-      if (!report || !this.modal.opened) return false;
-      // Find the index of the accordion that contains the invalid field
-      const accordionIndex = this.accordionIndexOf(invalidField);
+    this.groupElements.forEach(groupEl => {
+      const groupValid = this.validateModalGroup(groupEl);
+      invalidFields.push(...groupValid.invalidFields);
+      if (groupValid.isValid) return;
+      valid = false;
+    });
 
-      if (accordionIndex !== -1) {
-        // Open the accordion containing the invalid field using the index
-        this.openAccordion(accordionIndex);
-        // Optionally, you can scroll the accordion into view
-        setTimeout(() => {
-          invalidField.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        }, 500);
-      }
-
-      return false;
+    if (!valid && invalidFields.length && report && this.modal.opened) {
+      this.reportInvalidField(invalidFields[0]);
     }
+    return valid;
+  }
 
-    return false;
+  private reportInvalidField(field: HTMLFormInput): void;
+  private reportInvalidField(fieldId: string, groupName: GroupName): void;
+  private reportInvalidField(fieldOrId: HTMLFormInput | string, groupName?: GroupName | undefined): void {
+    const field = this.getFormInput(fieldOrId, groupName);
+    reportValidity(field);
+
+    const accordionIndex = this.accordionIndexOf(field);
+    if (accordionIndex !== -1) {
+      // Open the accordion containing the invalid field using the index
+      this.openAccordion(accordionIndex);
+
+      setTimeout(() => {
+        field.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 500);
+    }
   }
 
   private clearModal() {
@@ -751,7 +755,7 @@ class FormArray {
       });
     });
 
-    this.handleLiveProgress();
+    this.validateModal(false);
     this.handleLinkedFieldsVisibility();
     this.openAccordion(0);
 
