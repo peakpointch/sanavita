@@ -4029,6 +4029,11 @@
       }
       return groupEl;
     }
+    getGroupsByName(groupName) {
+      return Array.from(
+        this.modal.component.querySelectorAll(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
+      );
+    }
     extractData(draft = false) {
       const prospectData = new ResidentProspect({ draft });
       this.groupElements.forEach((group) => {

@@ -850,6 +850,12 @@ class FormArray {
     return groupEl;
   }
 
+  private getGroupsByName(groupName: GroupName): HTMLElement[] {
+    return Array.from(
+      this.modal.component.querySelectorAll<HTMLElement>(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
+    );
+  }
+
   private extractData(draft: boolean = false): ResidentProspect {
     const prospectData = new ResidentProspect({ draft: draft });
 
