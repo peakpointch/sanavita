@@ -3888,13 +3888,6 @@
       this.openAccordion(0);
       this.modal.open();
     }
-    getClosestGroup(element) {
-      const groupEl = element.closest(FIELD_GROUP_SELECTOR);
-      if (!groupEl) {
-        throw new Error(`The given element is not part of a group element.`);
-      }
-      return groupEl;
-    }
     handleLiveProgress() {
       this.groupElements.forEach((groupEl) => this.handleLiveProgressForGroup(groupEl));
       this.modalInputs.forEach((input) => {
@@ -4028,6 +4021,13 @@
         return accordionIndex !== -1 ? accordionIndex : -1;
       }
       return -1;
+    }
+    getClosestGroup(element) {
+      const groupEl = element.closest(FIELD_GROUP_SELECTOR);
+      if (!groupEl) {
+        throw new Error(`The given element is not part of a group element.`);
+      }
+      return groupEl;
     }
     extractData(draft = false) {
       const prospectData = new ResidentProspect({ draft });

@@ -685,14 +685,6 @@ class FormArray {
     this.modal.open();
   }
 
-  private getClosestGroup(element: HTMLElement): HTMLElement {
-    const groupEl: HTMLElement | null = element.closest(FIELD_GROUP_SELECTOR);
-    if (!groupEl) {
-      throw new Error(`The given element is not part of a group element.`);
-    }
-    return groupEl;
-  }
-
   private handleLiveProgress(): void {
     this.groupElements.forEach(groupEl => this.handleLiveProgressForGroup(groupEl));
 
@@ -848,6 +840,14 @@ class FormArray {
     }
 
     return -1; // Return -1 if no accordion is found
+  }
+
+  private getClosestGroup(element: HTMLElement): HTMLElement {
+    const groupEl: HTMLElement | null = element.closest(FIELD_GROUP_SELECTOR);
+    if (!groupEl) {
+      throw new Error(`The given element is not part of a group element.`);
+    }
+    return groupEl;
   }
 
   private extractData(draft: boolean = false): ResidentProspect {
