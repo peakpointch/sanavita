@@ -21,7 +21,7 @@ interface SaveOptionsSettings {
   hideSelectedAction: boolean;
 }
 
-export class SaveOptions<ActionKey extends string = string> {
+export default class SaveOptions<ActionKey extends string = string> {
   public static get attr(): SaveOptionsAttributes {
     return {
       id: 'data-save-options-id',

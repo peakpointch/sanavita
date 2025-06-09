@@ -22,7 +22,7 @@ import { FormMessage } from "@peakflow/form";
 import Accordion from "@peakflow/accordion";
 import Modal from "@peakflow/modal";
 import AlertDialog from "@peakflow/alertdialog";
-import { SaveOptions } from "./save-options";
+import SaveOptions from "./save-options";
 import { getAlertDialog } from "./alert-dialog";
 import type { ScrollPosition } from "@peakflow/scroll";
 
