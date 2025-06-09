@@ -3934,6 +3934,7 @@ Component:`,
       this.initialized = false;
       this.alertDialog = getAlertDialog();
       this.accordionList = [];
+      this.onOpenCallbacks = /* @__PURE__ */ new Map();
       this.editingKey = null;
       this.unsavedProspect = null;
       this.id = id;
@@ -4305,6 +4306,17 @@ Component:`,
       this.closeModal();
       this.saveProgress();
     }
+    onOpen(name, callback) {
+      this.onOpenCallbacks.set(name, callback);
+    }
+    clearOnOpen(name) {
+      this.onOpenCallbacks.delete(name);
+    }
+    triggerOnOpen() {
+      for (const callback of this.onOpenCallbacks.values()) {
+        callback();
+      }
+    }
     populateModal(prospect) {
       for (const [id] of prospect.linkedFields.entries()) {
         const linkElement = this.modalElement.querySelector(`[${LINK_FIELDS_ATTR}][data-id="${id}"]`);
@@ -4453,6 +4465,7 @@ Component:`,
       this.validateModal(false);
       this.handleLinkedFieldsVisibility();
       this.openAccordion(0);
+      this.triggerOnOpen();
       this.modal.open();
     }
     async closeModal() {

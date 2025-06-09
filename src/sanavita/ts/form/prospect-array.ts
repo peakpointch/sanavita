@@ -65,6 +65,7 @@ export default class ProspectArray {
   private modalInputs: NodeListOf<HTMLFormInput>;
   private groupElements: NodeListOf<HTMLElement>;
   private accordionList: Accordion[] = [];
+  private onOpenCallbacks: Map<string, () => void> = new Map();
 
   private editingKey: string | null = null;
   private unsavedProspect: ResidentProspect | null = null;
@@ -542,6 +543,20 @@ export default class ProspectArray {
     this.saveProgress();
   }
 
+  public onOpen(name: string, callback: () => void): void {
+    this.onOpenCallbacks.set(name, callback);
+  }
+
+  public clearOnOpen(name: string): void {
+    this.onOpenCallbacks.delete(name);
+  }
+
+  public triggerOnOpen(): void {
+    for (const callback of this.onOpenCallbacks.values()) {
+      callback();
+    }
+  }
+
   private populateModal(prospect: ResidentProspect) {
     for (const [id] of prospect.linkedFields.entries()) {
       const linkElement = this.modalElement.querySelector<HTMLElement>(`[${LINK_FIELDS_ATTR}][data-id="${id}"]`);
@@ -732,6 +747,7 @@ export default class ProspectArray {
     this.validateModal(false);
     this.handleLinkedFieldsVisibility();
     this.openAccordion(0);
+    this.triggerOnOpen();
 
     this.modal.open();
   }
