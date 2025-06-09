@@ -6,6 +6,7 @@ import {
 import { FormDecision } from "@peakflow/form";
 import { ProspectArray } from "./form/prospect-array";
 import { flattenProspects } from "./form/resident-prospect";
+import createAttribute from "@peakflow/attributeselector";
 
 function reinsertElement(element: HTMLElement): void {
   // Check if the element and its parent are defined
@@ -29,9 +30,7 @@ function reinsertElement(element: HTMLElement): void {
   }, 0);
 }
 
-function decisionSelector(id?: number | string) {
-  return id ? `[data-decision-component="${id}"]` : `[data-decision-component]`;
-}
+const decisionSelector = createAttribute('data-decision-component');
 
 function initializeFormDecisions(
   form: MultiStepForm,
@@ -39,9 +38,7 @@ function initializeFormDecisions(
   defaultMessages: { [id: string]: string } = {}
 ): void {
   form.formSteps.forEach((step, stepIndex) => {
-    const formDecisions = step.querySelectorAll<HTMLElement>(
-      decisionSelector()
-    );
+    const formDecisions = step.querySelectorAll<HTMLElement>(decisionSelector());
 
     formDecisions.forEach((element) => {
       const id = element.dataset.decisionComponent;

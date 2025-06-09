@@ -4521,14 +4521,10 @@ Component:`,
   };
 
   // src/sanavita/ts/apartment-form.ts
-  function decisionSelector(id) {
-    return id ? `[data-decision-component="${id}"]` : `[data-decision-component]`;
-  }
+  var decisionSelector = attributeselector_default("data-decision-component");
   function initializeFormDecisions(form, errorMessages, defaultMessages = {}) {
     form.formSteps.forEach((step, stepIndex) => {
-      const formDecisions = step.querySelectorAll(
-        decisionSelector()
-      );
+      const formDecisions = step.querySelectorAll(decisionSelector());
       formDecisions.forEach((element) => {
         const id = element.dataset.decisionComponent;
         const decision = new FormDecision(element, id);
