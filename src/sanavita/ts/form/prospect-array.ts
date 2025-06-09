@@ -47,7 +47,7 @@ const ACCORDION_SELECTOR = `[data-animate="accordion"]`;
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
 
-export class ProspectArray {
+export default class ProspectArray {
   public initialized: boolean = false;
   public id: string | number;
   public prospects: Map<string, ResidentProspect>;

@@ -1,12 +1,12 @@
 // Imports
 import {
   formElementSelector,
-  MultiStepForm
+  MultiStepForm,
+  FormDecision
 } from "@peakflow/form";
-import { FormDecision } from "@peakflow/form";
-import { ProspectArray } from "./form/prospect-array";
-import { flattenProspects } from "./form/resident-prospect";
+import ProspectArray from "./form/prospect-array";
 import createAttribute from "@peakflow/attributeselector";
+import { flattenProspects } from "./form/resident-prospect";
 
 const decisionSelector = createAttribute('data-decision-component');
 
