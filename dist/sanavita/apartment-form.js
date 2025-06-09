@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // ../peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -60,7 +60,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // ../peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -100,7 +100,7 @@
     select: wfselect
   };
 
-  // node_modules/peakflow/src/form/utility.ts
+  // ../peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
   function isRadioInput(input) {
@@ -259,7 +259,7 @@
     return { isValid: isValid2, invalidFields };
   }
 
-  // node_modules/peakflow/src/utils/maptoobject.ts
+  // ../peakflow/src/utils/maptoobject.ts
   function mapToObject(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
@@ -268,7 +268,7 @@
     return obj;
   }
 
-  // node_modules/peakflow/src/deepmerge.ts
+  // ../peakflow/src/deepmerge.ts
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -286,7 +286,7 @@
     return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // node_modules/peakflow/src/form/multistep.ts
+  // ../peakflow/src/form/multistep.ts
   var stepsElementSelector = attributeselector_default("data-steps-element", {
     defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
   });
@@ -294,38 +294,22 @@
   var stepsNavSelector = attributeselector_default("data-steps-nav");
   var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
   var MultiStepForm = class {
-    options = {
-      recaptcha: false,
-      navigation: {
-        hideInStep: -1
-      },
-      excludeInputSelectors: [],
-      nested: false,
-      pagination: {
-        doneClass: "is-done",
-        activeClass: "is-active"
-      }
-    };
-    initialized = false;
-    component;
-    formElement;
-    formSteps;
-    set currentStep(index) {
-      this._currentStep = index;
-    }
-    get currentStep() {
-      return this._currentStep;
-    }
-    _currentStep = 0;
-    navigationElement;
-    paginationItems;
-    buttonsNext;
-    buttonsPrev;
-    customComponents = [];
-    successElement;
-    errorElement;
-    submitButton;
     constructor(component, options) {
+      this.options = {
+        recaptcha: false,
+        navigation: {
+          hideInStep: -1
+        },
+        excludeInputSelectors: [],
+        nested: false,
+        pagination: {
+          doneClass: "is-done",
+          activeClass: "is-active"
+        }
+      };
+      this.initialized = false;
+      this._currentStep = 0;
+      this.customComponents = [];
       this.component = component;
       this.options = deepMerge(this.options, options);
       this.validateComponent();
@@ -333,6 +317,12 @@
       this.setupForm();
       this.setupEventListeners();
       this.initialized = true;
+    }
+    set currentStep(index) {
+      this._currentStep = index;
+    }
+    get currentStep() {
+      return this._currentStep;
     }
     validateComponent() {
       if (!this.component.getAttribute("data-steps-element")) {
@@ -672,21 +662,15 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/parameterize.ts
+  // ../peakflow/src/parameterize.ts
   function parameterize(text) {
     return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
   }
 
-  // node_modules/peakflow/src/form/formfield.ts
+  // ../peakflow/src/form/formfield.ts
   var FormField = class {
-    id;
-    label;
-    value;
-    required;
-    type;
-    checked;
-    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
+      this.listeners = /* @__PURE__ */ new Set();
       if (!data) {
         return;
       }
@@ -743,9 +727,8 @@ Component:`,
     return field;
   }
 
-  // node_modules/peakflow/src/form/fieldgroup.ts
+  // ../peakflow/src/form/fieldgroup.ts
   var FieldGroup = class _FieldGroup {
-    fields;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -791,19 +774,16 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/form/formmessage.ts
+  // ../peakflow/src/form/formmessage.ts
   var FormMessage = class {
-    initialized = false;
-    messageFor;
-    component;
-    messageElement;
-    resetTimeoutId = null;
     /**
      * Constructs a new FormMessage instance.
      * @param componentName The name of the component (used in `data-message-component`).
      * @param messageFor The target form field identifier (used in `data-message-for`).
      */
     constructor(componentName, messageFor) {
+      this.initialized = false;
+      this.resetTimeoutId = null;
       this.messageFor = messageFor;
       const component = document.querySelector(
         `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
@@ -911,21 +891,17 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/form/formdecision.ts
+  // ../peakflow/src/form/formdecision.ts
   var FormDecision = class {
-    component;
-    paths = [];
-    id;
-    formMessage;
-    decisionInputs;
-    errorMessages = {};
-    defaultErrorMessage = "Please complete the required fields.";
     /**
      * Constructs a new FormDecision instance.
      * @param component The FormDecision element.
      * @param id Unique identifier for the specific instance.
      */
     constructor(component, id) {
+      this.paths = [];
+      this.errorMessages = {};
+      this.defaultErrorMessage = "Please complete the required fields.";
       if (!component || !id) {
         console.error(`FormDecision: Component not found.`);
         return;
@@ -1079,10 +1055,16 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/form/filterform.ts
+  // ../peakflow/src/form/filterform.ts
   var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
+      this.beforeChangeActions = [];
+      this.fieldChangeActions = /* @__PURE__ */ new Map();
+      this.globalChangeActions = [];
+      // Stores wildcard ('*') actions
+      this.defaultDayRange = 7;
+      this.resizeResetFields = /* @__PURE__ */ new Map();
       if (!container) throw new Error(`FilterForm container can't be null`);
       container = container;
       if (container.tagName === "form") {
@@ -1100,17 +1082,9 @@ Component:`,
       this.actionElements = container.querySelectorAll(_FilterForm.select());
       this.attachChangeListeners();
     }
-    container;
-    data;
-    filterFields;
-    actionElements;
-    beforeChangeActions = [];
-    fieldChangeActions = /* @__PURE__ */ new Map();
-    globalChangeActions = [];
-    // Stores wildcard ('*') actions
-    defaultDayRange = 7;
-    resizeResetFields = /* @__PURE__ */ new Map();
-    static select = attributeselector_default("data-action");
+    static {
+      this.select = attributeselector_default("data-action");
+    }
     /**
      * Returns the `HTMLElement` of a specific filter input.
      */
@@ -1348,7 +1322,7 @@ Component:`,
     }
   };
 
-  // node_modules/date-fns/constants.js
+  // ../peakflow/node_modules/date-fns/constants.js
   var daysInYear = 365.2425;
   var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
   var minTime = -maxTime;
@@ -1362,7 +1336,7 @@ Component:`,
   var secondsInQuarter = secondsInMonth * 3;
   var constructFromSymbol = Symbol.for("constructDateFrom");
 
-  // node_modules/date-fns/constructFrom.js
+  // ../peakflow/node_modules/date-fns/constructFrom.js
   function constructFrom(date, value) {
     if (typeof date === "function") return date(value);
     if (date && typeof date === "object" && constructFromSymbol in date)
@@ -1371,12 +1345,12 @@ Component:`,
     return new Date(value);
   }
 
-  // node_modules/date-fns/toDate.js
+  // ../peakflow/node_modules/date-fns/toDate.js
   function toDate(argument, context) {
     return constructFrom(context || argument, argument);
   }
 
-  // node_modules/date-fns/addDays.js
+  // ../peakflow/node_modules/date-fns/addDays.js
   function addDays(date, amount, options) {
     const _date = toDate(date, options?.in);
     if (isNaN(amount)) return constructFrom(options?.in || date, NaN);
@@ -1385,13 +1359,13 @@ Component:`,
     return _date;
   }
 
-  // node_modules/date-fns/_lib/defaultOptions.js
+  // ../peakflow/node_modules/date-fns/_lib/defaultOptions.js
   var defaultOptions = {};
   function getDefaultOptions() {
     return defaultOptions;
   }
 
-  // node_modules/date-fns/startOfWeek.js
+  // ../peakflow/node_modules/date-fns/startOfWeek.js
   function startOfWeek(date, options) {
     const defaultOptions2 = getDefaultOptions();
     const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
@@ -1403,12 +1377,12 @@ Component:`,
     return _date;
   }
 
-  // node_modules/date-fns/startOfISOWeek.js
+  // ../peakflow/node_modules/date-fns/startOfISOWeek.js
   function startOfISOWeek(date, options) {
     return startOfWeek(date, { ...options, weekStartsOn: 1 });
   }
 
-  // node_modules/date-fns/getISOWeekYear.js
+  // ../peakflow/node_modules/date-fns/getISOWeekYear.js
   function getISOWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
@@ -1429,7 +1403,7 @@ Component:`,
     }
   }
 
-  // node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
+  // ../peakflow/node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
   function getTimezoneOffsetInMilliseconds(date) {
     const _date = toDate(date);
     const utcDate = new Date(
@@ -1447,7 +1421,7 @@ Component:`,
     return +date - +utcDate;
   }
 
-  // node_modules/date-fns/_lib/normalizeDates.js
+  // ../peakflow/node_modules/date-fns/_lib/normalizeDates.js
   function normalizeDates(context, ...dates) {
     const normalize = constructFrom.bind(
       null,
@@ -1456,14 +1430,14 @@ Component:`,
     return dates.map(normalize);
   }
 
-  // node_modules/date-fns/startOfDay.js
+  // ../peakflow/node_modules/date-fns/startOfDay.js
   function startOfDay(date, options) {
     const _date = toDate(date, options?.in);
     _date.setHours(0, 0, 0, 0);
     return _date;
   }
 
-  // node_modules/date-fns/differenceInCalendarDays.js
+  // ../peakflow/node_modules/date-fns/differenceInCalendarDays.js
   function differenceInCalendarDays(laterDate, earlierDate, options) {
     const [laterDate_, earlierDate_] = normalizeDates(
       options?.in,
@@ -1477,7 +1451,7 @@ Component:`,
     return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
   }
 
-  // node_modules/date-fns/startOfISOWeekYear.js
+  // ../peakflow/node_modules/date-fns/startOfISOWeekYear.js
   function startOfISOWeekYear(date, options) {
     const year = getISOWeekYear(date, options);
     const fourthOfJanuary = constructFrom(options?.in || date, 0);
@@ -1486,7 +1460,7 @@ Component:`,
     return startOfISOWeek(fourthOfJanuary);
   }
 
-  // node_modules/date-fns/setISOWeekYear.js
+  // ../peakflow/node_modules/date-fns/setISOWeekYear.js
   function setISOWeekYear(date, weekYear, options) {
     let _date = toDate(date, options?.in);
     const diff = differenceInCalendarDays(
@@ -1501,22 +1475,22 @@ Component:`,
     return _date;
   }
 
-  // node_modules/date-fns/addWeeks.js
+  // ../peakflow/node_modules/date-fns/addWeeks.js
   function addWeeks(date, amount, options) {
     return addDays(date, amount * 7, options);
   }
 
-  // node_modules/date-fns/isDate.js
+  // ../peakflow/node_modules/date-fns/isDate.js
   function isDate(value) {
     return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
   }
 
-  // node_modules/date-fns/isValid.js
+  // ../peakflow/node_modules/date-fns/isValid.js
   function isValid(date) {
     return !(!isDate(date) && typeof date !== "number" || isNaN(+toDate(date)));
   }
 
-  // node_modules/date-fns/startOfYear.js
+  // ../peakflow/node_modules/date-fns/startOfYear.js
   function startOfYear(date, options) {
     const date_ = toDate(date, options?.in);
     date_.setFullYear(date_.getFullYear(), 0, 1);
@@ -1524,7 +1498,7 @@ Component:`,
     return date_;
   }
 
-  // node_modules/date-fns/locale/en-US/_lib/formatDistance.js
+  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatDistance.js
   var formatDistanceLocale = {
     lessThanXSeconds: {
       one: "less than a second",
@@ -1608,7 +1582,7 @@ Component:`,
     return result;
   };
 
-  // node_modules/date-fns/locale/_lib/buildFormatLongFn.js
+  // ../peakflow/node_modules/date-fns/locale/_lib/buildFormatLongFn.js
   function buildFormatLongFn(args) {
     return (options = {}) => {
       const width = options.width ? String(options.width) : args.defaultWidth;
@@ -1617,7 +1591,7 @@ Component:`,
     };
   }
 
-  // node_modules/date-fns/locale/en-US/_lib/formatLong.js
+  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatLong.js
   var dateFormats = {
     full: "EEEE, MMMM do, y",
     long: "MMMM do, y",
@@ -1651,7 +1625,7 @@ Component:`,
     })
   };
 
-  // node_modules/date-fns/locale/en-US/_lib/formatRelative.js
+  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatRelative.js
   var formatRelativeLocale = {
     lastWeek: "'last' eeee 'at' p",
     yesterday: "'yesterday at' p",
@@ -1662,7 +1636,7 @@ Component:`,
   };
   var formatRelative = (token, _date, _baseDate, _options) => formatRelativeLocale[token];
 
-  // node_modules/date-fns/locale/_lib/buildLocalizeFn.js
+  // ../peakflow/node_modules/date-fns/locale/_lib/buildLocalizeFn.js
   function buildLocalizeFn(args) {
     return (value, options) => {
       const context = options?.context ? String(options.context) : "standalone";
@@ -1681,7 +1655,7 @@ Component:`,
     };
   }
 
-  // node_modules/date-fns/locale/en-US/_lib/localize.js
+  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/localize.js
   var eraValues = {
     narrow: ["B", "A"],
     abbreviated: ["BC", "AD"],
@@ -1843,7 +1817,7 @@ Component:`,
     })
   };
 
-  // node_modules/date-fns/locale/_lib/buildMatchFn.js
+  // ../peakflow/node_modules/date-fns/locale/_lib/buildMatchFn.js
   function buildMatchFn(args) {
     return (string, options = {}) => {
       const width = options.width;
@@ -1885,7 +1859,7 @@ Component:`,
     return void 0;
   }
 
-  // node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
+  // ../peakflow/node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
   function buildMatchPatternFn(args) {
     return (string, options = {}) => {
       const matchResult = string.match(args.matchPattern);
@@ -1900,7 +1874,7 @@ Component:`,
     };
   }
 
-  // node_modules/date-fns/locale/en-US/_lib/match.js
+  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/match.js
   var matchOrdinalNumberPattern = /^(\d+)(th|st|nd|rd)?/i;
   var parseOrdinalNumberPattern = /\d+/i;
   var matchEraPatterns = {
@@ -2019,7 +1993,7 @@ Component:`,
     })
   };
 
-  // node_modules/date-fns/locale/en-US.js
+  // ../peakflow/node_modules/date-fns/locale/en-US.js
   var enUS = {
     code: "en-US",
     formatDistance,
@@ -2033,7 +2007,7 @@ Component:`,
     }
   };
 
-  // node_modules/date-fns/getDayOfYear.js
+  // ../peakflow/node_modules/date-fns/getDayOfYear.js
   function getDayOfYear(date, options) {
     const _date = toDate(date, options?.in);
     const diff = differenceInCalendarDays(_date, startOfYear(_date));
@@ -2041,14 +2015,14 @@ Component:`,
     return dayOfYear;
   }
 
-  // node_modules/date-fns/getISOWeek.js
+  // ../peakflow/node_modules/date-fns/getISOWeek.js
   function getISOWeek(date, options) {
     const _date = toDate(date, options?.in);
     const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
     return Math.round(diff / millisecondsInWeek) + 1;
   }
 
-  // node_modules/date-fns/getWeekYear.js
+  // ../peakflow/node_modules/date-fns/getWeekYear.js
   function getWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
@@ -2071,7 +2045,7 @@ Component:`,
     }
   }
 
-  // node_modules/date-fns/startOfWeekYear.js
+  // ../peakflow/node_modules/date-fns/startOfWeekYear.js
   function startOfWeekYear(date, options) {
     const defaultOptions2 = getDefaultOptions();
     const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
@@ -2083,21 +2057,21 @@ Component:`,
     return _date;
   }
 
-  // node_modules/date-fns/getWeek.js
+  // ../peakflow/node_modules/date-fns/getWeek.js
   function getWeek(date, options) {
     const _date = toDate(date, options?.in);
     const diff = +startOfWeek(_date, options) - +startOfWeekYear(_date, options);
     return Math.round(diff / millisecondsInWeek) + 1;
   }
 
-  // node_modules/date-fns/_lib/addLeadingZeros.js
+  // ../peakflow/node_modules/date-fns/_lib/addLeadingZeros.js
   function addLeadingZeros(number, targetLength) {
     const sign = number < 0 ? "-" : "";
     const output = Math.abs(number).toString().padStart(targetLength, "0");
     return sign + output;
   }
 
-  // node_modules/date-fns/_lib/format/lightFormatters.js
+  // ../peakflow/node_modules/date-fns/_lib/format/lightFormatters.js
   var lightFormatters = {
     // Year
     y(date, token) {
@@ -2157,7 +2131,7 @@ Component:`,
     }
   };
 
-  // node_modules/date-fns/_lib/format/formatters.js
+  // ../peakflow/node_modules/date-fns/_lib/format/formatters.js
   var dayPeriodEnum = {
     am: "am",
     pm: "pm",
@@ -2803,7 +2777,7 @@ Component:`,
     return sign + hours + delimiter + minutes;
   }
 
-  // node_modules/date-fns/_lib/format/longFormatters.js
+  // ../peakflow/node_modules/date-fns/_lib/format/longFormatters.js
   var dateLongFormatter = (pattern, formatLong2) => {
     switch (pattern) {
       case "P":
@@ -2860,7 +2834,7 @@ Component:`,
     P: dateTimeLongFormatter
   };
 
-  // node_modules/date-fns/_lib/protectedTokens.js
+  // ../peakflow/node_modules/date-fns/_lib/protectedTokens.js
   var dayOfYearTokenRE = /^D+$/;
   var weekYearTokenRE = /^Y+$/;
   var throwTokens = ["D", "DD", "YY", "YYYY"];
@@ -2880,7 +2854,7 @@ Component:`,
     return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format2}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
   }
 
-  // node_modules/date-fns/format.js
+  // ../peakflow/node_modules/date-fns/format.js
   var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
   var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
   var escapedStringRegExp = /^'([^]*?)'?$/;
@@ -2946,7 +2920,7 @@ Component:`,
     return matched[1].replace(doubleQuoteRegExp, "'");
   }
 
-  // node_modules/date-fns/getISOWeeksInYear.js
+  // ../peakflow/node_modules/date-fns/getISOWeeksInYear.js
   function getISOWeeksInYear(date, options) {
     const thisYear = startOfISOWeekYear(date, options);
     const nextYear = startOfISOWeekYear(addWeeks(thisYear, 60));
@@ -2954,7 +2928,7 @@ Component:`,
     return Math.round(diff / millisecondsInWeek);
   }
 
-  // node_modules/date-fns/setISOWeek.js
+  // ../peakflow/node_modules/date-fns/setISOWeek.js
   function setISOWeek(date, week, options) {
     const _date = toDate(date, options?.in);
     const diff = getISOWeek(_date, options) - week;
@@ -2962,27 +2936,16 @@ Component:`,
     return _date;
   }
 
-  // node_modules/peakflow/src/form/calendarweekcomponent.ts
+  // ../peakflow/src/form/calendarweekcomponent.ts
   function getISOWeeksOfYear(year) {
     return getISOWeeksInYear(new Date(year, 5, 1));
   }
   var CalendarweekComponent = class _CalendarweekComponent {
-    container;
-    weekInput;
-    yearInput;
-    week;
-    year;
-    minDate = null;
-    maxDate = null;
-    minDateYear;
-    maxDateYear;
-    minDateWeek;
-    maxDateWeek;
-    currentMinWeek;
-    currentMaxWeek;
-    mode = "continuous";
-    onChangeActions = [];
     constructor(container, mode) {
+      this.minDate = null;
+      this.maxDate = null;
+      this.mode = "continuous";
+      this.onChangeActions = [];
       this.container = container;
       const weekInput = container.querySelector(_CalendarweekComponent.select("week"));
       const yearInput = container.querySelector(_CalendarweekComponent.select("year"));
@@ -3008,7 +2971,9 @@ Component:`,
       this.weekInput.addEventListener("change", () => this.onWeekChange());
       this.yearInput.addEventListener("change", () => this.onYearChange());
     }
-    static select = attributeselector_default("data-cweek-element");
+    static {
+      this.select = attributeselector_default("data-cweek-element");
+    }
     setDate(date, silent = false) {
       const year = getISOWeekYear(date);
       const week = getISOWeek(date);
@@ -3191,7 +3156,7 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/utils/objecttomap.ts
+  // ../peakflow/src/utils/objecttomap.ts
   function objectToMap(obj, deep = false) {
     const map = /* @__PURE__ */ new Map();
     for (const [key, value] of Object.entries(obj)) {
@@ -3345,17 +3310,13 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/accordion.ts
+  // ../peakflow/src/accordion.ts
   var modalSelector = attributeselector_default("data-modal-element");
   var Accordion = class {
-    component;
-    uiTrigger;
-    isOpen = false;
-    trigger;
-    icon;
-    onClickCallback = () => {
-    };
     constructor(component) {
+      this.isOpen = false;
+      this.onClickCallback = () => {
+      };
       this.component = component;
       this.trigger = component.querySelector('[data-animate="trigger"]');
       this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]');
@@ -3416,7 +3377,7 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/utils/scroll-lock.ts
+  // ../peakflow/src/utils/scroll-lock.ts
   var scrollLockCount = 0;
   function lockBodyScroll(smooth) {
     scrollLockCount++;
@@ -3482,7 +3443,7 @@ Component:`,
     }
   }
 
-  // node_modules/peakflow/src/modal.ts
+  // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -3499,17 +3460,8 @@ Component:`,
     }
   };
   var Modal = class _Modal {
-    component;
-    modal;
-    opened;
-    initialized = false;
-    settings;
-    instance;
-    static attr = {
-      id: "data-modal-id",
-      element: "data-modal-element"
-    };
     constructor(component, settings = {}) {
+      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -3527,7 +3479,15 @@ Component:`,
       }
       this.initialized = true;
     }
-    static attributeSelector = attributeselector_default(_Modal.attr.element);
+    static {
+      this.attr = {
+        id: "data-modal-id",
+        element: "data-modal-element"
+      };
+    }
+    static {
+      this.attributeSelector = attributeselector_default(_Modal.attr.element);
+    }
     /**
      * Static selector
      */
@@ -3801,9 +3761,8 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/alertdialog.ts
+  // ../peakflow/src/alertdialog.ts
   var AlertDialog = class extends Modal {
-    _message;
     confirm(message2) {
       this.message = message2;
       this.open();

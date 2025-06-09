@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/findelements.ts
+  // ../peakflow/src/findelements.ts
   function findElements(input, multiple = false) {
     if (typeof input === "string") {
       const elements = multiple ? Array.from(document.querySelectorAll(input)) : [document.querySelector(input)].filter(Boolean);
@@ -15,7 +15,7 @@
     throw new Error("Invalid input provided: must be a string, HTMLElement, or array.");
   }
 
-  // node_modules/peakflow/src/inlinecms.ts
+  // ../peakflow/src/inlinecms.ts
   var INLINECMS_TARGET_ATTR = `data-inlinecms-target`;
   var INLINECMS_COMPONENT_ATTR = `data-inlinecms-component`;
   function validateContainer(container) {
