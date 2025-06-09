@@ -3389,7 +3389,7 @@ Component:`,
     }
   };
 
-  // ../peakflow/src/utils/scroll-lock.ts
+  // ../peakflow/src/scroll/lock.ts
   var scrollLockCount = 0;
   function lockBodyScroll(smooth) {
     scrollLockCount++;
@@ -3455,6 +3455,65 @@ Component:`,
     }
   }
 
+  // ../peakflow/src/scroll/scrollto.ts
+  function createScrollTo(config) {
+    let scrollTimeoutId = null;
+    const clearScrollTimeout = () => {
+      if (scrollTimeoutId !== null) {
+        clearTimeout(scrollTimeoutId);
+        scrollTimeoutId = null;
+      }
+    };
+    const { scrollWrapper, stickyTop, stickyBottom } = config;
+    const scrollTo = async (element, options = {}) => {
+      clearScrollTimeout();
+      if (!element || !scrollWrapper.contains(element)) {
+        throw new Error("The element to scroll into view is not inside the scroll container.");
+      }
+      if (!isScrollbarVisible(scrollWrapper)) return;
+      const opts = {
+        delay: options.delay ?? 0,
+        offset: options.offset ?? 0,
+        position: options.position ?? "start"
+      };
+      return new Promise((resolve) => {
+        scrollTimeoutId = window.setTimeout(() => {
+          const elementRect = element.getBoundingClientRect();
+          const wrapperRect = scrollWrapper.getBoundingClientRect();
+          const stickyTopHeight = stickyTop?.clientHeight || 0;
+          const stickyBottomHeight = stickyBottom?.clientHeight || 0;
+          const relativePosition = elementRect.top - wrapperRect.top;
+          const isFullyVisible = elementRect.top >= wrapperRect.top + stickyTopHeight && elementRect.bottom <= wrapperRect.bottom - stickyBottomHeight;
+          let scrollOffset = 0;
+          switch (opts.position) {
+            case "start":
+              scrollOffset = relativePosition - stickyTopHeight - opts.offset - 2;
+              break;
+            case "center":
+              scrollOffset = relativePosition - scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              break;
+            case "end":
+              scrollOffset = relativePosition - scrollWrapper.clientHeight + element.clientHeight + stickyBottomHeight + opts.offset;
+              break;
+            case "nearest":
+              if (isFullyVisible) {
+                clearScrollTimeout();
+                return resolve();
+              }
+              scrollOffset = relativePosition - scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              break;
+          }
+          scrollWrapper.scrollBy({
+            top: scrollOffset,
+            behavior: "smooth"
+          });
+          resolve();
+        }, opts.delay);
+      });
+    };
+    return { scrollTo, clearScrollTimeout };
+  }
+
   // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
     type: "none",
@@ -3484,6 +3543,7 @@ Component:`,
       component.setAttribute(_Modal.attr.id, this.instance);
       this.component.setAttribute("role", "dialog");
       this.component.setAttribute("aria-modal", "true");
+      this.setupScrollTo();
       this.setInitialState();
       this.setupStickyFooter();
       if (this.modal === this.component) {
@@ -3505,7 +3565,8 @@ Component:`,
      */
     static selector(element, instance) {
       const base = _Modal.attributeSelector(element);
-      return instance ? `${base}[${_Modal.attr.id}="${instance}"]` : base;
+      const instanceSelector = instance ? `[${_Modal.attr.id}="${instance}"]` : "";
+      return element === "component" ? `${base}${instanceSelector}` : `${base}${instanceSelector}, ${instanceSelector} ${base}`;
     }
     /**
      * Instance selector
@@ -3533,6 +3594,15 @@ Component:`,
       }
       if (!this.modal) this.modal = this.component;
       return this.modal;
+    }
+    setupScrollTo() {
+      const scrollHandler = createScrollTo({
+        scrollWrapper: this.modal,
+        stickyTop: this.select("sticky-top"),
+        stickyBottom: this.select("sticky-bottom")
+      });
+      this.scrollTo = scrollHandler.scrollTo;
+      this.clearScrollTimeout = scrollHandler.clearScrollTimeout;
     }
     setupStickyFooter() {
       const modalContent = this.component.querySelector(_Modal.selector("scroll"));
