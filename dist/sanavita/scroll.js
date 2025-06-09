@@ -1,5 +1,5 @@
 (() => {
-  // ../peakflow/src/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -60,7 +60,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/src/utils/scroll.ts
+  // node_modules/peakflow/src/utils/scroll.ts
   var defaultScrollOptions = {
     defaultOffset: 0,
     defaultBehaviour: "smooth"
