@@ -1,4 +1,4 @@
-import createAttribute, { exclude } from "@peakflow/attributeselector";
+import createAttribute, { exclude, AttributeSelector } from "@peakflow/attributeselector";
 import {
   isCheckboxInput,
   isRadioInput,
@@ -9,7 +9,8 @@ import {
   isFormInput,
   findFormInput,
   FieldGroupValidation,
-  reportValidity
+  reportValidity,
+  FormDecision
 } from "@peakflow/form";
 import {
   ResidentProspect,
@@ -142,7 +143,9 @@ export default class ProspectArray {
       });
       const groupEl = this.getClosestGroup(input);
       input.addEventListener("input", () => {
-        this.validateModalGroup(groupEl); // Never report invalid fields here
+        if (input.matches(FormDecision.selector("input"))) return;
+        this.validateModalGroup(groupEl);
+        // Never report invalid fields here
       });
     });
 
@@ -651,7 +654,7 @@ export default class ProspectArray {
     return valid;
   }
 
-  private validateModalGroup(groupEl: HTMLElement): FieldGroupValidation {
+  public validateModalGroup(groupEl: HTMLElement): FieldGroupValidation {
     const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
     const groupInputs = groupEl.querySelectorAll<HTMLFormInput>(wf.select.formInput);
     const validation = validateFields(groupInputs, false);
@@ -838,7 +841,7 @@ export default class ProspectArray {
     return -1; // Return -1 if no accordion is found
   }
 
-  private getClosestGroup(element: HTMLElement): HTMLElement {
+  public getClosestGroup(element: HTMLElement): HTMLElement {
     const groupEl: HTMLElement | null = element.closest(FIELD_GROUP_SELECTOR);
     if (!groupEl) {
       throw new Error(`The given element is not part of a group element.`);

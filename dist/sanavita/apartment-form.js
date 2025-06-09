@@ -907,6 +907,8 @@ Component:`,
       this.paths = /* @__PURE__ */ new Map();
       this.errorMessages = {};
       this.defaultErrorMessage = "Please complete the required fields.";
+      this.onChangeCallback = () => {
+      };
       this.attr = _FormDecision.attr;
       this.selector = attributeselector_default(_FormDecision.attr.element);
       if (!component || !id) {
@@ -920,7 +922,7 @@ Component:`,
         return;
       }
       this.component = component;
-      this.id = id;
+      this.id = id || this.component.getAttribute(this.attr.component);
       this.formMessage = new FormMessage("FormDecision", id);
       this.initialize();
     }
@@ -937,6 +939,9 @@ Component:`,
     }
     set currentPath(pathId) {
       this._currentPath = pathId;
+    }
+    static {
+      this.selector = attributeselector_default(_FormDecision.attr.element);
     }
     /**
      * Initializes the FormDecision instance by setting up decision inputs & paths as well as their event listeners.
@@ -958,11 +963,10 @@ Component:`,
         if (path) {
           path.style.display = "none";
           this.initRequiredAttributes(path);
-          this.paths.set(pathId, path);
         }
+        this.paths.set(pathId, path);
         input.addEventListener("change", (event) => {
           this.changeToPath(pathId, event);
-          this.formMessage.reset();
         });
       });
       this.component.addEventListener("change", () => this.formMessage.reset());
@@ -983,6 +987,8 @@ Component:`,
         path.style.removeProperty("display");
       }
       this.updateRequiredAttributes();
+      this.onChangeCallback();
+      this.formMessage.reset();
     }
     /**
      * Retrieves the currently selected decision input.
@@ -1026,6 +1032,7 @@ Component:`,
      */
     checkPathValidity(pathId) {
       const pathElement = this.paths.get(pathId);
+      if (!pathElement) return true;
       const inputs = pathElement.querySelectorAll(wf.select.formInput);
       const { isValid: isValid2 } = validateFields(inputs, true);
       return isValid2;
@@ -1042,6 +1049,7 @@ Component:`,
      */
     updateRequiredAttributes() {
       this.paths.forEach((path, pathId) => {
+        if (!path) return;
         if (pathId === this.currentPath) {
           const pathInputs = path.querySelectorAll(wf.select.formInput);
           pathInputs.forEach((input) => {
@@ -1062,13 +1070,19 @@ Component:`,
      */
     handleValidationMessages(currentGroupValid) {
       if (!currentGroupValid) {
-        const selectedInput = this.getSelectedInput();
-        const pathId = selectedInput?.dataset.decisionAction || selectedInput?.value;
-        const customMessage = this.errorMessages[pathId] || this.defaultErrorMessage;
+        const customMessage = this.errorMessages[this.currentPath] || this.defaultErrorMessage;
         this.formMessage.error(customMessage);
       } else {
         this.formMessage.reset();
       }
+    }
+    onChange(callback) {
+      this.clearOnChange();
+      this.onChangeCallback = callback;
+    }
+    clearOnChange() {
+      this.onChangeCallback = () => {
+      };
     }
   };
 
@@ -3999,6 +4013,7 @@ Component:`,
         });
         const groupEl = this.getClosestGroup(input);
         input.addEventListener("input", () => {
+          if (input.matches(FormDecision.selector("input"))) return;
           this.validateModalGroup(groupEl);
         });
       });
@@ -4660,15 +4675,25 @@ Component:`,
       });
     });
   }
-  function initializeOtherFormDecisions(form, errorMessages, defaultMessages = {}) {
-    const formDecisions = form.querySelectorAll(decisionSelector());
-    formDecisions.forEach((element) => {
-      const id = element.dataset.decisionComponent;
+  function initializeProspectDecisions(prospectArray, errorMessages, defaultMessages = {}) {
+    const decisionElements = prospectArray.modalElement.querySelectorAll(decisionSelector());
+    const formDecisions = /* @__PURE__ */ new Map();
+    decisionElements.forEach((element, index) => {
+      const id = element.getAttribute(FormDecision.attr.component) || index.toString();
       const decision = new FormDecision(element, id);
+      formDecisions.set(decision.id, decision);
+      const groupElement = prospectArray.getClosestGroup(decision.component);
+      decision.onChange(() => {
+        prospectArray.validateModalGroup(groupElement);
+      });
+      prospectArray.onOpen(`decision-${id}`, () => {
+        decision.changeToPath("hide");
+      });
       if (id && errorMessages[id]) {
         decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
       }
     });
+    return formDecisions;
   }
   function insertSearchParamValues() {
     if (window.location.search) {
@@ -4725,8 +4750,8 @@ Component:`,
     const defaultMessages = {
       beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder w\xE4hlen Sie die Option "Beilagen per Post senden".`
     };
-    initializeOtherFormDecisions(
-      prospectArray.modalElement,
+    initializeProspectDecisions(
+      prospectArray,
       errorMessages,
       defaultMessages
     );
@@ -4736,11 +4761,6 @@ Component:`,
     FORM.formElement.addEventListener("formSuccess", () => {
       prospectArray.clearProgress();
     });
-    FORM.options.validation.validate = false;
-    FORM.changeToStep(2);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const prospectToEdit = Array.from(prospectArray.prospects.values())[1];
-    prospectArray.editProspect(prospectToEdit);
     console.log("Form initialized:", FORM.initialized, FORM);
   });
 })();

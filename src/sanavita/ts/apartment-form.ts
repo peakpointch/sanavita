@@ -37,22 +37,36 @@ function initializeFormDecisions(
   });
 }
 
-function initializeOtherFormDecisions(
-  form: HTMLElement,
+type PathId = string & ('show' | 'hide');
+
+function initializeProspectDecisions<T extends string = string>(
+  prospectArray: ProspectArray,
   errorMessages: { [id: string]: { [key: string]: string } },
   defaultMessages: { [id: string]: string } = {}
-): void {
-  const formDecisions = form.querySelectorAll<HTMLElement>(decisionSelector());
+): Map<T, FormDecision<PathId>> {
+  const decisionElements = prospectArray.modalElement.querySelectorAll<HTMLElement>(decisionSelector());
+  const formDecisions: Map<T, FormDecision<PathId>> = new Map();
 
-  formDecisions.forEach((element) => {
-    const id = element.dataset.decisionComponent;
-    const decision = new FormDecision(element, id);
+  decisionElements.forEach((element, index) => {
+    const id = element.getAttribute(FormDecision.attr.component) || index.toString();
+    const decision = new FormDecision<PathId>(element, id);
+    formDecisions.set(decision.id as T, decision);
+
+    const groupElement = prospectArray.getClosestGroup(decision.component);
+    decision.onChange(() => {
+      prospectArray.validateModalGroup(groupElement);
+    });
+    prospectArray.onOpen(`decision-${id}`, () => {
+      decision.changeToPath('hide');
+    });
 
     // Set error messages for this FormDecision if available
     if (id && errorMessages[id]) {
       decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
     }
   });
+
+  return formDecisions;
 }
 
 function insertSearchParamValues(): void {
@@ -121,8 +135,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
   };
 
-  initializeOtherFormDecisions(
-    prospectArray.modalElement,
+  initializeProspectDecisions(
+    prospectArray,
     errorMessages,
     defaultMessages
   );
@@ -133,11 +147,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     prospectArray.clearProgress();
   });
 
-  FORM.options.validation.validate = false;
-  FORM.changeToStep(2);
-  await new Promise(resolve => setTimeout(resolve, 600));
-  const prospectToEdit = Array.from(prospectArray.prospects.values())[1];
-  prospectArray.editProspect(prospectToEdit);
+  // FORM.options.validation.validate = false;
+  // FORM.changeToStep(2);
+  // await new Promise(resolve => setTimeout(resolve, 600));
+  // const prospectToEdit = Array.from(prospectArray.prospects.values())[1];
+  // prospectArray.editProspect(prospectToEdit);
 
   console.log("Form initialized:", FORM.initialized, FORM);
 });
