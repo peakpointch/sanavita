@@ -80,7 +80,7 @@ const formElement: HTMLElement | null = document.querySelector(
 );
 formElement?.classList.remove("w-form");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   if (!formElement) {
     console.error("Form not found.");
     return;
@@ -97,8 +97,6 @@ document.addEventListener("DOMContentLoaded", () => {
       '[data-decision-component]',
     ],
   });
-
-  FORM.changeToStep(2);
 
   // @ts-ignore
   window.prospectArray = prospectArray;
@@ -134,6 +132,12 @@ document.addEventListener("DOMContentLoaded", () => {
   FORM.formElement.addEventListener("formSuccess", () => {
     prospectArray.clearProgress();
   });
+
+  FORM.options.validation.validate = false;
+  FORM.changeToStep(2);
+  await new Promise(resolve => setTimeout(resolve, 600));
+  const prospectToEdit = Array.from(prospectArray.prospects.values())[1];
+  prospectArray.editProspect(prospectToEdit);
 
   console.log("Form initialized:", FORM.initialized, FORM);
 });

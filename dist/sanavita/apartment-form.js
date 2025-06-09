@@ -4678,7 +4678,7 @@ Component:`,
     formElementSelector("component", { exclusions: [] })
   );
   formElement?.classList.remove("w-form");
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     if (!formElement) {
       console.error("Form not found.");
       return;
@@ -4694,7 +4694,6 @@ Component:`,
         "[data-decision-component]"
       ]
     });
-    FORM.changeToStep(2);
     window.prospectArray = prospectArray;
     FORM.addCustomComponent({
       stepIndex: 2,
@@ -4724,6 +4723,11 @@ Component:`,
     FORM.formElement.addEventListener("formSuccess", () => {
       prospectArray.clearProgress();
     });
+    FORM.options.validation.validate = false;
+    FORM.changeToStep(2);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    const prospectToEdit = Array.from(prospectArray.prospects.values())[1];
+    prospectArray.editProspect(prospectToEdit);
     console.log("Form initialized:", FORM.initialized, FORM);
   });
 })();
