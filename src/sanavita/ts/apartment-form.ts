@@ -8,28 +8,6 @@ import { ProspectArray } from "./form/prospect-array";
 import { flattenProspects } from "./form/resident-prospect";
 import createAttribute from "@peakflow/attributeselector";
 
-function reinsertElement(element: HTMLElement): void {
-  // Check if the element and its parent are defined
-  if (!element || !element.firstElementChild) {
-    console.warn("Element or its first element child is not defined.");
-    return;
-  }
-
-  const childElement = element.firstElementChild;
-
-  // Remove the element from its parent
-  element.removeChild(childElement);
-
-  // Use setTimeout to ensure the reinsert happens asynchronously
-  setTimeout(() => {
-    // Append the element back to the parent
-    element.appendChild(childElement);
-
-    // Focus the element if it's meant to be interactive
-    element.focus();
-  }, 0);
-}
-
 const decisionSelector = createAttribute('data-decision-component');
 
 function initializeFormDecisions(
