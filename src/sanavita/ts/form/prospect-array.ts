@@ -368,7 +368,7 @@ export default class ProspectArray {
   /**
    * Opens the modal form to start a new `ResidentProspect`. Creates an unsaved prospect.
    */
-  private startNewProspect() {
+  public startNewProspect() {
     if (this.prospects.size === 2) {
       this.formMessage.error("Sie können nur max. 2 Personen hinzufügen.");
       this.formMessage.setTimedReset(5000);
@@ -501,9 +501,9 @@ export default class ProspectArray {
     this.list.appendChild(newElement);
   }
 
-  private editProspect(key: string): void;
-  private editProspect(prospect: ResidentProspect): void;
-  private editProspect(prospectOrKey: ResidentProspect | string): void {
+  public editProspect(key: string): void;
+  public editProspect(prospect: ResidentProspect): void;
+  public editProspect(prospectOrKey: ResidentProspect | string): void {
     const prospect = this.getProspect(prospectOrKey);
     this.setLiveText("state", "bearbeiten");
     this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
