@@ -1,3 +1,4 @@
+import { FormField } from "@peakflow/form";
 import { FieldGroup, FieldGroupValidation } from "@peakflow/form/fieldgroup";
 import mapToObject from "@peakflow/utils/maptoobject";
 import objectToMap from "@peakflow/utils/objecttomap";
@@ -18,7 +19,7 @@ type LinkedFieldsId =
   | "primaryRelative"
   | "secondaryRelative";
 
-export type ProspectValidation = Record<GroupName, FieldGroupValidation>;
+export type ProspectValidation = Record<GroupName, FieldGroupValidation<FormField>>;
 
 export interface SerializedProspect {
   personalData?: any;
