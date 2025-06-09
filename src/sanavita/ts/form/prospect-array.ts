@@ -24,6 +24,7 @@ import Modal from "@peakflow/modal";
 import AlertDialog from "@peakflow/alertdialog";
 import { SaveOptions } from "./save-options";
 import { getAlertDialog } from "./alert-dialog";
+import { ScrollPosition } from "@peakflow/scroll/scrollto";
 
 type ProspectElement =
   'template'
@@ -105,6 +106,7 @@ export default class ProspectArray {
       button.addEventListener("click", () => this.discardChanges());
     });
 
+    let keyboardFocused = false;
     this.modalInputs.forEach((input) => {
       input.addEventListener("keydown", (event: KeyboardEvent) => {
         if (!this.modal.opened) return;
@@ -112,20 +114,30 @@ export default class ProspectArray {
           event.preventDefault();
           this.saveProspectFromModal({ validate: true, report: true });
         }
+
+        if (event.key === "Tab" || event.key === "ArrowDown" || event.key === "ArrowUp") {
+          keyboardFocused = true;
+        }
       });
-      input.addEventListener("focusin", () => {
+      input.addEventListener("focusin", (event) => {
         if (!this.modal.opened) return;
+        event.preventDefault();
         const accordionIndex = this.accordionIndexOf(input);
         const accordionInstance = this.accordionList[accordionIndex];
         if (!accordionInstance.isOpen) {
           this.toggleAccordion(accordionIndex);
-          setTimeout(() => {
-            input.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }, 500);
         }
+
+        let position: ScrollPosition = "nearest";
+        if (keyboardFocused) {
+          keyboardFocused = false;
+          position = "center";
+        }
+
+        this.modal.scrollTo(input, {
+          delay: 500,
+          position: position,
+        });
       });
       const groupEl = this.getClosestGroup(input);
       input.addEventListener("input", () => {
@@ -658,23 +670,28 @@ export default class ProspectArray {
     return valid;
   }
 
-  private reportInvalidField(field: HTMLFormInput): void;
-  private reportInvalidField(fieldId: string, groupName: GroupName): void;
-  private reportInvalidField(fieldOrId: HTMLFormInput | string, groupName?: GroupName | undefined): void {
-    const field = this.getFormInput(fieldOrId, groupName);
-    reportValidity(field);
+  private async reportInvalidField(field: HTMLFormInput): Promise<void>;
+  private async reportInvalidField(fieldId: string, groupName: GroupName): Promise<void>;
+  private async reportInvalidField(fieldOrId: HTMLFormInput | string, groupName?: GroupName | undefined): Promise<void> {
+    const input = this.getFormInput(fieldOrId, groupName);
 
-    const accordionIndex = this.accordionIndexOf(field);
+    const accordionIndex = this.accordionIndexOf(input);
     if (accordionIndex !== -1) {
-      // Open the accordion containing the invalid field using the index
-      this.openAccordion(accordionIndex);
+      let delay = 0;
 
-      setTimeout(() => {
-        field.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }, 500);
+      // Open the accordion containing the invalid field using the index
+      const accordion = this.accordionList[accordionIndex];
+      if (!accordion.isOpen) {
+        this.openAccordion(accordionIndex);
+        delay = 800;
+      }
+
+      await this.modal.scrollTo(input, {
+        delay: delay,
+        position: "center"
+      });
+
+      reportValidity(input);
     }
   }
 

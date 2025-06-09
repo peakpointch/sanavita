@@ -3952,6 +3952,7 @@ Component:`,
       this.cancelButtons.forEach((button) => {
         button.addEventListener("click", () => this.discardChanges());
       });
+      let keyboardFocused = false;
       this.modalInputs.forEach((input) => {
         input.addEventListener("keydown", (event) => {
           if (!this.modal.opened) return;
@@ -3959,20 +3960,27 @@ Component:`,
             event.preventDefault();
             this.saveProspectFromModal({ validate: true, report: true });
           }
+          if (event.key === "Tab" || event.key === "ArrowDown" || event.key === "ArrowUp") {
+            keyboardFocused = true;
+          }
         });
-        input.addEventListener("focusin", () => {
+        input.addEventListener("focusin", (event) => {
           if (!this.modal.opened) return;
+          event.preventDefault();
           const accordionIndex = this.accordionIndexOf(input);
           const accordionInstance = this.accordionList[accordionIndex];
           if (!accordionInstance.isOpen) {
             this.toggleAccordion(accordionIndex);
-            setTimeout(() => {
-              input.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-              });
-            }, 500);
           }
+          let position = "nearest";
+          if (keyboardFocused) {
+            keyboardFocused = false;
+            position = "center";
+          }
+          this.modal.scrollTo(input, {
+            delay: 500,
+            position
+          });
         });
         const groupEl = this.getClosestGroup(input);
         input.addEventListener("input", () => {
@@ -4381,18 +4389,21 @@ Component:`,
       }
       return valid;
     }
-    reportInvalidField(fieldOrId, groupName) {
-      const field = this.getFormInput(fieldOrId, groupName);
-      reportValidity(field);
-      const accordionIndex = this.accordionIndexOf(field);
+    async reportInvalidField(fieldOrId, groupName) {
+      const input = this.getFormInput(fieldOrId, groupName);
+      const accordionIndex = this.accordionIndexOf(input);
       if (accordionIndex !== -1) {
-        this.openAccordion(accordionIndex);
-        setTimeout(() => {
-          field.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-        }, 500);
+        let delay = 0;
+        const accordion = this.accordionList[accordionIndex];
+        if (!accordion.isOpen) {
+          this.openAccordion(accordionIndex);
+          delay = 800;
+        }
+        await this.modal.scrollTo(input, {
+          delay,
+          position: "center"
+        });
+        reportValidity(input);
       }
     }
     clearModal() {
