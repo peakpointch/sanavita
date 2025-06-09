@@ -603,13 +603,13 @@ export default class ProspectArray {
           valid = false; // If any ResidentProspect is invalid, set valid to false
         } else if (!prospect.validate()) {
           console.warn(
-            `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
+            `Bitte füllen Sie alle Pflichtfelder für "${prospect.getFullName()}" aus.`
           );
           this.formMessage.error(
-            `Bitte füllen Sie alle Felder für "${prospect.getFullName()}" aus.`
+            `Bitte füllen Sie alle Pflichtfelder für "${prospect.getFullName()}" aus.`
           );
 
-          this.formMessage.setTimedReset(5000);
+          this.formMessage.setTimedReset(7000);
 
           // setTimeout(() => {
           //   this.populateModal(prospect);

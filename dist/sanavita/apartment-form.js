@@ -4255,12 +4255,12 @@ Component:`,
             valid = false;
           } else if (!prospect.validate()) {
             console.warn(
-              `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
+              `Bitte f\xFCllen Sie alle Pflichtfelder f\xFCr "${prospect.getFullName()}" aus.`
             );
             this.formMessage.error(
-              `Bitte f\xFCllen Sie alle Felder f\xFCr "${prospect.getFullName()}" aus.`
+              `Bitte f\xFCllen Sie alle Pflichtfelder f\xFCr "${prospect.getFullName()}" aus.`
             );
-            this.formMessage.setTimedReset(5e3);
+            this.formMessage.setTimedReset(7e3);
             valid = false;
           }
         });
