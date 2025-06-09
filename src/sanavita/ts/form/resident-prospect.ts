@@ -1,6 +1,6 @@
 import { FieldGroup, FieldGroupValidation } from "@peakflow/form/fieldgroup";
-import mapToObject from "@peakflow/maptoobject";
-import objectToMap from "@peakflow/objecttomap";
+import mapToObject from "@peakflow/utils/maptoobject";
+import objectToMap from "@peakflow/utils/objecttomap";
 
 export type GroupName =
   | "personalData"

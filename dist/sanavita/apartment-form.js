@@ -259,7 +259,7 @@
     return { isValid: isValid2, invalidFields };
   }
 
-  // ../peakflow/src/maptoobject.ts
+  // ../peakflow/src/utils/maptoobject.ts
   function mapToObject(map, stringify = false) {
     const obj = {};
     for (const [key, value] of map) {
@@ -3156,7 +3156,7 @@ Component:`,
     }
   };
 
-  // ../peakflow/src/objecttomap.ts
+  // ../peakflow/src/utils/objecttomap.ts
   function objectToMap(obj, deep = false) {
     const map = /* @__PURE__ */ new Map();
     for (const [key, value] of Object.entries(obj)) {
