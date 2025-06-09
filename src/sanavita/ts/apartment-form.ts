@@ -7,11 +7,6 @@ import { FormDecision } from "@peakflow/form";
 import { ProspectArray } from "./form/prospect-array";
 import { flattenProspects } from "./form/resident-prospect";
 
-function capitalize(str: string): string {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
 function reinsertElement(element: HTMLElement): void {
   // Check if the element and its parent are defined
   if (!element || !element.firstElementChild) {
