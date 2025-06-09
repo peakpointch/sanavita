@@ -641,6 +641,7 @@ export default class ProspectArray {
   }
 
   private validateModal(report: boolean = true): boolean {
+    // return true; // Change this for dev
     let valid = true;
     const invalidFields: HTMLFormInput[] = [];
 
@@ -750,8 +751,9 @@ export default class ProspectArray {
       accordion.component.dataset.index = i.toString();
       accordion.onClick(() => {
         this.toggleAccordion(i);
+        if (!accordion.isOpen) return;
         setTimeout(() => {
-          accordion.scrollIntoView();
+          accordion.scrollIntoView(this.modal.select('modal'), 0);
         }, 500);
       });
     }
