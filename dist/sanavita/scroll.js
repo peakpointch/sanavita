@@ -122,7 +122,7 @@
     });
   }
   function disableWebflowScroll() {
-    var Webflow = Webflow || [];
+    var Webflow = window.Webflow || [];
     Webflow.push(function() {
       $(function() {
         $(document).off("click.wf-scroll");
