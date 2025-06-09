@@ -643,21 +643,9 @@
     return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // ../peakflow/src/utils/scroll-lock.ts
-  var scrollLockCount = 0;
-  function lockBodyScroll(smooth) {
-    scrollLockCount++;
-    if (scrollLockCount === 1) {
-      if (smooth) adjustPaddingForScrollbar(document.body);
-      document.body.style.overflow = "hidden";
-    }
-  }
-  function unlockBodyScroll(smooth) {
-    if (scrollLockCount > 0) scrollLockCount--;
-    if (scrollLockCount === 0) {
-      if (smooth) resetScrollbarPadding(document.body);
-      document.body.style.removeProperty("overflow");
-    }
+  // ../peakflow/src/scroll/scrollbar.ts
+  function getVisibleScrollbarWidth(element) {
+    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
   }
   function isScrollbarVisible(element) {
     const style = getComputedStyle(element);
@@ -685,10 +673,7 @@
     scrollDiv.remove();
     return scrollbarWidth;
   }
-  function getVisibleScrollbarWidth(element) {
-    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
-  }
-  function adjustPaddingForScrollbar(element, scrollbarElement) {
+  function addScrollbarPadding(element, scrollbarElement) {
     if (!scrollbarElement) scrollbarElement = element;
     const scrollbarWidth = getVisibleScrollbarWidth(scrollbarElement);
     const currentPadding = parseFloat(getComputedStyle(element).paddingRight || "0");
@@ -698,7 +683,7 @@
     }
     element.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
   }
-  function resetScrollbarPadding(element) {
+  function removeScrollbarPadding(element) {
     const originalPadding = element.dataset.originalPaddingRight;
     if (originalPadding !== void 0) {
       element.style.paddingRight = `${originalPadding}px`;
@@ -708,6 +693,94 @@
       delete element.dataset.originalPaddingRight;
     }
   }
+
+  // ../peakflow/src/scroll/lock.ts
+  var scrollLockCount = 0;
+  function lockBodyScroll(smooth) {
+    scrollLockCount++;
+    if (scrollLockCount === 1) {
+      if (smooth) addScrollbarPadding(document.body);
+      document.body.style.overflow = "hidden";
+    }
+  }
+  function unlockBodyScroll(smooth) {
+    if (scrollLockCount > 0) scrollLockCount--;
+    if (scrollLockCount === 0) {
+      if (smooth) removeScrollbarPadding(document.body);
+      document.body.style.removeProperty("overflow");
+    }
+  }
+
+  // ../peakflow/src/scroll/handler.ts
+  var ScrollHandler = class {
+    constructor(config) {
+      this.scrollTimeoutId = null;
+      this.scrollWrapper = config.scrollWrapper;
+      this.stickyTop = config.stickyTop ?? null;
+      this.stickyBottom = config.stickyBottom ?? null;
+      if (!this.scrollWrapper) {
+        throw new Error(`Couldn't construct ScrollHandler: The property "scrollWrapper" can't be undefined`);
+      }
+    }
+    clearScrollTimeout() {
+      if (this.scrollTimeoutId !== null) {
+        clearTimeout(this.scrollTimeoutId);
+        this.scrollTimeoutId = null;
+      }
+    }
+    scrollTo(element, options = {}) {
+      this.clearScrollTimeout();
+      if (!element || !this.scrollWrapper.contains(element)) {
+        return Promise.reject(
+          new Error(
+            "The element to scroll into view is not inside the scroll container."
+          )
+        );
+      }
+      if (!isScrollbarVisible(this.scrollWrapper)) return Promise.resolve();
+      const opts = {
+        delay: options.delay ?? 0,
+        offset: options.offset ?? 0,
+        position: options.position ?? "start",
+        behavior: options.behavior ?? "smooth"
+      };
+      return new Promise((resolve) => {
+        this.scrollTimeoutId = window.setTimeout(() => {
+          const elementRect = element.getBoundingClientRect();
+          const wrapperRect = this.scrollWrapper.getBoundingClientRect();
+          const stickyTopHeight = this.stickyTop?.clientHeight || 0;
+          const stickyBottomHeight = this.stickyBottom?.clientHeight || 0;
+          const relativePosition = elementRect.top - wrapperRect.top;
+          const isFullyVisible = elementRect.top >= wrapperRect.top + stickyTopHeight && elementRect.bottom <= wrapperRect.bottom - stickyBottomHeight;
+          let scrollOffset = 0;
+          switch (opts.position) {
+            case "start":
+              scrollOffset = relativePosition - stickyTopHeight - opts.offset - 2;
+              break;
+            case "center":
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              break;
+            case "end":
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight + element.clientHeight + stickyBottomHeight + opts.offset;
+              break;
+            case "nearest":
+              if (isFullyVisible) {
+                this.clearScrollTimeout();
+                resolve();
+                return;
+              }
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              break;
+          }
+          this.scrollWrapper.scrollBy({
+            top: scrollOffset,
+            behavior: opts.behavior
+          });
+          resolve();
+        }, opts.delay);
+      });
+    }
+  };
 
   // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
@@ -738,6 +811,7 @@
       component.setAttribute(_Modal.attr.id, this.instance);
       this.component.setAttribute("role", "dialog");
       this.component.setAttribute("aria-modal", "true");
+      this.setupScrollTo();
       this.setInitialState();
       this.setupStickyFooter();
       if (this.modal === this.component) {
@@ -759,7 +833,8 @@
      */
     static selector(element, instance) {
       const base = _Modal.attributeSelector(element);
-      return instance ? `${base}[${_Modal.attr.id}="${instance}"]` : base;
+      const instanceSelector = instance ? `[${_Modal.attr.id}="${instance}"]` : "";
+      return element === "component" ? `${base}${instanceSelector}` : `${base}${instanceSelector}, ${instanceSelector} ${base}`;
     }
     /**
      * Instance selector
@@ -787,6 +862,15 @@
       }
       if (!this.modal) this.modal = this.component;
       return this.modal;
+    }
+    setupScrollTo() {
+      this.scrollHandler = new ScrollHandler({
+        scrollWrapper: this.modal,
+        stickyTop: this.select("sticky-top"),
+        stickyBottom: this.select("sticky-bottom")
+      });
+      this.scrollTo = this.scrollHandler.scrollTo.bind(this.scrollHandler);
+      this.clearScrollTimeout = this.scrollHandler.clearScrollTimeout.bind(this.scrollHandler);
     }
     setupStickyFooter() {
       const modalContent = this.component.querySelector(_Modal.selector("scroll"));
@@ -886,7 +970,7 @@
     async open() {
       this.component.dataset.state = "opening";
       if (this.settings.bodyScroll.lock) {
-        adjustPaddingForScrollbar(this.component, document.body);
+        addScrollbarPadding(this.component, document.body);
         lockBodyScroll(this.settings.bodyScroll.smooth);
       }
       await this.show();
@@ -901,7 +985,7 @@
     async close() {
       this.component.dataset.state = "closing";
       if (this.settings.bodyScroll.lock) {
-        resetScrollbarPadding(this.component);
+        removeScrollbarPadding(this.component);
         unlockBodyScroll(this.settings.bodyScroll.smooth);
       }
       await this.hide();

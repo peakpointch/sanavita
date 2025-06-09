@@ -24,7 +24,7 @@ import Modal from "@peakflow/modal";
 import AlertDialog from "@peakflow/alertdialog";
 import { SaveOptions } from "./save-options";
 import { getAlertDialog } from "./alert-dialog";
-import { ScrollPosition } from "@peakflow/scroll/scrollto";
+import type { ScrollPosition } from "@peakflow/scroll";
 
 type ProspectElement =
   'template'

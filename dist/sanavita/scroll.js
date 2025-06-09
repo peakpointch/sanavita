@@ -60,7 +60,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/src/utils/scroll.ts
+  // ../peakflow/src/scroll/scroll.ts
   var defaultScrollOptions = {
     defaultOffset: 0,
     defaultBehaviour: "smooth"

@@ -3389,21 +3389,9 @@ Component:`,
     }
   };
 
-  // ../peakflow/src/scroll/lock.ts
-  var scrollLockCount = 0;
-  function lockBodyScroll(smooth) {
-    scrollLockCount++;
-    if (scrollLockCount === 1) {
-      if (smooth) adjustPaddingForScrollbar(document.body);
-      document.body.style.overflow = "hidden";
-    }
-  }
-  function unlockBodyScroll(smooth) {
-    if (scrollLockCount > 0) scrollLockCount--;
-    if (scrollLockCount === 0) {
-      if (smooth) resetScrollbarPadding(document.body);
-      document.body.style.removeProperty("overflow");
-    }
+  // ../peakflow/src/scroll/scrollbar.ts
+  function getVisibleScrollbarWidth(element) {
+    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
   }
   function isScrollbarVisible(element) {
     const style = getComputedStyle(element);
@@ -3431,10 +3419,7 @@ Component:`,
     scrollDiv.remove();
     return scrollbarWidth;
   }
-  function getVisibleScrollbarWidth(element) {
-    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
-  }
-  function adjustPaddingForScrollbar(element, scrollbarElement) {
+  function addScrollbarPadding(element, scrollbarElement) {
     if (!scrollbarElement) scrollbarElement = element;
     const scrollbarWidth = getVisibleScrollbarWidth(scrollbarElement);
     const currentPadding = parseFloat(getComputedStyle(element).paddingRight || "0");
@@ -3444,7 +3429,7 @@ Component:`,
     }
     element.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
   }
-  function resetScrollbarPadding(element) {
+  function removeScrollbarPadding(element) {
     const originalPadding = element.dataset.originalPaddingRight;
     if (originalPadding !== void 0) {
       element.style.paddingRight = `${originalPadding}px`;
@@ -3455,33 +3440,62 @@ Component:`,
     }
   }
 
-  // ../peakflow/src/scroll/scrollto.ts
-  function createScrollTo(config) {
-    let scrollTimeoutId = null;
-    const clearScrollTimeout = () => {
-      if (scrollTimeoutId !== null) {
-        clearTimeout(scrollTimeoutId);
-        scrollTimeoutId = null;
+  // ../peakflow/src/scroll/lock.ts
+  var scrollLockCount = 0;
+  function lockBodyScroll(smooth) {
+    scrollLockCount++;
+    if (scrollLockCount === 1) {
+      if (smooth) addScrollbarPadding(document.body);
+      document.body.style.overflow = "hidden";
+    }
+  }
+  function unlockBodyScroll(smooth) {
+    if (scrollLockCount > 0) scrollLockCount--;
+    if (scrollLockCount === 0) {
+      if (smooth) removeScrollbarPadding(document.body);
+      document.body.style.removeProperty("overflow");
+    }
+  }
+
+  // ../peakflow/src/scroll/handler.ts
+  var ScrollHandler = class {
+    constructor(config) {
+      this.scrollTimeoutId = null;
+      this.scrollWrapper = config.scrollWrapper;
+      this.stickyTop = config.stickyTop ?? null;
+      this.stickyBottom = config.stickyBottom ?? null;
+      if (!this.scrollWrapper) {
+        throw new Error(`Couldn't construct ScrollHandler: The property "scrollWrapper" can't be undefined`);
       }
-    };
-    const { scrollWrapper, stickyTop, stickyBottom } = config;
-    const scrollTo = async (element, options = {}) => {
-      clearScrollTimeout();
-      if (!element || !scrollWrapper.contains(element)) {
-        throw new Error("The element to scroll into view is not inside the scroll container.");
+    }
+    clearScrollTimeout() {
+      if (this.scrollTimeoutId !== null) {
+        clearTimeout(this.scrollTimeoutId);
+        this.scrollTimeoutId = null;
       }
-      if (!isScrollbarVisible(scrollWrapper)) return;
+    }
+    scrollTo(element, options = {}) {
+      this.clearScrollTimeout();
+      if (!element || !this.scrollWrapper.contains(element)) {
+        return Promise.reject(
+          new Error(
+            "The element to scroll into view is not inside the scroll container."
+          )
+        );
+      }
+      if (!isScrollbarVisible(this.scrollWrapper)) return Promise.resolve();
       const opts = {
         delay: options.delay ?? 0,
         offset: options.offset ?? 0,
-        position: options.position ?? "start"
+        position: options.position ?? "start",
+        behavior: options.behavior ?? "smooth"
       };
       return new Promise((resolve) => {
-        scrollTimeoutId = window.setTimeout(() => {
+        this.scrollTimeoutId = window.setTimeout(() => {
           const elementRect = element.getBoundingClientRect();
-          const wrapperRect = scrollWrapper.getBoundingClientRect();
-          const stickyTopHeight = stickyTop?.clientHeight || 0;
-          const stickyBottomHeight = stickyBottom?.clientHeight || 0;
+          const wrapperRect = this.scrollWrapper.getBoundingClientRect();
+          const stickyTopHeight = this.stickyTop?.clientHeight || 0;
+          const stickyBottomHeight = this.stickyBottom?.clientHeight || 0;
           const relativePosition = elementRect.top - wrapperRect.top;
           const isFullyVisible = elementRect.top >= wrapperRect.top + stickyTopHeight && elementRect.bottom <= wrapperRect.bottom - stickyBottomHeight;
           let scrollOffset = 0;
@@ -3490,29 +3504,29 @@ Component:`,
               scrollOffset = relativePosition - stickyTopHeight - opts.offset - 2;
               break;
             case "center":
-              scrollOffset = relativePosition - scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
               break;
             case "end":
-              scrollOffset = relativePosition - scrollWrapper.clientHeight + element.clientHeight + stickyBottomHeight + opts.offset;
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight + element.clientHeight + stickyBottomHeight + opts.offset;
               break;
             case "nearest":
               if (isFullyVisible) {
-                clearScrollTimeout();
-                return resolve();
+                this.clearScrollTimeout();
+                resolve();
+                return;
               }
-              scrollOffset = relativePosition - scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
               break;
           }
-          scrollWrapper.scrollBy({
+          this.scrollWrapper.scrollBy({
             top: scrollOffset,
-            behavior: "smooth"
+            behavior: opts.behavior
           });
           resolve();
         }, opts.delay);
       });
-    };
-    return { scrollTo, clearScrollTimeout };
-  }
+    }
+  };
 
   // ../peakflow/src/modal.ts
   var defaultModalAnimation = {
@@ -3596,13 +3610,13 @@ Component:`,
       return this.modal;
     }
     setupScrollTo() {
-      const scrollHandler = createScrollTo({
+      this.scrollHandler = new ScrollHandler({
         scrollWrapper: this.modal,
         stickyTop: this.select("sticky-top"),
         stickyBottom: this.select("sticky-bottom")
       });
-      this.scrollTo = scrollHandler.scrollTo;
-      this.clearScrollTimeout = scrollHandler.clearScrollTimeout;
+      this.scrollTo = this.scrollHandler.scrollTo.bind(this.scrollHandler);
+      this.clearScrollTimeout = this.scrollHandler.clearScrollTimeout.bind(this.scrollHandler);
     }
     setupStickyFooter() {
       const modalContent = this.component.querySelector(_Modal.selector("scroll"));
@@ -3702,7 +3716,7 @@ Component:`,
     async open() {
       this.component.dataset.state = "opening";
       if (this.settings.bodyScroll.lock) {
-        adjustPaddingForScrollbar(this.component, document.body);
+        addScrollbarPadding(this.component, document.body);
         lockBodyScroll(this.settings.bodyScroll.smooth);
       }
       await this.show();
@@ -3717,7 +3731,7 @@ Component:`,
     async close() {
       this.component.dataset.state = "closing";
       if (this.settings.bodyScroll.lock) {
-        resetScrollbarPadding(this.component);
+        removeScrollbarPadding(this.component);
         unlockBodyScroll(this.settings.bodyScroll.smooth);
       }
       await this.hide();
