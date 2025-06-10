@@ -169,10 +169,12 @@ export class ResidentProspect {
     for (const groupName of groupNames) {
       const group = this[groupName];
 
-      group.fields.forEach((field, index) => {
-        const fieldName = `${prefix}_${groupName}_${field.id}`;
-        fields[fieldName] = field.value;
-      });
+      if (group instanceof FieldGroup) {
+        group.fields.forEach((field, index) => {
+          const fieldName = `${prefix}_${groupName}_${field.id}`;
+          fields[fieldName] = field.value;
+        });
+      }
     }
 
     return fields;
