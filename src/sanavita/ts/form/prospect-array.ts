@@ -892,7 +892,7 @@ export default class ProspectArray {
 
       groupInputs.forEach((input, index) => {
         const field = fieldFromInput(input, index);
-        if (field?.id) {
+        if (field.id) {
           prospectData[groupName].fields.set(field.id, field);
         }
       });
