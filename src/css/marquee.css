@@ -40,6 +40,6 @@
   justify-content: flex-end;
 }
 
-.marquee_paused {
+[data-marquee-element="component"][data-marquee-paused="true"] [data-marquee-element="track"] {
   animation-play-state: paused !important;
 }
