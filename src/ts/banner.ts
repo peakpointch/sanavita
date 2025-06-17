@@ -1,4 +1,4 @@
-// Speziellen Infobanner in die Navbar verschieben
+import { marqueeSelector, setMarqueeSpeed } from '@peakflow/marquee';
 
 declare global {
   interface Window {
@@ -42,35 +42,22 @@ function manageBanners(bannerWrapper: HTMLElement | null, path: string): void {
     if (currentBannerType === "default") {
       if (!hasSpecialBannerPath || !hasExpectedBanner) {
         banner.classList.add("show");
-        setBannerSpeed(banner);
+        setMarqueeSpeed('auto', banner);
       } else {
         banner.classList.add("hide");
       }
     } else if (path.includes(window.bannerType[currentBannerType])) {
       banner.classList.add("show");
-      setBannerSpeed(banner);
+      setMarqueeSpeed('auto', banner);
     } else {
       banner.classList.add("hide");
     }
   });
 }
 
-function setBannerSpeed(track: HTMLElement): number {
-  const marqueeTrack = track.querySelector<HTMLElement>(".marquee_track");
-  if (!marqueeTrack) {
-    return 0;
-  }
-
-  const distance = marqueeTrack.offsetWidth;
-  const pixelsPerSecond = 100; // Adjust this value to change the speed
-  const duration = distance / pixelsPerSecond;
-  marqueeTrack.style.animationDuration = `${duration}s`;
-  return duration;
-}
-
 function setAllSpeeds(main: HTMLElement): void {
-  const allMarquees = main.querySelectorAll<HTMLElement>(".marquee_component");
-  allMarquees.forEach((marquee) => setBannerSpeed(marquee));
+  const allMarquees = main.querySelectorAll<HTMLElement>(marqueeSelector('component'));
+  allMarquees.forEach((marquee) => setMarqueeSpeed('auto', marquee));
 }
 
 window.addEventListener("DOMContentLoaded", () => {
