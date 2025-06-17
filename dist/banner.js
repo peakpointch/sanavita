@@ -46,7 +46,6 @@
     }
   }
   document.addEventListener("DOMContentLoaded", () => {
-    const main = document.querySelector("main");
     const bannerWrapper = document.body.querySelector('[data-banner-element="component"]');
     createBannerManager(bannerWrapper);
   });

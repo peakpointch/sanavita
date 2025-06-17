@@ -58,7 +58,6 @@ function createBannerManager(component: HTMLElement): void {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const main = document.querySelector<HTMLElement>("main");
   const bannerWrapper: HTMLElement | null = document.body.querySelector('[data-banner-element="component"]');
 
   createBannerManager(bannerWrapper);
