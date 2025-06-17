@@ -1,9 +1,11 @@
 // Speziellen Infobanner in die Navbar verschieben
 
-interface Window {
-  bannerType: {
-    [key: string]: string;
-  };
+declare global {
+  interface Window {
+    bannerType: {
+      [key: string]: string;
+    };
+  }
 }
 
 function manageBanners(bannerWrapper: HTMLElement | null, path: string): void {
