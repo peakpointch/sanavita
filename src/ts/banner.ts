@@ -1,75 +1,65 @@
-import { marqueeSelector, setMarqueeSpeed } from '@peakflow/marquee';
-
-declare global {
-  interface Window {
-    bannerType: {
-      [key: string]: string;
-    };
-  }
+interface Window {
+  bannerType: {
+    [key: string]: string;
+  };
 }
 
-function manageBanners(bannerWrapper: HTMLElement | null, path: string): void {
-  if (!bannerWrapper) {
-    return;
-  }
-
-  const allBanners = bannerWrapper.querySelectorAll<HTMLElement>(
-    "[banner-type]:not(:has(.w-dyn-empty))"
-  );
-  if (!allBanners.length) {
-    return;
+function manageBanners(bannerList: HTMLElement[]): void {
+  if (!bannerList || !bannerList.length) {
+    throw new Error(`Banner list cannot be empty. Check your banner selector.`);
   }
 
   let hasExpectedBanner = false;
+  const path = window.location.pathname;
   const hasSpecialBannerPath = Object.values(window.bannerType).some(
     (bannerPath) => path.includes(bannerPath)
   );
 
   // Is it a special path that has the banner expected by the path?
-  allBanners.forEach((banner) => {
-    const existingBanner = banner.getAttribute("banner-type");
-    if (existingBanner && path.includes(window.bannerType[existingBanner])) {
+  bannerList.forEach((banner) => {
+    const currentBannerId = banner.getAttribute("data-banner-id") || '';
+    if (!currentBannerId) {
+      throw new Error(`Invalid or missing banner id.`);
+    }
+
+    if (path.includes(window.bannerType[currentBannerId])) {
       hasExpectedBanner = true;
     }
   });
 
-  allBanners.forEach((banner) => {
-    const currentBannerType: string = banner.getAttribute("banner-type") || "";
-    if (!currentBannerType) {
-      return;
+  bannerList.forEach((banner) => {
+    const currentBannerId = banner.getAttribute("data-banner-id") || '';
+    if (!currentBannerId) {
+      throw new Error(`Invalid or missing banner id.`);
     }
 
-    if (currentBannerType === "default") {
+    if (currentBannerId === "default") {
       if (!hasSpecialBannerPath || !hasExpectedBanner) {
         banner.classList.add("show");
-        setMarqueeSpeed('auto', banner);
       } else {
         banner.classList.add("hide");
       }
-    } else if (path.includes(window.bannerType[currentBannerType])) {
+    } else if (path.includes(window.bannerType[currentBannerId])) {
       banner.classList.add("show");
-      setMarqueeSpeed('auto', banner);
     } else {
       banner.classList.add("hide");
     }
   });
 }
 
-function setAllSpeeds(main: HTMLElement): void {
-  const allMarquees = main.querySelectorAll<HTMLElement>(marqueeSelector('component'));
-  allMarquees.forEach((marquee) => setMarqueeSpeed('auto', marquee));
+function createBannerManager(component: HTMLElement): void {
+  try {
+    const banners = component.querySelectorAll<HTMLElement>('[data-banner-id]');
+    const bannerList = Array.from(banners);
+    manageBanners(bannerList);
+  } catch (e) {
+    console.error(`Banner manager: ${e.message}`);
+  }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   const main = document.querySelector<HTMLElement>("main");
-  const nav: HTMLElement | null = document.querySelector(
-    '[pp-type="nav-wrapper"]'
-  );
-  const bannerWrapper: HTMLElement | null = nav?.querySelector(
-    '[pp-type="infobanner-component"]'
-  );
-  const path = window.location.pathname;
+  const bannerWrapper: HTMLElement | null = document.body.querySelector('[data-banner-element="component"]');
 
-  manageBanners(bannerWrapper, path);
-  setAllSpeeds(main);
+  createBannerManager(bannerWrapper);
 });

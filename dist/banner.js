@@ -1,71 +1,54 @@
 (() => {
   // src/ts/banner.ts
-  function manageBanners(bannerWrapper, path) {
-    if (!bannerWrapper) {
-      return;
-    }
-    const allBanners = bannerWrapper.querySelectorAll(
-      "[banner-type]:not(:has(.w-dyn-empty))"
-    );
-    if (!allBanners.length) {
-      return;
+  function manageBanners(bannerList) {
+    if (!bannerList || !bannerList.length) {
+      throw new Error(`Banner list cannot be empty. Check your banner selector.`);
     }
     let hasExpectedBanner = false;
+    const path = window.location.pathname;
     const hasSpecialBannerPath = Object.values(window.bannerType).some(
       (bannerPath) => path.includes(bannerPath)
     );
-    allBanners.forEach((banner) => {
-      const existingBanner = banner.getAttribute("banner-type");
-      if (existingBanner && path.includes(window.bannerType[existingBanner])) {
+    bannerList.forEach((banner) => {
+      const currentBannerId = banner.getAttribute("data-banner-id") || "";
+      if (!currentBannerId) {
+        throw new Error(`Invalid or missing banner id.`);
+      }
+      if (path.includes(window.bannerType[currentBannerId])) {
         hasExpectedBanner = true;
       }
     });
-    allBanners.forEach((banner) => {
-      const currentBannerType = banner.getAttribute("banner-type") || "";
-      if (!currentBannerType) {
-        return;
+    bannerList.forEach((banner) => {
+      const currentBannerId = banner.getAttribute("data-banner-id") || "";
+      if (!currentBannerId) {
+        throw new Error(`Invalid or missing banner id.`);
       }
-      if (currentBannerType === "default") {
+      if (currentBannerId === "default") {
         if (!hasSpecialBannerPath || !hasExpectedBanner) {
           banner.classList.add("show");
-          setBannerSpeed(banner);
         } else {
           banner.classList.add("hide");
         }
-      } else if (path.includes(window.bannerType[currentBannerType])) {
+      } else if (path.includes(window.bannerType[currentBannerId])) {
         banner.classList.add("show");
-        setBannerSpeed(banner);
       } else {
         banner.classList.add("hide");
       }
     });
   }
-  function setBannerSpeed(track) {
-    const marqueeTrack = track.querySelector(".marquee_track");
-    if (!marqueeTrack) {
-      return 0;
+  function createBannerManager(component) {
+    try {
+      const banners = component.querySelectorAll("[data-banner-id]");
+      const bannerList = Array.from(banners);
+      manageBanners(bannerList);
+    } catch (e) {
+      console.error(`Banner manager: ${e.message}`);
     }
-    const distance = marqueeTrack.offsetWidth;
-    const pixelsPerSecond = 100;
-    const duration = distance / pixelsPerSecond;
-    marqueeTrack.style.animationDuration = `${duration}s`;
-    return duration;
   }
-  function setAllSpeeds(main) {
-    const allMarquees = main.querySelectorAll(".marquee_component");
-    allMarquees.forEach((marquee) => setBannerSpeed(marquee));
-  }
-  window.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
     const main = document.querySelector("main");
-    const nav = document.querySelector(
-      '[pp-type="nav-wrapper"]'
-    );
-    const bannerWrapper = nav?.querySelector(
-      '[pp-type="infobanner-component"]'
-    );
-    const path = window.location.pathname;
-    manageBanners(bannerWrapper, path);
-    setAllSpeeds(main);
+    const bannerWrapper = document.body.querySelector('[data-banner-element="component"]');
+    createBannerManager(bannerWrapper);
   });
 })();
 //# sourceMappingURL=banner.js.map
