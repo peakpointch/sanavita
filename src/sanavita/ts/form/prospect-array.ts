@@ -2,7 +2,6 @@ import createAttribute, { exclude, AttributeSelector } from "@peakflow/attribute
 import {
   isCheckboxInput,
   isRadioInput,
-  clearRadioGroup,
   validateFields,
   fieldFromInput,
   removeErrorClasses,
@@ -10,7 +9,8 @@ import {
   findFormInput,
   FieldGroupValidation,
   reportValidity,
-  FormDecision
+  FormDecision,
+  clearRadioInput
 } from "@peakflow/form";
 import {
   ResidentProspect,
@@ -754,7 +754,7 @@ export default class ProspectArray {
     this.modalInputs.forEach((input) => {
       if (isRadioInput(input)) {
         input.checked = false;
-        clearRadioGroup(this.modalElement, input.name);
+        clearRadioInput(input);
       } else if (isCheckboxInput(input)) {
         input.checked = false;
         input.dispatchEvent(new Event("change", { bubbles: true }));
