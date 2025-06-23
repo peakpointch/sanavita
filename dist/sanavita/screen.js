@@ -13,6 +13,23 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
+    return extend(selector, `:not(${exclusions.join(", ")})`);
+  }
+  function extend(selector, ...extensions) {
+    if (extensions.length === 0) return selector;
+    const selectors = split(selector);
+    const selectorsWithExtensions = extensions.map((extension) => {
+      return append(selectors, extension);
+    });
+    return selectorsWithExtensions.join(", ");
+  }
+  function append(selectorList, suffix) {
+    return selectorList.reduce((acc, string) => {
+      const prefix = acc === "" ? "" : `${acc}, `;
+      return `${prefix}${string}${suffix}`;
+    }, "");
+  }
+  function split(selector) {
     const result = [];
     let current = "";
     let depth = 0;
@@ -37,7 +54,7 @@
     if (current.trim()) {
       result.push(current.trim());
     }
-    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
+    return result;
   }
   var createAttribute = (attrName, defaultOptions2) => {
     const mergedDefaultOptions = {
@@ -5008,7 +5025,7 @@
   function isObject(obj) {
     return obj !== null && typeof obj === "object" && "constructor" in obj && obj.constructor === Object;
   }
-  function extend(target, src) {
+  function extend2(target, src) {
     if (target === void 0) {
       target = {};
     }
@@ -5019,7 +5036,7 @@
     Object.keys(src).filter((key) => noExtend.indexOf(key) < 0).forEach((key) => {
       if (typeof target[key] === "undefined") target[key] = src[key];
       else if (isObject(src[key]) && isObject(target[key]) && Object.keys(src[key]).length > 0) {
-        extend(target[key], src[key]);
+        extend2(target[key], src[key]);
       }
     });
   }
@@ -5080,7 +5097,7 @@
   };
   function getDocument() {
     const doc = typeof document !== "undefined" ? document : {};
-    extend(doc, ssrDocument);
+    extend2(doc, ssrDocument);
     return doc;
   }
   var ssrWindow = {
@@ -5150,7 +5167,7 @@
   };
   function getWindow() {
     const win = typeof window !== "undefined" ? window : {};
-    extend(win, ssrWindow);
+    extend2(win, ssrWindow);
     return win;
   }
 
@@ -5237,7 +5254,7 @@
     }
     return node && (node.nodeType === 1 || node.nodeType === 11);
   }
-  function extend2() {
+  function extend3() {
     const to = Object(arguments.length <= 0 ? void 0 : arguments[0]);
     const noExtend = ["__proto__", "constructor", "prototype"];
     for (let i = 1; i < arguments.length; i += 1) {
@@ -5252,14 +5269,14 @@
               if (nextSource[nextKey].__swiper__) {
                 to[nextKey] = nextSource[nextKey];
               } else {
-                extend2(to[nextKey], nextSource[nextKey]);
+                extend3(to[nextKey], nextSource[nextKey]);
               }
             } else if (!isObject2(to[nextKey]) && isObject2(nextSource[nextKey])) {
               to[nextKey] = {};
               if (nextSource[nextKey].__swiper__) {
                 to[nextKey] = nextSource[nextKey];
               } else {
-                extend2(to[nextKey], nextSource[nextKey]);
+                extend3(to[nextKey], nextSource[nextKey]);
               }
             } else {
               to[nextKey] = nextSource[nextKey];
@@ -8229,7 +8246,7 @@
     if (directionChanged && initialized) {
       swiper.changeDirection();
     }
-    extend2(swiper.params, breakpointParams);
+    extend3(swiper.params, breakpointParams);
     const isEnabled = swiper.params.enabled;
     const hasLoop = swiper.params.loop;
     Object.assign(swiper, {
@@ -8524,7 +8541,7 @@
       const moduleParamName = Object.keys(obj)[0];
       const moduleParams = obj[moduleParamName];
       if (typeof moduleParams !== "object" || moduleParams === null) {
-        extend2(allModulesParams, obj);
+        extend3(allModulesParams, obj);
         return;
       }
       if (params[moduleParamName] === true) {
@@ -8539,7 +8556,7 @@
         params[moduleParamName].auto = true;
       }
       if (!(moduleParamName in params && "enabled" in moduleParams)) {
-        extend2(allModulesParams, obj);
+        extend3(allModulesParams, obj);
         return;
       }
       if (typeof params[moduleParamName] === "object" && !("enabled" in params[moduleParamName])) {
@@ -8548,7 +8565,7 @@
       if (!params[moduleParamName]) params[moduleParamName] = {
         enabled: false
       };
-      extend2(allModulesParams, obj);
+      extend3(allModulesParams, obj);
     };
   }
   var prototypes = {
@@ -8578,13 +8595,13 @@
         [el, params] = args;
       }
       if (!params) params = {};
-      params = extend2({}, params);
+      params = extend3({}, params);
       if (el && !params.el) params.el = el;
       const document2 = getDocument();
       if (params.el && typeof params.el === "string" && document2.querySelectorAll(params.el).length > 1) {
         const swipers = [];
         document2.querySelectorAll(params.el).forEach((containerEl) => {
-          const newParams = extend2({}, params, {
+          const newParams = extend3({}, params, {
             el: containerEl
           });
           swipers.push(new _Swiper(newParams));
@@ -8616,10 +8633,10 @@
           emit: swiper.emit.bind(swiper)
         });
       });
-      const swiperParams = extend2({}, defaults, allModulesParams);
-      swiper.params = extend2({}, swiperParams, extendedDefaults, params);
-      swiper.originalParams = extend2({}, swiper.params);
-      swiper.passedParams = extend2({}, params);
+      const swiperParams = extend3({}, defaults, allModulesParams);
+      swiper.params = extend3({}, swiperParams, extendedDefaults, params);
+      swiper.originalParams = extend3({}, swiper.params);
+      swiper.passedParams = extend3({}, params);
       if (swiper.params && swiper.params.on) {
         Object.keys(swiper.params.on).forEach((eventName) => {
           swiper.on(eventName, swiper.params.on[eventName]);
@@ -9086,7 +9103,7 @@
       return null;
     }
     static extendDefaults(newDefaults) {
-      extend2(extendedDefaults, newDefaults);
+      extend3(extendedDefaults, newDefaults);
     }
     static get extendedDefaults() {
       return extendedDefaults;

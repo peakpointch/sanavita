@@ -302,14 +302,14 @@
         if (!options.allow_query_components && (url.includes("?") || url.includes("&"))) {
           return false;
         }
-        var protocol, auth, host, hostname, port, port_str, split, ipv6;
-        split = url.split("#");
-        url = split.shift();
-        split = url.split("?");
-        url = split.shift();
-        split = url.split("://");
-        if (split.length > 1) {
-          protocol = split.shift().toLowerCase();
+        var protocol, auth, host, hostname, port, port_str, split2, ipv6;
+        split2 = url.split("#");
+        url = split2.shift();
+        split2 = url.split("?");
+        url = split2.shift();
+        split2 = url.split("://");
+        if (split2.length > 1) {
+          protocol = split2.shift().toLowerCase();
           if (options.require_valid_protocol && options.protocols.indexOf(protocol) === -1) {
             return false;
           }
@@ -319,26 +319,26 @@
           if (!options.allow_protocol_relative_urls) {
             return false;
           }
-          split[0] = url.slice(2);
+          split2[0] = url.slice(2);
         }
-        url = split.join("://");
+        url = split2.join("://");
         if (url === "") {
           return false;
         }
-        split = url.split("/");
-        url = split.shift();
+        split2 = url.split("/");
+        url = split2.shift();
         if (url === "" && !options.require_host) {
           return true;
         }
-        split = url.split("@");
-        if (split.length > 1) {
+        split2 = url.split("@");
+        if (split2.length > 1) {
           if (options.disallow_auth) {
             return false;
           }
-          if (split[0] === "") {
+          if (split2[0] === "") {
             return false;
           }
-          auth = split.shift();
+          auth = split2.shift();
           if (auth.indexOf(":") >= 0 && auth.split(":").length > 2) {
             return false;
           }
@@ -347,7 +347,7 @@
             return false;
           }
         }
-        hostname = split.join("@");
+        hostname = split2.join("@");
         port_str = null;
         ipv6 = null;
         var ipv6_match = hostname.match(wrapped_ipv6);
@@ -356,10 +356,10 @@
           ipv6 = ipv6_match[1];
           port_str = ipv6_match[2] || null;
         } else {
-          split = hostname.split(":");
-          host = split.shift();
-          if (split.length) {
-            port_str = split.join(":");
+          split2 = hostname.split(":");
+          host = split2.shift();
+          if (split2.length) {
+            port_str = split2.join(":");
           }
         }
         if (port_str !== null && port_str.length > 0) {
@@ -470,6 +470,23 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
+    return extend(selector, `:not(${exclusions.join(", ")})`);
+  }
+  function extend(selector, ...extensions) {
+    if (extensions.length === 0) return selector;
+    const selectors = split(selector);
+    const selectorsWithExtensions = extensions.map((extension) => {
+      return append(selectors, extension);
+    });
+    return selectorsWithExtensions.join(", ");
+  }
+  function append(selectorList, suffix) {
+    return selectorList.reduce((acc, string) => {
+      const prefix = acc === "" ? "" : `${acc}, `;
+      return `${prefix}${string}${suffix}`;
+    }, "");
+  }
+  function split(selector) {
     const result = [];
     let current = "";
     let depth = 0;
@@ -494,7 +511,7 @@
     if (current.trim()) {
       result.push(current.trim());
     }
-    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
+    return result;
   }
   var createAttribute = (attrName, defaultOptions) => {
     const mergedDefaultOptions = {
