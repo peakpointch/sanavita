@@ -13,6 +13,23 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
+    return extend(selector, `:not(${exclusions.join(", ")})`);
+  }
+  function extend(selector, ...extensions) {
+    if (extensions.length === 0) return selector;
+    const selectors = split(selector);
+    const selectorsWithExtensions = extensions.map((extension) => {
+      return append(selectors, extension);
+    });
+    return selectorsWithExtensions.join(", ");
+  }
+  function append(selectorList, suffix) {
+    return selectorList.reduce((acc, string) => {
+      const prefix = acc === "" ? "" : `${acc}, `;
+      return `${prefix}${string}${suffix}`;
+    }, "");
+  }
+  function split(selector) {
     const result = [];
     let current = "";
     let depth = 0;
@@ -37,13 +54,13 @@
     if (current.trim()) {
       result.push(current.trim());
     }
-    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
+    return result;
   }
-  var createAttribute = (attrName, defaultOptions2) => {
+  var createAttribute = (attrName, defaultOptions3) => {
     const mergedDefaultOptions = {
-      defaultMatchType: defaultOptions2?.defaultMatchType ?? "exact",
-      defaultValue: defaultOptions2?.defaultValue ?? void 0,
-      defaultExclusions: defaultOptions2?.defaultExclusions ?? []
+      defaultMatchType: defaultOptions3?.defaultMatchType ?? "exact",
+      defaultValue: defaultOptions3?.defaultValue ?? void 0,
+      defaultExclusions: defaultOptions3?.defaultExclusions ?? []
     };
     return (name = mergedDefaultOptions.defaultValue, options) => {
       const mergedOptions = {
@@ -147,16 +164,13 @@
       return false;
     }
   }
-  function clearRadioGroup(container, name) {
-    container.querySelectorAll(
-      `${wf.select.radioInput}[name="${name}"]`
-    ).forEach((radio) => {
-      radio.checked = false;
-      const customRadio = radio.closest(".w-radio")?.querySelector(wf.select.radio);
-      if (customRadio) {
-        customRadio.classList.remove(wf.class.checked);
-      }
-    });
+  function clearRadioInput(radio) {
+    radio.checked = false;
+    const customRadio = radio.closest(".w-radio")?.querySelector(wf.select.radio);
+    if (customRadio) {
+      customRadio.classList.remove(wf.class.checked);
+    }
+    radio.dispatchEvent(new Event("change", { bubbles: true }));
   }
   function enforceButtonTypes(form) {
     if (!form) return;
@@ -242,12 +256,12 @@
     }
   }
   function validateFields(inputs, report = true) {
-    let isValid2 = true;
+    let isValid3 = true;
     let invalidFields = [];
     for (const input of Array.from(inputs)) {
       if (!input.checkValidity()) {
         invalidFields.push(input);
-        isValid2 = false;
+        isValid3 = false;
         if (report) {
           reportValidity(input);
         }
@@ -256,7 +270,7 @@
         input.classList.remove("has-error");
       }
     }
-    return { isValid: isValid2, invalidFields };
+    return { isValid: isValid3, invalidFields };
   }
 
   // ../peakflow/src/utils/maptoobject.ts
@@ -610,17 +624,17 @@ Component:`,
         );
         return !isExcluded;
       });
-      let { isValid: isValid2 } = validateFields(filteredInputs, this.options.validation.reportValidity);
-      if (!isValid2 && this.options.validation.reportValidity) {
+      let { isValid: isValid3 } = validateFields(filteredInputs, this.options.validation.reportValidity);
+      if (!isValid3 && this.options.validation.reportValidity) {
         console.warn(`${basicError}: Standard validation is not valid`);
       }
-      if (!isValid2) return false;
+      if (!isValid3) return false;
       const customValidators = this.customComponents.filter((entry) => entry.stepIndex === stepIndex).map((entry) => () => entry.validator());
       const customValid = customValidators?.every((validator) => validator()) ?? true;
       if (this.options.validation.reportValidity && !customValid) {
         console.warn(`${basicError}: Custom validation is not valid`);
       }
-      return isValid2 && customValid;
+      return isValid3 && customValid;
     }
     /**
      * Gets data of all form fields in a `FormFieldMap`.
@@ -664,6 +678,10 @@ Component:`,
         ...customFields
       };
       return fields;
+    }
+    getFormInput(id) {
+      const selector = extend(wf.select.formInput, `#${id}`);
+      return this.component.querySelector(selector);
     }
   };
 
@@ -751,10 +769,11 @@ Component:`,
         if (field.validate(report)) continue;
         invalidFields.push(field);
       }
-      return {
+      this.validation = {
         isValid: invalidFields.length === 0,
         invalidFields
       };
+      return this.validation;
     }
     /**
      * Serialize this `FieldGroup`.
@@ -809,27 +828,27 @@ Component:`,
      * @param message The message text to display. Defaults to `null`.
      * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
      */
-    info(message2 = null, silent = false) {
+    info(message3 = null, silent = false) {
       if (!this.initialized) return;
       this.clearTimeout();
       if (!silent) {
         this.component.setAttribute("aria-live", "polite");
       }
-      this.setMessage(message2, "info", silent);
+      this.setMessage(message3, "info", silent);
     }
     /**
      * Displays an error message.
      * @param message The message text to display. Defaults to `null`.
      * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
      */
-    error(message2 = null, silent = false) {
+    error(message3 = null, silent = false) {
       if (!this.initialized) return;
       this.clearTimeout();
       if (!silent) {
         this.component.setAttribute("role", "alert");
         this.component.setAttribute("aria-live", "assertive");
       }
-      this.setMessage(message2, "error", silent);
+      this.setMessage(message3, "error", silent);
     }
     /**
      * Resets the message component, hiding any displayed message.
@@ -879,10 +898,10 @@ Component:`,
      * @param type The type of message (`"info"` or `"error"`).
      * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
      */
-    setMessage(message2 = null, type, silent = false) {
+    setMessage(message3 = null, type, silent = false) {
       if (!this.initialized) return;
-      if (this.messageElement && message2) {
-        this.messageElement.textContent = message2;
+      if (this.messageElement && message3) {
+        this.messageElement.textContent = message3;
       } else if (!this.messageElement) {
         console.warn("Message text element not found.");
       }
@@ -903,7 +922,12 @@ Component:`,
      * @param component The FormDecision element.
      * @param id Unique identifier for the specific instance.
      */
-    constructor(component, id) {
+    constructor(component, options) {
+      this.opts = {
+        id: void 0,
+        clearPathOnChange: false,
+        defaultPath: null
+      };
       this.paths = /* @__PURE__ */ new Map();
       this.errorMessages = {};
       this.defaultErrorMessage = "Please complete the required fields.";
@@ -911,7 +935,7 @@ Component:`,
       };
       this.attr = _FormDecision.attr;
       this.selector = attributeselector_default(_FormDecision.attr.element);
-      if (!component || !id) {
+      if (!component) {
         console.error(`FormDecision: Component not found.`);
         return;
       } else if (!component.hasAttribute("data-decision-component")) {
@@ -922,8 +946,12 @@ Component:`,
         return;
       }
       this.component = component;
-      this.id = id || this.component.getAttribute(this.attr.component);
-      this.formMessage = new FormMessage("FormDecision", id);
+      this.opts = {
+        id: options.id || this.component.getAttribute(this.attr.component) || this.opts.id,
+        clearPathOnChange: options.clearPathOnChange || this.opts.clearPathOnChange,
+        defaultPath: options.defaultPath || this.opts.defaultPath
+      };
+      this.formMessage = new FormMessage("FormDecision", this.opts.id);
       this.initialize();
     }
     static get attr() {
@@ -952,7 +980,7 @@ Component:`,
       this.decisionInputs = Array.from(decisionInputsList);
       if (this.decisionInputs.length === 0) {
         console.warn(
-          `Decision component "${this.id}" does not contain any decision input elements.`
+          `Decision component "${this.opts.id}" does not contain any decision input elements.`
         );
         return;
       }
@@ -977,6 +1005,13 @@ Component:`,
      * @param event The event that invokes this change.
      */
     changeToPath(pathId, event) {
+      if (pathId === null) {
+        this.hideAllPaths();
+        this.decisionInputs.forEach((input) => {
+          clearRadioInput(input);
+        });
+      }
+      if (this.currentPath === pathId) return;
       const prevPath = this.paths.get(this.currentPath);
       if (prevPath) {
         prevPath.style.display = "none";
@@ -986,9 +1021,34 @@ Component:`,
       if (path) {
         path.style.removeProperty("display");
       }
-      this.updateRequiredAttributes();
+      this.paths.forEach((path2, pathId2) => {
+        this.updateRequiredAttributes(pathId2);
+        if (this.opts.clearPathOnChange) {
+          this.clearPath(pathId2);
+        }
+      });
       this.onChangeCallback();
       this.formMessage.reset();
+    }
+    reset(force) {
+      this.clearAllPaths();
+      this.changeToPath(force !== void 0 ? force : this.opts.defaultPath);
+    }
+    /**
+     * Sync the path shown do the actual selected path, if the component ever gets out of sync.
+     */
+    sync() {
+      const path = this.getCurrentPath();
+      this.changeToPath(path);
+    }
+    /**
+     * Sets the display of all path elements to 'none'.
+     */
+    hideAllPaths() {
+      this.paths.forEach((path) => {
+        if (!path) return;
+        path.style.display = "none";
+      });
     }
     /**
      * Retrieves the currently selected decision input.
@@ -996,6 +1056,14 @@ Component:`,
      */
     getSelectedInput() {
       return Array.from(this.decisionInputs).find((input) => input.checked);
+    }
+    /**
+     * Retrieves the current `PathId` from the currently selected decision input.
+     */
+    getCurrentPath() {
+      const selected = this.getSelectedInput();
+      if (!selected) return null;
+      return selected.getAttribute(this.attr.pathId);
     }
     /**
      * Validates the FormDecision based on the selected path to ensure the form's correctness.
@@ -1010,9 +1078,9 @@ Component:`,
         return false;
       }
       const pathId = selectedInput.getAttribute(this.attr.pathId) || selectedInput.value;
-      const isValid2 = !this.paths.has(pathId) || this.checkPathValidity(pathId);
-      this.handleValidationMessages(isValid2);
-      return isValid2;
+      const isValid3 = !this.paths.has(pathId) || this.checkPathValidity(pathId);
+      this.handleValidationMessages(isValid3);
+      return isValid3;
     }
     /**
      * Sets custom error messages for the decision inputs.
@@ -1034,8 +1102,8 @@ Component:`,
       const pathElement = this.paths.get(pathId);
       if (!pathElement) return true;
       const inputs = pathElement.querySelectorAll(wf.select.formInput);
-      const { isValid: isValid2 } = validateFields(inputs, true);
-      return isValid2;
+      const { isValid: isValid3 } = validateFields(inputs, true);
+      return isValid3;
     }
     initRequiredAttributes(path) {
       const inputs = path.querySelectorAll(wf.select.input);
@@ -1047,20 +1115,38 @@ Component:`,
     /**
      * Updates the required attributes of input fields within the paths based on the selected decision input.
      */
-    updateRequiredAttributes() {
+    updateRequiredAttributes(pathId) {
+      const path = this.paths.get(pathId);
+      if (!path) return;
+      if (pathId === this.currentPath) {
+        const pathInputs = path.querySelectorAll(wf.select.formInput);
+        pathInputs.forEach((input) => {
+          const isRequired = input.matches(`[${this.attr.required}="required"], [${this.attr.required}="true"]`);
+          input.required = isRequired;
+        });
+      } else {
+        const pathInputs = path.querySelectorAll(wf.select.formInput);
+        pathInputs.forEach((input) => {
+          input.required = false;
+        });
+      }
+    }
+    clearPath(pathId, silent = false) {
+      const path = this.paths.get(pathId);
+      if (!path) return;
+      const pathInputs = path.querySelectorAll(wf.select.formInput);
+      pathInputs.forEach((input) => {
+        input.value = null;
+        if (silent) return;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
+    clearAllPaths(clearCurrentPath = true) {
       this.paths.forEach((path, pathId) => {
-        if (!path) return;
-        if (pathId === this.currentPath) {
-          const pathInputs = path.querySelectorAll(wf.select.formInput);
-          pathInputs.forEach((input) => {
-            const isRequired = input.matches(`[${this.attr.required}="required"], [${this.attr.required}="true"]`);
-            input.required = isRequired;
-          });
-        } else {
-          const pathInputs = path.querySelectorAll(wf.select.formInput);
-          pathInputs.forEach((input) => {
-            input.required = false;
-          });
+        if (clearCurrentPath) {
+          this.clearPath(pathId);
+        } else if (pathId !== this.currentPath) {
+          this.clearPath(pathId);
         }
       });
     }
@@ -1398,8 +1484,8 @@ Component:`,
 
   // ../peakflow/node_modules/date-fns/startOfWeek.js
   function startOfWeek(date, options) {
-    const defaultOptions2 = getDefaultOptions();
-    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
+    const defaultOptions3 = getDefaultOptions();
+    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions3.weekStartsOn ?? defaultOptions3.locale?.options?.weekStartsOn ?? 0;
     const _date = toDate(date, options?.in);
     const day = _date.getDay();
     const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
@@ -1617,8 +1703,8 @@ Component:`,
   function buildFormatLongFn(args) {
     return (options = {}) => {
       const width = options.width ? String(options.width) : args.defaultWidth;
-      const format2 = args.formats[width] || args.formats[args.defaultWidth];
-      return format2;
+      const format3 = args.formats[width] || args.formats[args.defaultWidth];
+      return format3;
     };
   }
 
@@ -2057,8 +2143,8 @@ Component:`,
   function getWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
-    const defaultOptions2 = getDefaultOptions();
-    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
+    const defaultOptions3 = getDefaultOptions();
+    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions3.firstWeekContainsDate ?? defaultOptions3.locale?.options?.firstWeekContainsDate ?? 1;
     const firstWeekOfNextYear = constructFrom(options?.in || date, 0);
     firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
     firstWeekOfNextYear.setHours(0, 0, 0, 0);
@@ -2078,8 +2164,8 @@ Component:`,
 
   // ../peakflow/node_modules/date-fns/startOfWeekYear.js
   function startOfWeekYear(date, options) {
-    const defaultOptions2 = getDefaultOptions();
-    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
+    const defaultOptions3 = getDefaultOptions();
+    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions3.firstWeekContainsDate ?? defaultOptions3.locale?.options?.firstWeekContainsDate ?? 1;
     const year = getWeekYear(date, options);
     const firstWeek = constructFrom(options?.in || date, 0);
     firstWeek.setFullYear(year, 0, firstWeekContainsDate);
@@ -2175,34 +2261,34 @@ Component:`,
   };
   var formatters = {
     // Era
-    G: function(date, token, localize2) {
+    G: function(date, token, localize3) {
       const era = date.getFullYear() > 0 ? 1 : 0;
       switch (token) {
         // AD, BC
         case "G":
         case "GG":
         case "GGG":
-          return localize2.era(era, { width: "abbreviated" });
+          return localize3.era(era, { width: "abbreviated" });
         // A, B
         case "GGGGG":
-          return localize2.era(era, { width: "narrow" });
+          return localize3.era(era, { width: "narrow" });
         // Anno Domini, Before Christ
         case "GGGG":
         default:
-          return localize2.era(era, { width: "wide" });
+          return localize3.era(era, { width: "wide" });
       }
     },
     // Year
-    y: function(date, token, localize2) {
+    y: function(date, token, localize3) {
       if (token === "yo") {
         const signedYear = date.getFullYear();
         const year = signedYear > 0 ? signedYear : 1 - signedYear;
-        return localize2.ordinalNumber(year, { unit: "year" });
+        return localize3.ordinalNumber(year, { unit: "year" });
       }
       return lightFormatters.y(date, token);
     },
     // Local week-numbering year
-    Y: function(date, token, localize2, options) {
+    Y: function(date, token, localize3, options) {
       const signedWeekYear = getWeekYear(date, options);
       const weekYear = signedWeekYear > 0 ? signedWeekYear : 1 - signedWeekYear;
       if (token === "YY") {
@@ -2210,7 +2296,7 @@ Component:`,
         return addLeadingZeros(twoDigitYear, 2);
       }
       if (token === "Yo") {
-        return localize2.ordinalNumber(weekYear, { unit: "year" });
+        return localize3.ordinalNumber(weekYear, { unit: "year" });
       }
       return addLeadingZeros(weekYear, token.length);
     },
@@ -2233,7 +2319,7 @@ Component:`,
       return addLeadingZeros(year, token.length);
     },
     // Quarter
-    Q: function(date, token, localize2) {
+    Q: function(date, token, localize3) {
       const quarter = Math.ceil((date.getMonth() + 1) / 3);
       switch (token) {
         // 1, 2, 3, 4
@@ -2244,30 +2330,30 @@ Component:`,
           return addLeadingZeros(quarter, 2);
         // 1st, 2nd, 3rd, 4th
         case "Qo":
-          return localize2.ordinalNumber(quarter, { unit: "quarter" });
+          return localize3.ordinalNumber(quarter, { unit: "quarter" });
         // Q1, Q2, Q3, Q4
         case "QQQ":
-          return localize2.quarter(quarter, {
+          return localize3.quarter(quarter, {
             width: "abbreviated",
             context: "formatting"
           });
         // 1, 2, 3, 4 (narrow quarter; could be not numerical)
         case "QQQQQ":
-          return localize2.quarter(quarter, {
+          return localize3.quarter(quarter, {
             width: "narrow",
             context: "formatting"
           });
         // 1st quarter, 2nd quarter, ...
         case "QQQQ":
         default:
-          return localize2.quarter(quarter, {
+          return localize3.quarter(quarter, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // Stand-alone quarter
-    q: function(date, token, localize2) {
+    q: function(date, token, localize3) {
       const quarter = Math.ceil((date.getMonth() + 1) / 3);
       switch (token) {
         // 1, 2, 3, 4
@@ -2278,30 +2364,30 @@ Component:`,
           return addLeadingZeros(quarter, 2);
         // 1st, 2nd, 3rd, 4th
         case "qo":
-          return localize2.ordinalNumber(quarter, { unit: "quarter" });
+          return localize3.ordinalNumber(quarter, { unit: "quarter" });
         // Q1, Q2, Q3, Q4
         case "qqq":
-          return localize2.quarter(quarter, {
+          return localize3.quarter(quarter, {
             width: "abbreviated",
             context: "standalone"
           });
         // 1, 2, 3, 4 (narrow quarter; could be not numerical)
         case "qqqqq":
-          return localize2.quarter(quarter, {
+          return localize3.quarter(quarter, {
             width: "narrow",
             context: "standalone"
           });
         // 1st quarter, 2nd quarter, ...
         case "qqqq":
         default:
-          return localize2.quarter(quarter, {
+          return localize3.quarter(quarter, {
             width: "wide",
             context: "standalone"
           });
       }
     },
     // Month
-    M: function(date, token, localize2) {
+    M: function(date, token, localize3) {
       const month = date.getMonth();
       switch (token) {
         case "M":
@@ -2309,27 +2395,27 @@ Component:`,
           return lightFormatters.M(date, token);
         // 1st, 2nd, ..., 12th
         case "Mo":
-          return localize2.ordinalNumber(month + 1, { unit: "month" });
+          return localize3.ordinalNumber(month + 1, { unit: "month" });
         // Jan, Feb, ..., Dec
         case "MMM":
-          return localize2.month(month, {
+          return localize3.month(month, {
             width: "abbreviated",
             context: "formatting"
           });
         // J, F, ..., D
         case "MMMMM":
-          return localize2.month(month, {
+          return localize3.month(month, {
             width: "narrow",
             context: "formatting"
           });
         // January, February, ..., December
         case "MMMM":
         default:
-          return localize2.month(month, { width: "wide", context: "formatting" });
+          return localize3.month(month, { width: "wide", context: "formatting" });
       }
     },
     // Stand-alone month
-    L: function(date, token, localize2) {
+    L: function(date, token, localize3) {
       const month = date.getMonth();
       switch (token) {
         // 1, 2, ..., 12
@@ -2340,91 +2426,91 @@ Component:`,
           return addLeadingZeros(month + 1, 2);
         // 1st, 2nd, ..., 12th
         case "Lo":
-          return localize2.ordinalNumber(month + 1, { unit: "month" });
+          return localize3.ordinalNumber(month + 1, { unit: "month" });
         // Jan, Feb, ..., Dec
         case "LLL":
-          return localize2.month(month, {
+          return localize3.month(month, {
             width: "abbreviated",
             context: "standalone"
           });
         // J, F, ..., D
         case "LLLLL":
-          return localize2.month(month, {
+          return localize3.month(month, {
             width: "narrow",
             context: "standalone"
           });
         // January, February, ..., December
         case "LLLL":
         default:
-          return localize2.month(month, { width: "wide", context: "standalone" });
+          return localize3.month(month, { width: "wide", context: "standalone" });
       }
     },
     // Local week of year
-    w: function(date, token, localize2, options) {
+    w: function(date, token, localize3, options) {
       const week = getWeek(date, options);
       if (token === "wo") {
-        return localize2.ordinalNumber(week, { unit: "week" });
+        return localize3.ordinalNumber(week, { unit: "week" });
       }
       return addLeadingZeros(week, token.length);
     },
     // ISO week of year
-    I: function(date, token, localize2) {
+    I: function(date, token, localize3) {
       const isoWeek = getISOWeek(date);
       if (token === "Io") {
-        return localize2.ordinalNumber(isoWeek, { unit: "week" });
+        return localize3.ordinalNumber(isoWeek, { unit: "week" });
       }
       return addLeadingZeros(isoWeek, token.length);
     },
     // Day of the month
-    d: function(date, token, localize2) {
+    d: function(date, token, localize3) {
       if (token === "do") {
-        return localize2.ordinalNumber(date.getDate(), { unit: "date" });
+        return localize3.ordinalNumber(date.getDate(), { unit: "date" });
       }
       return lightFormatters.d(date, token);
     },
     // Day of year
-    D: function(date, token, localize2) {
+    D: function(date, token, localize3) {
       const dayOfYear = getDayOfYear(date);
       if (token === "Do") {
-        return localize2.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
+        return localize3.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
       }
       return addLeadingZeros(dayOfYear, token.length);
     },
     // Day of week
-    E: function(date, token, localize2) {
+    E: function(date, token, localize3) {
       const dayOfWeek = date.getDay();
       switch (token) {
         // Tue
         case "E":
         case "EE":
         case "EEE":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "abbreviated",
             context: "formatting"
           });
         // T
         case "EEEEE":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "narrow",
             context: "formatting"
           });
         // Tu
         case "EEEEEE":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "short",
             context: "formatting"
           });
         // Tuesday
         case "EEEE":
         default:
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // Local day of week
-    e: function(date, token, localize2, options) {
+    e: function(date, token, localize3, options) {
       const dayOfWeek = date.getDay();
       const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
       switch (token) {
@@ -2436,35 +2522,35 @@ Component:`,
           return addLeadingZeros(localDayOfWeek, 2);
         // 1st, 2nd, ..., 7th
         case "eo":
-          return localize2.ordinalNumber(localDayOfWeek, { unit: "day" });
+          return localize3.ordinalNumber(localDayOfWeek, { unit: "day" });
         case "eee":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "abbreviated",
             context: "formatting"
           });
         // T
         case "eeeee":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "narrow",
             context: "formatting"
           });
         // Tu
         case "eeeeee":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "short",
             context: "formatting"
           });
         // Tuesday
         case "eeee":
         default:
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // Stand-alone local day of week
-    c: function(date, token, localize2, options) {
+    c: function(date, token, localize3, options) {
       const dayOfWeek = date.getDay();
       const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
       switch (token) {
@@ -2476,35 +2562,35 @@ Component:`,
           return addLeadingZeros(localDayOfWeek, token.length);
         // 1st, 2nd, ..., 7th
         case "co":
-          return localize2.ordinalNumber(localDayOfWeek, { unit: "day" });
+          return localize3.ordinalNumber(localDayOfWeek, { unit: "day" });
         case "ccc":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "abbreviated",
             context: "standalone"
           });
         // T
         case "ccccc":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "narrow",
             context: "standalone"
           });
         // Tu
         case "cccccc":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "short",
             context: "standalone"
           });
         // Tuesday
         case "cccc":
         default:
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "wide",
             context: "standalone"
           });
       }
     },
     // ISO day of week
-    i: function(date, token, localize2) {
+    i: function(date, token, localize3) {
       const dayOfWeek = date.getDay();
       const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
       switch (token) {
@@ -2516,65 +2602,65 @@ Component:`,
           return addLeadingZeros(isoDayOfWeek, token.length);
         // 2nd
         case "io":
-          return localize2.ordinalNumber(isoDayOfWeek, { unit: "day" });
+          return localize3.ordinalNumber(isoDayOfWeek, { unit: "day" });
         // Tue
         case "iii":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "abbreviated",
             context: "formatting"
           });
         // T
         case "iiiii":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "narrow",
             context: "formatting"
           });
         // Tu
         case "iiiiii":
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "short",
             context: "formatting"
           });
         // Tuesday
         case "iiii":
         default:
-          return localize2.day(dayOfWeek, {
+          return localize3.day(dayOfWeek, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // AM or PM
-    a: function(date, token, localize2) {
+    a: function(date, token, localize3) {
       const hours = date.getHours();
       const dayPeriodEnumValue = hours / 12 >= 1 ? "pm" : "am";
       switch (token) {
         case "a":
         case "aa":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "abbreviated",
             context: "formatting"
           });
         case "aaa":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "abbreviated",
             context: "formatting"
           }).toLowerCase();
         case "aaaaa":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "narrow",
             context: "formatting"
           });
         case "aaaa":
         default:
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // AM, PM, midnight, noon
-    b: function(date, token, localize2) {
+    b: function(date, token, localize3) {
       const hours = date.getHours();
       let dayPeriodEnumValue;
       if (hours === 12) {
@@ -2587,30 +2673,30 @@ Component:`,
       switch (token) {
         case "b":
         case "bb":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "abbreviated",
             context: "formatting"
           });
         case "bbb":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "abbreviated",
             context: "formatting"
           }).toLowerCase();
         case "bbbbb":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "narrow",
             context: "formatting"
           });
         case "bbbb":
         default:
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // in the morning, in the afternoon, in the evening, at night
-    B: function(date, token, localize2) {
+    B: function(date, token, localize3) {
       const hours = date.getHours();
       let dayPeriodEnumValue;
       if (hours >= 17) {
@@ -2626,67 +2712,67 @@ Component:`,
         case "B":
         case "BB":
         case "BBB":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "abbreviated",
             context: "formatting"
           });
         case "BBBBB":
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "narrow",
             context: "formatting"
           });
         case "BBBB":
         default:
-          return localize2.dayPeriod(dayPeriodEnumValue, {
+          return localize3.dayPeriod(dayPeriodEnumValue, {
             width: "wide",
             context: "formatting"
           });
       }
     },
     // Hour [1-12]
-    h: function(date, token, localize2) {
+    h: function(date, token, localize3) {
       if (token === "ho") {
         let hours = date.getHours() % 12;
         if (hours === 0) hours = 12;
-        return localize2.ordinalNumber(hours, { unit: "hour" });
+        return localize3.ordinalNumber(hours, { unit: "hour" });
       }
       return lightFormatters.h(date, token);
     },
     // Hour [0-23]
-    H: function(date, token, localize2) {
+    H: function(date, token, localize3) {
       if (token === "Ho") {
-        return localize2.ordinalNumber(date.getHours(), { unit: "hour" });
+        return localize3.ordinalNumber(date.getHours(), { unit: "hour" });
       }
       return lightFormatters.H(date, token);
     },
     // Hour [0-11]
-    K: function(date, token, localize2) {
+    K: function(date, token, localize3) {
       const hours = date.getHours() % 12;
       if (token === "Ko") {
-        return localize2.ordinalNumber(hours, { unit: "hour" });
+        return localize3.ordinalNumber(hours, { unit: "hour" });
       }
       return addLeadingZeros(hours, token.length);
     },
     // Hour [1-24]
-    k: function(date, token, localize2) {
+    k: function(date, token, localize3) {
       let hours = date.getHours();
       if (hours === 0) hours = 24;
       if (token === "ko") {
-        return localize2.ordinalNumber(hours, { unit: "hour" });
+        return localize3.ordinalNumber(hours, { unit: "hour" });
       }
       return addLeadingZeros(hours, token.length);
     },
     // Minute
-    m: function(date, token, localize2) {
+    m: function(date, token, localize3) {
       if (token === "mo") {
-        return localize2.ordinalNumber(date.getMinutes(), { unit: "minute" });
+        return localize3.ordinalNumber(date.getMinutes(), { unit: "minute" });
       }
       return lightFormatters.m(date, token);
     },
     // Second
-    s: function(date, token, localize2) {
+    s: function(date, token, localize3) {
       if (token === "so") {
-        return localize2.ordinalNumber(date.getSeconds(), { unit: "second" });
+        return localize3.ordinalNumber(date.getSeconds(), { unit: "second" });
       }
       return lightFormatters.s(date, token);
     },
@@ -2809,56 +2895,56 @@ Component:`,
   }
 
   // ../peakflow/node_modules/date-fns/_lib/format/longFormatters.js
-  var dateLongFormatter = (pattern, formatLong2) => {
+  var dateLongFormatter = (pattern, formatLong3) => {
     switch (pattern) {
       case "P":
-        return formatLong2.date({ width: "short" });
+        return formatLong3.date({ width: "short" });
       case "PP":
-        return formatLong2.date({ width: "medium" });
+        return formatLong3.date({ width: "medium" });
       case "PPP":
-        return formatLong2.date({ width: "long" });
+        return formatLong3.date({ width: "long" });
       case "PPPP":
       default:
-        return formatLong2.date({ width: "full" });
+        return formatLong3.date({ width: "full" });
     }
   };
-  var timeLongFormatter = (pattern, formatLong2) => {
+  var timeLongFormatter = (pattern, formatLong3) => {
     switch (pattern) {
       case "p":
-        return formatLong2.time({ width: "short" });
+        return formatLong3.time({ width: "short" });
       case "pp":
-        return formatLong2.time({ width: "medium" });
+        return formatLong3.time({ width: "medium" });
       case "ppp":
-        return formatLong2.time({ width: "long" });
+        return formatLong3.time({ width: "long" });
       case "pppp":
       default:
-        return formatLong2.time({ width: "full" });
+        return formatLong3.time({ width: "full" });
     }
   };
-  var dateTimeLongFormatter = (pattern, formatLong2) => {
+  var dateTimeLongFormatter = (pattern, formatLong3) => {
     const matchResult = pattern.match(/(P+)(p+)?/) || [];
     const datePattern = matchResult[1];
     const timePattern = matchResult[2];
     if (!timePattern) {
-      return dateLongFormatter(pattern, formatLong2);
+      return dateLongFormatter(pattern, formatLong3);
     }
     let dateTimeFormat;
     switch (datePattern) {
       case "P":
-        dateTimeFormat = formatLong2.dateTime({ width: "short" });
+        dateTimeFormat = formatLong3.dateTime({ width: "short" });
         break;
       case "PP":
-        dateTimeFormat = formatLong2.dateTime({ width: "medium" });
+        dateTimeFormat = formatLong3.dateTime({ width: "medium" });
         break;
       case "PPP":
-        dateTimeFormat = formatLong2.dateTime({ width: "long" });
+        dateTimeFormat = formatLong3.dateTime({ width: "long" });
         break;
       case "PPPP":
       default:
-        dateTimeFormat = formatLong2.dateTime({ width: "full" });
+        dateTimeFormat = formatLong3.dateTime({ width: "full" });
         break;
     }
-    return dateTimeFormat.replace("{{date}}", dateLongFormatter(datePattern, formatLong2)).replace("{{time}}", timeLongFormatter(timePattern, formatLong2));
+    return dateTimeFormat.replace("{{date}}", dateLongFormatter(datePattern, formatLong3)).replace("{{time}}", timeLongFormatter(timePattern, formatLong3));
   };
   var longFormatters = {
     p: timeLongFormatter,
@@ -2875,14 +2961,14 @@ Component:`,
   function isProtectedWeekYearToken(token) {
     return weekYearTokenRE.test(token);
   }
-  function warnOrThrowProtectedError(token, format2, input) {
-    const _message = message(token, format2, input);
+  function warnOrThrowProtectedError(token, format3, input) {
+    const _message = message(token, format3, input);
     console.warn(_message);
     if (throwTokens.includes(token)) throw new RangeError(_message);
   }
-  function message(token, format2, input) {
+  function message(token, format3, input) {
     const subject = token[0] === "Y" ? "years" : "days of the month";
-    return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format2}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
+    return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format3}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
   }
 
   // ../peakflow/node_modules/date-fns/format.js
@@ -2892,10 +2978,10 @@ Component:`,
   var doubleQuoteRegExp = /''/g;
   var unescapedLatinCharacterRegExp = /[a-zA-Z]/;
   function format(date, formatStr, options) {
-    const defaultOptions2 = getDefaultOptions();
-    const locale = options?.locale ?? defaultOptions2.locale ?? enUS;
-    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
-    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
+    const defaultOptions3 = getDefaultOptions();
+    const locale = options?.locale ?? defaultOptions3.locale ?? enUS;
+    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions3.firstWeekContainsDate ?? defaultOptions3.locale?.options?.firstWeekContainsDate ?? 1;
+    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions3.weekStartsOn ?? defaultOptions3.locale?.options?.weekStartsOn ?? 0;
     const originalDate = toDate(date, options?.in);
     if (!isValid(originalDate)) {
       throw new RangeError("Invalid time value");
@@ -3264,8 +3350,8 @@ Component:`,
       for (const groupName of groupNames) {
         const group = this[groupName];
         if (group instanceof FieldGroup) {
-          const { isValid: isValid2, invalidFields } = group.validate();
-          validatedGroups[groupName] = { isValid: isValid2, invalidFields };
+          const { isValid: isValid3, invalidFields } = group.validate();
+          validatedGroups[groupName] = { isValid: isValid3, invalidFields };
         }
       }
       return validatedGroups;
@@ -3875,8 +3961,8 @@ Component:`,
 
   // ../peakflow/src/alertdialog.ts
   var AlertDialog = class extends Modal {
-    confirm(message2) {
-      this.message = message2;
+    confirm(message3) {
+      this.message = message3;
       this.open();
       return new Promise((resolve) => {
         const confirmBtn = this.select("confirm");
@@ -3899,18 +3985,18 @@ Component:`,
         cancelBtn.addEventListener("click", onCancel);
       });
     }
-    set message(message2) {
-      this._message = message2;
-      this.renderMessage(message2);
+    set message(message3) {
+      this._message = message3;
+      this.renderMessage(message3);
     }
     get message() {
       return this._message;
     }
-    renderMessage(message2) {
-      for (const key in message2) {
+    renderMessage(message3) {
+      for (const key in message3) {
         const element = this.getElement(key);
         if (element) {
-          element.innerText = message2[key];
+          element.innerText = message3[key];
         } else {
           console.warn(`AlertDialog: Missing element for key "${key}"`);
         }
@@ -3949,8 +4035,10 @@ Component:`,
     constructor(container, id) {
       this.initialized = false;
       this.alertDialog = getAlertDialog();
+      this.groups = [];
       this.accordionList = [];
       this.onOpenCallbacks = /* @__PURE__ */ new Map();
+      this.onCloseCallbacks = /* @__PURE__ */ new Map();
       this.editingKey = null;
       this.unsavedProspect = null;
       this.id = id;
@@ -3976,7 +4064,15 @@ Component:`,
         prospectSelector("cancel")
       );
       this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
-      this.groupElements = this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
+      const groupElements = this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
+      groupElements.forEach((groupEl) => {
+        const groupName = groupEl.dataset.prospectFieldGroup;
+        this.groups.push({
+          isValid: false,
+          element: groupEl,
+          name: groupName
+        });
+      });
       this.initialize();
     }
     initialize() {
@@ -4013,10 +4109,16 @@ Component:`,
             position
           });
         });
-        const groupEl = this.getClosestGroup(input);
+        const group = this.getClosestGroup(input);
         input.addEventListener("input", () => {
-          if (input.matches(FormDecision.selector("input"))) return;
-          this.validateModalGroup(groupEl);
+          if (input.matches(FormDecision.selector("input")) || input.matches(`[${LINK_FIELDS_ATTR}] *`)) return;
+          this.validateModalGroup(group);
+          const allGroupsValid = this.groups.every((group2) => group2.isValid === true);
+          if (allGroupsValid) {
+            this.saveOptions.setAction("save");
+          } else {
+            this.saveOptions.setAction("draft");
+          }
         });
       });
       this.saveOptions.setActionHandler("save", () => {
@@ -4066,6 +4168,8 @@ Component:`,
           );
         }
         input.value = sourceFieldGroup.getField(id)?.value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
     unlinkFields(linkElement) {
@@ -4084,6 +4188,8 @@ Component:`,
           );
         }
         input.value = null;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
     unlinkAllProspects() {
@@ -4132,14 +4238,21 @@ Component:`,
     /**
      * Retrieves a `ResidentProspect` instance from a given key or returns the provided `ResidentProspect` directly.
      * 
-     * @param prospectOrKey - Either the key of the prospect or the prospect object itself.
+     * @param prospectOrKeyOrIndex - Either the key of the prospect or the prospect object itself.
      * @returns {ResidentProspect} The corresponding `ResidentProspect` object.
      * @throws Error if the prospect with the given key is not found.
      */
-    getProspect(prospectOrKey) {
-      const prospect = typeof prospectOrKey === "string" ? this.prospects.get(prospectOrKey) : prospectOrKey;
+    getProspect(prospectOrKeyOrIndex) {
+      let prospect;
+      if (typeof prospectOrKeyOrIndex === "string") {
+        prospect = this.prospects.get(prospectOrKeyOrIndex);
+      } else if (typeof prospectOrKeyOrIndex === "number") {
+        prospect = Array.from(this.prospects.values())[prospectOrKeyOrIndex];
+      } else if (prospectOrKeyOrIndex instanceof ResidentProspect) {
+        prospect = prospectOrKeyOrIndex;
+      }
       if (!prospect) {
-        throw new Error(`Prospect not found: ${prospectOrKey}`);
+        throw new Error(`Prospect not found: ${prospectOrKeyOrIndex}`);
       }
       return prospect;
     }
@@ -4200,7 +4313,7 @@ Component:`,
       this.setLiveText("full-name", "Neue Person");
       this.unsavedProspect = this.extractData(true);
       this.editingKey = `unsaved-${this.unsavedProspect.key}`;
-      this.saveOptions.setAction("save");
+      this.saveOptions.setAction("draft");
       this.openModal();
     }
     saveProspectFromModal(opts) {
@@ -4330,7 +4443,19 @@ Component:`,
       this.onOpenCallbacks.delete(name);
     }
     triggerOnOpen() {
+      const editingProspect = this.getEditingProspect();
       for (const callback of this.onOpenCallbacks.values()) {
+        callback(editingProspect);
+      }
+    }
+    onClose(name, callback) {
+      this.onCloseCallbacks.set(name, callback);
+    }
+    clearOnClose(name) {
+      this.onCloseCallbacks.delete(name);
+    }
+    triggerOnClose() {
+      for (const callback of this.onCloseCallbacks.values()) {
         callback();
       }
     }
@@ -4342,16 +4467,15 @@ Component:`,
         linkCheckbox.checked = true;
         linkCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
       }
-      this.groupElements.forEach((group) => {
+      this.groups.forEach((group) => {
         const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-        const groupInputs = group.querySelectorAll(selector);
-        const groupName = group.dataset.prospectFieldGroup;
-        if (!prospect[groupName]) {
-          console.error(`The group "${groupName}" doesn't exist.`);
+        const groupInputs = group.element.querySelectorAll(selector);
+        if (!prospect[group.name]) {
+          console.error(`The group "${group.name}" doesn't exist.`);
           return;
         }
         groupInputs.forEach((input) => {
-          const field = prospect[groupName].getField(input.id);
+          const field = prospect[group.name].getField(input.id);
           if (!field) {
             console.warn(`Field not found:`, input.id);
             return;
@@ -4405,26 +4529,26 @@ Component:`,
       }
       return valid;
     }
-    validateModalGroup(groupEl) {
-      const groupName = groupEl.dataset.prospectFieldGroup;
-      const groupInputs = groupEl.querySelectorAll(wf.select.formInput);
+    validateModalGroup(group) {
+      const groupInputs = group.element.querySelectorAll(wf.select.formInput);
       const validation = validateFields(groupInputs, false);
-      const circle = groupEl.querySelector(prospectSelector("circle"));
-      if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
+      const circle = group.element.querySelector(prospectSelector("circle"));
+      if (!circle) console.warn(`Circle element not found inside group "${group.name}"`);
       if (validation.isValid) {
         circle.classList.add("is-valid");
       } else {
         circle.classList.remove("is-valid");
       }
+      group.isValid = validation.isValid;
       return validation;
     }
     validateModal(report = true) {
       let valid = true;
       const invalidFields = [];
-      this.groupElements.forEach((groupEl) => {
-        const groupValid = this.validateModalGroup(groupEl);
+      this.groups.forEach((group) => {
+        const groupValid = this.validateModalGroup(group);
         invalidFields.push(...groupValid.invalidFields);
-        if (groupValid.isValid) return;
+        if (group.isValid) return;
         valid = false;
       });
       if (!valid && invalidFields.length && report && this.modal.opened) {
@@ -4455,7 +4579,7 @@ Component:`,
       this.modalInputs.forEach((input) => {
         if (isRadioInput(input)) {
           input.checked = false;
-          clearRadioGroup(this.modalElement, input.name);
+          clearRadioInput(input);
         } else if (isCheckboxInput(input)) {
           input.checked = false;
           input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -4494,6 +4618,7 @@ Component:`,
         });
       }
       this.clearModal();
+      this.triggerOnClose();
       this.editingKey = null;
     }
     initAccordions() {
@@ -4567,34 +4692,32 @@ Component:`,
       if (!groupEl) {
         throw new Error(`The given element is not part of a group element.`);
       }
-      return groupEl;
+      return this.groups.find((group) => group.element === groupEl);
     }
     getGroupsByName(groupName) {
-      return Array.from(
-        this.modal.component.querySelectorAll(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
-      );
+      return this.groups.filter((group) => group.name === groupName);
     }
     getFormInput(fieldOrId, groupName) {
       if (isFormInput(fieldOrId)) {
         return fieldOrId;
       }
-      const groupElements = this.getGroupsByName(groupName);
+      const groups = this.getGroupsByName(groupName);
+      const groupElements = groups.map((group) => group.element);
       return findFormInput(groupElements, fieldOrId);
     }
     extractData(draft = false) {
       const prospectData = new ResidentProspect({ draft });
-      this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(wf.select.formInput);
-        const groupName = group.dataset.prospectFieldGroup;
-        const linkElements = group.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
-        if (!prospectData[groupName]) {
-          console.error(`The group "${groupName}" doesn't exist.`);
+      this.groups.forEach((group) => {
+        const groupInputs = group.element.querySelectorAll(wf.select.formInput);
+        const linkElements = group.element.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
+        if (!prospectData[group.name]) {
+          console.error(`The group "${group.name}" doesn't exist.`);
           return;
         }
         groupInputs.forEach((input, index) => {
           const field = fieldFromInput(input, index);
           if (field.id) {
-            prospectData[groupName].fields.set(field.id, field);
+            prospectData[group.name].fields.set(field.id, field);
           }
         });
         linkElements.forEach((linkElement) => {
@@ -4602,7 +4725,7 @@ Component:`,
           const id = linkCheckbox.dataset.name;
           const fieldsToLink = linkElement.getAttribute(LINK_FIELDS_ATTR);
           if (linkCheckbox.checked) {
-            prospectData.linkFields(id, groupName, fieldsToLink);
+            prospectData.linkFields(id, group.name, fieldsToLink);
           }
         });
       });
@@ -4658,6 +4781,1606 @@ Component:`,
     }
   };
 
+  // node_modules/date-fns/constants.js
+  var daysInYear2 = 365.2425;
+  var maxTime2 = Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
+  var minTime2 = -maxTime2;
+  var millisecondsInWeek2 = 6048e5;
+  var millisecondsInDay2 = 864e5;
+  var secondsInHour2 = 3600;
+  var secondsInDay2 = secondsInHour2 * 24;
+  var secondsInWeek2 = secondsInDay2 * 7;
+  var secondsInYear2 = secondsInDay2 * daysInYear2;
+  var secondsInMonth2 = secondsInYear2 / 12;
+  var secondsInQuarter2 = secondsInMonth2 * 3;
+  var constructFromSymbol2 = Symbol.for("constructDateFrom");
+
+  // node_modules/date-fns/constructFrom.js
+  function constructFrom2(date, value) {
+    if (typeof date === "function") return date(value);
+    if (date && typeof date === "object" && constructFromSymbol2 in date)
+      return date[constructFromSymbol2](value);
+    if (date instanceof Date) return new date.constructor(value);
+    return new Date(value);
+  }
+
+  // node_modules/date-fns/toDate.js
+  function toDate2(argument, context) {
+    return constructFrom2(context || argument, argument);
+  }
+
+  // node_modules/date-fns/addMonths.js
+  function addMonths(date, amount, options) {
+    const _date = toDate2(date, options?.in);
+    if (isNaN(amount)) return constructFrom2(options?.in || date, NaN);
+    if (!amount) {
+      return _date;
+    }
+    const dayOfMonth = _date.getDate();
+    const endOfDesiredMonth = constructFrom2(options?.in || date, _date.getTime());
+    endOfDesiredMonth.setMonth(_date.getMonth() + amount + 1, 0);
+    const daysInMonth = endOfDesiredMonth.getDate();
+    if (dayOfMonth >= daysInMonth) {
+      return endOfDesiredMonth;
+    } else {
+      _date.setFullYear(
+        endOfDesiredMonth.getFullYear(),
+        endOfDesiredMonth.getMonth(),
+        dayOfMonth
+      );
+      return _date;
+    }
+  }
+
+  // node_modules/date-fns/_lib/defaultOptions.js
+  var defaultOptions2 = {};
+  function getDefaultOptions2() {
+    return defaultOptions2;
+  }
+
+  // node_modules/date-fns/startOfWeek.js
+  function startOfWeek2(date, options) {
+    const defaultOptions3 = getDefaultOptions2();
+    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions3.weekStartsOn ?? defaultOptions3.locale?.options?.weekStartsOn ?? 0;
+    const _date = toDate2(date, options?.in);
+    const day = _date.getDay();
+    const diff = (day < weekStartsOn ? 7 : 0) + day - weekStartsOn;
+    _date.setDate(_date.getDate() - diff);
+    _date.setHours(0, 0, 0, 0);
+    return _date;
+  }
+
+  // node_modules/date-fns/startOfISOWeek.js
+  function startOfISOWeek2(date, options) {
+    return startOfWeek2(date, { ...options, weekStartsOn: 1 });
+  }
+
+  // node_modules/date-fns/getISOWeekYear.js
+  function getISOWeekYear2(date, options) {
+    const _date = toDate2(date, options?.in);
+    const year = _date.getFullYear();
+    const fourthOfJanuaryOfNextYear = constructFrom2(_date, 0);
+    fourthOfJanuaryOfNextYear.setFullYear(year + 1, 0, 4);
+    fourthOfJanuaryOfNextYear.setHours(0, 0, 0, 0);
+    const startOfNextYear = startOfISOWeek2(fourthOfJanuaryOfNextYear);
+    const fourthOfJanuaryOfThisYear = constructFrom2(_date, 0);
+    fourthOfJanuaryOfThisYear.setFullYear(year, 0, 4);
+    fourthOfJanuaryOfThisYear.setHours(0, 0, 0, 0);
+    const startOfThisYear = startOfISOWeek2(fourthOfJanuaryOfThisYear);
+    if (_date.getTime() >= startOfNextYear.getTime()) {
+      return year + 1;
+    } else if (_date.getTime() >= startOfThisYear.getTime()) {
+      return year;
+    } else {
+      return year - 1;
+    }
+  }
+
+  // node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
+  function getTimezoneOffsetInMilliseconds2(date) {
+    const _date = toDate2(date);
+    const utcDate = new Date(
+      Date.UTC(
+        _date.getFullYear(),
+        _date.getMonth(),
+        _date.getDate(),
+        _date.getHours(),
+        _date.getMinutes(),
+        _date.getSeconds(),
+        _date.getMilliseconds()
+      )
+    );
+    utcDate.setUTCFullYear(_date.getFullYear());
+    return +date - +utcDate;
+  }
+
+  // node_modules/date-fns/_lib/normalizeDates.js
+  function normalizeDates2(context, ...dates) {
+    const normalize = constructFrom2.bind(
+      null,
+      context || dates.find((date) => typeof date === "object")
+    );
+    return dates.map(normalize);
+  }
+
+  // node_modules/date-fns/startOfDay.js
+  function startOfDay2(date, options) {
+    const _date = toDate2(date, options?.in);
+    _date.setHours(0, 0, 0, 0);
+    return _date;
+  }
+
+  // node_modules/date-fns/differenceInCalendarDays.js
+  function differenceInCalendarDays2(laterDate, earlierDate, options) {
+    const [laterDate_, earlierDate_] = normalizeDates2(
+      options?.in,
+      laterDate,
+      earlierDate
+    );
+    const laterStartOfDay = startOfDay2(laterDate_);
+    const earlierStartOfDay = startOfDay2(earlierDate_);
+    const laterTimestamp = +laterStartOfDay - getTimezoneOffsetInMilliseconds2(laterStartOfDay);
+    const earlierTimestamp = +earlierStartOfDay - getTimezoneOffsetInMilliseconds2(earlierStartOfDay);
+    return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay2);
+  }
+
+  // node_modules/date-fns/startOfISOWeekYear.js
+  function startOfISOWeekYear2(date, options) {
+    const year = getISOWeekYear2(date, options);
+    const fourthOfJanuary = constructFrom2(options?.in || date, 0);
+    fourthOfJanuary.setFullYear(year, 0, 4);
+    fourthOfJanuary.setHours(0, 0, 0, 0);
+    return startOfISOWeek2(fourthOfJanuary);
+  }
+
+  // node_modules/date-fns/isDate.js
+  function isDate2(value) {
+    return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
+  }
+
+  // node_modules/date-fns/isValid.js
+  function isValid2(date) {
+    return !(!isDate2(date) && typeof date !== "number" || isNaN(+toDate2(date)));
+  }
+
+  // node_modules/date-fns/startOfMonth.js
+  function startOfMonth(date, options) {
+    const _date = toDate2(date, options?.in);
+    _date.setDate(1);
+    _date.setHours(0, 0, 0, 0);
+    return _date;
+  }
+
+  // node_modules/date-fns/startOfYear.js
+  function startOfYear2(date, options) {
+    const date_ = toDate2(date, options?.in);
+    date_.setFullYear(date_.getFullYear(), 0, 1);
+    date_.setHours(0, 0, 0, 0);
+    return date_;
+  }
+
+  // node_modules/date-fns/locale/en-US/_lib/formatDistance.js
+  var formatDistanceLocale2 = {
+    lessThanXSeconds: {
+      one: "less than a second",
+      other: "less than {{count}} seconds"
+    },
+    xSeconds: {
+      one: "1 second",
+      other: "{{count}} seconds"
+    },
+    halfAMinute: "half a minute",
+    lessThanXMinutes: {
+      one: "less than a minute",
+      other: "less than {{count}} minutes"
+    },
+    xMinutes: {
+      one: "1 minute",
+      other: "{{count}} minutes"
+    },
+    aboutXHours: {
+      one: "about 1 hour",
+      other: "about {{count}} hours"
+    },
+    xHours: {
+      one: "1 hour",
+      other: "{{count}} hours"
+    },
+    xDays: {
+      one: "1 day",
+      other: "{{count}} days"
+    },
+    aboutXWeeks: {
+      one: "about 1 week",
+      other: "about {{count}} weeks"
+    },
+    xWeeks: {
+      one: "1 week",
+      other: "{{count}} weeks"
+    },
+    aboutXMonths: {
+      one: "about 1 month",
+      other: "about {{count}} months"
+    },
+    xMonths: {
+      one: "1 month",
+      other: "{{count}} months"
+    },
+    aboutXYears: {
+      one: "about 1 year",
+      other: "about {{count}} years"
+    },
+    xYears: {
+      one: "1 year",
+      other: "{{count}} years"
+    },
+    overXYears: {
+      one: "over 1 year",
+      other: "over {{count}} years"
+    },
+    almostXYears: {
+      one: "almost 1 year",
+      other: "almost {{count}} years"
+    }
+  };
+  var formatDistance2 = (token, count, options) => {
+    let result;
+    const tokenValue = formatDistanceLocale2[token];
+    if (typeof tokenValue === "string") {
+      result = tokenValue;
+    } else if (count === 1) {
+      result = tokenValue.one;
+    } else {
+      result = tokenValue.other.replace("{{count}}", count.toString());
+    }
+    if (options?.addSuffix) {
+      if (options.comparison && options.comparison > 0) {
+        return "in " + result;
+      } else {
+        return result + " ago";
+      }
+    }
+    return result;
+  };
+
+  // node_modules/date-fns/locale/_lib/buildFormatLongFn.js
+  function buildFormatLongFn2(args) {
+    return (options = {}) => {
+      const width = options.width ? String(options.width) : args.defaultWidth;
+      const format3 = args.formats[width] || args.formats[args.defaultWidth];
+      return format3;
+    };
+  }
+
+  // node_modules/date-fns/locale/en-US/_lib/formatLong.js
+  var dateFormats2 = {
+    full: "EEEE, MMMM do, y",
+    long: "MMMM do, y",
+    medium: "MMM d, y",
+    short: "MM/dd/yyyy"
+  };
+  var timeFormats2 = {
+    full: "h:mm:ss a zzzz",
+    long: "h:mm:ss a z",
+    medium: "h:mm:ss a",
+    short: "h:mm a"
+  };
+  var dateTimeFormats2 = {
+    full: "{{date}} 'at' {{time}}",
+    long: "{{date}} 'at' {{time}}",
+    medium: "{{date}}, {{time}}",
+    short: "{{date}}, {{time}}"
+  };
+  var formatLong2 = {
+    date: buildFormatLongFn2({
+      formats: dateFormats2,
+      defaultWidth: "full"
+    }),
+    time: buildFormatLongFn2({
+      formats: timeFormats2,
+      defaultWidth: "full"
+    }),
+    dateTime: buildFormatLongFn2({
+      formats: dateTimeFormats2,
+      defaultWidth: "full"
+    })
+  };
+
+  // node_modules/date-fns/locale/en-US/_lib/formatRelative.js
+  var formatRelativeLocale2 = {
+    lastWeek: "'last' eeee 'at' p",
+    yesterday: "'yesterday at' p",
+    today: "'today at' p",
+    tomorrow: "'tomorrow at' p",
+    nextWeek: "eeee 'at' p",
+    other: "P"
+  };
+  var formatRelative2 = (token, _date, _baseDate, _options) => formatRelativeLocale2[token];
+
+  // node_modules/date-fns/locale/_lib/buildLocalizeFn.js
+  function buildLocalizeFn2(args) {
+    return (value, options) => {
+      const context = options?.context ? String(options.context) : "standalone";
+      let valuesArray;
+      if (context === "formatting" && args.formattingValues) {
+        const defaultWidth = args.defaultFormattingWidth || args.defaultWidth;
+        const width = options?.width ? String(options.width) : defaultWidth;
+        valuesArray = args.formattingValues[width] || args.formattingValues[defaultWidth];
+      } else {
+        const defaultWidth = args.defaultWidth;
+        const width = options?.width ? String(options.width) : args.defaultWidth;
+        valuesArray = args.values[width] || args.values[defaultWidth];
+      }
+      const index = args.argumentCallback ? args.argumentCallback(value) : value;
+      return valuesArray[index];
+    };
+  }
+
+  // node_modules/date-fns/locale/en-US/_lib/localize.js
+  var eraValues2 = {
+    narrow: ["B", "A"],
+    abbreviated: ["BC", "AD"],
+    wide: ["Before Christ", "Anno Domini"]
+  };
+  var quarterValues2 = {
+    narrow: ["1", "2", "3", "4"],
+    abbreviated: ["Q1", "Q2", "Q3", "Q4"],
+    wide: ["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"]
+  };
+  var monthValues2 = {
+    narrow: ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+    abbreviated: [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    wide: [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ]
+  };
+  var dayValues2 = {
+    narrow: ["S", "M", "T", "W", "T", "F", "S"],
+    short: ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+    abbreviated: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    wide: [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ]
+  };
+  var dayPeriodValues2 = {
+    narrow: {
+      am: "a",
+      pm: "p",
+      midnight: "mi",
+      noon: "n",
+      morning: "morning",
+      afternoon: "afternoon",
+      evening: "evening",
+      night: "night"
+    },
+    abbreviated: {
+      am: "AM",
+      pm: "PM",
+      midnight: "midnight",
+      noon: "noon",
+      morning: "morning",
+      afternoon: "afternoon",
+      evening: "evening",
+      night: "night"
+    },
+    wide: {
+      am: "a.m.",
+      pm: "p.m.",
+      midnight: "midnight",
+      noon: "noon",
+      morning: "morning",
+      afternoon: "afternoon",
+      evening: "evening",
+      night: "night"
+    }
+  };
+  var formattingDayPeriodValues2 = {
+    narrow: {
+      am: "a",
+      pm: "p",
+      midnight: "mi",
+      noon: "n",
+      morning: "in the morning",
+      afternoon: "in the afternoon",
+      evening: "in the evening",
+      night: "at night"
+    },
+    abbreviated: {
+      am: "AM",
+      pm: "PM",
+      midnight: "midnight",
+      noon: "noon",
+      morning: "in the morning",
+      afternoon: "in the afternoon",
+      evening: "in the evening",
+      night: "at night"
+    },
+    wide: {
+      am: "a.m.",
+      pm: "p.m.",
+      midnight: "midnight",
+      noon: "noon",
+      morning: "in the morning",
+      afternoon: "in the afternoon",
+      evening: "in the evening",
+      night: "at night"
+    }
+  };
+  var ordinalNumber2 = (dirtyNumber, _options) => {
+    const number = Number(dirtyNumber);
+    const rem100 = number % 100;
+    if (rem100 > 20 || rem100 < 10) {
+      switch (rem100 % 10) {
+        case 1:
+          return number + "st";
+        case 2:
+          return number + "nd";
+        case 3:
+          return number + "rd";
+      }
+    }
+    return number + "th";
+  };
+  var localize2 = {
+    ordinalNumber: ordinalNumber2,
+    era: buildLocalizeFn2({
+      values: eraValues2,
+      defaultWidth: "wide"
+    }),
+    quarter: buildLocalizeFn2({
+      values: quarterValues2,
+      defaultWidth: "wide",
+      argumentCallback: (quarter) => quarter - 1
+    }),
+    month: buildLocalizeFn2({
+      values: monthValues2,
+      defaultWidth: "wide"
+    }),
+    day: buildLocalizeFn2({
+      values: dayValues2,
+      defaultWidth: "wide"
+    }),
+    dayPeriod: buildLocalizeFn2({
+      values: dayPeriodValues2,
+      defaultWidth: "wide",
+      formattingValues: formattingDayPeriodValues2,
+      defaultFormattingWidth: "wide"
+    })
+  };
+
+  // node_modules/date-fns/locale/_lib/buildMatchFn.js
+  function buildMatchFn2(args) {
+    return (string, options = {}) => {
+      const width = options.width;
+      const matchPattern = width && args.matchPatterns[width] || args.matchPatterns[args.defaultMatchWidth];
+      const matchResult = string.match(matchPattern);
+      if (!matchResult) {
+        return null;
+      }
+      const matchedString = matchResult[0];
+      const parsePatterns = width && args.parsePatterns[width] || args.parsePatterns[args.defaultParseWidth];
+      const key = Array.isArray(parsePatterns) ? findIndex2(parsePatterns, (pattern) => pattern.test(matchedString)) : (
+        // [TODO] -- I challenge you to fix the type
+        findKey2(parsePatterns, (pattern) => pattern.test(matchedString))
+      );
+      let value;
+      value = args.valueCallback ? args.valueCallback(key) : key;
+      value = options.valueCallback ? (
+        // [TODO] -- I challenge you to fix the type
+        options.valueCallback(value)
+      ) : value;
+      const rest = string.slice(matchedString.length);
+      return { value, rest };
+    };
+  }
+  function findKey2(object, predicate) {
+    for (const key in object) {
+      if (Object.prototype.hasOwnProperty.call(object, key) && predicate(object[key])) {
+        return key;
+      }
+    }
+    return void 0;
+  }
+  function findIndex2(array, predicate) {
+    for (let key = 0; key < array.length; key++) {
+      if (predicate(array[key])) {
+        return key;
+      }
+    }
+    return void 0;
+  }
+
+  // node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
+  function buildMatchPatternFn2(args) {
+    return (string, options = {}) => {
+      const matchResult = string.match(args.matchPattern);
+      if (!matchResult) return null;
+      const matchedString = matchResult[0];
+      const parseResult = string.match(args.parsePattern);
+      if (!parseResult) return null;
+      let value = args.valueCallback ? args.valueCallback(parseResult[0]) : parseResult[0];
+      value = options.valueCallback ? options.valueCallback(value) : value;
+      const rest = string.slice(matchedString.length);
+      return { value, rest };
+    };
+  }
+
+  // node_modules/date-fns/locale/en-US/_lib/match.js
+  var matchOrdinalNumberPattern2 = /^(\d+)(th|st|nd|rd)?/i;
+  var parseOrdinalNumberPattern2 = /\d+/i;
+  var matchEraPatterns2 = {
+    narrow: /^(b|a)/i,
+    abbreviated: /^(b\.?\s?c\.?|b\.?\s?c\.?\s?e\.?|a\.?\s?d\.?|c\.?\s?e\.?)/i,
+    wide: /^(before christ|before common era|anno domini|common era)/i
+  };
+  var parseEraPatterns2 = {
+    any: [/^b/i, /^(a|c)/i]
+  };
+  var matchQuarterPatterns2 = {
+    narrow: /^[1234]/i,
+    abbreviated: /^q[1234]/i,
+    wide: /^[1234](th|st|nd|rd)? quarter/i
+  };
+  var parseQuarterPatterns2 = {
+    any: [/1/i, /2/i, /3/i, /4/i]
+  };
+  var matchMonthPatterns2 = {
+    narrow: /^[jfmasond]/i,
+    abbreviated: /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i,
+    wide: /^(january|february|march|april|may|june|july|august|september|october|november|december)/i
+  };
+  var parseMonthPatterns2 = {
+    narrow: [
+      /^j/i,
+      /^f/i,
+      /^m/i,
+      /^a/i,
+      /^m/i,
+      /^j/i,
+      /^j/i,
+      /^a/i,
+      /^s/i,
+      /^o/i,
+      /^n/i,
+      /^d/i
+    ],
+    any: [
+      /^ja/i,
+      /^f/i,
+      /^mar/i,
+      /^ap/i,
+      /^may/i,
+      /^jun/i,
+      /^jul/i,
+      /^au/i,
+      /^s/i,
+      /^o/i,
+      /^n/i,
+      /^d/i
+    ]
+  };
+  var matchDayPatterns2 = {
+    narrow: /^[smtwf]/i,
+    short: /^(su|mo|tu|we|th|fr|sa)/i,
+    abbreviated: /^(sun|mon|tue|wed|thu|fri|sat)/i,
+    wide: /^(sunday|monday|tuesday|wednesday|thursday|friday|saturday)/i
+  };
+  var parseDayPatterns2 = {
+    narrow: [/^s/i, /^m/i, /^t/i, /^w/i, /^t/i, /^f/i, /^s/i],
+    any: [/^su/i, /^m/i, /^tu/i, /^w/i, /^th/i, /^f/i, /^sa/i]
+  };
+  var matchDayPeriodPatterns2 = {
+    narrow: /^(a|p|mi|n|(in the|at) (morning|afternoon|evening|night))/i,
+    any: /^([ap]\.?\s?m\.?|midnight|noon|(in the|at) (morning|afternoon|evening|night))/i
+  };
+  var parseDayPeriodPatterns2 = {
+    any: {
+      am: /^a/i,
+      pm: /^p/i,
+      midnight: /^mi/i,
+      noon: /^no/i,
+      morning: /morning/i,
+      afternoon: /afternoon/i,
+      evening: /evening/i,
+      night: /night/i
+    }
+  };
+  var match2 = {
+    ordinalNumber: buildMatchPatternFn2({
+      matchPattern: matchOrdinalNumberPattern2,
+      parsePattern: parseOrdinalNumberPattern2,
+      valueCallback: (value) => parseInt(value, 10)
+    }),
+    era: buildMatchFn2({
+      matchPatterns: matchEraPatterns2,
+      defaultMatchWidth: "wide",
+      parsePatterns: parseEraPatterns2,
+      defaultParseWidth: "any"
+    }),
+    quarter: buildMatchFn2({
+      matchPatterns: matchQuarterPatterns2,
+      defaultMatchWidth: "wide",
+      parsePatterns: parseQuarterPatterns2,
+      defaultParseWidth: "any",
+      valueCallback: (index) => index + 1
+    }),
+    month: buildMatchFn2({
+      matchPatterns: matchMonthPatterns2,
+      defaultMatchWidth: "wide",
+      parsePatterns: parseMonthPatterns2,
+      defaultParseWidth: "any"
+    }),
+    day: buildMatchFn2({
+      matchPatterns: matchDayPatterns2,
+      defaultMatchWidth: "wide",
+      parsePatterns: parseDayPatterns2,
+      defaultParseWidth: "any"
+    }),
+    dayPeriod: buildMatchFn2({
+      matchPatterns: matchDayPeriodPatterns2,
+      defaultMatchWidth: "any",
+      parsePatterns: parseDayPeriodPatterns2,
+      defaultParseWidth: "any"
+    })
+  };
+
+  // node_modules/date-fns/locale/en-US.js
+  var enUS2 = {
+    code: "en-US",
+    formatDistance: formatDistance2,
+    formatLong: formatLong2,
+    formatRelative: formatRelative2,
+    localize: localize2,
+    match: match2,
+    options: {
+      weekStartsOn: 0,
+      firstWeekContainsDate: 1
+    }
+  };
+
+  // node_modules/date-fns/getDayOfYear.js
+  function getDayOfYear2(date, options) {
+    const _date = toDate2(date, options?.in);
+    const diff = differenceInCalendarDays2(_date, startOfYear2(_date));
+    const dayOfYear = diff + 1;
+    return dayOfYear;
+  }
+
+  // node_modules/date-fns/getISOWeek.js
+  function getISOWeek2(date, options) {
+    const _date = toDate2(date, options?.in);
+    const diff = +startOfISOWeek2(_date) - +startOfISOWeekYear2(_date);
+    return Math.round(diff / millisecondsInWeek2) + 1;
+  }
+
+  // node_modules/date-fns/getWeekYear.js
+  function getWeekYear2(date, options) {
+    const _date = toDate2(date, options?.in);
+    const year = _date.getFullYear();
+    const defaultOptions3 = getDefaultOptions2();
+    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions3.firstWeekContainsDate ?? defaultOptions3.locale?.options?.firstWeekContainsDate ?? 1;
+    const firstWeekOfNextYear = constructFrom2(options?.in || date, 0);
+    firstWeekOfNextYear.setFullYear(year + 1, 0, firstWeekContainsDate);
+    firstWeekOfNextYear.setHours(0, 0, 0, 0);
+    const startOfNextYear = startOfWeek2(firstWeekOfNextYear, options);
+    const firstWeekOfThisYear = constructFrom2(options?.in || date, 0);
+    firstWeekOfThisYear.setFullYear(year, 0, firstWeekContainsDate);
+    firstWeekOfThisYear.setHours(0, 0, 0, 0);
+    const startOfThisYear = startOfWeek2(firstWeekOfThisYear, options);
+    if (+_date >= +startOfNextYear) {
+      return year + 1;
+    } else if (+_date >= +startOfThisYear) {
+      return year;
+    } else {
+      return year - 1;
+    }
+  }
+
+  // node_modules/date-fns/startOfWeekYear.js
+  function startOfWeekYear2(date, options) {
+    const defaultOptions3 = getDefaultOptions2();
+    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions3.firstWeekContainsDate ?? defaultOptions3.locale?.options?.firstWeekContainsDate ?? 1;
+    const year = getWeekYear2(date, options);
+    const firstWeek = constructFrom2(options?.in || date, 0);
+    firstWeek.setFullYear(year, 0, firstWeekContainsDate);
+    firstWeek.setHours(0, 0, 0, 0);
+    const _date = startOfWeek2(firstWeek, options);
+    return _date;
+  }
+
+  // node_modules/date-fns/getWeek.js
+  function getWeek2(date, options) {
+    const _date = toDate2(date, options?.in);
+    const diff = +startOfWeek2(_date, options) - +startOfWeekYear2(_date, options);
+    return Math.round(diff / millisecondsInWeek2) + 1;
+  }
+
+  // node_modules/date-fns/_lib/addLeadingZeros.js
+  function addLeadingZeros2(number, targetLength) {
+    const sign = number < 0 ? "-" : "";
+    const output = Math.abs(number).toString().padStart(targetLength, "0");
+    return sign + output;
+  }
+
+  // node_modules/date-fns/_lib/format/lightFormatters.js
+  var lightFormatters2 = {
+    // Year
+    y(date, token) {
+      const signedYear = date.getFullYear();
+      const year = signedYear > 0 ? signedYear : 1 - signedYear;
+      return addLeadingZeros2(token === "yy" ? year % 100 : year, token.length);
+    },
+    // Month
+    M(date, token) {
+      const month = date.getMonth();
+      return token === "M" ? String(month + 1) : addLeadingZeros2(month + 1, 2);
+    },
+    // Day of the month
+    d(date, token) {
+      return addLeadingZeros2(date.getDate(), token.length);
+    },
+    // AM or PM
+    a(date, token) {
+      const dayPeriodEnumValue = date.getHours() / 12 >= 1 ? "pm" : "am";
+      switch (token) {
+        case "a":
+        case "aa":
+          return dayPeriodEnumValue.toUpperCase();
+        case "aaa":
+          return dayPeriodEnumValue;
+        case "aaaaa":
+          return dayPeriodEnumValue[0];
+        case "aaaa":
+        default:
+          return dayPeriodEnumValue === "am" ? "a.m." : "p.m.";
+      }
+    },
+    // Hour [1-12]
+    h(date, token) {
+      return addLeadingZeros2(date.getHours() % 12 || 12, token.length);
+    },
+    // Hour [0-23]
+    H(date, token) {
+      return addLeadingZeros2(date.getHours(), token.length);
+    },
+    // Minute
+    m(date, token) {
+      return addLeadingZeros2(date.getMinutes(), token.length);
+    },
+    // Second
+    s(date, token) {
+      return addLeadingZeros2(date.getSeconds(), token.length);
+    },
+    // Fraction of second
+    S(date, token) {
+      const numberOfDigits = token.length;
+      const milliseconds = date.getMilliseconds();
+      const fractionalSeconds = Math.trunc(
+        milliseconds * Math.pow(10, numberOfDigits - 3)
+      );
+      return addLeadingZeros2(fractionalSeconds, token.length);
+    }
+  };
+
+  // node_modules/date-fns/_lib/format/formatters.js
+  var dayPeriodEnum2 = {
+    am: "am",
+    pm: "pm",
+    midnight: "midnight",
+    noon: "noon",
+    morning: "morning",
+    afternoon: "afternoon",
+    evening: "evening",
+    night: "night"
+  };
+  var formatters2 = {
+    // Era
+    G: function(date, token, localize3) {
+      const era = date.getFullYear() > 0 ? 1 : 0;
+      switch (token) {
+        // AD, BC
+        case "G":
+        case "GG":
+        case "GGG":
+          return localize3.era(era, { width: "abbreviated" });
+        // A, B
+        case "GGGGG":
+          return localize3.era(era, { width: "narrow" });
+        // Anno Domini, Before Christ
+        case "GGGG":
+        default:
+          return localize3.era(era, { width: "wide" });
+      }
+    },
+    // Year
+    y: function(date, token, localize3) {
+      if (token === "yo") {
+        const signedYear = date.getFullYear();
+        const year = signedYear > 0 ? signedYear : 1 - signedYear;
+        return localize3.ordinalNumber(year, { unit: "year" });
+      }
+      return lightFormatters2.y(date, token);
+    },
+    // Local week-numbering year
+    Y: function(date, token, localize3, options) {
+      const signedWeekYear = getWeekYear2(date, options);
+      const weekYear = signedWeekYear > 0 ? signedWeekYear : 1 - signedWeekYear;
+      if (token === "YY") {
+        const twoDigitYear = weekYear % 100;
+        return addLeadingZeros2(twoDigitYear, 2);
+      }
+      if (token === "Yo") {
+        return localize3.ordinalNumber(weekYear, { unit: "year" });
+      }
+      return addLeadingZeros2(weekYear, token.length);
+    },
+    // ISO week-numbering year
+    R: function(date, token) {
+      const isoWeekYear = getISOWeekYear2(date);
+      return addLeadingZeros2(isoWeekYear, token.length);
+    },
+    // Extended year. This is a single number designating the year of this calendar system.
+    // The main difference between `y` and `u` localizers are B.C. years:
+    // | Year | `y` | `u` |
+    // |------|-----|-----|
+    // | AC 1 |   1 |   1 |
+    // | BC 1 |   1 |   0 |
+    // | BC 2 |   2 |  -1 |
+    // Also `yy` always returns the last two digits of a year,
+    // while `uu` pads single digit years to 2 characters and returns other years unchanged.
+    u: function(date, token) {
+      const year = date.getFullYear();
+      return addLeadingZeros2(year, token.length);
+    },
+    // Quarter
+    Q: function(date, token, localize3) {
+      const quarter = Math.ceil((date.getMonth() + 1) / 3);
+      switch (token) {
+        // 1, 2, 3, 4
+        case "Q":
+          return String(quarter);
+        // 01, 02, 03, 04
+        case "QQ":
+          return addLeadingZeros2(quarter, 2);
+        // 1st, 2nd, 3rd, 4th
+        case "Qo":
+          return localize3.ordinalNumber(quarter, { unit: "quarter" });
+        // Q1, Q2, Q3, Q4
+        case "QQQ":
+          return localize3.quarter(quarter, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        // 1, 2, 3, 4 (narrow quarter; could be not numerical)
+        case "QQQQQ":
+          return localize3.quarter(quarter, {
+            width: "narrow",
+            context: "formatting"
+          });
+        // 1st quarter, 2nd quarter, ...
+        case "QQQQ":
+        default:
+          return localize3.quarter(quarter, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // Stand-alone quarter
+    q: function(date, token, localize3) {
+      const quarter = Math.ceil((date.getMonth() + 1) / 3);
+      switch (token) {
+        // 1, 2, 3, 4
+        case "q":
+          return String(quarter);
+        // 01, 02, 03, 04
+        case "qq":
+          return addLeadingZeros2(quarter, 2);
+        // 1st, 2nd, 3rd, 4th
+        case "qo":
+          return localize3.ordinalNumber(quarter, { unit: "quarter" });
+        // Q1, Q2, Q3, Q4
+        case "qqq":
+          return localize3.quarter(quarter, {
+            width: "abbreviated",
+            context: "standalone"
+          });
+        // 1, 2, 3, 4 (narrow quarter; could be not numerical)
+        case "qqqqq":
+          return localize3.quarter(quarter, {
+            width: "narrow",
+            context: "standalone"
+          });
+        // 1st quarter, 2nd quarter, ...
+        case "qqqq":
+        default:
+          return localize3.quarter(quarter, {
+            width: "wide",
+            context: "standalone"
+          });
+      }
+    },
+    // Month
+    M: function(date, token, localize3) {
+      const month = date.getMonth();
+      switch (token) {
+        case "M":
+        case "MM":
+          return lightFormatters2.M(date, token);
+        // 1st, 2nd, ..., 12th
+        case "Mo":
+          return localize3.ordinalNumber(month + 1, { unit: "month" });
+        // Jan, Feb, ..., Dec
+        case "MMM":
+          return localize3.month(month, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        // J, F, ..., D
+        case "MMMMM":
+          return localize3.month(month, {
+            width: "narrow",
+            context: "formatting"
+          });
+        // January, February, ..., December
+        case "MMMM":
+        default:
+          return localize3.month(month, { width: "wide", context: "formatting" });
+      }
+    },
+    // Stand-alone month
+    L: function(date, token, localize3) {
+      const month = date.getMonth();
+      switch (token) {
+        // 1, 2, ..., 12
+        case "L":
+          return String(month + 1);
+        // 01, 02, ..., 12
+        case "LL":
+          return addLeadingZeros2(month + 1, 2);
+        // 1st, 2nd, ..., 12th
+        case "Lo":
+          return localize3.ordinalNumber(month + 1, { unit: "month" });
+        // Jan, Feb, ..., Dec
+        case "LLL":
+          return localize3.month(month, {
+            width: "abbreviated",
+            context: "standalone"
+          });
+        // J, F, ..., D
+        case "LLLLL":
+          return localize3.month(month, {
+            width: "narrow",
+            context: "standalone"
+          });
+        // January, February, ..., December
+        case "LLLL":
+        default:
+          return localize3.month(month, { width: "wide", context: "standalone" });
+      }
+    },
+    // Local week of year
+    w: function(date, token, localize3, options) {
+      const week = getWeek2(date, options);
+      if (token === "wo") {
+        return localize3.ordinalNumber(week, { unit: "week" });
+      }
+      return addLeadingZeros2(week, token.length);
+    },
+    // ISO week of year
+    I: function(date, token, localize3) {
+      const isoWeek = getISOWeek2(date);
+      if (token === "Io") {
+        return localize3.ordinalNumber(isoWeek, { unit: "week" });
+      }
+      return addLeadingZeros2(isoWeek, token.length);
+    },
+    // Day of the month
+    d: function(date, token, localize3) {
+      if (token === "do") {
+        return localize3.ordinalNumber(date.getDate(), { unit: "date" });
+      }
+      return lightFormatters2.d(date, token);
+    },
+    // Day of year
+    D: function(date, token, localize3) {
+      const dayOfYear = getDayOfYear2(date);
+      if (token === "Do") {
+        return localize3.ordinalNumber(dayOfYear, { unit: "dayOfYear" });
+      }
+      return addLeadingZeros2(dayOfYear, token.length);
+    },
+    // Day of week
+    E: function(date, token, localize3) {
+      const dayOfWeek = date.getDay();
+      switch (token) {
+        // Tue
+        case "E":
+        case "EE":
+        case "EEE":
+          return localize3.day(dayOfWeek, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        // T
+        case "EEEEE":
+          return localize3.day(dayOfWeek, {
+            width: "narrow",
+            context: "formatting"
+          });
+        // Tu
+        case "EEEEEE":
+          return localize3.day(dayOfWeek, {
+            width: "short",
+            context: "formatting"
+          });
+        // Tuesday
+        case "EEEE":
+        default:
+          return localize3.day(dayOfWeek, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // Local day of week
+    e: function(date, token, localize3, options) {
+      const dayOfWeek = date.getDay();
+      const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
+      switch (token) {
+        // Numerical value (Nth day of week with current locale or weekStartsOn)
+        case "e":
+          return String(localDayOfWeek);
+        // Padded numerical value
+        case "ee":
+          return addLeadingZeros2(localDayOfWeek, 2);
+        // 1st, 2nd, ..., 7th
+        case "eo":
+          return localize3.ordinalNumber(localDayOfWeek, { unit: "day" });
+        case "eee":
+          return localize3.day(dayOfWeek, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        // T
+        case "eeeee":
+          return localize3.day(dayOfWeek, {
+            width: "narrow",
+            context: "formatting"
+          });
+        // Tu
+        case "eeeeee":
+          return localize3.day(dayOfWeek, {
+            width: "short",
+            context: "formatting"
+          });
+        // Tuesday
+        case "eeee":
+        default:
+          return localize3.day(dayOfWeek, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // Stand-alone local day of week
+    c: function(date, token, localize3, options) {
+      const dayOfWeek = date.getDay();
+      const localDayOfWeek = (dayOfWeek - options.weekStartsOn + 8) % 7 || 7;
+      switch (token) {
+        // Numerical value (same as in `e`)
+        case "c":
+          return String(localDayOfWeek);
+        // Padded numerical value
+        case "cc":
+          return addLeadingZeros2(localDayOfWeek, token.length);
+        // 1st, 2nd, ..., 7th
+        case "co":
+          return localize3.ordinalNumber(localDayOfWeek, { unit: "day" });
+        case "ccc":
+          return localize3.day(dayOfWeek, {
+            width: "abbreviated",
+            context: "standalone"
+          });
+        // T
+        case "ccccc":
+          return localize3.day(dayOfWeek, {
+            width: "narrow",
+            context: "standalone"
+          });
+        // Tu
+        case "cccccc":
+          return localize3.day(dayOfWeek, {
+            width: "short",
+            context: "standalone"
+          });
+        // Tuesday
+        case "cccc":
+        default:
+          return localize3.day(dayOfWeek, {
+            width: "wide",
+            context: "standalone"
+          });
+      }
+    },
+    // ISO day of week
+    i: function(date, token, localize3) {
+      const dayOfWeek = date.getDay();
+      const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek;
+      switch (token) {
+        // 2
+        case "i":
+          return String(isoDayOfWeek);
+        // 02
+        case "ii":
+          return addLeadingZeros2(isoDayOfWeek, token.length);
+        // 2nd
+        case "io":
+          return localize3.ordinalNumber(isoDayOfWeek, { unit: "day" });
+        // Tue
+        case "iii":
+          return localize3.day(dayOfWeek, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        // T
+        case "iiiii":
+          return localize3.day(dayOfWeek, {
+            width: "narrow",
+            context: "formatting"
+          });
+        // Tu
+        case "iiiiii":
+          return localize3.day(dayOfWeek, {
+            width: "short",
+            context: "formatting"
+          });
+        // Tuesday
+        case "iiii":
+        default:
+          return localize3.day(dayOfWeek, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // AM or PM
+    a: function(date, token, localize3) {
+      const hours = date.getHours();
+      const dayPeriodEnumValue = hours / 12 >= 1 ? "pm" : "am";
+      switch (token) {
+        case "a":
+        case "aa":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        case "aaa":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "abbreviated",
+            context: "formatting"
+          }).toLowerCase();
+        case "aaaaa":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "narrow",
+            context: "formatting"
+          });
+        case "aaaa":
+        default:
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // AM, PM, midnight, noon
+    b: function(date, token, localize3) {
+      const hours = date.getHours();
+      let dayPeriodEnumValue;
+      if (hours === 12) {
+        dayPeriodEnumValue = dayPeriodEnum2.noon;
+      } else if (hours === 0) {
+        dayPeriodEnumValue = dayPeriodEnum2.midnight;
+      } else {
+        dayPeriodEnumValue = hours / 12 >= 1 ? "pm" : "am";
+      }
+      switch (token) {
+        case "b":
+        case "bb":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        case "bbb":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "abbreviated",
+            context: "formatting"
+          }).toLowerCase();
+        case "bbbbb":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "narrow",
+            context: "formatting"
+          });
+        case "bbbb":
+        default:
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // in the morning, in the afternoon, in the evening, at night
+    B: function(date, token, localize3) {
+      const hours = date.getHours();
+      let dayPeriodEnumValue;
+      if (hours >= 17) {
+        dayPeriodEnumValue = dayPeriodEnum2.evening;
+      } else if (hours >= 12) {
+        dayPeriodEnumValue = dayPeriodEnum2.afternoon;
+      } else if (hours >= 4) {
+        dayPeriodEnumValue = dayPeriodEnum2.morning;
+      } else {
+        dayPeriodEnumValue = dayPeriodEnum2.night;
+      }
+      switch (token) {
+        case "B":
+        case "BB":
+        case "BBB":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "abbreviated",
+            context: "formatting"
+          });
+        case "BBBBB":
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "narrow",
+            context: "formatting"
+          });
+        case "BBBB":
+        default:
+          return localize3.dayPeriod(dayPeriodEnumValue, {
+            width: "wide",
+            context: "formatting"
+          });
+      }
+    },
+    // Hour [1-12]
+    h: function(date, token, localize3) {
+      if (token === "ho") {
+        let hours = date.getHours() % 12;
+        if (hours === 0) hours = 12;
+        return localize3.ordinalNumber(hours, { unit: "hour" });
+      }
+      return lightFormatters2.h(date, token);
+    },
+    // Hour [0-23]
+    H: function(date, token, localize3) {
+      if (token === "Ho") {
+        return localize3.ordinalNumber(date.getHours(), { unit: "hour" });
+      }
+      return lightFormatters2.H(date, token);
+    },
+    // Hour [0-11]
+    K: function(date, token, localize3) {
+      const hours = date.getHours() % 12;
+      if (token === "Ko") {
+        return localize3.ordinalNumber(hours, { unit: "hour" });
+      }
+      return addLeadingZeros2(hours, token.length);
+    },
+    // Hour [1-24]
+    k: function(date, token, localize3) {
+      let hours = date.getHours();
+      if (hours === 0) hours = 24;
+      if (token === "ko") {
+        return localize3.ordinalNumber(hours, { unit: "hour" });
+      }
+      return addLeadingZeros2(hours, token.length);
+    },
+    // Minute
+    m: function(date, token, localize3) {
+      if (token === "mo") {
+        return localize3.ordinalNumber(date.getMinutes(), { unit: "minute" });
+      }
+      return lightFormatters2.m(date, token);
+    },
+    // Second
+    s: function(date, token, localize3) {
+      if (token === "so") {
+        return localize3.ordinalNumber(date.getSeconds(), { unit: "second" });
+      }
+      return lightFormatters2.s(date, token);
+    },
+    // Fraction of second
+    S: function(date, token) {
+      return lightFormatters2.S(date, token);
+    },
+    // Timezone (ISO-8601. If offset is 0, output is always `'Z'`)
+    X: function(date, token, _localize) {
+      const timezoneOffset = date.getTimezoneOffset();
+      if (timezoneOffset === 0) {
+        return "Z";
+      }
+      switch (token) {
+        // Hours and optional minutes
+        case "X":
+          return formatTimezoneWithOptionalMinutes2(timezoneOffset);
+        // Hours, minutes and optional seconds without `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `XX`
+        case "XXXX":
+        case "XX":
+          return formatTimezone2(timezoneOffset);
+        // Hours, minutes and optional seconds with `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `XXX`
+        case "XXXXX":
+        case "XXX":
+        // Hours and minutes with `:` delimiter
+        default:
+          return formatTimezone2(timezoneOffset, ":");
+      }
+    },
+    // Timezone (ISO-8601. If offset is 0, output is `'+00:00'` or equivalent)
+    x: function(date, token, _localize) {
+      const timezoneOffset = date.getTimezoneOffset();
+      switch (token) {
+        // Hours and optional minutes
+        case "x":
+          return formatTimezoneWithOptionalMinutes2(timezoneOffset);
+        // Hours, minutes and optional seconds without `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `xx`
+        case "xxxx":
+        case "xx":
+          return formatTimezone2(timezoneOffset);
+        // Hours, minutes and optional seconds with `:` delimiter
+        // Note: neither ISO-8601 nor JavaScript supports seconds in timezone offsets
+        // so this token always has the same output as `xxx`
+        case "xxxxx":
+        case "xxx":
+        // Hours and minutes with `:` delimiter
+        default:
+          return formatTimezone2(timezoneOffset, ":");
+      }
+    },
+    // Timezone (GMT)
+    O: function(date, token, _localize) {
+      const timezoneOffset = date.getTimezoneOffset();
+      switch (token) {
+        // Short
+        case "O":
+        case "OO":
+        case "OOO":
+          return "GMT" + formatTimezoneShort2(timezoneOffset, ":");
+        // Long
+        case "OOOO":
+        default:
+          return "GMT" + formatTimezone2(timezoneOffset, ":");
+      }
+    },
+    // Timezone (specific non-location)
+    z: function(date, token, _localize) {
+      const timezoneOffset = date.getTimezoneOffset();
+      switch (token) {
+        // Short
+        case "z":
+        case "zz":
+        case "zzz":
+          return "GMT" + formatTimezoneShort2(timezoneOffset, ":");
+        // Long
+        case "zzzz":
+        default:
+          return "GMT" + formatTimezone2(timezoneOffset, ":");
+      }
+    },
+    // Seconds timestamp
+    t: function(date, token, _localize) {
+      const timestamp = Math.trunc(+date / 1e3);
+      return addLeadingZeros2(timestamp, token.length);
+    },
+    // Milliseconds timestamp
+    T: function(date, token, _localize) {
+      return addLeadingZeros2(+date, token.length);
+    }
+  };
+  function formatTimezoneShort2(offset, delimiter = "") {
+    const sign = offset > 0 ? "-" : "+";
+    const absOffset = Math.abs(offset);
+    const hours = Math.trunc(absOffset / 60);
+    const minutes = absOffset % 60;
+    if (minutes === 0) {
+      return sign + String(hours);
+    }
+    return sign + String(hours) + delimiter + addLeadingZeros2(minutes, 2);
+  }
+  function formatTimezoneWithOptionalMinutes2(offset, delimiter) {
+    if (offset % 60 === 0) {
+      const sign = offset > 0 ? "-" : "+";
+      return sign + addLeadingZeros2(Math.abs(offset) / 60, 2);
+    }
+    return formatTimezone2(offset, delimiter);
+  }
+  function formatTimezone2(offset, delimiter = "") {
+    const sign = offset > 0 ? "-" : "+";
+    const absOffset = Math.abs(offset);
+    const hours = addLeadingZeros2(Math.trunc(absOffset / 60), 2);
+    const minutes = addLeadingZeros2(absOffset % 60, 2);
+    return sign + hours + delimiter + minutes;
+  }
+
+  // node_modules/date-fns/_lib/format/longFormatters.js
+  var dateLongFormatter2 = (pattern, formatLong3) => {
+    switch (pattern) {
+      case "P":
+        return formatLong3.date({ width: "short" });
+      case "PP":
+        return formatLong3.date({ width: "medium" });
+      case "PPP":
+        return formatLong3.date({ width: "long" });
+      case "PPPP":
+      default:
+        return formatLong3.date({ width: "full" });
+    }
+  };
+  var timeLongFormatter2 = (pattern, formatLong3) => {
+    switch (pattern) {
+      case "p":
+        return formatLong3.time({ width: "short" });
+      case "pp":
+        return formatLong3.time({ width: "medium" });
+      case "ppp":
+        return formatLong3.time({ width: "long" });
+      case "pppp":
+      default:
+        return formatLong3.time({ width: "full" });
+    }
+  };
+  var dateTimeLongFormatter2 = (pattern, formatLong3) => {
+    const matchResult = pattern.match(/(P+)(p+)?/) || [];
+    const datePattern = matchResult[1];
+    const timePattern = matchResult[2];
+    if (!timePattern) {
+      return dateLongFormatter2(pattern, formatLong3);
+    }
+    let dateTimeFormat;
+    switch (datePattern) {
+      case "P":
+        dateTimeFormat = formatLong3.dateTime({ width: "short" });
+        break;
+      case "PP":
+        dateTimeFormat = formatLong3.dateTime({ width: "medium" });
+        break;
+      case "PPP":
+        dateTimeFormat = formatLong3.dateTime({ width: "long" });
+        break;
+      case "PPPP":
+      default:
+        dateTimeFormat = formatLong3.dateTime({ width: "full" });
+        break;
+    }
+    return dateTimeFormat.replace("{{date}}", dateLongFormatter2(datePattern, formatLong3)).replace("{{time}}", timeLongFormatter2(timePattern, formatLong3));
+  };
+  var longFormatters2 = {
+    p: timeLongFormatter2,
+    P: dateTimeLongFormatter2
+  };
+
+  // node_modules/date-fns/_lib/protectedTokens.js
+  var dayOfYearTokenRE2 = /^D+$/;
+  var weekYearTokenRE2 = /^Y+$/;
+  var throwTokens2 = ["D", "DD", "YY", "YYYY"];
+  function isProtectedDayOfYearToken2(token) {
+    return dayOfYearTokenRE2.test(token);
+  }
+  function isProtectedWeekYearToken2(token) {
+    return weekYearTokenRE2.test(token);
+  }
+  function warnOrThrowProtectedError2(token, format3, input) {
+    const _message = message2(token, format3, input);
+    console.warn(_message);
+    if (throwTokens2.includes(token)) throw new RangeError(_message);
+  }
+  function message2(token, format3, input) {
+    const subject = token[0] === "Y" ? "years" : "days of the month";
+    return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format3}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
+  }
+
+  // node_modules/date-fns/format.js
+  var formattingTokensRegExp2 = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
+  var longFormattingTokensRegExp2 = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
+  var escapedStringRegExp2 = /^'([^]*?)'?$/;
+  var doubleQuoteRegExp2 = /''/g;
+  var unescapedLatinCharacterRegExp2 = /[a-zA-Z]/;
+  function format2(date, formatStr, options) {
+    const defaultOptions3 = getDefaultOptions2();
+    const locale = options?.locale ?? defaultOptions3.locale ?? enUS2;
+    const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions3.firstWeekContainsDate ?? defaultOptions3.locale?.options?.firstWeekContainsDate ?? 1;
+    const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions3.weekStartsOn ?? defaultOptions3.locale?.options?.weekStartsOn ?? 0;
+    const originalDate = toDate2(date, options?.in);
+    if (!isValid2(originalDate)) {
+      throw new RangeError("Invalid time value");
+    }
+    let parts = formatStr.match(longFormattingTokensRegExp2).map((substring) => {
+      const firstCharacter = substring[0];
+      if (firstCharacter === "p" || firstCharacter === "P") {
+        const longFormatter = longFormatters2[firstCharacter];
+        return longFormatter(substring, locale.formatLong);
+      }
+      return substring;
+    }).join("").match(formattingTokensRegExp2).map((substring) => {
+      if (substring === "''") {
+        return { isToken: false, value: "'" };
+      }
+      const firstCharacter = substring[0];
+      if (firstCharacter === "'") {
+        return { isToken: false, value: cleanEscapedString2(substring) };
+      }
+      if (formatters2[firstCharacter]) {
+        return { isToken: true, value: substring };
+      }
+      if (firstCharacter.match(unescapedLatinCharacterRegExp2)) {
+        throw new RangeError(
+          "Format string contains an unescaped latin alphabet character `" + firstCharacter + "`"
+        );
+      }
+      return { isToken: false, value: substring };
+    });
+    if (locale.localize.preprocessor) {
+      parts = locale.localize.preprocessor(originalDate, parts);
+    }
+    const formatterOptions = {
+      firstWeekContainsDate,
+      weekStartsOn,
+      locale
+    };
+    return parts.map((part) => {
+      if (!part.isToken) return part.value;
+      const token = part.value;
+      if (!options?.useAdditionalWeekYearTokens && isProtectedWeekYearToken2(token) || !options?.useAdditionalDayOfYearTokens && isProtectedDayOfYearToken2(token)) {
+        warnOrThrowProtectedError2(token, formatStr, String(date));
+      }
+      const formatter = formatters2[token[0]];
+      return formatter(originalDate, token, locale.localize, formatterOptions);
+    }).join("");
+  }
+  function cleanEscapedString2(input) {
+    const matched = input.match(escapedStringRegExp2);
+    if (!matched) {
+      return input;
+    }
+    return matched[1].replace(doubleQuoteRegExp2, "'");
+  }
+
   // src/sanavita/ts/apartment-form.ts
   var decisionSelector = attributeselector_default("data-decision-component");
   function initializeFormDecisions(form, errorMessages, defaultMessages = {}) {
@@ -4665,7 +6388,7 @@ Component:`,
       const formDecisions = step.querySelectorAll(decisionSelector());
       formDecisions.forEach((element) => {
         const id = element.dataset.decisionComponent;
-        const decision = new FormDecision(element, id);
+        const decision = new FormDecision(element, { id });
         if (id && errorMessages[id]) {
           decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
         }
@@ -4682,15 +6405,16 @@ Component:`,
     const formDecisions = /* @__PURE__ */ new Map();
     decisionElements.forEach((element, index) => {
       const id = element.getAttribute(FormDecision.attr.component) || index.toString();
-      const decision = new FormDecision(element, id);
-      formDecisions.set(decision.id, decision);
-      const groupElement = prospectArray.getClosestGroup(decision.component);
+      const decision = new FormDecision(element, { id, clearPathOnChange: false });
+      formDecisions.set(decision.opts.id, decision);
+      const group = prospectArray.getClosestGroup(decision.component);
       decision.onChange(() => {
-        prospectArray.validateModalGroup(groupElement);
+        prospectArray.validateModalGroup(group);
+        const allGroupsValid = prospectArray.groups.every((group2) => group2.isValid === true);
+        prospectArray.saveOptions.setAction(allGroupsValid ? "save" : "draft");
       });
-      prospectArray.onOpen(`decision-${id}`, () => {
-        decision.changeToPath("hide");
-      });
+      prospectArray.onOpen(`decision-${id}`, () => decision.sync());
+      prospectArray.onClose(`decision-${id}`, () => decision.reset());
       if (id && errorMessages[id]) {
         decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
       }
@@ -4763,6 +6487,11 @@ Component:`,
     FORM.formElement.addEventListener("formSuccess", () => {
       prospectArray.clearProgress();
     });
+    const monthStart = startOfMonth(/* @__PURE__ */ new Date());
+    const nextMonthStart = addMonths(monthStart, 1);
+    const nextMonthStartString = format2(nextMonthStart, "yyyy-MM-dd");
+    const moveInDateInput = FORM.getFormInput("bezug-ab");
+    moveInDateInput.min = nextMonthStartString;
     console.log("Form initialized:", FORM.initialized, FORM);
   });
 })();
