@@ -602,7 +602,7 @@ export default class ProspectArray {
     }
   }
 
-  public onClose(name: string, callback: OnOpenCallback): void {
+  public onClose(name: string, callback: OnCloseCallback): void {
     this.onCloseCallbacks.set(name, callback);
   }
 
