@@ -49,6 +49,9 @@ const ACCORDION_SELECTOR = `[data-animate="accordion"]`;
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
 
+type OnOpenCallback = (prospect?: ResidentProspect) => void;
+type OnCloseCallback = () => void;
+
 export default class ProspectArray {
   public initialized: boolean = false;
   public id: string | number;
@@ -66,7 +69,8 @@ export default class ProspectArray {
   private modalInputs: NodeListOf<HTMLFormInput>;
   private groupElements: NodeListOf<HTMLElement>;
   private accordionList: Accordion[] = [];
-  private onOpenCallbacks: Map<string, () => void> = new Map();
+  private onOpenCallbacks: Map<string, OnOpenCallback> = new Map();
+  private onCloseCallbacks: Map<string, OnCloseCallback> = new Map();
 
   private editingKey: string | null = null;
   private unsavedProspect: ResidentProspect | null = null;
@@ -546,7 +550,7 @@ export default class ProspectArray {
     this.saveProgress();
   }
 
-  public onOpen(name: string, callback: () => void): void {
+  public onOpen(name: string, callback: OnOpenCallback): void {
     this.onOpenCallbacks.set(name, callback);
   }
 
@@ -555,7 +559,22 @@ export default class ProspectArray {
   }
 
   public triggerOnOpen(): void {
+    const editingProspect = this.getEditingProspect();
     for (const callback of this.onOpenCallbacks.values()) {
+      callback(editingProspect);
+    }
+  }
+
+  public onClose(name: string, callback: OnOpenCallback): void {
+    this.onCloseCallbacks.set(name, callback);
+  }
+
+  public clearOnClose(name: string): void {
+    this.onCloseCallbacks.delete(name);
+  }
+
+  public triggerOnClose(): void {
+    for (const callback of this.onCloseCallbacks.values()) {
       callback();
     }
   }
@@ -764,6 +783,7 @@ export default class ProspectArray {
       });
     }
     this.clearModal();
+    this.triggerOnClose();
     this.editingKey = null;
   }
 
