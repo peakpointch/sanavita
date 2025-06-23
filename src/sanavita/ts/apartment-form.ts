@@ -7,6 +7,7 @@ import {
 import ProspectArray from "./form/prospect-array";
 import createAttribute from "@peakflow/attributeselector";
 import { flattenProspects } from "./form/resident-prospect";
+import { addMonths, format, startOfMonth } from "date-fns";
 
 const decisionSelector = createAttribute('data-decision-component');
 
@@ -147,11 +148,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     prospectArray.clearProgress();
   });
 
-  // FORM.options.validation.validate = false;
-  // FORM.changeToStep(2);
-  // await new Promise(resolve => setTimeout(resolve, 600));
-  // const prospectToEdit = Array.from(prospectArray.prospects.values())[1];
-  // prospectArray.editProspect(prospectToEdit);
+  const monthStart = startOfMonth(new Date())
+  const nextMonthStart = addMonths(monthStart, 1);
+  const nextMonthStartString = format(nextMonthStart, 'yyyy-MM-dd');
+  const moveInDateInput = FORM.getFormInput<HTMLInputElement>('bezug-ab');
+  moveInDateInput.min = nextMonthStartString;
 
   console.log("Form initialized:", FORM.initialized, FORM);
 });
