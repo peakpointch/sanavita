@@ -1,18 +1,24 @@
 (() => {
-  // ../peakflow/src/findelements.ts
-  function findElements(input, multiple = false) {
+  // ../peakflow/src/utils/getelements.ts
+  function getAllElements(input, single = false) {
     if (typeof input === "string") {
-      const elements = multiple ? Array.from(document.querySelectorAll(input)) : [document.querySelector(input)].filter(Boolean);
+      const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
       if (elements.length === 0) {
         throw new Error(`No elements found matching selector: ${input}`);
+      } else if (single) {
+        return [elements[0]];
+      } else {
+        return elements;
       }
-      return elements;
     } else if (input instanceof HTMLElement) {
       return [input];
     } else if (Array.isArray(input)) {
       return input;
+    } else if (input instanceof NodeList) {
+      return Array.from(input);
+    } else {
+      throw new Error("Invalid input provided: must be a string, HTMLElement, array or node list.");
     }
-    throw new Error("Invalid input provided: must be a string, HTMLElement, or array.");
   }
 
   // ../peakflow/src/inlinecms.ts
@@ -53,7 +59,7 @@
   function inlineCms(containers) {
     let containerElements;
     if (typeof containers === "string") {
-      containerElements = findElements(containers, true);
+      containerElements = getAllElements(containers);
     } else {
       containerElements = Array.from(containers);
     }
