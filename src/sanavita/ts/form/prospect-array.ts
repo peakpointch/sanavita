@@ -418,7 +418,7 @@ export default class ProspectArray {
 
     this.unsavedProspect = this.extractData(true);
     this.editingKey = `unsaved-${this.unsavedProspect.key}`;
-    this.saveOptions.setAction('save')
+    this.saveOptions.setAction('draft');
     this.openModal();
   }
 
