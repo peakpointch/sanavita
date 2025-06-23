@@ -66,13 +66,14 @@ export default class ProspectArray {
   public modalElement: HTMLElement;
   public alertDialog: AlertDialog = getAlertDialog();
   public groups: ModalGroup[] = [];
+  public saveOptions: SaveOptions<'draft' | 'save'>;
+
   private container: HTMLElement;
   private list: HTMLElement;
   private template: HTMLElement;
   private formMessage: FormMessage;
   private addButton: HTMLElement;
   private cancelButtons: NodeListOf<HTMLButtonElement>;
-  private saveOptions: SaveOptions<'draft' | 'save'>;
   private modalInputs: NodeListOf<HTMLFormInput>;
   private accordionList: Accordion[] = [];
   private onOpenCallbacks: Map<string, OnOpenCallback> = new Map();
@@ -352,7 +353,7 @@ export default class ProspectArray {
   /**
    * Gets the ResidentProspect currently being edited via the `editingKey` property.
    */
-  private getEditingProspect(): ResidentProspect | undefined {
+  public getEditingProspect(): ResidentProspect | undefined {
     if (this.editingKey === null) {
       return undefined;
     } else if (this.editingKey.startsWith('unsaved')) {
