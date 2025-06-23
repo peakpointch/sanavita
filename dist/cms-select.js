@@ -1,5 +1,5 @@
 (() => {
-  // ../peakflow/src/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -77,7 +77,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/src/utils/getelements.ts
+  // node_modules/peakflow/src/utils/getelements.ts
   function getAllElements(input, single = false) {
     if (typeof input === "string") {
       const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
@@ -114,17 +114,21 @@
     }
   }
 
-  // ../peakflow/src/form/cms-select.ts
+  // node_modules/peakflow/src/form/cms-select.ts
   var CMSSelect = class _CMSSelect {
+    name;
+    source;
+    targets;
+    values;
+    waitEvent;
+    attr = {
+      element: "data-cms-select-element",
+      prefix: "data-cms-select-prefix",
+      value: "data-cms-select-value",
+      wait: "data-cms-select-wait",
+      status: "data-cms-select-status"
+    };
     constructor(component) {
-      this.attr = {
-        element: "data-cms-select-element",
-        prefix: "data-cms-select-prefix",
-        value: "data-cms-select-value",
-        wait: "data-cms-select-wait",
-        status: "data-cms-select-status"
-      };
-      this.selector = attributeselector_default("data-cms-select-element");
       try {
         this.source = getElement(component);
         if (!this.source) {
@@ -137,9 +141,8 @@
         console.error(`Failed to create CMSSelect instance: ${e.message}`);
       }
     }
-    static {
-      this.selector = attributeselector_default("data-cms-select-element");
-    }
+    static selector = attributeselector_default("data-cms-select-element");
+    selector = attributeselector_default("data-cms-select-element");
     static initializeAll() {
       try {
         const sourceLists = getAllElements(_CMSSelect.selector("source"));
