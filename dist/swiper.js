@@ -5080,7 +5080,7 @@
     });
   }
 
-  // ../peakflow/src/parameterize.ts
+  // node_modules/peakflow/src/parameterize.ts
   function toCamelCase(str) {
     return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
   }
