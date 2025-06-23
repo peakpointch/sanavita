@@ -8949,11 +8949,11 @@
       var fails = require_fails();
       var classof = require_classof_raw();
       var $Object = Object;
-      var split = uncurryThis("".split);
+      var split2 = uncurryThis("".split);
       module.exports = fails(function() {
         return !$Object("z").propertyIsEnumerable(0);
       }) ? function(it2) {
-        return classof(it2) === "String" ? split(it2, "") : $Object(it2);
+        return classof(it2) === "String" ? split2(it2, "") : $Object(it2);
       } : $Object;
     }
   });
@@ -12683,7 +12683,7 @@
         return [
           // `String.prototype.split` method
           // https://tc39.es/ecma262/#sec-string.prototype.split
-          function split(separator, limit) {
+          function split2(separator, limit) {
             var O3 = requireObjectCoercible(this);
             var splitter = isNullOrUndefined(separator) ? void 0 : getMethod(separator, SPLIT);
             return splitter ? call(splitter, separator, O3, limit) : call(internalSplit, toString(O3), separator, limit);
@@ -19501,6 +19501,23 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
+    return extend(selector, `:not(${exclusions.join(", ")})`);
+  }
+  function extend(selector, ...extensions) {
+    if (extensions.length === 0) return selector;
+    const selectors = split(selector);
+    const selectorsWithExtensions = extensions.map((extension) => {
+      return append(selectors, extension);
+    });
+    return selectorsWithExtensions.join(", ");
+  }
+  function append(selectorList, suffix) {
+    return selectorList.reduce((acc, string) => {
+      const prefix = acc === "" ? "" : `${acc}, `;
+      return `${prefix}${string}${suffix}`;
+    }, "");
+  }
+  function split(selector) {
     const result = [];
     let current = "";
     let depth = 0;
@@ -19525,7 +19542,7 @@
     if (current.trim()) {
       result.push(current.trim());
     }
-    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
+    return result;
   }
   var createAttribute = (attrName, defaultOptions2) => {
     const mergedDefaultOptions = {
@@ -33204,6 +33221,7 @@ Page:`, page);
   // node_modules/peakflow/src/form/fieldgroup.ts
   var FieldGroup = class _FieldGroup {
     fields;
+    validation;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -33221,10 +33239,11 @@ Page:`, page);
         if (field.validate(report)) continue;
         invalidFields.push(field);
       }
-      return {
+      this.validation = {
         isValid: invalidFields.length === 0,
         invalidFields
       };
+      return this.validation;
     }
     /**
      * Serialize this `FieldGroup`.

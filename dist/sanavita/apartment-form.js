@@ -13,6 +13,23 @@
   }
   function exclude(selector, ...exclusions) {
     if (exclusions.length === 0) return selector;
+    return extend(selector, `:not(${exclusions.join(", ")})`);
+  }
+  function extend(selector, ...extensions) {
+    if (extensions.length === 0) return selector;
+    const selectors = split(selector);
+    const selectorsWithExtensions = extensions.map((extension) => {
+      return append(selectors, extension);
+    });
+    return selectorsWithExtensions.join(", ");
+  }
+  function append(selectorList, suffix) {
+    return selectorList.reduce((acc, string) => {
+      const prefix = acc === "" ? "" : `${acc}, `;
+      return `${prefix}${string}${suffix}`;
+    }, "");
+  }
+  function split(selector) {
     const result = [];
     let current = "";
     let depth = 0;
@@ -37,7 +54,7 @@
     if (current.trim()) {
       result.push(current.trim());
     }
-    return result.map((sel) => `${sel}:not(${exclusions.join(", ")})`).join(", ");
+    return result;
   }
   var createAttribute = (attrName, defaultOptions2) => {
     const mergedDefaultOptions = {
@@ -147,16 +164,13 @@
       return false;
     }
   }
-  function clearRadioGroup(container, name) {
-    container.querySelectorAll(
-      `${wf.select.radioInput}[name="${name}"]`
-    ).forEach((radio) => {
-      radio.checked = false;
-      const customRadio = radio.closest(".w-radio")?.querySelector(wf.select.radio);
-      if (customRadio) {
-        customRadio.classList.remove(wf.class.checked);
-      }
-    });
+  function clearRadioInput(radio) {
+    radio.checked = false;
+    const customRadio = radio.closest(".w-radio")?.querySelector(wf.select.radio);
+    if (customRadio) {
+      customRadio.classList.remove(wf.class.checked);
+    }
+    radio.dispatchEvent(new Event("change", { bubbles: true }));
   }
   function enforceButtonTypes(form) {
     if (!form) return;
@@ -675,6 +689,10 @@ Component:`,
       };
       return fields;
     }
+    getFormInput(id) {
+      const selector = extend(wf.select.formInput, `#${id}`);
+      return this.component.querySelector(selector);
+    }
   };
 
   // node_modules/peakflow/src/parameterize.ts
@@ -751,6 +769,7 @@ Component:`,
   // node_modules/peakflow/src/form/fieldgroup.ts
   var FieldGroup = class _FieldGroup {
     fields;
+    validation;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -768,10 +787,11 @@ Component:`,
         if (field.validate(report)) continue;
         invalidFields.push(field);
       }
-      return {
+      this.validation = {
         isValid: invalidFields.length === 0,
         invalidFields
       };
+      return this.validation;
     }
     /**
      * Serialize this `FieldGroup`.
@@ -918,8 +938,12 @@ Component:`,
 
   // node_modules/peakflow/src/form/formdecision.ts
   var FormDecision = class _FormDecision {
+    opts = {
+      id: void 0,
+      clearPathOnChange: false,
+      defaultPath: null
+    };
     component;
-    id;
     paths = /* @__PURE__ */ new Map();
     formMessage;
     decisionInputs;
@@ -948,8 +972,8 @@ Component:`,
      * @param component The FormDecision element.
      * @param id Unique identifier for the specific instance.
      */
-    constructor(component, id) {
-      if (!component || !id) {
+    constructor(component, options) {
+      if (!component) {
         console.error(`FormDecision: Component not found.`);
         return;
       } else if (!component.hasAttribute("data-decision-component")) {
@@ -960,8 +984,12 @@ Component:`,
         return;
       }
       this.component = component;
-      this.id = id || this.component.getAttribute(this.attr.component);
-      this.formMessage = new FormMessage("FormDecision", id);
+      this.opts = {
+        id: options.id || this.component.getAttribute(this.attr.component) || this.opts.id,
+        clearPathOnChange: options.clearPathOnChange || this.opts.clearPathOnChange,
+        defaultPath: options.defaultPath || this.opts.defaultPath
+      };
+      this.formMessage = new FormMessage("FormDecision", this.opts.id);
       this.initialize();
     }
     static selector = attributeselector_default(_FormDecision.attr.element);
@@ -975,7 +1003,7 @@ Component:`,
       this.decisionInputs = Array.from(decisionInputsList);
       if (this.decisionInputs.length === 0) {
         console.warn(
-          `Decision component "${this.id}" does not contain any decision input elements.`
+          `Decision component "${this.opts.id}" does not contain any decision input elements.`
         );
         return;
       }
@@ -1000,6 +1028,13 @@ Component:`,
      * @param event The event that invokes this change.
      */
     changeToPath(pathId, event) {
+      if (pathId === null) {
+        this.hideAllPaths();
+        this.decisionInputs.forEach((input) => {
+          clearRadioInput(input);
+        });
+      }
+      if (this.currentPath === pathId) return;
       const prevPath = this.paths.get(this.currentPath);
       if (prevPath) {
         prevPath.style.display = "none";
@@ -1009,9 +1044,34 @@ Component:`,
       if (path) {
         path.style.removeProperty("display");
       }
-      this.updateRequiredAttributes();
+      this.paths.forEach((path2, pathId2) => {
+        this.updateRequiredAttributes(pathId2);
+        if (this.opts.clearPathOnChange) {
+          this.clearPath(pathId2);
+        }
+      });
       this.onChangeCallback();
       this.formMessage.reset();
+    }
+    reset(force) {
+      this.clearAllPaths();
+      this.changeToPath(force !== void 0 ? force : this.opts.defaultPath);
+    }
+    /**
+     * Sync the path shown do the actual selected path, if the component ever gets out of sync.
+     */
+    sync() {
+      const path = this.getCurrentPath();
+      this.changeToPath(path);
+    }
+    /**
+     * Sets the display of all path elements to 'none'.
+     */
+    hideAllPaths() {
+      this.paths.forEach((path) => {
+        if (!path) return;
+        path.style.display = "none";
+      });
     }
     /**
      * Retrieves the currently selected decision input.
@@ -1019,6 +1079,14 @@ Component:`,
      */
     getSelectedInput() {
       return Array.from(this.decisionInputs).find((input) => input.checked);
+    }
+    /**
+     * Retrieves the current `PathId` from the currently selected decision input.
+     */
+    getCurrentPath() {
+      const selected = this.getSelectedInput();
+      if (!selected) return null;
+      return selected.getAttribute(this.attr.pathId);
     }
     /**
      * Validates the FormDecision based on the selected path to ensure the form's correctness.
@@ -1070,20 +1138,38 @@ Component:`,
     /**
      * Updates the required attributes of input fields within the paths based on the selected decision input.
      */
-    updateRequiredAttributes() {
+    updateRequiredAttributes(pathId) {
+      const path = this.paths.get(pathId);
+      if (!path) return;
+      if (pathId === this.currentPath) {
+        const pathInputs = path.querySelectorAll(wf.select.formInput);
+        pathInputs.forEach((input) => {
+          const isRequired = input.matches(`[${this.attr.required}="required"], [${this.attr.required}="true"]`);
+          input.required = isRequired;
+        });
+      } else {
+        const pathInputs = path.querySelectorAll(wf.select.formInput);
+        pathInputs.forEach((input) => {
+          input.required = false;
+        });
+      }
+    }
+    clearPath(pathId, silent = false) {
+      const path = this.paths.get(pathId);
+      if (!path) return;
+      const pathInputs = path.querySelectorAll(wf.select.formInput);
+      pathInputs.forEach((input) => {
+        input.value = null;
+        if (silent) return;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
+    clearAllPaths(clearCurrentPath = true) {
       this.paths.forEach((path, pathId) => {
-        if (!path) return;
-        if (pathId === this.currentPath) {
-          const pathInputs = path.querySelectorAll(wf.select.formInput);
-          pathInputs.forEach((input) => {
-            const isRequired = input.matches(`[${this.attr.required}="required"], [${this.attr.required}="true"]`);
-            input.required = isRequired;
-          });
-        } else {
-          const pathInputs = path.querySelectorAll(wf.select.formInput);
-          pathInputs.forEach((input) => {
-            input.required = false;
-          });
+        if (clearCurrentPath) {
+          this.clearPath(pathId);
+        } else if (pathId !== this.currentPath) {
+          this.clearPath(pathId);
         }
       });
     }
@@ -1415,6 +1501,29 @@ Component:`,
     return _date;
   }
 
+  // node_modules/date-fns/addMonths.js
+  function addMonths(date, amount, options) {
+    const _date = toDate(date, options?.in);
+    if (isNaN(amount)) return constructFrom(options?.in || date, NaN);
+    if (!amount) {
+      return _date;
+    }
+    const dayOfMonth = _date.getDate();
+    const endOfDesiredMonth = constructFrom(options?.in || date, _date.getTime());
+    endOfDesiredMonth.setMonth(_date.getMonth() + amount + 1, 0);
+    const daysInMonth = endOfDesiredMonth.getDate();
+    if (dayOfMonth >= daysInMonth) {
+      return endOfDesiredMonth;
+    } else {
+      _date.setFullYear(
+        endOfDesiredMonth.getFullYear(),
+        endOfDesiredMonth.getMonth(),
+        dayOfMonth
+      );
+      return _date;
+    }
+  }
+
   // node_modules/date-fns/_lib/defaultOptions.js
   var defaultOptions = {};
   function getDefaultOptions() {
@@ -1544,6 +1653,14 @@ Component:`,
   // node_modules/date-fns/isValid.js
   function isValid(date) {
     return !(!isDate(date) && typeof date !== "number" || isNaN(+toDate(date)));
+  }
+
+  // node_modules/date-fns/startOfMonth.js
+  function startOfMonth(date, options) {
+    const _date = toDate(date, options?.in);
+    _date.setDate(1);
+    _date.setHours(0, 0, 0, 0);
+    return _date;
   }
 
   // node_modules/date-fns/startOfYear.js
@@ -3995,8 +4112,10 @@ Component:`,
     constructor(container, id) {
       this.initialized = false;
       this.alertDialog = getAlertDialog();
+      this.groups = [];
       this.accordionList = [];
       this.onOpenCallbacks = /* @__PURE__ */ new Map();
+      this.onCloseCallbacks = /* @__PURE__ */ new Map();
       this.editingKey = null;
       this.unsavedProspect = null;
       this.id = id;
@@ -4022,7 +4141,15 @@ Component:`,
         prospectSelector("cancel")
       );
       this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
-      this.groupElements = this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
+      const groupElements = this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
+      groupElements.forEach((groupEl) => {
+        const groupName = groupEl.dataset.prospectFieldGroup;
+        this.groups.push({
+          isValid: false,
+          element: groupEl,
+          name: groupName
+        });
+      });
       this.initialize();
     }
     initialize() {
@@ -4059,10 +4186,16 @@ Component:`,
             position
           });
         });
-        const groupEl = this.getClosestGroup(input);
+        const group = this.getClosestGroup(input);
         input.addEventListener("input", () => {
-          if (input.matches(FormDecision.selector("input"))) return;
-          this.validateModalGroup(groupEl);
+          if (input.matches(FormDecision.selector("input")) || input.matches(`[${LINK_FIELDS_ATTR}] *`)) return;
+          this.validateModalGroup(group);
+          const allGroupsValid = this.groups.every((group2) => group2.isValid === true);
+          if (allGroupsValid) {
+            this.saveOptions.setAction("save");
+          } else {
+            this.saveOptions.setAction("draft");
+          }
         });
       });
       this.saveOptions.setActionHandler("save", () => {
@@ -4112,6 +4245,8 @@ Component:`,
           );
         }
         input.value = sourceFieldGroup.getField(id)?.value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
     unlinkFields(linkElement) {
@@ -4130,6 +4265,8 @@ Component:`,
           );
         }
         input.value = null;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
       });
     }
     unlinkAllProspects() {
@@ -4178,14 +4315,21 @@ Component:`,
     /**
      * Retrieves a `ResidentProspect` instance from a given key or returns the provided `ResidentProspect` directly.
      * 
-     * @param prospectOrKey - Either the key of the prospect or the prospect object itself.
+     * @param prospectOrKeyOrIndex - Either the key of the prospect or the prospect object itself.
      * @returns {ResidentProspect} The corresponding `ResidentProspect` object.
      * @throws Error if the prospect with the given key is not found.
      */
-    getProspect(prospectOrKey) {
-      const prospect = typeof prospectOrKey === "string" ? this.prospects.get(prospectOrKey) : prospectOrKey;
+    getProspect(prospectOrKeyOrIndex) {
+      let prospect;
+      if (typeof prospectOrKeyOrIndex === "string") {
+        prospect = this.prospects.get(prospectOrKeyOrIndex);
+      } else if (typeof prospectOrKeyOrIndex === "number") {
+        prospect = Array.from(this.prospects.values())[prospectOrKeyOrIndex];
+      } else if (prospectOrKeyOrIndex instanceof ResidentProspect) {
+        prospect = prospectOrKeyOrIndex;
+      }
       if (!prospect) {
-        throw new Error(`Prospect not found: ${prospectOrKey}`);
+        throw new Error(`Prospect not found: ${prospectOrKeyOrIndex}`);
       }
       return prospect;
     }
@@ -4246,7 +4390,7 @@ Component:`,
       this.setLiveText("full-name", "Neue Person");
       this.unsavedProspect = this.extractData(true);
       this.editingKey = `unsaved-${this.unsavedProspect.key}`;
-      this.saveOptions.setAction("save");
+      this.saveOptions.setAction("draft");
       this.openModal();
     }
     saveProspectFromModal(opts) {
@@ -4376,7 +4520,19 @@ Component:`,
       this.onOpenCallbacks.delete(name);
     }
     triggerOnOpen() {
+      const editingProspect = this.getEditingProspect();
       for (const callback of this.onOpenCallbacks.values()) {
+        callback(editingProspect);
+      }
+    }
+    onClose(name, callback) {
+      this.onCloseCallbacks.set(name, callback);
+    }
+    clearOnClose(name) {
+      this.onCloseCallbacks.delete(name);
+    }
+    triggerOnClose() {
+      for (const callback of this.onCloseCallbacks.values()) {
         callback();
       }
     }
@@ -4388,16 +4544,15 @@ Component:`,
         linkCheckbox.checked = true;
         linkCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
       }
-      this.groupElements.forEach((group) => {
+      this.groups.forEach((group) => {
         const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-        const groupInputs = group.querySelectorAll(selector);
-        const groupName = group.dataset.prospectFieldGroup;
-        if (!prospect[groupName]) {
-          console.error(`The group "${groupName}" doesn't exist.`);
+        const groupInputs = group.element.querySelectorAll(selector);
+        if (!prospect[group.name]) {
+          console.error(`The group "${group.name}" doesn't exist.`);
           return;
         }
         groupInputs.forEach((input) => {
-          const field = prospect[groupName].getField(input.id);
+          const field = prospect[group.name].getField(input.id);
           if (!field) {
             console.warn(`Field not found:`, input.id);
             return;
@@ -4451,26 +4606,26 @@ Component:`,
       }
       return valid;
     }
-    validateModalGroup(groupEl) {
-      const groupName = groupEl.dataset.prospectFieldGroup;
-      const groupInputs = groupEl.querySelectorAll(wf.select.formInput);
+    validateModalGroup(group) {
+      const groupInputs = group.element.querySelectorAll(wf.select.formInput);
       const validation = validateFields(groupInputs, false);
-      const circle = groupEl.querySelector(prospectSelector("circle"));
-      if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
+      const circle = group.element.querySelector(prospectSelector("circle"));
+      if (!circle) console.warn(`Circle element not found inside group "${group.name}"`);
       if (validation.isValid) {
         circle.classList.add("is-valid");
       } else {
         circle.classList.remove("is-valid");
       }
+      group.isValid = validation.isValid;
       return validation;
     }
     validateModal(report = true) {
       let valid = true;
       const invalidFields = [];
-      this.groupElements.forEach((groupEl) => {
-        const groupValid = this.validateModalGroup(groupEl);
+      this.groups.forEach((group) => {
+        const groupValid = this.validateModalGroup(group);
         invalidFields.push(...groupValid.invalidFields);
-        if (groupValid.isValid) return;
+        if (group.isValid) return;
         valid = false;
       });
       if (!valid && invalidFields.length && report && this.modal.opened) {
@@ -4501,7 +4656,7 @@ Component:`,
       this.modalInputs.forEach((input) => {
         if (isRadioInput(input)) {
           input.checked = false;
-          clearRadioGroup(this.modalElement, input.name);
+          clearRadioInput(input);
         } else if (isCheckboxInput(input)) {
           input.checked = false;
           input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -4540,6 +4695,7 @@ Component:`,
         });
       }
       this.clearModal();
+      this.triggerOnClose();
       this.editingKey = null;
     }
     initAccordions() {
@@ -4613,34 +4769,32 @@ Component:`,
       if (!groupEl) {
         throw new Error(`The given element is not part of a group element.`);
       }
-      return groupEl;
+      return this.groups.find((group) => group.element === groupEl);
     }
     getGroupsByName(groupName) {
-      return Array.from(
-        this.modal.component.querySelectorAll(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
-      );
+      return this.groups.filter((group) => group.name === groupName);
     }
     getFormInput(fieldOrId, groupName) {
       if (isFormInput(fieldOrId)) {
         return fieldOrId;
       }
-      const groupElements = this.getGroupsByName(groupName);
+      const groups = this.getGroupsByName(groupName);
+      const groupElements = groups.map((group) => group.element);
       return findFormInput(groupElements, fieldOrId);
     }
     extractData(draft = false) {
       const prospectData = new ResidentProspect({ draft });
-      this.groupElements.forEach((group) => {
-        const groupInputs = group.querySelectorAll(wf.select.formInput);
-        const groupName = group.dataset.prospectFieldGroup;
-        const linkElements = group.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
-        if (!prospectData[groupName]) {
-          console.error(`The group "${groupName}" doesn't exist.`);
+      this.groups.forEach((group) => {
+        const groupInputs = group.element.querySelectorAll(wf.select.formInput);
+        const linkElements = group.element.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
+        if (!prospectData[group.name]) {
+          console.error(`The group "${group.name}" doesn't exist.`);
           return;
         }
         groupInputs.forEach((input, index) => {
           const field = fieldFromInput(input, index);
           if (field.id) {
-            prospectData[groupName].fields.set(field.id, field);
+            prospectData[group.name].fields.set(field.id, field);
           }
         });
         linkElements.forEach((linkElement) => {
@@ -4648,7 +4802,7 @@ Component:`,
           const id = linkCheckbox.dataset.name;
           const fieldsToLink = linkElement.getAttribute(LINK_FIELDS_ATTR);
           if (linkCheckbox.checked) {
-            prospectData.linkFields(id, groupName, fieldsToLink);
+            prospectData.linkFields(id, group.name, fieldsToLink);
           }
         });
       });
@@ -4711,7 +4865,7 @@ Component:`,
       const formDecisions = step.querySelectorAll(decisionSelector());
       formDecisions.forEach((element) => {
         const id = element.dataset.decisionComponent;
-        const decision = new FormDecision(element, id);
+        const decision = new FormDecision(element, { id });
         if (id && errorMessages[id]) {
           decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
         }
@@ -4728,15 +4882,16 @@ Component:`,
     const formDecisions = /* @__PURE__ */ new Map();
     decisionElements.forEach((element, index) => {
       const id = element.getAttribute(FormDecision.attr.component) || index.toString();
-      const decision = new FormDecision(element, id);
-      formDecisions.set(decision.id, decision);
-      const groupElement = prospectArray.getClosestGroup(decision.component);
+      const decision = new FormDecision(element, { id, clearPathOnChange: false });
+      formDecisions.set(decision.opts.id, decision);
+      const group = prospectArray.getClosestGroup(decision.component);
       decision.onChange(() => {
-        prospectArray.validateModalGroup(groupElement);
+        prospectArray.validateModalGroup(group);
+        const allGroupsValid = prospectArray.groups.every((group2) => group2.isValid === true);
+        prospectArray.saveOptions.setAction(allGroupsValid ? "save" : "draft");
       });
-      prospectArray.onOpen(`decision-${id}`, () => {
-        decision.changeToPath("hide");
-      });
+      prospectArray.onOpen(`decision-${id}`, () => decision.sync());
+      prospectArray.onClose(`decision-${id}`, () => decision.reset());
       if (id && errorMessages[id]) {
         decision.setErrorMessages(errorMessages[id], defaultMessages[id]);
       }
@@ -4809,6 +4964,11 @@ Component:`,
     FORM.formElement.addEventListener("formSuccess", () => {
       prospectArray.clearProgress();
     });
+    const monthStart = startOfMonth(/* @__PURE__ */ new Date());
+    const nextMonthStart = addMonths(monthStart, 1);
+    const nextMonthStartString = format(nextMonthStart, "yyyy-MM-dd");
+    const moveInDateInput = FORM.getFormInput("bezug-ab");
+    moveInDateInput.min = nextMonthStartString;
     console.log("Form initialized:", FORM.initialized, FORM);
   });
 })();
