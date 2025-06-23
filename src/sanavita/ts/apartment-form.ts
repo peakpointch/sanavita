@@ -21,7 +21,7 @@ function initializeFormDecisions(
 
     formDecisions.forEach((element) => {
       const id = element.dataset.decisionComponent;
-      const decision = new FormDecision(element, id);
+      const decision = new FormDecision(element, { id });
 
       // Set error messages for this FormDecision if available
       if (id && errorMessages[id]) {
@@ -50,16 +50,19 @@ function initializeProspectDecisions<T extends string = string>(
 
   decisionElements.forEach((element, index) => {
     const id = element.getAttribute(FormDecision.attr.component) || index.toString();
-    const decision = new FormDecision<PathId>(element, id);
-    formDecisions.set(decision.id as T, decision);
+    const decision = new FormDecision<PathId>(element, { id, clearPathOnChange: false });
+    formDecisions.set(decision.opts.id as T, decision);
 
-    const groupElement = prospectArray.getClosestGroup(decision.component);
+    const group = prospectArray.getClosestGroup(decision.component);
     decision.onChange(() => {
-      prospectArray.validateModalGroup(groupElement);
+      prospectArray.validateModalGroup(group);
+      const allGroupsValid = prospectArray.groups.every(group => group.isValid === true);
+
+      prospectArray.saveOptions.setAction(allGroupsValid ? 'save' : 'draft');
     });
-    prospectArray.onOpen(`decision-${id}`, () => {
-      decision.changeToPath('hide');
-    });
+
+    prospectArray.onOpen(`decision-${id}`, () => decision.sync());
+    prospectArray.onClose(`decision-${id}`, () => decision.reset());
 
     // Set error messages for this FormDecision if available
     if (id && errorMessages[id]) {
