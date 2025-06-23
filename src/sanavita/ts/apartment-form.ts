@@ -116,9 +116,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     ],
   });
 
-  // @ts-ignore
-  window.prospectArray = prospectArray;
-
   FORM.addCustomComponent({
     stepIndex: 2,
     instance: prospectArray,
@@ -157,8 +154,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const moveInDateInput = FORM.getFormInput<HTMLInputElement>('bezug-ab');
   moveInDateInput.min = nextMonthStartString;
 
+  // @ts-ignore
+  window.prospectArray = prospectArray;
+
   // FORM.options.validation.validate = false;
-  // FORM.changeToStep(2);
+  // FORM.changeToStep(1);
   // await new Promise(resolve => setTimeout(resolve, 600));
   // prospectArray.editProspect(prospectArray.getProspect(0));
 

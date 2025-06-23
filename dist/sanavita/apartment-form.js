@@ -6458,7 +6458,6 @@ Component:`,
         "[data-decision-component]"
       ]
     });
-    window.prospectArray = prospectArray;
     FORM.addCustomComponent({
       stepIndex: 2,
       instance: prospectArray,
@@ -6492,6 +6491,7 @@ Component:`,
     const nextMonthStartString = format2(nextMonthStart, "yyyy-MM-dd");
     const moveInDateInput = FORM.getFormInput("bezug-ab");
     moveInDateInput.min = nextMonthStartString;
+    window.prospectArray = prospectArray;
     console.log("Form initialized:", FORM.initialized, FORM);
   });
 })();
