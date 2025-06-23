@@ -1,5 +1,5 @@
 (() => {
-  // ../peakflow/src/attributeselector.ts
+  // node_modules/peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -77,12 +77,12 @@
   };
   var attributeselector_default = createAttribute;
 
-  // ../peakflow/src/parameterize.ts
+  // node_modules/peakflow/src/parameterize.ts
   function toCamelCase(str) {
     return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
   }
 
-  // ../peakflow/node_modules/date-fns/constants.js
+  // node_modules/date-fns/constants.js
   var daysInYear = 365.2425;
   var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
   var minTime = -maxTime;
@@ -99,7 +99,7 @@
   var secondsInQuarter = secondsInMonth * 3;
   var constructFromSymbol = Symbol.for("constructDateFrom");
 
-  // ../peakflow/node_modules/date-fns/constructFrom.js
+  // node_modules/date-fns/constructFrom.js
   function constructFrom(date, value) {
     if (typeof date === "function") return date(value);
     if (date && typeof date === "object" && constructFromSymbol in date)
@@ -108,12 +108,12 @@
     return new Date(value);
   }
 
-  // ../peakflow/node_modules/date-fns/toDate.js
+  // node_modules/date-fns/toDate.js
   function toDate(argument, context) {
     return constructFrom(context || argument, argument);
   }
 
-  // ../peakflow/node_modules/date-fns/addDays.js
+  // node_modules/date-fns/addDays.js
   function addDays(date, amount, options) {
     const _date = toDate(date, options?.in);
     if (isNaN(amount)) return constructFrom(options?.in || date, NaN);
@@ -122,13 +122,13 @@
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/defaultOptions.js
+  // node_modules/date-fns/_lib/defaultOptions.js
   var defaultOptions = {};
   function getDefaultOptions() {
     return defaultOptions;
   }
 
-  // ../peakflow/node_modules/date-fns/startOfWeek.js
+  // node_modules/date-fns/startOfWeek.js
   function startOfWeek(date, options) {
     const defaultOptions2 = getDefaultOptions();
     const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
@@ -140,12 +140,12 @@
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/startOfISOWeek.js
+  // node_modules/date-fns/startOfISOWeek.js
   function startOfISOWeek(date, options) {
     return startOfWeek(date, { ...options, weekStartsOn: 1 });
   }
 
-  // ../peakflow/node_modules/date-fns/getISOWeekYear.js
+  // node_modules/date-fns/getISOWeekYear.js
   function getISOWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
@@ -166,7 +166,7 @@
     }
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
+  // node_modules/date-fns/_lib/getTimezoneOffsetInMilliseconds.js
   function getTimezoneOffsetInMilliseconds(date) {
     const _date = toDate(date);
     const utcDate = new Date(
@@ -184,7 +184,7 @@
     return +date - +utcDate;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/normalizeDates.js
+  // node_modules/date-fns/_lib/normalizeDates.js
   function normalizeDates(context, ...dates) {
     const normalize = constructFrom.bind(
       null,
@@ -193,14 +193,14 @@
     return dates.map(normalize);
   }
 
-  // ../peakflow/node_modules/date-fns/startOfDay.js
+  // node_modules/date-fns/startOfDay.js
   function startOfDay(date, options) {
     const _date = toDate(date, options?.in);
     _date.setHours(0, 0, 0, 0);
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/differenceInCalendarDays.js
+  // node_modules/date-fns/differenceInCalendarDays.js
   function differenceInCalendarDays(laterDate, earlierDate, options) {
     const [laterDate_, earlierDate_] = normalizeDates(
       options?.in,
@@ -214,7 +214,7 @@
     return Math.round((laterTimestamp - earlierTimestamp) / millisecondsInDay);
   }
 
-  // ../peakflow/node_modules/date-fns/startOfISOWeekYear.js
+  // node_modules/date-fns/startOfISOWeekYear.js
   function startOfISOWeekYear(date, options) {
     const year = getISOWeekYear(date, options);
     const fourthOfJanuary = constructFrom(options?.in || date, 0);
@@ -223,17 +223,17 @@
     return startOfISOWeek(fourthOfJanuary);
   }
 
-  // ../peakflow/node_modules/date-fns/isDate.js
+  // node_modules/date-fns/isDate.js
   function isDate(value) {
     return value instanceof Date || typeof value === "object" && Object.prototype.toString.call(value) === "[object Date]";
   }
 
-  // ../peakflow/node_modules/date-fns/isValid.js
+  // node_modules/date-fns/isValid.js
   function isValid(date) {
     return !(!isDate(date) && typeof date !== "number" || isNaN(+toDate(date)));
   }
 
-  // ../peakflow/node_modules/date-fns/startOfYear.js
+  // node_modules/date-fns/startOfYear.js
   function startOfYear(date, options) {
     const date_ = toDate(date, options?.in);
     date_.setFullYear(date_.getFullYear(), 0, 1);
@@ -241,7 +241,7 @@
     return date_;
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatDistance.js
+  // node_modules/date-fns/locale/en-US/_lib/formatDistance.js
   var formatDistanceLocale = {
     lessThanXSeconds: {
       one: "less than a second",
@@ -325,7 +325,7 @@
     return result;
   };
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildFormatLongFn.js
+  // node_modules/date-fns/locale/_lib/buildFormatLongFn.js
   function buildFormatLongFn(args) {
     return (options = {}) => {
       const width = options.width ? String(options.width) : args.defaultWidth;
@@ -334,7 +334,7 @@
     };
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatLong.js
+  // node_modules/date-fns/locale/en-US/_lib/formatLong.js
   var dateFormats = {
     full: "EEEE, MMMM do, y",
     long: "MMMM do, y",
@@ -368,7 +368,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/formatRelative.js
+  // node_modules/date-fns/locale/en-US/_lib/formatRelative.js
   var formatRelativeLocale = {
     lastWeek: "'last' eeee 'at' p",
     yesterday: "'yesterday at' p",
@@ -379,7 +379,7 @@
   };
   var formatRelative = (token, _date, _baseDate, _options) => formatRelativeLocale[token];
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildLocalizeFn.js
+  // node_modules/date-fns/locale/_lib/buildLocalizeFn.js
   function buildLocalizeFn(args) {
     return (value, options) => {
       const context = options?.context ? String(options.context) : "standalone";
@@ -398,7 +398,7 @@
     };
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/localize.js
+  // node_modules/date-fns/locale/en-US/_lib/localize.js
   var eraValues = {
     narrow: ["B", "A"],
     abbreviated: ["BC", "AD"],
@@ -560,7 +560,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildMatchFn.js
+  // node_modules/date-fns/locale/_lib/buildMatchFn.js
   function buildMatchFn(args) {
     return (string, options = {}) => {
       const width = options.width;
@@ -602,7 +602,7 @@
     return void 0;
   }
 
-  // ../peakflow/node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
+  // node_modules/date-fns/locale/_lib/buildMatchPatternFn.js
   function buildMatchPatternFn(args) {
     return (string, options = {}) => {
       const matchResult = string.match(args.matchPattern);
@@ -617,7 +617,7 @@
     };
   }
 
-  // ../peakflow/node_modules/date-fns/locale/en-US/_lib/match.js
+  // node_modules/date-fns/locale/en-US/_lib/match.js
   var matchOrdinalNumberPattern = /^(\d+)(th|st|nd|rd)?/i;
   var parseOrdinalNumberPattern = /\d+/i;
   var matchEraPatterns = {
@@ -736,7 +736,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/en-US.js
+  // node_modules/date-fns/locale/en-US.js
   var enUS = {
     code: "en-US",
     formatDistance,
@@ -750,7 +750,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/getDayOfYear.js
+  // node_modules/date-fns/getDayOfYear.js
   function getDayOfYear(date, options) {
     const _date = toDate(date, options?.in);
     const diff = differenceInCalendarDays(_date, startOfYear(_date));
@@ -758,14 +758,14 @@
     return dayOfYear;
   }
 
-  // ../peakflow/node_modules/date-fns/getISOWeek.js
+  // node_modules/date-fns/getISOWeek.js
   function getISOWeek(date, options) {
     const _date = toDate(date, options?.in);
     const diff = +startOfISOWeek(_date) - +startOfISOWeekYear(_date);
     return Math.round(diff / millisecondsInWeek) + 1;
   }
 
-  // ../peakflow/node_modules/date-fns/getWeekYear.js
+  // node_modules/date-fns/getWeekYear.js
   function getWeekYear(date, options) {
     const _date = toDate(date, options?.in);
     const year = _date.getFullYear();
@@ -788,7 +788,7 @@
     }
   }
 
-  // ../peakflow/node_modules/date-fns/startOfWeekYear.js
+  // node_modules/date-fns/startOfWeekYear.js
   function startOfWeekYear(date, options) {
     const defaultOptions2 = getDefaultOptions();
     const firstWeekContainsDate = options?.firstWeekContainsDate ?? options?.locale?.options?.firstWeekContainsDate ?? defaultOptions2.firstWeekContainsDate ?? defaultOptions2.locale?.options?.firstWeekContainsDate ?? 1;
@@ -800,21 +800,21 @@
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/getWeek.js
+  // node_modules/date-fns/getWeek.js
   function getWeek(date, options) {
     const _date = toDate(date, options?.in);
     const diff = +startOfWeek(_date, options) - +startOfWeekYear(_date, options);
     return Math.round(diff / millisecondsInWeek) + 1;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/addLeadingZeros.js
+  // node_modules/date-fns/_lib/addLeadingZeros.js
   function addLeadingZeros(number, targetLength) {
     const sign = number < 0 ? "-" : "";
     const output = Math.abs(number).toString().padStart(targetLength, "0");
     return sign + output;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/format/lightFormatters.js
+  // node_modules/date-fns/_lib/format/lightFormatters.js
   var lightFormatters = {
     // Year
     y(date, token) {
@@ -874,7 +874,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/_lib/format/formatters.js
+  // node_modules/date-fns/_lib/format/formatters.js
   var dayPeriodEnum = {
     am: "am",
     pm: "pm",
@@ -1520,7 +1520,7 @@
     return sign + hours + delimiter + minutes;
   }
 
-  // ../peakflow/node_modules/date-fns/_lib/format/longFormatters.js
+  // node_modules/date-fns/_lib/format/longFormatters.js
   var dateLongFormatter = (pattern, formatLong3) => {
     switch (pattern) {
       case "P":
@@ -1577,7 +1577,7 @@
     P: dateTimeLongFormatter
   };
 
-  // ../peakflow/node_modules/date-fns/_lib/protectedTokens.js
+  // node_modules/date-fns/_lib/protectedTokens.js
   var dayOfYearTokenRE = /^D+$/;
   var weekYearTokenRE = /^Y+$/;
   var throwTokens = ["D", "DD", "YY", "YYYY"];
@@ -1597,7 +1597,7 @@
     return `Use \`${token.toLowerCase()}\` instead of \`${token}\` (in \`${format3}\`) for formatting ${subject} to the input \`${input}\`; see: https://github.com/date-fns/date-fns/blob/master/docs/unicodeTokens.md`;
   }
 
-  // ../peakflow/node_modules/date-fns/format.js
+  // node_modules/date-fns/format.js
   var formattingTokensRegExp = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
   var longFormattingTokensRegExp = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
   var escapedStringRegExp = /^'([^]*?)'?$/;
@@ -1663,18 +1663,18 @@
     return matched[1].replace(doubleQuoteRegExp, "'");
   }
 
-  // ../peakflow/node_modules/date-fns/getDefaultOptions.js
+  // node_modules/date-fns/getDefaultOptions.js
   function getDefaultOptions2() {
     return Object.assign({}, getDefaultOptions());
   }
 
-  // ../peakflow/node_modules/date-fns/getISODay.js
+  // node_modules/date-fns/getISODay.js
   function getISODay(date, options) {
     const day = toDate(date, options?.in).getDay();
     return day === 0 ? 7 : day;
   }
 
-  // ../peakflow/node_modules/date-fns/transpose.js
+  // node_modules/date-fns/transpose.js
   function transpose(date, constructor) {
     const date_ = isConstructor(constructor) ? new constructor(0) : constructFrom(constructor, 0);
     date_.setFullYear(date.getFullYear(), date.getMonth(), date.getDate());
@@ -1690,7 +1690,7 @@
     return typeof constructor === "function" && constructor.prototype?.constructor === constructor;
   }
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/Setter.js
+  // node_modules/date-fns/parse/_lib/Setter.js
   var TIMEZONE_UNIT_PRIORITY = 10;
   var Setter = class {
     subPriority = 0;
@@ -1729,7 +1729,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/Parser.js
+  // node_modules/date-fns/parse/_lib/Parser.js
   var Parser = class {
     run(dateString, token, match3, options) {
       const result = this.parse(dateString, token, match3, options);
@@ -1752,7 +1752,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/EraParser.js
+  // node_modules/date-fns/parse/_lib/parsers/EraParser.js
   var EraParser = class extends Parser {
     priority = 140;
     parse(dateString, token, match3) {
@@ -1780,7 +1780,7 @@
     incompatibleTokens = ["R", "u", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/constants.js
+  // node_modules/date-fns/parse/_lib/constants.js
   var numericPatterns = {
     month: /^(1[0-2]|0?\d)/,
     // 0 to 12
@@ -1828,7 +1828,7 @@
     extendedOptionalSeconds: /^([+-])(\d{2}):(\d{2})(:(\d{2}))?|Z/
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/utils.js
+  // node_modules/date-fns/parse/_lib/utils.js
   function mapValue(parseFnResult, mapFn) {
     if (!parseFnResult) {
       return parseFnResult;
@@ -1934,7 +1934,7 @@
     return year % 400 === 0 || year % 4 === 0 && year % 100 !== 0;
   }
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/YearParser.js
+  // node_modules/date-fns/parse/_lib/parsers/YearParser.js
   var YearParser = class extends Parser {
     priority = 130;
     incompatibleTokens = ["Y", "R", "u", "w", "I", "i", "e", "c", "t", "T"];
@@ -1978,7 +1978,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/LocalWeekYearParser.js
+  // node_modules/date-fns/parse/_lib/parsers/LocalWeekYearParser.js
   var LocalWeekYearParser = class extends Parser {
     priority = 130;
     parse(dateString, token, match3) {
@@ -2040,7 +2040,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/ISOWeekYearParser.js
+  // node_modules/date-fns/parse/_lib/parsers/ISOWeekYearParser.js
   var ISOWeekYearParser = class extends Parser {
     priority = 130;
     parse(dateString, token) {
@@ -2074,7 +2074,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/ExtendedYearParser.js
+  // node_modules/date-fns/parse/_lib/parsers/ExtendedYearParser.js
   var ExtendedYearParser = class extends Parser {
     priority = 130;
     parse(dateString, token) {
@@ -2091,7 +2091,7 @@
     incompatibleTokens = ["G", "y", "Y", "R", "w", "I", "i", "e", "c", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/QuarterParser.js
+  // node_modules/date-fns/parse/_lib/parsers/QuarterParser.js
   var QuarterParser = class extends Parser {
     priority = 120;
     parse(dateString, token, match3) {
@@ -2159,7 +2159,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/StandAloneQuarterParser.js
+  // node_modules/date-fns/parse/_lib/parsers/StandAloneQuarterParser.js
   var StandAloneQuarterParser = class extends Parser {
     priority = 120;
     parse(dateString, token, match3) {
@@ -2227,7 +2227,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/MonthParser.js
+  // node_modules/date-fns/parse/_lib/parsers/MonthParser.js
   var MonthParser = class extends Parser {
     incompatibleTokens = [
       "Y",
@@ -2296,7 +2296,7 @@
     }
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/StandAloneMonthParser.js
+  // node_modules/date-fns/parse/_lib/parsers/StandAloneMonthParser.js
   var StandAloneMonthParser = class extends Parser {
     priority = 110;
     parse(dateString, token, match3) {
@@ -2365,7 +2365,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/setWeek.js
+  // node_modules/date-fns/setWeek.js
   function setWeek(date, week, options) {
     const date_ = toDate(date, options?.in);
     const diff = getWeek(date_, options) - week;
@@ -2373,7 +2373,7 @@
     return toDate(date_, options?.in);
   }
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/LocalWeekParser.js
+  // node_modules/date-fns/parse/_lib/parsers/LocalWeekParser.js
   var LocalWeekParser = class extends Parser {
     priority = 100;
     parse(dateString, token, match3) {
@@ -2409,7 +2409,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/setISOWeek.js
+  // node_modules/date-fns/setISOWeek.js
   function setISOWeek(date, week, options) {
     const _date = toDate(date, options?.in);
     const diff = getISOWeek(_date, options) - week;
@@ -2417,7 +2417,7 @@
     return _date;
   }
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/ISOWeekParser.js
+  // node_modules/date-fns/parse/_lib/parsers/ISOWeekParser.js
   var ISOWeekParser = class extends Parser {
     priority = 100;
     parse(dateString, token, match3) {
@@ -2454,7 +2454,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/DateParser.js
+  // node_modules/date-fns/parse/_lib/parsers/DateParser.js
   var DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   var DAYS_IN_MONTH_LEAP_YEAR = [
     31,
@@ -2514,7 +2514,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/DayOfYearParser.js
+  // node_modules/date-fns/parse/_lib/parsers/DayOfYearParser.js
   var DayOfYearParser = class extends Parser {
     priority = 90;
     subpriority = 1;
@@ -2562,7 +2562,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/setDay.js
+  // node_modules/date-fns/setDay.js
   function setDay(date, day, options) {
     const defaultOptions2 = getDefaultOptions();
     const weekStartsOn = options?.weekStartsOn ?? options?.locale?.options?.weekStartsOn ?? defaultOptions2.weekStartsOn ?? defaultOptions2.locale?.options?.weekStartsOn ?? 0;
@@ -2575,7 +2575,7 @@
     return addDays(date_, diff, options);
   }
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/DayParser.js
+  // node_modules/date-fns/parse/_lib/parsers/DayParser.js
   var DayParser = class extends Parser {
     priority = 90;
     parse(dateString, token, match3) {
@@ -2617,7 +2617,7 @@
     incompatibleTokens = ["D", "i", "e", "c", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/LocalDayParser.js
+  // node_modules/date-fns/parse/_lib/parsers/LocalDayParser.js
   var LocalDayParser = class extends Parser {
     priority = 90;
     parse(dateString, token, match3, options) {
@@ -2689,7 +2689,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/StandAloneLocalDayParser.js
+  // node_modules/date-fns/parse/_lib/parsers/StandAloneLocalDayParser.js
   var StandAloneLocalDayParser = class extends Parser {
     priority = 90;
     parse(dateString, token, match3, options) {
@@ -2761,7 +2761,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/setISODay.js
+  // node_modules/date-fns/setISODay.js
   function setISODay(date, day, options) {
     const date_ = toDate(date, options?.in);
     const currentDay = getISODay(date_, options);
@@ -2769,7 +2769,7 @@
     return addDays(date_, diff, options);
   }
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/ISODayParser.js
+  // node_modules/date-fns/parse/_lib/parsers/ISODayParser.js
   var ISODayParser = class extends Parser {
     priority = 90;
     parse(dateString, token, match3) {
@@ -2871,7 +2871,7 @@
     ];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/AMPMParser.js
+  // node_modules/date-fns/parse/_lib/parsers/AMPMParser.js
   var AMPMParser = class extends Parser {
     priority = 80;
     parse(dateString, token, match3) {
@@ -2912,7 +2912,7 @@
     incompatibleTokens = ["b", "B", "H", "k", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/AMPMMidnightParser.js
+  // node_modules/date-fns/parse/_lib/parsers/AMPMMidnightParser.js
   var AMPMMidnightParser = class extends Parser {
     priority = 80;
     parse(dateString, token, match3) {
@@ -2953,7 +2953,7 @@
     incompatibleTokens = ["a", "B", "H", "k", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/DayPeriodParser.js
+  // node_modules/date-fns/parse/_lib/parsers/DayPeriodParser.js
   var DayPeriodParser = class extends Parser {
     priority = 80;
     parse(dateString, token, match3) {
@@ -2994,7 +2994,7 @@
     incompatibleTokens = ["a", "b", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/Hour1to12Parser.js
+  // node_modules/date-fns/parse/_lib/parsers/Hour1to12Parser.js
   var Hour1to12Parser = class extends Parser {
     priority = 70;
     parse(dateString, token, match3) {
@@ -3024,7 +3024,7 @@
     incompatibleTokens = ["H", "K", "k", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/Hour0to23Parser.js
+  // node_modules/date-fns/parse/_lib/parsers/Hour0to23Parser.js
   var Hour0to23Parser = class extends Parser {
     priority = 70;
     parse(dateString, token, match3) {
@@ -3047,7 +3047,7 @@
     incompatibleTokens = ["a", "b", "h", "K", "k", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/Hour0To11Parser.js
+  // node_modules/date-fns/parse/_lib/parsers/Hour0To11Parser.js
   var Hour0To11Parser = class extends Parser {
     priority = 70;
     parse(dateString, token, match3) {
@@ -3075,7 +3075,7 @@
     incompatibleTokens = ["h", "H", "k", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/Hour1To24Parser.js
+  // node_modules/date-fns/parse/_lib/parsers/Hour1To24Parser.js
   var Hour1To24Parser = class extends Parser {
     priority = 70;
     parse(dateString, token, match3) {
@@ -3099,7 +3099,7 @@
     incompatibleTokens = ["a", "b", "h", "H", "K", "t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/MinuteParser.js
+  // node_modules/date-fns/parse/_lib/parsers/MinuteParser.js
   var MinuteParser = class extends Parser {
     priority = 60;
     parse(dateString, token, match3) {
@@ -3122,7 +3122,7 @@
     incompatibleTokens = ["t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/SecondParser.js
+  // node_modules/date-fns/parse/_lib/parsers/SecondParser.js
   var SecondParser = class extends Parser {
     priority = 50;
     parse(dateString, token, match3) {
@@ -3145,7 +3145,7 @@
     incompatibleTokens = ["t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/FractionOfSecondParser.js
+  // node_modules/date-fns/parse/_lib/parsers/FractionOfSecondParser.js
   var FractionOfSecondParser = class extends Parser {
     priority = 30;
     parse(dateString, token) {
@@ -3159,7 +3159,7 @@
     incompatibleTokens = ["t", "T"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/ISOTimezoneWithZParser.js
+  // node_modules/date-fns/parse/_lib/parsers/ISOTimezoneWithZParser.js
   var ISOTimezoneWithZParser = class extends Parser {
     priority = 10;
     parse(dateString, token) {
@@ -3196,7 +3196,7 @@
     incompatibleTokens = ["t", "T", "x"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/ISOTimezoneParser.js
+  // node_modules/date-fns/parse/_lib/parsers/ISOTimezoneParser.js
   var ISOTimezoneParser = class extends Parser {
     priority = 10;
     parse(dateString, token) {
@@ -3233,7 +3233,7 @@
     incompatibleTokens = ["t", "T", "X"];
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/TimestampSecondsParser.js
+  // node_modules/date-fns/parse/_lib/parsers/TimestampSecondsParser.js
   var TimestampSecondsParser = class extends Parser {
     priority = 40;
     parse(dateString) {
@@ -3245,7 +3245,7 @@
     incompatibleTokens = "*";
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers/TimestampMillisecondsParser.js
+  // node_modules/date-fns/parse/_lib/parsers/TimestampMillisecondsParser.js
   var TimestampMillisecondsParser = class extends Parser {
     priority = 20;
     parse(dateString) {
@@ -3257,7 +3257,7 @@
     incompatibleTokens = "*";
   };
 
-  // ../peakflow/node_modules/date-fns/parse/_lib/parsers.js
+  // node_modules/date-fns/parse/_lib/parsers.js
   var parsers = {
     G: new EraParser(),
     y: new YearParser(),
@@ -3292,7 +3292,7 @@
     T: new TimestampMillisecondsParser()
   };
 
-  // ../peakflow/node_modules/date-fns/parse.js
+  // node_modules/date-fns/parse.js
   var formattingTokensRegExp2 = /[yYQqMLwIdDecihHKkms]o|(\w)\1*|''|'(''|[^'])+('|$)|./g;
   var longFormattingTokensRegExp2 = /P+p+|P+|p+|''|'(''|[^'])+('|$)|./g;
   var escapedStringRegExp2 = /^'([^]*?)'?$/;
@@ -3404,7 +3404,7 @@
     return input.match(escapedStringRegExp2)[1].replace(doubleQuoteRegExp2, "'");
   }
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/_lib/tzTokenizeDate/index.js
+  // node_modules/date-fns-tz/dist/esm/_lib/tzTokenizeDate/index.js
   function tzTokenizeDate(date, timeZone) {
     const dtf = getDateTimeFormat(timeZone);
     return "formatToParts" in dtf ? partsOffset(dtf, date) : hackyOffset(dtf, date);
@@ -3484,7 +3484,7 @@
     return dtfCache[timeZone];
   }
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/_lib/newDateUTC/index.js
+  // node_modules/date-fns-tz/dist/esm/_lib/newDateUTC/index.js
   function newDateUTC(fullYear, month, day, hour, minute, second, millisecond) {
     const utcDate = /* @__PURE__ */ new Date(0);
     utcDate.setUTCFullYear(fullYear, month, day);
@@ -3492,7 +3492,7 @@
     return utcDate;
   }
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/_lib/tzParseTimezone/index.js
+  // node_modules/date-fns-tz/dist/esm/_lib/tzParseTimezone/index.js
   var MILLISECONDS_IN_HOUR = 36e5;
   var MILLISECONDS_IN_MINUTE = 6e4;
   var patterns = {
@@ -3579,20 +3579,20 @@
     }
   }
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/format/formatters/index.js
+  // node_modules/date-fns-tz/dist/esm/format/formatters/index.js
   var MILLISECONDS_IN_MINUTE2 = 60 * 1e3;
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/_lib/getTimezoneOffsetInMilliseconds/index.js
+  // node_modules/date-fns-tz/dist/esm/_lib/getTimezoneOffsetInMilliseconds/index.js
   function getTimezoneOffsetInMilliseconds2(date) {
     const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()));
     utcDate.setUTCFullYear(date.getFullYear());
     return +date - +utcDate;
   }
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/_lib/tzPattern/index.js
+  // node_modules/date-fns-tz/dist/esm/_lib/tzPattern/index.js
   var tzPattern = /(Z|[+-]\d{2}(?::?\d{2})?| UTC| [a-zA-Z]+\/[a-zA-Z_]+(?:\/[a-zA-Z_]+)?)$/;
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/toDate/index.js
+  // node_modules/date-fns-tz/dist/esm/toDate/index.js
   var MILLISECONDS_IN_HOUR2 = 36e5;
   var MILLISECONDS_IN_MINUTE3 = 6e4;
   var DEFAULT_ADDITIONAL_DIGITS = 2;
@@ -3894,7 +3894,7 @@
     return true;
   }
 
-  // ../peakflow/node_modules/date-fns-tz/dist/esm/fromZonedTime/index.js
+  // node_modules/date-fns-tz/dist/esm/fromZonedTime/index.js
   function fromZonedTime(date, timeZone, options) {
     if (typeof date === "string" && !date.match(tzPattern)) {
       return toDate2(date, { ...options, timeZone });
@@ -3905,7 +3905,7 @@
     return new Date(utc + offsetMilliseconds);
   }
 
-  // ../peakflow/node_modules/date-fns/locale/de/_lib/formatDistance.js
+  // node_modules/date-fns/locale/de/_lib/formatDistance.js
   var formatDistanceLocale2 = {
     lessThanXSeconds: {
       standalone: {
@@ -4082,7 +4082,7 @@
     return result;
   };
 
-  // ../peakflow/node_modules/date-fns/locale/de/_lib/formatLong.js
+  // node_modules/date-fns/locale/de/_lib/formatLong.js
   var dateFormats2 = {
     full: "EEEE, do MMMM y",
     // Montag, 7. Januar 2018
@@ -4120,7 +4120,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/de/_lib/formatRelative.js
+  // node_modules/date-fns/locale/de/_lib/formatRelative.js
   var formatRelativeLocale2 = {
     lastWeek: "'letzten' eeee 'um' p",
     yesterday: "'gestern um' p",
@@ -4131,7 +4131,7 @@
   };
   var formatRelative2 = (token, _date, _baseDate, _options) => formatRelativeLocale2[token];
 
-  // ../peakflow/node_modules/date-fns/locale/de/_lib/localize.js
+  // node_modules/date-fns/locale/de/_lib/localize.js
   var eraValues2 = {
     narrow: ["v.Chr.", "n.Chr."],
     abbreviated: ["v.Chr.", "n.Chr."],
@@ -4301,7 +4301,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/de/_lib/match.js
+  // node_modules/date-fns/locale/de/_lib/match.js
   var matchOrdinalNumberPattern2 = /^(\d+)(\.)?/i;
   var parseOrdinalNumberPattern2 = /\d+/i;
   var matchEraPatterns2 = {
@@ -4422,7 +4422,7 @@
     })
   };
 
-  // ../peakflow/node_modules/date-fns/locale/de.js
+  // node_modules/date-fns/locale/de.js
   var de = {
     code: "de",
     formatDistance: formatDistance2,
@@ -4436,7 +4436,7 @@
     }
   };
 
-  // ../peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/src/webflow/webflow.ts
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -4476,7 +4476,7 @@
     select: wfselect
   };
 
-  // ../peakflow/src/deepmerge.ts
+  // node_modules/peakflow/src/deepmerge.ts
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -4494,11 +4494,22 @@
     return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // ../peakflow/src/renderer.ts
+  // node_modules/peakflow/src/renderer.ts
   var Renderer = class _Renderer {
+    static defaultOptions = {
+      attributeName: "render",
+      filterAttributes: {},
+      timezone: false
+    };
+    options;
+    canvas;
+    data;
+    fieldAttr;
+    elementAttr;
+    emptyStateAttr;
+    collectionAttr = `data-is-collection`;
+    attributeName = "render";
     constructor(canvas, options) {
-      this.collectionAttr = `data-is-collection`;
-      this.attributeName = "render";
       if (!canvas) throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
       this.options = deepMerge(_Renderer.defaultOptions, options);
@@ -4506,13 +4517,6 @@
       this.elementAttr = `data-${this.attributeName}-element`;
       this.fieldAttr = `data-${this.attributeName}-field`;
       this.emptyStateAttr = `data-${this.attributeName}-empty-state`;
-    }
-    static {
-      this.defaultOptions = {
-        attributeName: "render",
-        filterAttributes: {},
-        timezone: false
-      };
     }
     static defineAttributes(obj) {
       return obj;
@@ -4910,18 +4914,22 @@
   };
   var renderer_default = Renderer;
 
-  // ../peakflow/src/wfcollection/wfcollection.ts
+  // node_modules/peakflow/src/wfcollection/wfcollection.ts
   var CollectionList = class {
     constructor(container, options = { name: "", rendererOptions: {} }) {
       this.options = options;
-      this.collectionData = [];
-      this.debug = false;
       if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
       this.renderer = new renderer_default(container, this.options.rendererOptions);
     }
+    container;
+    renderer;
+    collectionData = [];
+    debug = false;
+    listElement;
+    items;
     log(...args) {
       if (!this.debug) return;
       console.log(`"${this.options.name}" CollectionList:`, ...args);
@@ -4969,7 +4977,7 @@
     }
   };
 
-  // ../peakflow/src/wfcollection/filtercollection.ts
+  // node_modules/peakflow/src/wfcollection/filtercollection.ts
   var FilterCollection = class _FilterCollection extends CollectionList {
     constructor(container, options = { name: "", rendererOptions: {} }) {
       const mergedFilterAttributes = renderer_default.defineAttributes({
@@ -4986,13 +4994,11 @@
       super(container, newOptions);
       this.options = options;
     }
-    static {
-      this.defaultAttributes = renderer_default.defineAttributes({
-        "date": "date",
-        "start-date": "date",
-        "end-date": "date"
-      });
-    }
+    static defaultAttributes = renderer_default.defineAttributes({
+      "date": "date",
+      "start-date": "date",
+      "end-date": "date"
+    });
     filterByDate(startDate, endDate, ...additionalConditions) {
       const filtered = [...this.collectionData].filter(
         (entry) => {

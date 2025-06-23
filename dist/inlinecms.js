@@ -1,5 +1,5 @@
 (() => {
-  // ../peakflow/src/utils/getelements.ts
+  // node_modules/peakflow/src/utils/getelements.ts
   function getAllElements(input, single = false) {
     if (typeof input === "string") {
       const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
@@ -21,7 +21,7 @@
     }
   }
 
-  // ../peakflow/src/inlinecms.ts
+  // node_modules/peakflow/src/inlinecms.ts
   var INLINECMS_TARGET_ATTR = `data-inlinecms-target`;
   var INLINECMS_COMPONENT_ATTR = `data-inlinecms-component`;
   function validateContainer(container) {
