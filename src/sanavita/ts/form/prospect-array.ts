@@ -49,6 +49,12 @@ const ACCORDION_SELECTOR = `[data-animate="accordion"]`;
 // Unique key to store form data in localStorage
 const STORAGE_KEY = "formProgress";
 
+type ModalGroup = {
+  isValid: boolean;
+  element: HTMLElement;
+  name: GroupName;
+}
+
 type OnOpenCallback = (prospect?: ResidentProspect) => void;
 type OnCloseCallback = () => void;
 
@@ -59,6 +65,7 @@ export default class ProspectArray {
   public modal: Modal;
   public modalElement: HTMLElement;
   public alertDialog: AlertDialog = getAlertDialog();
+  public groups: ModalGroup[] = [];
   private container: HTMLElement;
   private list: HTMLElement;
   private template: HTMLElement;
@@ -67,7 +74,6 @@ export default class ProspectArray {
   private cancelButtons: NodeListOf<HTMLButtonElement>;
   private saveOptions: SaveOptions<'draft' | 'save'>;
   private modalInputs: NodeListOf<HTMLFormInput>;
-  private groupElements: NodeListOf<HTMLElement>;
   private accordionList: Accordion[] = [];
   private onOpenCallbacks: Map<string, OnOpenCallback> = new Map();
   private onCloseCallbacks: Map<string, OnCloseCallback> = new Map();
@@ -101,8 +107,18 @@ export default class ProspectArray {
       prospectSelector('cancel')
     )!;
     this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
-    this.groupElements =
-      this.modalElement.querySelectorAll(FIELD_GROUP_SELECTOR);
+
+    // Get groups
+    const groupElements =
+      this.modalElement.querySelectorAll<HTMLElement>(FIELD_GROUP_SELECTOR);
+    groupElements.forEach(groupEl => {
+      const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
+      this.groups.push({
+        isValid: false,
+        element: groupEl,
+        name: groupName,
+      });
+    });
 
     this.initialize();
   }
@@ -588,19 +604,18 @@ export default class ProspectArray {
       linkCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
-    this.groupElements.forEach((group) => {
+    this.groups.forEach((group) => {
       const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-      const groupInputs: NodeListOf<HTMLFormInput> = group.querySelectorAll(selector);
-      const groupName = group.dataset.prospectFieldGroup! as GroupName;
+      const groupInputs: NodeListOf<HTMLFormInput> = group.element.querySelectorAll(selector);
 
-      if (!prospect[groupName]) {
-        console.error(`The group "${groupName}" doesn't exist.`);
+      if (!prospect[group.name]) {
+        console.error(`The group "${group.name}" doesn't exist.`);
         return;
       }
 
       groupInputs.forEach((input) => {
         // Get field
-        const field = prospect[groupName].getField(input.id);
+        const field = prospect[group.name].getField(input.id);
 
         if (!field) {
           console.warn(`Field not found:`, input.id);
@@ -673,18 +688,19 @@ export default class ProspectArray {
     return valid;
   }
 
-  public validateModalGroup(groupEl: HTMLElement): FieldGroupValidation {
-    const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
-    const groupInputs = groupEl.querySelectorAll<HTMLFormInput>(wf.select.formInput);
+  public validateModalGroup(group: ModalGroup): FieldGroupValidation {
+    const groupInputs = group.element.querySelectorAll<HTMLFormInput>(wf.select.formInput);
     const validation = validateFields(groupInputs, false);
 
-    const circle = groupEl.querySelector(prospectSelector('circle'));
-    if (!circle) console.warn(`Circle element not found inside group "${groupName}"`);
+    const circle = group.element.querySelector(prospectSelector('circle'));
+    if (!circle) console.warn(`Circle element not found inside group "${group.name}"`);
     if (validation.isValid) {
       circle.classList.add('is-valid');
     } else {
       circle.classList.remove('is-valid');
     }
+
+    group.isValid = validation.isValid;
 
     return validation;
   }
@@ -694,10 +710,10 @@ export default class ProspectArray {
     let valid = true;
     const invalidFields: HTMLFormInput[] = [];
 
-    this.groupElements.forEach(groupEl => {
-      const groupValid = this.validateModalGroup(groupEl);
+    this.groups.forEach(group => {
+      const groupValid = this.validateModalGroup(group);
       invalidFields.push(...groupValid.invalidFields);
-      if (groupValid.isValid) return;
+      if (group.isValid) return;
       valid = false;
     });
 
@@ -861,18 +877,16 @@ export default class ProspectArray {
     return -1; // Return -1 if no accordion is found
   }
 
-  public getClosestGroup(element: HTMLElement): HTMLElement {
+  public getClosestGroup(element: HTMLElement): ModalGroup {
     const groupEl: HTMLElement | null = element.closest(FIELD_GROUP_SELECTOR);
     if (!groupEl) {
       throw new Error(`The given element is not part of a group element.`);
     }
-    return groupEl;
+    return this.groups.find(group => group.element === groupEl);
   }
 
-  private getGroupsByName(groupName: GroupName): HTMLElement[] {
-    return Array.from(
-      this.modal.component.querySelectorAll<HTMLElement>(`[${FIELD_GROUP_ATTR}="${groupName}"]`)
-    );
+  private getGroupsByName(groupName: GroupName): ModalGroup[] {
+    return this.groups.filter(group => group.name === groupName);
   }
 
   private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
@@ -893,27 +907,27 @@ export default class ProspectArray {
     if (isFormInput(fieldOrId)) {
       return fieldOrId as T;
     }
-    const groupElements = this.getGroupsByName(groupName);
+    const groups = this.getGroupsByName(groupName);
+    const groupElements = groups.map(group => group.element);
     return findFormInput<T>(groupElements, fieldOrId);
   }
 
   private extractData(draft: boolean = false): ResidentProspect {
     const prospectData = new ResidentProspect({ draft: draft });
 
-    this.groupElements.forEach((group) => {
-      const groupInputs = group.querySelectorAll<HTMLFormInput>(wf.select.formInput);
-      const groupName = group.dataset.prospectFieldGroup! as GroupName;
-      const linkElements = group.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
+    this.groups.forEach((group) => {
+      const groupInputs = group.element.querySelectorAll<HTMLFormInput>(wf.select.formInput);
+      const linkElements = group.element.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
 
-      if (!prospectData[groupName]) {
-        console.error(`The group "${groupName}" doesn't exist.`);
+      if (!prospectData[group.name]) {
+        console.error(`The group "${group.name}" doesn't exist.`);
         return;
       }
 
       groupInputs.forEach((input, index) => {
         const field = fieldFromInput(input, index);
         if (field.id) {
-          prospectData[groupName].fields.set(field.id, field);
+          prospectData[group.name].fields.set(field.id, field);
         }
       });
 
@@ -923,7 +937,7 @@ export default class ProspectArray {
         const id = linkCheckbox.dataset.name;
         const fieldsToLink = linkElement.getAttribute(LINK_FIELDS_ATTR);
         if (linkCheckbox.checked) {
-          prospectData.linkFields(id, groupName, fieldsToLink);
+          prospectData.linkFields(id, group.name, fieldsToLink);
         }
       });
     });
