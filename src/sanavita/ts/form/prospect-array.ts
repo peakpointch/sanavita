@@ -334,17 +334,23 @@ export default class ProspectArray {
   /**
    * Retrieves a `ResidentProspect` instance from a given key or returns the provided `ResidentProspect` directly.
    * 
-   * @param prospectOrKey - Either the key of the prospect or the prospect object itself.
+   * @param prospectOrKeyOrIndex - Either the key of the prospect or the prospect object itself.
    * @returns {ResidentProspect} The corresponding `ResidentProspect` object.
    * @throws Error if the prospect with the given key is not found.
    */
-  private getProspect(prospectOrKey: ResidentProspect | string): ResidentProspect {
-    const prospect = typeof prospectOrKey === "string"
-      ? this.prospects.get(prospectOrKey)
-      : prospectOrKey;
+  public getProspect(prospectOrKeyOrIndex: ResidentProspect | string | number): ResidentProspect {
+    let prospect: ResidentProspect;
+
+    if (typeof prospectOrKeyOrIndex === 'string') {
+      prospect = this.prospects.get(prospectOrKeyOrIndex);
+    } else if (typeof prospectOrKeyOrIndex === 'number') {
+      prospect = Array.from(this.prospects.values())[prospectOrKeyOrIndex];
+    } else if (prospectOrKeyOrIndex instanceof ResidentProspect) {
+      prospect = prospectOrKeyOrIndex;
+    }
 
     if (!prospect) {
-      throw new Error(`Prospect not found: ${prospectOrKey}`);
+      throw new Error(`Prospect not found: ${prospectOrKeyOrIndex}`);
     }
 
     return prospect;
