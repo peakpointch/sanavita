@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // ../peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -77,7 +77,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/marquee.ts
+  // ../peakflow/src/marquee.ts
   var marqueeSelector = attributeselector_default("data-marquee-element");
   function setMarqueeSpeed(speed, trackOrComponent) {
     if (!trackOrComponent || !(trackOrComponent instanceof HTMLElement)) {
