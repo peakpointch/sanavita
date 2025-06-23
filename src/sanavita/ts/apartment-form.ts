@@ -157,5 +157,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const moveInDateInput = FORM.getFormInput<HTMLInputElement>('bezug-ab');
   moveInDateInput.min = nextMonthStartString;
 
+  // FORM.options.validation.validate = false;
+  // FORM.changeToStep(2);
+  // await new Promise(resolve => setTimeout(resolve, 600));
+  // prospectArray.editProspect(prospectArray.getProspect(0));
+
   console.log("Form initialized:", FORM.initialized, FORM);
 });
