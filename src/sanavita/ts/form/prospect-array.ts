@@ -240,6 +240,8 @@ export default class ProspectArray {
       }
 
       input.value = sourceFieldGroup.getField(id)?.value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
     });
   }
 
@@ -270,6 +272,8 @@ export default class ProspectArray {
       }
 
       input.value = null;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
     });
   }
 
