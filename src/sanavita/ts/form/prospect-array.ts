@@ -161,11 +161,21 @@ export default class ProspectArray {
           position: position,
         });
       });
-      const groupEl = this.getClosestGroup(input);
+      const group = this.getClosestGroup(input);
       input.addEventListener("input", () => {
-        if (input.matches(FormDecision.selector("input"))) return;
-        this.validateModalGroup(groupEl);
-        // Never report invalid fields here
+        // Never report invalid fields on every 'input' event
+        if (input.matches(FormDecision.selector("input"))
+          || input.matches(`[${LINK_FIELDS_ATTR}] *`)
+        ) return;
+
+        this.validateModalGroup(group);
+        const allGroupsValid = this.groups.every(group => group.isValid === true);
+
+        if (allGroupsValid) {
+          this.saveOptions.setAction('save');
+        } else {
+          this.saveOptions.setAction('draft');
+        }
       });
     });
 
