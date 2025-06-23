@@ -8,6 +8,8 @@ import ProspectArray from "./form/prospect-array";
 import createAttribute from "@peakflow/attributeselector";
 import { flattenProspects } from "./form/resident-prospect";
 import { addMonths, format, startOfMonth } from "date-fns";
+import CMSSelect from "@peakflow/form/cms-select";
+import { getElement } from "@peakflow/utils/getelements";
 
 const decisionSelector = createAttribute('data-decision-component');
 
@@ -93,6 +95,29 @@ function insertSearchParamValues(): void {
   }
 }
 
+function initCMSSelect(): void {
+  const source = CMSSelect.selector('source', 'apartment');
+  const apartmentSelect = new CMSSelect(source);
+  apartmentSelect.insertOptions();
+
+  const wrapper = getElement('[data-field-wrapper-id="alternativeApartment"]');
+
+  if (apartmentSelect.values.length <= 1) {
+    wrapper.style.display = 'none';
+    return
+  }
+
+  const alternative = CMSSelect.selector('target', 'alternativeApartment');
+  const alternativeSelect = wrapper.querySelector<HTMLSelectElement>(alternative);
+  apartmentSelect.onChange('syncAlternatives', () => {
+    const values = Array.from(apartmentSelect.values);
+    const filtered = values.filter(val => val !== apartmentSelect.targets[0].value)
+    CMSSelect.clearOptions(alternativeSelect, true);
+    CMSSelect.insertOptions(alternativeSelect, filtered);
+  });
+  apartmentSelect.triggerOnChange();
+}
+
 const formElement: HTMLElement | null = document.querySelector(
   formElementSelector('component', { exclusions: [] })
 );
@@ -143,6 +168,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   );
   initializeFormDecisions(FORM, errorMessages, defaultMessages);
   insertSearchParamValues();
+  initCMSSelect();
+
   prospectArray.loadProgress();
   FORM.formElement.addEventListener("formSuccess", () => {
     prospectArray.clearProgress();

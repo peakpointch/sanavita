@@ -6381,6 +6381,187 @@ Component:`,
     return matched[1].replace(doubleQuoteRegExp2, "'");
   }
 
+  // ../peakflow/src/utils/getelements.ts
+  function getAllElements(input, single = false) {
+    if (typeof input === "string") {
+      const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
+      if (elements.length === 0) {
+        throw new Error(`No elements found matching selector: ${input}`);
+      } else if (single) {
+        return [elements[0]];
+      } else {
+        return elements;
+      }
+    } else if (input instanceof HTMLElement) {
+      return [input];
+    } else if (Array.isArray(input)) {
+      return input;
+    } else if (input instanceof NodeList) {
+      return Array.from(input);
+    } else {
+      throw new Error("Invalid input provided: must be a string, HTMLElement, array or node list.");
+    }
+  }
+  function getElement(input, singleOnly = true) {
+    if (typeof input === "string") {
+      const elements = Array.from(document.querySelectorAll(input));
+      if (elements.length === 0) {
+        throw new Error(`No elements found matching selector: "${input}".`);
+      } else if (singleOnly && elements.length > 1) {
+        throw new Error(`More than 1 element found matching selector "${input}". Make your selector more specific.`);
+      }
+      return elements[0];
+    } else if (input instanceof HTMLElement) {
+      return input;
+    } else {
+      throw new Error("Invalid input provided: must be a string or HTMLElement.");
+    }
+  }
+
+  // ../peakflow/src/form/cms-select.ts
+  var CMSSelect = class _CMSSelect {
+    constructor(component, options = {}) {
+      this.opts = {
+        id: void 0
+      };
+      this.attr = _CMSSelect.attr;
+      this.onChangeCallbacks = /* @__PURE__ */ new Map();
+      try {
+        this.source = getElement(component);
+        if (!this.source) {
+          throw new Error(`Source list element is not defined.`);
+        }
+        this.opts = { id: options.id ?? this.opts.id };
+        this.id = this.opts.id || this.source.getAttribute(this.attr.id);
+        this.source.setAttribute(this.attr.id, this.opts.id);
+        this.waitEvent = this.source.dataset.formSelectWait || null;
+        this.targets = getAllElements(this.selector("target"));
+        this.readValues();
+        this.initOnChange();
+      } catch (e) {
+        console.error(`Failed to create CMSSelect instance: ${e.message}`);
+      }
+    }
+    static {
+      this.attr = {
+        id: "data-cms-select-id",
+        element: "data-cms-select-element",
+        prefix: "data-cms-select-prefix",
+        value: "data-cms-select-value",
+        wait: "data-cms-select-wait",
+        status: "data-cms-select-status"
+      };
+    }
+    static {
+      this.attributeSelector = attributeselector_default("data-cms-select-element");
+    }
+    /**
+     * Static selector
+     */
+    static selector(element, instance) {
+      const base = _CMSSelect.attributeSelector(element);
+      const instanceSelector = instance ? `[${_CMSSelect.attr.id}="${instance}"]` : "";
+      if (element === "option") {
+        return `${instanceSelector} ${base}`.trim();
+      } else {
+        return `${base}${instanceSelector}`;
+      }
+    }
+    /**
+     * Instance selector
+     */
+    selector(element, local = true) {
+      return local ? _CMSSelect.selector(element, this.id) : _CMSSelect.selector(element);
+    }
+    static initializeAll() {
+      try {
+        const sourceLists = getAllElements(_CMSSelect.selector("source"));
+        sourceLists.forEach((list) => {
+          const cmsSelect = new _CMSSelect(list);
+          if (cmsSelect.initWaitEvent(true)) return;
+          cmsSelect.insertOptions();
+        });
+      } catch (e) {
+        console.error(`Failed to initialize all CMS select components: ${e.message}`);
+      }
+    }
+    static createOption(value) {
+      const optionElement = document.createElement("option");
+      optionElement.setAttribute("value", value);
+      optionElement.innerText = value;
+      return optionElement;
+    }
+    static insertOptions(targets, values) {
+      const targetList = getAllElements(targets, true);
+      values.forEach((val) => {
+        if (val) {
+          const option = _CMSSelect.createOption(val);
+          targetList.forEach((target) => target.appendChild(option));
+        } else {
+          console.warn("CMS select: skip empty option");
+        }
+      });
+    }
+    static clearOptions(targets, keepEmpty) {
+      const targetList = getAllElements(targets, true);
+      targetList.forEach((target) => {
+        let options = Array.from(target.querySelectorAll("option"));
+        if (keepEmpty) options = options.filter((option) => Boolean(option.value));
+        options.forEach((option) => option.remove());
+      });
+    }
+    /**
+     * @param graceful Whether to throw an error if the wait event is invalid.
+     * @returns A boolean indicating whether the wait event was initialized successfully.
+     */
+    initWaitEvent(graceful = false) {
+      if (this.waitEvent) {
+        this.source.addEventListener(this.waitEvent, () => {
+          this.insertOptions();
+        });
+        return true;
+      } else {
+        const message3 = `The wait event name "${this.waitEvent}" is invalid.`;
+        if (graceful) return false;
+        throw new Error(message3);
+      }
+    }
+    readValues() {
+      this.values = [];
+      const optionElements = this.source.querySelectorAll(_CMSSelect.selector("option"));
+      optionElements.forEach((element) => {
+        this.values.push(this.getSelectValue(element));
+      });
+    }
+    insertOptions() {
+      _CMSSelect.insertOptions(this.targets, this.values);
+    }
+    getSelectValue(item) {
+      const prefix = item.getAttribute(this.attr.prefix) || "";
+      const value = item.getAttribute(this.attr.value) || "";
+      const optionValue = prefix ? `${prefix} ${value}` : value;
+      return optionValue;
+    }
+    initOnChange() {
+      this.targets.forEach((target) => {
+        target.addEventListener("change", () => {
+          this.triggerOnChange();
+        });
+      });
+    }
+    onChange(name, callback) {
+      this.onChangeCallbacks.set(name, callback);
+    }
+    clearOnChange(name) {
+      this.onChangeCallbacks.delete(name);
+    }
+    triggerOnChange() {
+      for (const callback of this.onChangeCallbacks.values()) {
+        callback();
+      }
+    }
+  };
+
   // src/sanavita/ts/apartment-form.ts
   var decisionSelector = attributeselector_default("data-decision-component");
   function initializeFormDecisions(form, errorMessages, defaultMessages = {}) {
@@ -6438,6 +6619,25 @@ Component:`,
       }
     }
   }
+  function initCMSSelect() {
+    const source = CMSSelect.selector("source", "apartment");
+    const apartmentSelect = new CMSSelect(source);
+    apartmentSelect.insertOptions();
+    const wrapper = getElement('[data-field-wrapper-id="alternativeApartment"]');
+    if (apartmentSelect.values.length <= 1) {
+      wrapper.style.display = "none";
+      return;
+    }
+    const alternative = CMSSelect.selector("target", "alternativeApartment");
+    const alternativeSelect = wrapper.querySelector(alternative);
+    apartmentSelect.onChange("syncAlternatives", () => {
+      const values = Array.from(apartmentSelect.values);
+      const filtered = values.filter((val) => val !== apartmentSelect.targets[0].value);
+      CMSSelect.clearOptions(alternativeSelect, true);
+      CMSSelect.insertOptions(alternativeSelect, filtered);
+    });
+    apartmentSelect.triggerOnChange();
+  }
   var formElement = document.querySelector(
     formElementSelector("component", { exclusions: [] })
   );
@@ -6482,6 +6682,7 @@ Component:`,
     );
     initializeFormDecisions(FORM, errorMessages, defaultMessages);
     insertSearchParamValues();
+    initCMSSelect();
     prospectArray.loadProgress();
     FORM.formElement.addEventListener("formSuccess", () => {
       prospectArray.clearProgress();
