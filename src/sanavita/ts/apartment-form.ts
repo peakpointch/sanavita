@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const monthStart = startOfMonth(new Date())
   const nextMonthStart = addMonths(monthStart, 1);
   const nextMonthStartString = format(nextMonthStart, 'yyyy-MM-dd');
-  const moveInDateInput = FORM.getFormInput<HTMLInputElement>('bezug-ab');
+  const moveInDateInput = FORM.getFormInput<HTMLInputElement>('moveInDate');
   moveInDateInput.min = nextMonthStartString;
 
   // @ts-ignore

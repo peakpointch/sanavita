@@ -3,16 +3,24 @@
     "draft": false,
     "linkedFields": { },
     "personalData": {
-      "first-name": {
-        "id": "first-name",
+      "salutation": {
+        "id": "salutation",
+        "label": "Anrede",
+        "value": "Herr",
+        "required": false,
+        "type": "select-one",
+        "checked": false
+      },
+      "firstName": {
+        "id": "firstName",
         "label": "Vorname",
         "value": "Max",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "name": {
-        "id": "name",
+      "lastName": {
+        "id": "lastName",
         "label": "Name",
         "value": "Muster",
         "required": true,
@@ -27,8 +35,8 @@
         "type": "date",
         "checked": false
       },
-      "zivilstand": {
-        "id": "zivilstand",
+      "maritalStatus": {
+        "id": "maritalStatus",
         "label": "Zivilstand",
         "value": "ledig",
         "required": true,
@@ -123,56 +131,56 @@
         "type": "text",
         "checked": false
       },
-      "ahvNummer": {
-        "id": "ahvNummer",
+      "ahvNumber": {
+        "id": "ahvNumber",
         "label": "AHV Nummer",
         "value": "756.1234.5678.97",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "krankenkasse": {
-        "id": "krankenkasse",
+      "healthInsurance": {
+        "id": "healthInsurance",
         "label": "Krankenkasse",
         "value": "Helsana",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "anschriftKrankenkasse": {
-        "id": "anschriftKrankenkasse",
+      "healthInsuranceAddress": {
+        "id": "healthInsuranceAddress",
         "label": "Anschrift Krankenkasse",
         "value": "Helsana, Postfach, 8081 Zürich",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "mitgliedernummer": {
-        "id": "mitgliedernummer",
+      "insuranceNumber": {
+        "id": "insuranceNumber",
         "label": "Mitgliedernummer",
         "value": "KK-987654321",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "versicherungsklasse": {
-        "id": "versicherungsklasse",
+      "insuranceCategory": {
+        "id": "insuranceCategory",
         "label": "Versicherungsklasse",
         "value": "Allgemein",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "haftpflichtversicherung": {
-        "id": "haftpflichtversicherung",
+      "personalLiabilityInsurance": {
+        "id": "personalLiabilityInsurance",
         "label": "Haftpflichtversicherung",
         "value": "Mobiliar",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "policenNummer": {
-        "id": "policenNummer",
+      "policyNumber": {
+        "id": "policyNumber",
         "label": "Policen Nummer",
         "value": "HP-11223344",
         "required": true,
@@ -257,16 +265,16 @@
       }
     },
     "primaryRelative": {
-      "first-name": {
-        "id": "first-name",
+      "firstName": {
+        "id": "firstName",
         "label": "Vorname",
         "value": "Anna",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "name": {
-        "id": "name",
+      "lastName": {
+        "id": "lastName",
         "label": "Name",
         "value": "Muster",
         "required": true,
@@ -331,8 +339,8 @@
         "type": "text",
         "checked": false
       },
-      "name": {
-        "id": "name",
+      "lastName": {
+        "id": "lastName",
         "label": "Name",
         "value": "Meier",
         "required": false,

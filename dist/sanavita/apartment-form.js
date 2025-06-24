@@ -3458,7 +3458,7 @@ Component:`,
       return !Object.values(validated).some((group) => group.isValid === false);
     }
     getFullName() {
-      return `${this.personalData.getField("first-name").value} ${this.personalData.getField("name").value}`.trim() || "Neue Person";
+      return `${this.personalData.getField("firstName").value} ${this.personalData.getField("lastName").value}`.trim() || "Neue Person";
     }
     flatten(prefix) {
       const fields = {};
@@ -6755,7 +6755,7 @@ Component:`,
     const monthStart = startOfMonth(/* @__PURE__ */ new Date());
     const nextMonthStart = addMonths(monthStart, 1);
     const nextMonthStartString = format2(nextMonthStart, "yyyy-MM-dd");
-    const moveInDateInput = FORM.getFormInput("bezug-ab");
+    const moveInDateInput = FORM.getFormInput("moveInDate");
     moveInDateInput.min = nextMonthStartString;
     window.prospectArray = prospectArray;
     console.log("Form initialized:", FORM.initialized, FORM);

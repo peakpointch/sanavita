@@ -157,7 +157,7 @@ export class ResidentProspect {
 
   public getFullName(): string {
     return (
-      `${this.personalData.getField("first-name")!.value} ${this.personalData.getField("name")!.value
+      `${this.personalData.getField("firstName")!.value} ${this.personalData.getField("lastName")!.value
         }`.trim() || "Neue Person"
     );
   }
