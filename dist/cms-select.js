@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // ../peakflow/src/attributeselector.ts
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -77,7 +77,7 @@
   };
   var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/utils/getelements.ts
+  // ../peakflow/src/utils/getelements.ts
   function getAllElements(input, single = false) {
     if (typeof input === "string") {
       const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
@@ -114,27 +114,14 @@
     }
   }
 
-  // node_modules/peakflow/src/form/cms-select.ts
+  // ../peakflow/src/form/cms-select.ts
   var CMSSelect = class _CMSSelect {
-    opts = {
-      id: void 0
-    };
-    id;
-    source;
-    targets;
-    values;
-    waitEvent;
-    static attr = {
-      id: "data-cms-select-id",
-      element: "data-cms-select-element",
-      prefix: "data-cms-select-prefix",
-      value: "data-cms-select-value",
-      wait: "data-cms-select-wait",
-      status: "data-cms-select-status"
-    };
-    attr = _CMSSelect.attr;
-    onChangeCallbacks = /* @__PURE__ */ new Map();
     constructor(component, options = {}) {
+      this.opts = {
+        id: void 0
+      };
+      this.attr = _CMSSelect.attr;
+      this.onChangeCallbacks = /* @__PURE__ */ new Map();
       try {
         this.source = getElement(component);
         if (!this.source) {
@@ -151,7 +138,19 @@
         console.error(`Failed to create CMSSelect instance: ${e.message}`);
       }
     }
-    static attributeSelector = attributeselector_default("data-cms-select-element");
+    static {
+      this.attr = {
+        id: "data-cms-select-id",
+        element: "data-cms-select-element",
+        prefix: "data-cms-select-prefix",
+        value: "data-cms-select-value",
+        wait: "data-cms-select-wait",
+        status: "data-cms-select-status"
+      };
+    }
+    static {
+      this.attributeSelector = attributeselector_default("data-cms-select-element");
+    }
     /**
      * Static selector
      */
