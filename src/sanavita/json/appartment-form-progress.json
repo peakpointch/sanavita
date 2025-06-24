@@ -1,7 +1,7 @@
 {
   "person-70d2db95-383b-456d-95b3-27be5779c809": {
     "draft": false,
-    "linkedFields": {},
+    "linkedFields": { },
     "personalData": {
       "first-name": {
         "id": "first-name",
@@ -391,12 +391,12 @@
   },
   "person-88920854-6f4a-421b-a02c-67d961a4ebf2": {
     "draft": false,
-    "linkedFields": {},
+    "linkedFields": { },
     "personalData": {
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "TEST2",
+        "value": "Claudia",
         "required": true,
         "type": "text",
         "checked": false
@@ -404,7 +404,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "TEST2",
+        "value": "Keller",
         "required": true,
         "type": "text",
         "checked": false
@@ -412,7 +412,7 @@
       "date-of-birth": {
         "id": "date-of-birth",
         "label": "Geburtsdatum",
-        "value": "5678-04-23",
+        "value": "1942-08-15",
         "required": true,
         "type": "date",
         "checked": false
@@ -420,7 +420,7 @@
       "zivilstand": {
         "id": "zivilstand",
         "label": "Zivilstand",
-        "value": "ledig",
+        "value": "verwitwet",
         "required": true,
         "type": "select-one",
         "checked": false
@@ -428,7 +428,7 @@
       "religion": {
         "id": "religion",
         "label": "Konfession",
-        "value": "val2_konfession",
+        "value": "reformiert",
         "required": false,
         "type": "text",
         "checked": false
@@ -436,7 +436,7 @@
       "formerOccupation": {
         "id": "formerOccupation",
         "label": "Ehemaliger Beruf",
-        "value": "val2_ehemaliger Beruf",
+        "value": "Lehrerin",
         "required": false,
         "type": "text",
         "checked": false
@@ -444,7 +444,7 @@
       "heimatort": {
         "id": "heimatort",
         "label": "Heimatort",
-        "value": "val2_heimatort",
+        "value": "St. Gallen",
         "required": true,
         "type": "text",
         "checked": false
@@ -452,7 +452,7 @@
       "municipalities": {
         "id": "municipalities",
         "label": "Bezug zu Trägergemeinden",
-        "value": "val2_trägergemeinden",
+        "value": "St. Gallen, Gossau SG",
         "required": true,
         "type": "text",
         "checked": false
@@ -468,7 +468,7 @@
       "specifiedPets": {
         "id": "specifiedPets",
         "label": "Angegebene Haustiere",
-        "value": "val2_haustiere",
+        "value": "Ich habe zwei Hunde",
         "required": true,
         "type": "text",
         "checked": false
@@ -476,7 +476,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "val2_tel",
+        "value": "+41 71 223 45 67",
         "required": true,
         "type": "tel",
         "checked": false
@@ -484,7 +484,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "bausteinfelix@gmail.com",
+        "value": "claudia.keller@example.com",
         "required": true,
         "type": "email",
         "checked": false
@@ -492,7 +492,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "val2_",
+        "value": "Schulstrasse 8",
         "required": true,
         "type": "text",
         "checked": false
@@ -500,7 +500,7 @@
       "zip": {
         "id": "zip",
         "label": "PLZ",
-        "value": "v1adr",
+        "value": "9000",
         "required": true,
         "type": "text",
         "checked": false
@@ -508,7 +508,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "val2_Ort",
+        "value": "St. Gallen",
         "required": true,
         "type": "text",
         "checked": false
@@ -516,7 +516,7 @@
       "ahvNummer": {
         "id": "ahvNummer",
         "label": "AHV Nummer",
-        "value": "val2_ahv",
+        "value": "756.2345.6789.10",
         "required": true,
         "type": "text",
         "checked": false
@@ -524,7 +524,7 @@
       "krankenkasse": {
         "id": "krankenkasse",
         "label": "Krankenkasse",
-        "value": "val2_krankenkasse",
+        "value": "CSS",
         "required": true,
         "type": "text",
         "checked": false
@@ -532,7 +532,7 @@
       "anschriftKrankenkasse": {
         "id": "anschriftKrankenkasse",
         "label": "Anschrift Krankenkasse",
-        "value": "val2_anschrift krankenkasse",
+        "value": "CSS Versicherung, Postfach 2550, 9001 St. Gallen",
         "required": true,
         "type": "text",
         "checked": false
@@ -540,7 +540,7 @@
       "mitgliedernummer": {
         "id": "mitgliedernummer",
         "label": "Mitgliedernummer",
-        "value": "val2_Mitgliedernummer",
+        "value": "CSS-123456789",
         "required": true,
         "type": "text",
         "checked": false
@@ -548,7 +548,7 @@
       "versicherungsklasse": {
         "id": "versicherungsklasse",
         "label": "Versicherungsklasse",
-        "value": "val2_Versicherungsklasse",
+        "value": "Privat",
         "required": true,
         "type": "text",
         "checked": false
@@ -556,7 +556,7 @@
       "haftpflichtversicherung": {
         "id": "haftpflichtversicherung",
         "label": "Haftpflichtversicherung",
-        "value": "val2_haftfplichtversicherung",
+        "value": "AXA",
         "required": true,
         "type": "text",
         "checked": false
@@ -564,7 +564,7 @@
       "policenNummer": {
         "id": "policenNummer",
         "label": "Policen Nummer",
-        "value": "val2_policen",
+        "value": "AXA-44556677",
         "required": true,
         "type": "text",
         "checked": false
@@ -574,7 +574,7 @@
       "doctorName": {
         "id": "doctorName",
         "label": "Hausarzt",
-        "value": "val2_hausarzt",
+        "value": "Dr. Martina Steiner",
         "required": true,
         "type": "text",
         "checked": false
@@ -582,7 +582,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "val2_strasse",
+        "value": "Praxisweg 3",
         "required": true,
         "type": "text",
         "checked": false
@@ -590,7 +590,7 @@
       "zip": {
         "id": "zip",
         "label": "PLZ",
-        "value": "v1_dr",
+        "value": "9001",
         "required": true,
         "type": "text",
         "checked": false
@@ -598,7 +598,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "val2_ort",
+        "value": "St. Gallen",
         "required": true,
         "type": "text",
         "checked": false
@@ -606,7 +606,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "val2_tel",
+        "value": "+41 71 998 76 54",
         "required": true,
         "type": "tel",
         "checked": false
@@ -614,7 +614,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "val2_ha_email@email.com",
+        "value": "praxis.steiner@medmail.ch",
         "required": true,
         "type": "email",
         "checked": false
@@ -640,7 +640,7 @@
       "careNeeds": {
         "id": "careNeeds",
         "label": "Beschreibung Pflegebedarf",
-        "value": "val2_pflegebedarf",
+        "value": "Tägliche Hilfe bei der Körperpflege, Medikamentenmanagement und Mobilitätsunterstützung.",
         "required": true,
         "type": "textarea",
         "checked": false
@@ -650,7 +650,7 @@
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "val2_ang1_vorname",
+        "value": "Martina",
         "required": true,
         "type": "text",
         "checked": false
@@ -658,7 +658,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "val2_ang1_name",
+        "value": "Meier",
         "required": true,
         "type": "text",
         "checked": false
@@ -666,7 +666,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "val2_ang1_strasse",
+        "value": "Blumenweg 5",
         "required": true,
         "type": "text",
         "checked": false
@@ -674,7 +674,7 @@
       "zip": {
         "id": "zip",
         "label": "PLZ",
-        "value": "v1a1",
+        "value": "3007",
         "required": true,
         "type": "text",
         "checked": false
@@ -682,7 +682,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "val2_ang1_ort",
+        "value": "Bern",
         "required": true,
         "type": "text",
         "checked": false
@@ -690,7 +690,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "val2_ang1_tel",
+        "value": "+41 79 333 22 11",
         "required": true,
         "type": "tel",
         "checked": false
@@ -698,7 +698,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "val2_ang1_email@email.com",
+        "value": "martina.meier@example.com",
         "required": true,
         "type": "email",
         "checked": false
@@ -706,7 +706,7 @@
       "degreeOfRelation": {
         "id": "degreeOfRelation",
         "label": "Angehörige Verwandschaftsgrad",
-        "value": "val2_ang1_verwandschaftsgrad",
+        "value": "Tochter",
         "required": true,
         "type": "text",
         "checked": false
@@ -716,7 +716,7 @@
       "first-name": {
         "id": "first-name",
         "label": "Vorname",
-        "value": "val2_ang2_vorname",
+        "value": "Peter",
         "required": false,
         "type": "text",
         "checked": false
@@ -724,7 +724,7 @@
       "name": {
         "id": "name",
         "label": "Name",
-        "value": "val2_ang2_name",
+        "value": "Schneider",
         "required": false,
         "type": "text",
         "checked": false
@@ -732,7 +732,7 @@
       "street": {
         "id": "street",
         "label": "Strasse",
-        "value": "val2_ang2_strasse",
+        "value": "Seestrasse 22",
         "required": false,
         "type": "text",
         "checked": false
@@ -740,7 +740,7 @@
       "zip": {
         "id": "zip",
         "label": "PLZ",
-        "value": "v1a2p",
+        "value": "3600",
         "required": false,
         "type": "text",
         "checked": false
@@ -748,7 +748,7 @@
       "city": {
         "id": "city",
         "label": "Ort",
-        "value": "val2_ang2_ort",
+        "value": "Thun",
         "required": false,
         "type": "text",
         "checked": false
@@ -756,7 +756,7 @@
       "phone": {
         "id": "phone",
         "label": "Telefonnummer",
-        "value": "val2_ang2_tel",
+        "value": "+41 76 888 44 55",
         "required": false,
         "type": "tel",
         "checked": false
@@ -764,7 +764,7 @@
       "email": {
         "id": "email",
         "label": "E-Mail",
-        "value": "val2_ang2_email@email.com",
+        "value": "p.schneider@webmail.ch",
         "required": false,
         "type": "email",
         "checked": false
@@ -772,7 +772,7 @@
       "degreeOfRelation": {
         "id": "degreeOfRelation",
         "label": "Angehörige Verwandschaftsgrad",
-        "value": "val2_ang2_verwandschaftsgrad",
+        "value": "Sohn",
         "required": false,
         "type": "text",
         "checked": false
