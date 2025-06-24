@@ -331,8 +331,8 @@
       }
     },
     "secondaryRelative": {
-      "first-name": {
-        "id": "first-name",
+      "firstName": {
+        "id": "firstName",
         "label": "Vorname",
         "value": "Thomas",
         "required": false,
@@ -401,16 +401,24 @@
     "draft": false,
     "linkedFields": { },
     "personalData": {
-      "first-name": {
-        "id": "first-name",
+      "salutation": {
+        "id": "salutation",
+        "label": "Anrede",
+        "value": "Herr",
+        "required": false,
+        "type": "select-one",
+        "checked": false
+      },
+      "firstName": {
+        "id": "firstName",
         "label": "Vorname",
         "value": "Claudia",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "name": {
-        "id": "name",
+      "lastName": {
+        "id": "lastName",
         "label": "Name",
         "value": "Keller",
         "required": true,
@@ -425,8 +433,8 @@
         "type": "date",
         "checked": false
       },
-      "zivilstand": {
-        "id": "zivilstand",
+      "maritalStatus": {
+        "id": "maritalStatus",
         "label": "Zivilstand",
         "value": "verwitwet",
         "required": true,
@@ -521,56 +529,56 @@
         "type": "text",
         "checked": false
       },
-      "ahvNummer": {
-        "id": "ahvNummer",
+      "ahvNumber": {
+        "id": "ahvNumber",
         "label": "AHV Nummer",
         "value": "756.2345.6789.10",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "krankenkasse": {
-        "id": "krankenkasse",
+      "healthInsurance": {
+        "id": "healthInsurance",
         "label": "Krankenkasse",
         "value": "CSS",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "anschriftKrankenkasse": {
-        "id": "anschriftKrankenkasse",
+      "healthInsuranceAddress": {
+        "id": "healthInsuranceAddress",
         "label": "Anschrift Krankenkasse",
         "value": "CSS Versicherung, Postfach 2550, 9001 St. Gallen",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "mitgliedernummer": {
-        "id": "mitgliedernummer",
+      "insuranceNumber": {
+        "id": "insuranceNumber",
         "label": "Mitgliedernummer",
         "value": "CSS-123456789",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "versicherungsklasse": {
-        "id": "versicherungsklasse",
+      "insuranceCategory": {
+        "id": "insuranceCategory",
         "label": "Versicherungsklasse",
         "value": "Privat",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "haftpflichtversicherung": {
-        "id": "haftpflichtversicherung",
+      "personalLiabilityInsurance": {
+        "id": "personalLiabilityInsurance",
         "label": "Haftpflichtversicherung",
         "value": "AXA",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "policenNummer": {
-        "id": "policenNummer",
+      "policyNumber": {
+        "id": "policyNumber",
         "label": "Policen Nummer",
         "value": "AXA-44556677",
         "required": true,
@@ -655,16 +663,16 @@
       }
     },
     "primaryRelative": {
-      "first-name": {
-        "id": "first-name",
+      "firstName": {
+        "id": "firstName",
         "label": "Vorname",
         "value": "Martina",
         "required": true,
         "type": "text",
         "checked": false
       },
-      "name": {
-        "id": "name",
+      "lastName": {
+        "id": "lastName",
         "label": "Name",
         "value": "Meier",
         "required": true,
@@ -721,16 +729,16 @@
       }
     },
     "secondaryRelative": {
-      "first-name": {
-        "id": "first-name",
+      "firstName": {
+        "id": "firstName",
         "label": "Vorname",
         "value": "Peter",
         "required": false,
         "type": "text",
         "checked": false
       },
-      "name": {
-        "id": "name",
+      "lastName": {
+        "id": "lastName",
         "label": "Name",
         "value": "Schneider",
         "required": false,
