@@ -1,11 +1,15 @@
 (() => {
   // ../peakflow/src/utils/getelements.ts
-  function getAllElements(input, single = false) {
+  function getAllElements(input, options = {}) {
+    const opts = {
+      single: options.single ?? false,
+      node: options.node ?? document
+    };
     if (typeof input === "string") {
-      const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
+      const elements = Array.from(opts.node.querySelectorAll(input)).filter(Boolean);
       if (elements.length === 0) {
         throw new Error(`No elements found matching selector: ${input}`);
-      } else if (single) {
+      } else if (opts.single) {
         return [elements[0]];
       } else {
         return elements;

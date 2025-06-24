@@ -78,12 +78,16 @@
   var attributeselector_default = createAttribute;
 
   // ../peakflow/src/utils/getelements.ts
-  function getAllElements(input, single = false) {
+  function getAllElements(input, options = {}) {
+    const opts = {
+      single: options.single ?? false,
+      node: options.node ?? document
+    };
     if (typeof input === "string") {
-      const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
+      const elements = Array.from(opts.node.querySelectorAll(input)).filter(Boolean);
       if (elements.length === 0) {
         throw new Error(`No elements found matching selector: ${input}`);
-      } else if (single) {
+      } else if (opts.single) {
         return [elements[0]];
       } else {
         return elements;
@@ -98,12 +102,16 @@
       throw new Error("Invalid input provided: must be a string, HTMLElement, array or node list.");
     }
   }
-  function getElement(input, singleOnly = true) {
+  function getElement(input, options = {}) {
+    const opts = {
+      single: options.single ?? true,
+      node: options.node ?? document
+    };
     if (typeof input === "string") {
-      const elements = Array.from(document.querySelectorAll(input));
+      const elements = Array.from(opts.node.querySelectorAll(input));
       if (elements.length === 0) {
         throw new Error(`No elements found matching selector: "${input}".`);
-      } else if (singleOnly && elements.length > 1) {
+      } else if (opts.single && elements.length > 1) {
         throw new Error(`More than 1 element found matching selector "${input}". Make your selector more specific.`);
       }
       return elements[0];
@@ -188,7 +196,7 @@
       return optionElement;
     }
     static insertOptions(targets, values) {
-      const targetList = getAllElements(targets, true);
+      const targetList = getAllElements(targets, { single: true });
       values.forEach((val) => {
         if (val) {
           const option = _CMSSelect.createOption(val);
@@ -199,7 +207,7 @@
       });
     }
     static clearOptions(targets, keepEmpty) {
-      const targetList = getAllElements(targets, true);
+      const targetList = getAllElements(targets, { single: true });
       targetList.forEach((target) => {
         let options = Array.from(target.querySelectorAll("option"));
         if (keepEmpty) options = options.filter((option) => Boolean(option.value));
