@@ -88,7 +88,9 @@
     radio: "w-radio-input",
     wcheckbox: "w-checkbox",
     checkbox: "w-checkbox-input",
-    checked: "w--redirected-checked"
+    checked: "w--redirected-checked",
+    focus: "w--redirected-focus",
+    focusVisible: "w--redirected-focus-visible"
   };
   var inputSelectorList = [
     `.${wfclass.input}`,
@@ -105,6 +107,9 @@
     wcheckbox: `.${wfclass.wcheckbox}`,
     checkbox: `.${wfclass.checkbox}`,
     checked: `.${wfclass.checked}`,
+    focused: `:focus-visible, [data-wf-focus-visible]`,
+    focus: `.${wfclass.focus}`,
+    focusVisible: `.${wfclass.focusVisible}`,
     formInput: inputSelectorList.join(", "),
     radioInput: `.${wfclass.wradio} input[type="radio"]`,
     checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
@@ -117,6 +122,51 @@
     select: wfselect
   };
 
+  // ../peakflow/src/utils/getelements.ts
+  function getAllElements(input, options = {}) {
+    const opts = {
+      single: options.single ?? false,
+      node: options.node ?? document
+    };
+    if (typeof input === "string") {
+      const elements = Array.from(opts.node.querySelectorAll(input)).filter(Boolean);
+      if (elements.length === 0) {
+        throw new Error(`No elements found matching selector: ${input}`);
+      } else if (opts.single) {
+        return [elements[0]];
+      } else {
+        return elements;
+      }
+    } else if (input instanceof HTMLElement) {
+      return [input];
+    } else if (Array.isArray(input)) {
+      return input;
+    } else if (input instanceof NodeList) {
+      return Array.from(input);
+    } else {
+      throw new Error("Invalid input provided: must be a string, HTMLElement, array or node list.");
+    }
+  }
+  function getElement(input, options = {}) {
+    const opts = {
+      single: options.single ?? true,
+      node: options.node ?? document
+    };
+    if (typeof input === "string") {
+      const elements = Array.from(opts.node.querySelectorAll(input));
+      if (elements.length === 0) {
+        throw new Error(`No elements found matching selector: "${input}".`);
+      } else if (opts.single && elements.length > 1) {
+        throw new Error(`More than 1 element found matching selector "${input}". Make your selector more specific.`);
+      }
+      return elements[0];
+    } else if (input instanceof HTMLElement) {
+      return input;
+    } else {
+      throw new Error("Invalid input provided: must be a string or HTMLElement.");
+    }
+  }
+
   // ../peakflow/src/form/utility.ts
   var formElementSelector = attributeselector_default("data-form-element");
   var filterFormSelector = attributeselector_default("data-filter-form");
@@ -128,6 +178,53 @@
   }
   function isFormInput(input) {
     return input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement;
+  }
+  function getRadioGroups(source, ...names) {
+    let inputs;
+    if (Array.isArray(source)) {
+      inputs = source;
+    } else if (source instanceof HTMLElement) {
+      inputs = getAllElements(wf.select.formInput, { single: false, node: source });
+    } else {
+      throw new Error(`Invalid first parameter: expected "string", "HTMLElement" or "HTMLFormInput[]".`);
+    }
+    if (!inputs || !inputs.length) {
+      return [];
+    }
+    const radioGroupMap = inputs.reduce((acc, input) => {
+      if (!isRadioInput(input)) return acc;
+      if (names.length && !names.includes(input.name)) return acc;
+      if (!acc.has(input.name)) {
+        acc.set(input.name, { name: input.name, inputs: [] });
+      }
+      acc.get(input.name).inputs.push(input);
+      return acc;
+    }, /* @__PURE__ */ new Map());
+    return Array.from(radioGroupMap.values());
+  }
+  function getRadioGroupStrict(source, name) {
+    const groups = getRadioGroups(source, name);
+    const group = groups[0];
+    if (!group || !group.name) {
+      throw new Error(`Radio group "${name}" not found.`);
+    }
+    if (groups.length > 1) {
+      console.warn(`Get radio group: Multiple groups found for name "${name}". Returning the first.`);
+    }
+    if (!group.inputs.length) {
+      console.warn(`Radio group "${name}" has no inputs.`);
+    } else if (group.inputs.length === 1) {
+      console.warn(`Radio group "${name}" has only 1 input.`);
+    }
+    return group;
+  }
+  function getRadioGroup(source, name) {
+    try {
+      return getRadioGroupStrict(source, name);
+    } catch (e) {
+      console.warn(`Get radio group: ${e.message}`);
+      return null;
+    }
   }
   function findFormInput(containers, inputId, selectorPrefix = wf.select.formInput) {
     const selector = `${selectorPrefix}#${inputId}`;
@@ -164,13 +261,27 @@
       return false;
     }
   }
-  function clearRadioInput(radio) {
-    radio.checked = false;
-    const customRadio = radio.closest(".w-radio")?.querySelector(wf.select.radio);
-    if (customRadio) {
-      customRadio.classList.remove(wf.class.checked);
+  function setChecked(input, checked, silent = false) {
+    if (!isRadioInput(input) && !isCheckboxInput(input)) {
+      throw new Error(`Expected an input of type checkbox or radio.`);
     }
-    radio.dispatchEvent(new Event("change", { bubbles: true }));
+    input.checked = checked;
+    if (isRadioInput(input)) {
+      const wradio = input.closest(wf.select.wradio);
+      const customRadio = wradio?.querySelector(wf.select.radio);
+      if (customRadio) {
+        customRadio.classList.toggle(wf.class.checked, checked);
+      }
+    }
+    if (isCheckboxInput(input)) {
+      const wcheckbox = input.closest(wf.select.wcheckbox);
+      const customCheckbox = wcheckbox?.querySelector(wf.select.checkbox);
+      if (customCheckbox) {
+        customCheckbox.classList.toggle(wf.class.checked, checked);
+      }
+    }
+    if (silent) return;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
   }
   function enforceButtonTypes(form) {
     if (!form) return;
@@ -178,9 +289,6 @@
     buttons.forEach((button) => button.setAttribute("type", "button"));
   }
   function initWfInputs(container) {
-    const focusClass = "w--redirected-focus";
-    const focusVisibleClass = "w--redirected-focus-visible";
-    const focusVisibleSelector = ":focus-visible, [data-wf-focus-visible]";
     const inputTypes = [
       ["checkbox", wf.select.checkbox],
       ["radio", wf.select.radio]
@@ -188,29 +296,17 @@
     container.querySelectorAll(wf.select.checkboxInput).forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target;
-        const customCheckbox = target.closest(".w-checkbox")?.querySelector(wf.select.checkbox);
-        if (customCheckbox) {
-          customCheckbox.classList.toggle(wf.class.checked, target.checked);
-        }
+        setChecked(target, target.checked, true);
       });
     });
     container.querySelectorAll('input[type="radio"]').forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target;
         if (!target.checked) return;
-        const name = target.name;
-        container.querySelectorAll(
-          `input[type="radio"][name="${name}"]`
-        ).forEach((radio) => {
-          const customRadio = radio.closest(".w-radio")?.querySelector(wf.select.radio);
-          if (customRadio) {
-            customRadio.classList.remove(wf.class.checked);
-          }
+        const radioGroup = getRadioGroup(container, target.name);
+        radioGroup.inputs.forEach((radio) => {
+          setChecked(radio, radio.value === target.value, true);
         });
-        const selectedCustomRadio = target.closest(".w-radio")?.querySelector(wf.select.radio);
-        if (selectedCustomRadio) {
-          selectedCustomRadio.classList.add(wf.class.checked);
-        }
       });
     });
     inputTypes.forEach(([type, customClass]) => {
@@ -221,9 +317,9 @@
           const target = event.target;
           const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
           if (customElement) {
-            customElement.classList.add(focusClass);
-            if (target.matches(focusVisibleSelector)) {
-              customElement.classList.add(focusVisibleClass);
+            customElement.classList.add(wf.class.focus);
+            if (target.matches(wf.select.focused)) {
+              customElement.classList.add(wf.class.focusVisible);
             }
           }
         });
@@ -231,7 +327,7 @@
           const target = event.target;
           const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
           if (customElement) {
-            customElement.classList.remove(focusClass, focusVisibleClass);
+            customElement.classList.remove(wf.class.focus, wf.class.focusVisible);
           }
         });
       });
@@ -698,7 +794,7 @@ Component:`,
         return;
       }
       this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
-      this.label = data.label || `Unnamed Field`;
+      this.label = data.label || `Untitled`;
       this.value = data.value || "";
       this.required = data.required || false;
       this.type = data.type || "text";
@@ -739,9 +835,10 @@ Component:`,
     if (input.type === "radio" && !input.checked) {
       return new FormField();
     }
+    const id = input.id || parameterize(input.dataset.name || `untitled ${index}`);
     const field = new FormField({
-      id: input.id || parameterize(input.dataset.name || `field ${index}`),
-      label: input.dataset.name || `field ${index}`,
+      id: isRadioInput(input) ? input.name : id,
+      label: input.dataset.name || `Untitled ${index}`,
       value: input.value,
       required: input.required || false,
       type: input.type,
@@ -1008,7 +1105,7 @@ Component:`,
       if (pathId === null) {
         this.hideAllPaths();
         this.decisionInputs.forEach((input) => {
-          clearRadioInput(input);
+          setChecked(input, false);
         });
       }
       if (this.currentPath === pathId) return;
@@ -4469,29 +4566,35 @@ Component:`,
       }
       this.groups.forEach((group) => {
         const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-        const groupInputs = group.element.querySelectorAll(selector);
+        const groupInputs = Array.from(group.element.querySelectorAll(selector));
         if (!prospect[group.name]) {
           console.error(`The group "${group.name}" doesn't exist.`);
           return;
         }
-        groupInputs.forEach((input) => {
+        const [radioInputs, otherInputs] = groupInputs.reduce(([r, o], input) => {
+          input.type === "radio" ? r.push(input) : o.push(input);
+          return [r, o];
+        }, [[], []]);
+        otherInputs.forEach((input) => {
           const field = prospect[group.name].getField(input.id);
           if (!field) {
-            console.warn(`Field not found:`, input.id);
             return;
           }
-          if (!isRadioInput(input) && !isCheckboxInput(input)) {
+          if (!isCheckboxInput(input)) {
             input.value = field.value.trim();
+          } else {
+            setChecked(input, field.checked);
+          }
+        });
+        const radioGroups = getRadioGroups(radioInputs);
+        radioGroups.forEach((radioGroup) => {
+          const field = prospect[group.name].getField(radioGroup.name);
+          if (!field) {
             return;
           }
-          if (isRadioInput(input) && input.value === field.value) {
-            input.checked = field.checked;
-            input.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-          if (isCheckboxInput(input)) {
-            input.checked = field.checked;
-            input.dispatchEvent(new Event("change", { bubbles: true }));
-          }
+          radioGroup.inputs.forEach((radio) => {
+            setChecked(radio, radio.value === field.value ? field.checked : false);
+          });
         });
       });
     }
@@ -4578,8 +4681,7 @@ Component:`,
       this.setLiveText("full-name", "Neue Person");
       this.modalInputs.forEach((input) => {
         if (isRadioInput(input)) {
-          input.checked = false;
-          clearRadioInput(input);
+          setChecked(input, false);
         } else if (isCheckboxInput(input)) {
           input.checked = false;
           input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -6381,43 +6483,6 @@ Component:`,
     return matched[1].replace(doubleQuoteRegExp2, "'");
   }
 
-  // ../peakflow/src/utils/getelements.ts
-  function getAllElements(input, single = false) {
-    if (typeof input === "string") {
-      const elements = Array.from(document.querySelectorAll(input)).filter(Boolean);
-      if (elements.length === 0) {
-        throw new Error(`No elements found matching selector: ${input}`);
-      } else if (single) {
-        return [elements[0]];
-      } else {
-        return elements;
-      }
-    } else if (input instanceof HTMLElement) {
-      return [input];
-    } else if (Array.isArray(input)) {
-      return input;
-    } else if (input instanceof NodeList) {
-      return Array.from(input);
-    } else {
-      throw new Error("Invalid input provided: must be a string, HTMLElement, array or node list.");
-    }
-  }
-  function getElement(input, singleOnly = true) {
-    if (typeof input === "string") {
-      const elements = Array.from(document.querySelectorAll(input));
-      if (elements.length === 0) {
-        throw new Error(`No elements found matching selector: "${input}".`);
-      } else if (singleOnly && elements.length > 1) {
-        throw new Error(`More than 1 element found matching selector "${input}". Make your selector more specific.`);
-      }
-      return elements[0];
-    } else if (input instanceof HTMLElement) {
-      return input;
-    } else {
-      throw new Error("Invalid input provided: must be a string or HTMLElement.");
-    }
-  }
-
   // ../peakflow/src/form/cms-select.ts
   var CMSSelect = class _CMSSelect {
     constructor(component, options = {}) {
@@ -6492,7 +6557,7 @@ Component:`,
       return optionElement;
     }
     static insertOptions(targets, values) {
-      const targetList = getAllElements(targets, true);
+      const targetList = getAllElements(targets, { single: true });
       values.forEach((val) => {
         if (val) {
           const option = _CMSSelect.createOption(val);
@@ -6503,7 +6568,7 @@ Component:`,
       });
     }
     static clearOptions(targets, keepEmpty) {
-      const targetList = getAllElements(targets, true);
+      const targetList = getAllElements(targets, { single: true });
       targetList.forEach((target) => {
         let options = Array.from(target.querySelectorAll("option"));
         if (keepEmpty) options = options.filter((option) => Boolean(option.value));

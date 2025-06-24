@@ -10,7 +10,8 @@ import {
   FieldGroupValidation,
   reportValidity,
   FormDecision,
-  clearRadioInput
+  getRadioGroups,
+  setChecked,
 } from "@peakflow/form";
 import {
   ResidentProspect,
@@ -627,37 +628,46 @@ export default class ProspectArray {
 
     this.groups.forEach((group) => {
       const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-      const groupInputs: NodeListOf<HTMLFormInput> = group.element.querySelectorAll(selector);
+      const groupInputs =
+        Array.from(group.element.querySelectorAll<HTMLFormInput>(selector));
 
       if (!prospect[group.name]) {
         console.error(`The group "${group.name}" doesn't exist.`);
         return;
       }
 
-      groupInputs.forEach((input) => {
+      const [radioInputs, otherInputs] = groupInputs.reduce(([r, o], input) => {
+        input.type === 'radio' ? r.push(input as HTMLInputElement) : o.push(input);
+        return [r, o];
+      }, [[] as HTMLInputElement[], [] as HTMLFormInput[]]);
+
+      otherInputs.forEach((input) => {
         // Get field
         const field = prospect[group.name].getField(input.id);
 
         if (!field) {
-          console.warn(`Field not found:`, input.id);
           return;
         }
 
-        if (!isRadioInput(input) && !isCheckboxInput(input)) {
+        if (!isCheckboxInput(input)) {
           // For text inputs, trim and set the value
           input.value = field.value.trim();
+        } else {
+          setChecked(input, field.checked);
+        }
+      });
+
+      const radioGroups = getRadioGroups(radioInputs);
+      radioGroups.forEach((radioGroup) => {
+        const field = prospect[group.name].getField(radioGroup.name);
+
+        if (!field) {
           return;
         }
 
-        if (isRadioInput(input) && input.value === field.value) {
-          input.checked = field.checked;
-          input.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-
-        if (isCheckboxInput(input)) {
-          input.checked = field.checked;
-          input.dispatchEvent(new Event("change", { bubbles: true }));
-        }
+        radioGroup.inputs.forEach(radio => {
+          setChecked(radio, radio.value === field.value ? field.checked : false);
+        });
       });
     });
   }
@@ -774,8 +784,7 @@ export default class ProspectArray {
     this.setLiveText("full-name", "Neue Person");
     this.modalInputs.forEach((input) => {
       if (isRadioInput(input)) {
-        input.checked = false;
-        clearRadioInput(input);
+        setChecked(input, false);
       } else if (isCheckboxInput(input)) {
         input.checked = false;
         input.dispatchEvent(new Event("change", { bubbles: true }));
