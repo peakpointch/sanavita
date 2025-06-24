@@ -70,7 +70,7 @@
       "pets": {
         "id": "pets",
         "label": "Haustiere",
-        "value": "ja",
+        "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
@@ -234,7 +234,7 @@
       "patientenverfuegung": {
         "id": "patientenverfuegung",
         "label": "Patientenverfügung",
-        "value": "ja",
+        "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
@@ -242,7 +242,7 @@
       "care": {
         "id": "care",
         "label": "Pflegebedarf",
-        "value": "ja",
+        "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
@@ -460,7 +460,7 @@
       "pets": {
         "id": "pets",
         "label": "Haustiere",
-        "value": "ja",
+        "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
@@ -624,7 +624,7 @@
       "patientenverfuegung": {
         "id": "patientenverfuegung",
         "label": "Patientenverfügung",
-        "value": "ja",
+        "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
@@ -632,7 +632,7 @@
       "care": {
         "id": "care",
         "label": "Pflegebedarf",
-        "value": "ja",
+        "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
