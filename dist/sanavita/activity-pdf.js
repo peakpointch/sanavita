@@ -33134,7 +33134,7 @@ Page:`, page);
         return;
       }
       this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
-      this.label = data.label || `Unnamed Field`;
+      this.label = data.label || `Untitled`;
       this.value = data.value || "";
       this.required = data.required || false;
       this.type = data.type || "text";
@@ -33175,9 +33175,10 @@ Page:`, page);
     if (input.type === "radio" && !input.checked) {
       return new FormField();
     }
+    const id = input.id || parameterize(input.dataset.name || `untitled ${index2}`);
     const field = new FormField({
-      id: input.id || parameterize(input.dataset.name || `field ${index2}`),
-      label: input.dataset.name || `field ${index2}`,
+      id: isRadioInput(input) ? input.name : id,
+      label: input.dataset.name || `Untitled ${index2}`,
       value: input.value,
       required: input.required || false,
       type: input.type,
