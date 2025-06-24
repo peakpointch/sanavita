@@ -33143,7 +33143,7 @@ Page:`, page);
       this.value = data.value || "";
       this.required = data.required || false;
       this.type = data.type || "text";
-      if (this.type === "radio" || "checkbox") {
+      if (["radio", "checkbox"].includes(this.type)) {
         this.checked = data.checked || false;
       }
       if (this.type === "checkbox" && !this.checked) {
@@ -33175,6 +33175,19 @@ Page:`, page);
       }
       return valid;
     }
+    serialize() {
+      const serialized = {
+        id: this.id,
+        label: this.label,
+        value: this.value,
+        required: this.required,
+        type: this.type
+      };
+      if (["radio", "checkbox"].includes(this.type)) {
+        serialized.checked = this.checked;
+      }
+      return serialized;
+    }
   };
   function fieldFromInput(input, index2) {
     if (input.type === "radio" && !input.checked) {
@@ -33190,15 +33203,6 @@ Page:`, page);
       checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
     });
     return field;
-  }
-
-  // ../peakflow/src/utils/maptoobject.ts
-  function mapToObject(map, stringify = false) {
-    const obj = {};
-    for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
-    }
-    return obj;
   }
 
   // ../peakflow/src/form/fieldgroup.ts
@@ -33232,7 +33236,11 @@ Page:`, page);
      * @returns `this.fields` as an object
      */
     serialize() {
-      return mapToObject(this.fields);
+      let fields = {};
+      this.fields.forEach((field, key) => {
+        fields[key] = field.serialize();
+      });
+      return fields;
     }
     /**
      * Deserialize a `FieldGroup`.
