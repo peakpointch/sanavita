@@ -1,7 +1,5 @@
 {
   "person-70d2db95-383b-456d-95b3-27be5779c809": {
-    "draft": false,
-    "linkedFields": { },
     "personalData": {
       "salutation": {
         "id": "salutation",
@@ -71,7 +69,7 @@
         "id": "municipalities",
         "label": "Bezug zu Trägergemeinden",
         "value": "Zürich, Winterthur",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -239,16 +237,16 @@
       }
     },
     "health": {
-      "patientenverfuegung": {
-        "id": "patientenverfuegung",
+      "livingWill": {
+        "id": "livingWill",
         "label": "Patientenverfügung",
         "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
       },
-      "care": {
-        "id": "care",
+      "needForCare": {
+        "id": "needForCare",
         "label": "Pflegebedarf",
         "value": "Ja",
         "required": true,
@@ -265,6 +263,14 @@
       }
     },
     "primaryRelative": {
+      "primaryRelative": {
+        "id": "primaryRelative",
+        "label": "Primär angehörige Person",
+        "value": "Ja",
+        "required": true,
+        "type": "radio",
+        "checked": true
+      },
       "firstName": {
         "id": "firstName",
         "label": "Vorname",
@@ -285,7 +291,7 @@
         "id": "street",
         "label": "Strasse",
         "value": "Familienweg 2",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -293,7 +299,7 @@
         "id": "zip",
         "label": "PLZ",
         "value": "8002",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -301,7 +307,7 @@
         "id": "city",
         "label": "Ort",
         "value": "Zürich",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -325,17 +331,25 @@
         "id": "degreeOfRelation",
         "label": "Angehörige Verwandschaftsgrad",
         "value": "Tochter",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       }
     },
     "secondaryRelative": {
+      "secondaryRelative": {
+        "id": "secondaryRelative",
+        "label": "Weitere angehörige Person",
+        "value": "Ja",
+        "required": true,
+        "type": "radio",
+        "checked": true
+      },
       "firstName": {
         "id": "firstName",
         "label": "Vorname",
         "value": "Thomas",
-        "required": false,
+        "required": true,
         "type": "text",
         "checked": false
       },
@@ -343,7 +357,7 @@
         "id": "lastName",
         "label": "Name",
         "value": "Meier",
-        "required": false,
+        "required": true,
         "type": "text",
         "checked": false
       },
@@ -375,7 +389,7 @@
         "id": "phone",
         "label": "Telefonnummer",
         "value": "+41 79 123 45 67",
-        "required": false,
+        "required": true,
         "type": "tel",
         "checked": false
       },
@@ -383,7 +397,7 @@
         "id": "email",
         "label": "E-Mail",
         "value": "thomas.meier@example.com",
-        "required": false,
+        "required": true,
         "type": "email",
         "checked": false
       },
@@ -395,11 +409,11 @@
         "type": "text",
         "checked": false
       }
-    }
+    },
+    "linkedFields": {},
+    "draft": false
   },
   "person-88920854-6f4a-421b-a02c-67d961a4ebf2": {
-    "draft": false,
-    "linkedFields": { },
     "personalData": {
       "salutation": {
         "id": "salutation",
@@ -469,7 +483,7 @@
         "id": "municipalities",
         "label": "Bezug zu Trägergemeinden",
         "value": "St. Gallen, Gossau SG",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -637,16 +651,16 @@
       }
     },
     "health": {
-      "patientenverfuegung": {
-        "id": "patientenverfuegung",
+      "livingWill": {
+        "id": "livingWill",
         "label": "Patientenverfügung",
         "value": "Ja",
         "required": true,
         "type": "radio",
         "checked": true
       },
-      "care": {
-        "id": "care",
+      "needForCare": {
+        "id": "needForCare",
         "label": "Pflegebedarf",
         "value": "Ja",
         "required": true,
@@ -663,6 +677,14 @@
       }
     },
     "primaryRelative": {
+      "primaryRelative": {
+        "id": "primaryRelative",
+        "label": "Primär angehörige Person",
+        "value": "Ja",
+        "required": true,
+        "type": "radio",
+        "checked": true
+      },
       "firstName": {
         "id": "firstName",
         "label": "Vorname",
@@ -683,7 +705,7 @@
         "id": "street",
         "label": "Strasse",
         "value": "Blumenweg 5",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -691,7 +713,7 @@
         "id": "zip",
         "label": "PLZ",
         "value": "3007",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -699,7 +721,7 @@
         "id": "city",
         "label": "Ort",
         "value": "Bern",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       },
@@ -723,17 +745,25 @@
         "id": "degreeOfRelation",
         "label": "Angehörige Verwandschaftsgrad",
         "value": "Tochter",
-        "required": true,
+        "required": false,
         "type": "text",
         "checked": false
       }
     },
     "secondaryRelative": {
+      "secondaryRelative": {
+        "id": "secondaryRelative",
+        "label": "Weitere angehörige Person",
+        "value": "Ja",
+        "required": true,
+        "type": "radio",
+        "checked": true
+      },
       "firstName": {
         "id": "firstName",
         "label": "Vorname",
         "value": "Peter",
-        "required": false,
+        "required": true,
         "type": "text",
         "checked": false
       },
@@ -741,7 +771,7 @@
         "id": "lastName",
         "label": "Name",
         "value": "Schneider",
-        "required": false,
+        "required": true,
         "type": "text",
         "checked": false
       },
@@ -773,7 +803,7 @@
         "id": "phone",
         "label": "Telefonnummer",
         "value": "+41 76 888 44 55",
-        "required": false,
+        "required": true,
         "type": "tel",
         "checked": false
       },
@@ -781,7 +811,7 @@
         "id": "email",
         "label": "E-Mail",
         "value": "p.schneider@webmail.ch",
-        "required": false,
+        "required": true,
         "type": "email",
         "checked": false
       },
@@ -793,6 +823,8 @@
         "type": "text",
         "checked": false
       }
-    }
+    },
+    "linkedFields": {},
+    "draft": false
   }
 }
