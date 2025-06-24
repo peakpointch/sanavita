@@ -263,8 +263,8 @@
       }
     },
     "primaryRelative": {
-      "primaryRelative": {
-        "id": "primaryRelative",
+      "providePrimaryRelative": {
+        "id": "providePrimaryRelative",
         "label": "Primär angehörige Person",
         "value": "Ja",
         "required": true,
@@ -337,8 +337,8 @@
       }
     },
     "secondaryRelative": {
-      "secondaryRelative": {
-        "id": "secondaryRelative",
+      "provideSecondaryRelative": {
+        "id": "provideSecondaryRelative",
         "label": "Weitere angehörige Person",
         "value": "Ja",
         "required": true,
@@ -677,8 +677,8 @@
       }
     },
     "primaryRelative": {
-      "primaryRelative": {
-        "id": "primaryRelative",
+      "providePrimaryRelative": {
+        "id": "providePrimaryRelative",
         "label": "Primär angehörige Person",
         "value": "Ja",
         "required": true,
@@ -751,8 +751,8 @@
       }
     },
     "secondaryRelative": {
-      "secondaryRelative": {
-        "id": "secondaryRelative",
+      "provideSecondaryRelative": {
+        "id": "provideSecondaryRelative",
         "label": "Weitere angehörige Person",
         "value": "Ja",
         "required": true,
