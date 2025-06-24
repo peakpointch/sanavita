@@ -954,7 +954,8 @@ export default class ProspectArray {
     const prospectData = new ResidentProspect({ draft: draft });
 
     this.groups.forEach((group) => {
-      const groupInputs = group.element.querySelectorAll<HTMLFormInput>(wf.select.formInput);
+      const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
+      const groupInputs = group.element.querySelectorAll<HTMLFormInput>(selector);
       const linkElements = group.element.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
 
       if (!prospectData[group.name]) {

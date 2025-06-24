@@ -6746,7 +6746,8 @@ Component:`,
     extractData(draft = false) {
       const prospectData = new ResidentProspect({ draft });
       this.groups.forEach((group) => {
-        const groupInputs = group.element.querySelectorAll(wf.select.formInput);
+        const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
+        const groupInputs = group.element.querySelectorAll(selector);
         const linkElements = group.element.querySelectorAll(`[${LINK_FIELDS_ATTR}]`);
         if (!prospectData[group.name]) {
           console.error(`The group "${group.name}" doesn't exist.`);
