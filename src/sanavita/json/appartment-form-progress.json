@@ -1,830 +1,833 @@
 {
-  "person-70d2db95-383b-456d-95b3-27be5779c809": {
-    "personalData": {
-      "salutation": {
-        "id": "salutation",
-        "label": "Anrede",
-        "value": "Herr",
-        "required": false,
-        "type": "select-one",
-        "checked": false
+  "version": "v1.0.0",
+  "prospects": {
+    "person-70d2db95-383b-456d-95b3-27be5779c809": {
+      "personalData": {
+        "salutation": {
+          "id": "salutation",
+          "label": "Anrede",
+          "value": "Herr",
+          "required": false,
+          "type": "select-one",
+          "checked": false
+        },
+        "firstName": {
+          "id": "firstName",
+          "label": "Vorname",
+          "value": "Max",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "lastName": {
+          "id": "lastName",
+          "label": "Name",
+          "value": "Muster",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "date-of-birth": {
+          "id": "date-of-birth",
+          "label": "Geburtsdatum",
+          "value": "1950-04-23",
+          "required": true,
+          "type": "date",
+          "checked": false
+        },
+        "maritalStatus": {
+          "id": "maritalStatus",
+          "label": "Zivilstand",
+          "value": "ledig",
+          "required": true,
+          "type": "select-one",
+          "checked": false
+        },
+        "religion": {
+          "id": "religion",
+          "label": "Konfession",
+          "value": "katholisch",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "formerOccupation": {
+          "id": "formerOccupation",
+          "label": "Ehemaliger Beruf",
+          "value": "Elektriker",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "heimatort": {
+          "id": "heimatort",
+          "label": "Heimatort",
+          "value": "Zürich",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "municipalities": {
+          "id": "municipalities",
+          "label": "Bezug zu Trägergemeinden",
+          "value": "Zürich, Winterthur",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "pets": {
+          "id": "pets",
+          "label": "Haustiere",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "specifiedPets": {
+          "id": "specifiedPets",
+          "label": "Angegebene Haustiere",
+          "value": "Katze",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 44 123 45 67",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "max.muster@example.com",
+          "required": true,
+          "type": "email",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Musterstrasse 10",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "8000",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "Zürich",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "ahvNumber": {
+          "id": "ahvNumber",
+          "label": "AHV Nummer",
+          "value": "756.1234.5678.97",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "healthInsurance": {
+          "id": "healthInsurance",
+          "label": "Krankenkasse",
+          "value": "Helsana",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "healthInsuranceAddress": {
+          "id": "healthInsuranceAddress",
+          "label": "Anschrift Krankenkasse",
+          "value": "Helsana, Postfach, 8081 Zürich",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "insuranceNumber": {
+          "id": "insuranceNumber",
+          "label": "Mitgliedernummer",
+          "value": "KK-987654321",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "insuranceCategory": {
+          "id": "insuranceCategory",
+          "label": "Versicherungsklasse",
+          "value": "Allgemein",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "personalLiabilityInsurance": {
+          "id": "personalLiabilityInsurance",
+          "label": "Haftpflichtversicherung",
+          "value": "Mobiliar",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "policyNumber": {
+          "id": "policyNumber",
+          "label": "Policen Nummer",
+          "value": "HP-11223344",
+          "required": true,
+          "type": "text",
+          "checked": false
+        }
       },
-      "firstName": {
-        "id": "firstName",
-        "label": "Vorname",
-        "value": "Max",
-        "required": true,
-        "type": "text",
-        "checked": false
+      "doctor": {
+        "doctorName": {
+          "id": "doctorName",
+          "label": "Hausarzt",
+          "value": "Dr. Peter Müller",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Ärztestrasse 5",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "8001",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "Zürich",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 44 987 65 43",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "dr.mueller@praxis.ch",
+          "required": true,
+          "type": "email",
+          "checked": false
+        }
       },
-      "lastName": {
-        "id": "lastName",
-        "label": "Name",
-        "value": "Muster",
-        "required": true,
-        "type": "text",
-        "checked": false
+      "health": {
+        "livingWill": {
+          "id": "livingWill",
+          "label": "Patientenverfügung",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "needForCare": {
+          "id": "needForCare",
+          "label": "Pflegebedarf",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "careNeeds": {
+          "id": "careNeeds",
+          "label": "Beschreibung Pflegebedarf",
+          "value": "Unterstützung bei der Körperpflege und Medikamenteneinnahme.",
+          "required": true,
+          "type": "textarea",
+          "checked": false
+        }
       },
-      "date-of-birth": {
-        "id": "date-of-birth",
-        "label": "Geburtsdatum",
-        "value": "1950-04-23",
-        "required": true,
-        "type": "date",
-        "checked": false
+      "primaryRelative": {
+        "providePrimaryRelative": {
+          "id": "providePrimaryRelative",
+          "label": "Primär angehörige Person",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "firstName": {
+          "id": "firstName",
+          "label": "Vorname",
+          "value": "Anna",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "lastName": {
+          "id": "lastName",
+          "label": "Name",
+          "value": "Muster",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Familienweg 2",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "8002",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "Zürich",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 79 456 78 90",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "anna.muster@example.com",
+          "required": true,
+          "type": "email",
+          "checked": false
+        },
+        "degreeOfRelation": {
+          "id": "degreeOfRelation",
+          "label": "Angehörige Verwandschaftsgrad",
+          "value": "Tochter",
+          "required": false,
+          "type": "text",
+          "checked": false
+        }
       },
-      "maritalStatus": {
-        "id": "maritalStatus",
-        "label": "Zivilstand",
-        "value": "ledig",
-        "required": true,
-        "type": "select-one",
-        "checked": false
+      "secondaryRelative": {
+        "provideSecondaryRelative": {
+          "id": "provideSecondaryRelative",
+          "label": "Weitere angehörige Person",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "firstName": {
+          "id": "firstName",
+          "label": "Vorname",
+          "value": "Thomas",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "lastName": {
+          "id": "lastName",
+          "label": "Name",
+          "value": "Meier",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Beispielweg 3",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "8003",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "Zürich",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 79 123 45 67",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "thomas.meier@example.com",
+          "required": true,
+          "type": "email",
+          "checked": false
+        },
+        "degreeOfRelation": {
+          "id": "degreeOfRelation",
+          "label": "Angehörige Verwandschaftsgrad",
+          "value": "Neffe",
+          "required": false,
+          "type": "text",
+          "checked": false
+        }
       },
-      "religion": {
-        "id": "religion",
-        "label": "Konfession",
-        "value": "katholisch",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "formerOccupation": {
-        "id": "formerOccupation",
-        "label": "Ehemaliger Beruf",
-        "value": "Elektriker",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "heimatort": {
-        "id": "heimatort",
-        "label": "Heimatort",
-        "value": "Zürich",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "municipalities": {
-        "id": "municipalities",
-        "label": "Bezug zu Trägergemeinden",
-        "value": "Zürich, Winterthur",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "pets": {
-        "id": "pets",
-        "label": "Haustiere",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "specifiedPets": {
-        "id": "specifiedPets",
-        "label": "Angegebene Haustiere",
-        "value": "Katze",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 44 123 45 67",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "max.muster@example.com",
-        "required": true,
-        "type": "email",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Musterstrasse 10",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "8000",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "Zürich",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "ahvNumber": {
-        "id": "ahvNumber",
-        "label": "AHV Nummer",
-        "value": "756.1234.5678.97",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "healthInsurance": {
-        "id": "healthInsurance",
-        "label": "Krankenkasse",
-        "value": "Helsana",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "healthInsuranceAddress": {
-        "id": "healthInsuranceAddress",
-        "label": "Anschrift Krankenkasse",
-        "value": "Helsana, Postfach, 8081 Zürich",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "insuranceNumber": {
-        "id": "insuranceNumber",
-        "label": "Mitgliedernummer",
-        "value": "KK-987654321",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "insuranceCategory": {
-        "id": "insuranceCategory",
-        "label": "Versicherungsklasse",
-        "value": "Allgemein",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "personalLiabilityInsurance": {
-        "id": "personalLiabilityInsurance",
-        "label": "Haftpflichtversicherung",
-        "value": "Mobiliar",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "policyNumber": {
-        "id": "policyNumber",
-        "label": "Policen Nummer",
-        "value": "HP-11223344",
-        "required": true,
-        "type": "text",
-        "checked": false
-      }
+      "linkedFields": { },
+      "draft": false
     },
-    "doctor": {
-      "doctorName": {
-        "id": "doctorName",
-        "label": "Hausarzt",
-        "value": "Dr. Peter Müller",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Ärztestrasse 5",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "8001",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "Zürich",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 44 987 65 43",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "dr.mueller@praxis.ch",
-        "required": true,
-        "type": "email",
-        "checked": false
-      }
-    },
-    "health": {
-      "livingWill": {
-        "id": "livingWill",
-        "label": "Patientenverfügung",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "needForCare": {
-        "id": "needForCare",
-        "label": "Pflegebedarf",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "careNeeds": {
-        "id": "careNeeds",
-        "label": "Beschreibung Pflegebedarf",
-        "value": "Unterstützung bei der Körperpflege und Medikamenteneinnahme.",
-        "required": true,
-        "type": "textarea",
-        "checked": false
-      }
-    },
-    "primaryRelative": {
-      "providePrimaryRelative": {
-        "id": "providePrimaryRelative",
-        "label": "Primär angehörige Person",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "firstName": {
-        "id": "firstName",
-        "label": "Vorname",
-        "value": "Anna",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "lastName": {
-        "id": "lastName",
-        "label": "Name",
-        "value": "Muster",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Familienweg 2",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "8002",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "Zürich",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 79 456 78 90",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "anna.muster@example.com",
-        "required": true,
-        "type": "email",
-        "checked": false
-      },
-      "degreeOfRelation": {
-        "id": "degreeOfRelation",
-        "label": "Angehörige Verwandschaftsgrad",
-        "value": "Tochter",
-        "required": false,
-        "type": "text",
-        "checked": false
-      }
-    },
-    "secondaryRelative": {
-      "provideSecondaryRelative": {
-        "id": "provideSecondaryRelative",
-        "label": "Weitere angehörige Person",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "firstName": {
-        "id": "firstName",
-        "label": "Vorname",
-        "value": "Thomas",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "lastName": {
-        "id": "lastName",
-        "label": "Name",
-        "value": "Meier",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Beispielweg 3",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "8003",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "Zürich",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 79 123 45 67",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "thomas.meier@example.com",
-        "required": true,
-        "type": "email",
-        "checked": false
-      },
-      "degreeOfRelation": {
-        "id": "degreeOfRelation",
-        "label": "Angehörige Verwandschaftsgrad",
-        "value": "Neffe",
-        "required": false,
-        "type": "text",
-        "checked": false
-      }
-    },
-    "linkedFields": {},
-    "draft": false
-  },
-  "person-88920854-6f4a-421b-a02c-67d961a4ebf2": {
-    "personalData": {
-      "salutation": {
-        "id": "salutation",
-        "label": "Anrede",
-        "value": "Herr",
-        "required": false,
-        "type": "select-one",
-        "checked": false
-      },
-      "firstName": {
-        "id": "firstName",
-        "label": "Vorname",
-        "value": "Claudia",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "lastName": {
-        "id": "lastName",
-        "label": "Name",
-        "value": "Keller",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "date-of-birth": {
-        "id": "date-of-birth",
-        "label": "Geburtsdatum",
-        "value": "1942-08-15",
-        "required": true,
-        "type": "date",
-        "checked": false
-      },
-      "maritalStatus": {
-        "id": "maritalStatus",
-        "label": "Zivilstand",
-        "value": "verwitwet",
-        "required": true,
-        "type": "select-one",
-        "checked": false
-      },
-      "religion": {
-        "id": "religion",
-        "label": "Konfession",
-        "value": "reformiert",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "formerOccupation": {
-        "id": "formerOccupation",
-        "label": "Ehemaliger Beruf",
-        "value": "Lehrerin",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "heimatort": {
-        "id": "heimatort",
-        "label": "Heimatort",
-        "value": "St. Gallen",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "municipalities": {
-        "id": "municipalities",
-        "label": "Bezug zu Trägergemeinden",
-        "value": "St. Gallen, Gossau SG",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "pets": {
-        "id": "pets",
-        "label": "Haustiere",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "specifiedPets": {
-        "id": "specifiedPets",
-        "label": "Angegebene Haustiere",
-        "value": "Ich habe zwei Hunde",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 71 223 45 67",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "claudia.keller@example.com",
-        "required": true,
-        "type": "email",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Schulstrasse 8",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "9000",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "St. Gallen",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "ahvNumber": {
-        "id": "ahvNumber",
-        "label": "AHV Nummer",
-        "value": "756.2345.6789.10",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "healthInsurance": {
-        "id": "healthInsurance",
-        "label": "Krankenkasse",
-        "value": "CSS",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "healthInsuranceAddress": {
-        "id": "healthInsuranceAddress",
-        "label": "Anschrift Krankenkasse",
-        "value": "CSS Versicherung, Postfach 2550, 9001 St. Gallen",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "insuranceNumber": {
-        "id": "insuranceNumber",
-        "label": "Mitgliedernummer",
-        "value": "CSS-123456789",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "insuranceCategory": {
-        "id": "insuranceCategory",
-        "label": "Versicherungsklasse",
-        "value": "Privat",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "personalLiabilityInsurance": {
-        "id": "personalLiabilityInsurance",
-        "label": "Haftpflichtversicherung",
-        "value": "AXA",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "policyNumber": {
-        "id": "policyNumber",
-        "label": "Policen Nummer",
-        "value": "AXA-44556677",
-        "required": true,
-        "type": "text",
-        "checked": false
-      }
-    },
-    "doctor": {
-      "doctorName": {
-        "id": "doctorName",
-        "label": "Hausarzt",
-        "value": "Dr. Martina Steiner",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Praxisweg 3",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "9001",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "St. Gallen",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 71 998 76 54",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "praxis.steiner@medmail.ch",
-        "required": true,
-        "type": "email",
-        "checked": false
-      }
-    },
-    "health": {
-      "livingWill": {
-        "id": "livingWill",
-        "label": "Patientenverfügung",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "needForCare": {
-        "id": "needForCare",
-        "label": "Pflegebedarf",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "careNeeds": {
-        "id": "careNeeds",
-        "label": "Beschreibung Pflegebedarf",
-        "value": "Tägliche Hilfe bei der Körperpflege, Medikamentenmanagement und Mobilitätsunterstützung.",
-        "required": true,
-        "type": "textarea",
-        "checked": false
-      }
-    },
-    "primaryRelative": {
-      "providePrimaryRelative": {
-        "id": "providePrimaryRelative",
-        "label": "Primär angehörige Person",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "firstName": {
-        "id": "firstName",
-        "label": "Vorname",
-        "value": "Martina",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "lastName": {
-        "id": "lastName",
-        "label": "Name",
-        "value": "Meier",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Blumenweg 5",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "3007",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "Bern",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 79 333 22 11",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "martina.meier@example.com",
-        "required": true,
-        "type": "email",
-        "checked": false
-      },
-      "degreeOfRelation": {
-        "id": "degreeOfRelation",
-        "label": "Angehörige Verwandschaftsgrad",
-        "value": "Tochter",
-        "required": false,
-        "type": "text",
-        "checked": false
-      }
-    },
-    "secondaryRelative": {
-      "provideSecondaryRelative": {
-        "id": "provideSecondaryRelative",
-        "label": "Weitere angehörige Person",
-        "value": "Ja",
-        "required": true,
-        "type": "radio",
-        "checked": true
-      },
-      "firstName": {
-        "id": "firstName",
-        "label": "Vorname",
-        "value": "Peter",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "lastName": {
-        "id": "lastName",
-        "label": "Name",
-        "value": "Schneider",
-        "required": true,
-        "type": "text",
-        "checked": false
-      },
-      "street": {
-        "id": "street",
-        "label": "Strasse",
-        "value": "Seestrasse 22",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "zip": {
-        "id": "zip",
-        "label": "PLZ",
-        "value": "3600",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "city": {
-        "id": "city",
-        "label": "Ort",
-        "value": "Thun",
-        "required": false,
-        "type": "text",
-        "checked": false
-      },
-      "phone": {
-        "id": "phone",
-        "label": "Telefonnummer",
-        "value": "+41 76 888 44 55",
-        "required": true,
-        "type": "tel",
-        "checked": false
-      },
-      "email": {
-        "id": "email",
-        "label": "E-Mail",
-        "value": "p.schneider@webmail.ch",
-        "required": true,
-        "type": "email",
-        "checked": false
-      },
-      "degreeOfRelation": {
-        "id": "degreeOfRelation",
-        "label": "Angehörige Verwandschaftsgrad",
-        "value": "Sohn",
-        "required": false,
-        "type": "text",
-        "checked": false
-      }
-    },
-    "linkedFields": {},
-    "draft": false
+    "person-88920854-6f4a-421b-a02c-67d961a4ebf2": {
+      "personalData": {
+        "salutation": {
+          "id": "salutation",
+          "label": "Anrede",
+          "value": "Herr",
+          "required": false,
+          "type": "select-one",
+          "checked": false
+        },
+        "firstName": {
+          "id": "firstName",
+          "label": "Vorname",
+          "value": "Claudia",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "lastName": {
+          "id": "lastName",
+          "label": "Name",
+          "value": "Keller",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "date-of-birth": {
+          "id": "date-of-birth",
+          "label": "Geburtsdatum",
+          "value": "1942-08-15",
+          "required": true,
+          "type": "date",
+          "checked": false
+        },
+        "maritalStatus": {
+          "id": "maritalStatus",
+          "label": "Zivilstand",
+          "value": "verwitwet",
+          "required": true,
+          "type": "select-one",
+          "checked": false
+        },
+        "religion": {
+          "id": "religion",
+          "label": "Konfession",
+          "value": "reformiert",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "formerOccupation": {
+          "id": "formerOccupation",
+          "label": "Ehemaliger Beruf",
+          "value": "Lehrerin",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "heimatort": {
+          "id": "heimatort",
+          "label": "Heimatort",
+          "value": "St. Gallen",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "municipalities": {
+          "id": "municipalities",
+          "label": "Bezug zu Trägergemeinden",
+          "value": "St. Gallen, Gossau SG",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "pets": {
+          "id": "pets",
+          "label": "Haustiere",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "specifiedPets": {
+          "id": "specifiedPets",
+          "label": "Angegebene Haustiere",
+          "value": "Ich habe zwei Hunde",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 71 223 45 67",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "claudia.keller@example.com",
+          "required": true,
+          "type": "email",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Schulstrasse 8",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "9000",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "St. Gallen",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "ahvNumber": {
+          "id": "ahvNumber",
+          "label": "AHV Nummer",
+          "value": "756.2345.6789.10",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "healthInsurance": {
+          "id": "healthInsurance",
+          "label": "Krankenkasse",
+          "value": "CSS",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "healthInsuranceAddress": {
+          "id": "healthInsuranceAddress",
+          "label": "Anschrift Krankenkasse",
+          "value": "CSS Versicherung, Postfach 2550, 9001 St. Gallen",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "insuranceNumber": {
+          "id": "insuranceNumber",
+          "label": "Mitgliedernummer",
+          "value": "CSS-123456789",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "insuranceCategory": {
+          "id": "insuranceCategory",
+          "label": "Versicherungsklasse",
+          "value": "Privat",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "personalLiabilityInsurance": {
+          "id": "personalLiabilityInsurance",
+          "label": "Haftpflichtversicherung",
+          "value": "AXA",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "policyNumber": {
+          "id": "policyNumber",
+          "label": "Policen Nummer",
+          "value": "AXA-44556677",
+          "required": true,
+          "type": "text",
+          "checked": false
+        }
+      },
+      "doctor": {
+        "doctorName": {
+          "id": "doctorName",
+          "label": "Hausarzt",
+          "value": "Dr. Martina Steiner",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Praxisweg 3",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "9001",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "St. Gallen",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 71 998 76 54",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "praxis.steiner@medmail.ch",
+          "required": true,
+          "type": "email",
+          "checked": false
+        }
+      },
+      "health": {
+        "livingWill": {
+          "id": "livingWill",
+          "label": "Patientenverfügung",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "needForCare": {
+          "id": "needForCare",
+          "label": "Pflegebedarf",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "careNeeds": {
+          "id": "careNeeds",
+          "label": "Beschreibung Pflegebedarf",
+          "value": "Tägliche Hilfe bei der Körperpflege, Medikamentenmanagement und Mobilitätsunterstützung.",
+          "required": true,
+          "type": "textarea",
+          "checked": false
+        }
+      },
+      "primaryRelative": {
+        "providePrimaryRelative": {
+          "id": "providePrimaryRelative",
+          "label": "Primär angehörige Person",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "firstName": {
+          "id": "firstName",
+          "label": "Vorname",
+          "value": "Martina",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "lastName": {
+          "id": "lastName",
+          "label": "Name",
+          "value": "Meier",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Blumenweg 5",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "3007",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "Bern",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 79 333 22 11",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "martina.meier@example.com",
+          "required": true,
+          "type": "email",
+          "checked": false
+        },
+        "degreeOfRelation": {
+          "id": "degreeOfRelation",
+          "label": "Angehörige Verwandschaftsgrad",
+          "value": "Tochter",
+          "required": false,
+          "type": "text",
+          "checked": false
+        }
+      },
+      "secondaryRelative": {
+        "provideSecondaryRelative": {
+          "id": "provideSecondaryRelative",
+          "label": "Weitere angehörige Person",
+          "value": "Ja",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "firstName": {
+          "id": "firstName",
+          "label": "Vorname",
+          "value": "Peter",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "lastName": {
+          "id": "lastName",
+          "label": "Name",
+          "value": "Schneider",
+          "required": true,
+          "type": "text",
+          "checked": false
+        },
+        "street": {
+          "id": "street",
+          "label": "Strasse",
+          "value": "Seestrasse 22",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "zip": {
+          "id": "zip",
+          "label": "PLZ",
+          "value": "3600",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "city": {
+          "id": "city",
+          "label": "Ort",
+          "value": "Thun",
+          "required": false,
+          "type": "text",
+          "checked": false
+        },
+        "phone": {
+          "id": "phone",
+          "label": "Telefonnummer",
+          "value": "+41 76 888 44 55",
+          "required": true,
+          "type": "tel",
+          "checked": false
+        },
+        "email": {
+          "id": "email",
+          "label": "E-Mail",
+          "value": "p.schneider@webmail.ch",
+          "required": true,
+          "type": "email",
+          "checked": false
+        },
+        "degreeOfRelation": {
+          "id": "degreeOfRelation",
+          "label": "Angehörige Verwandschaftsgrad",
+          "value": "Sohn",
+          "required": false,
+          "type": "text",
+          "checked": false
+        }
+      },
+      "linkedFields": { },
+      "draft": false
+    }
   }
 }

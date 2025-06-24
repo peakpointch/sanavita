@@ -17,6 +17,7 @@ import {
   ResidentProspect,
   GroupName,
   prospectMapToObject,
+  SerializedProspect,
 } from "./resident-prospect";
 import wf from "@peakflow/webflow";
 import { HTMLFormInput } from "@peakflow/form";
@@ -27,6 +28,7 @@ import AlertDialog from "@peakflow/alertdialog";
 import SaveOptions from "./save-options";
 import { getAlertDialog } from "./alert-dialog";
 import type { ScrollPosition } from "@peakflow/scroll";
+import semver from "semver";
 
 type ProspectElement =
   'template'
@@ -48,7 +50,13 @@ const FIELD_GROUP_SELECTOR = `[${FIELD_GROUP_ATTR}]`;
 const ACCORDION_SELECTOR = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
-const STORAGE_KEY = "formProgress";
+const PROSPECT_STORAGE_KEY = "formProgress";
+const PROSPECT_STORAGE_VERSION = "v1.0.0";
+
+interface ProspectArrayProgress {
+  version: string;
+  prospects: Record<string, SerializedProspect>;
+}
 
 type ModalGroup = {
   isValid: boolean;
@@ -980,11 +988,14 @@ export default class ProspectArray {
    */
   public saveProgress(): void {
     // Serialize the prospect map to an object
-    const serializedProspects = prospectMapToObject(this.prospects);
+    const progress: ProspectArrayProgress = {
+      version: PROSPECT_STORAGE_VERSION,
+      prospects: prospectMapToObject(this.prospects)
+    }
 
     // Store the serialized data in localStorage
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(serializedProspects));
+      localStorage.setItem(PROSPECT_STORAGE_KEY, JSON.stringify(progress));
       console.info("Form progress saved.");
     } catch (error) {
       console.error("Error saving form progress to localStorage:", error);
@@ -996,7 +1007,7 @@ export default class ProspectArray {
    */
   public clearProgress(): void {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(PROSPECT_STORAGE_KEY);
     } catch (error) {
       console.error("Error clearing form progress from localStorage:", error);
     }
@@ -1007,27 +1018,42 @@ export default class ProspectArray {
    */
   public loadProgress(): void {
     // Check if there's any saved data in localStorage
-    const savedData = localStorage.getItem(STORAGE_KEY);
+    const savedData = localStorage.getItem(PROSPECT_STORAGE_KEY);
 
     if (savedData) {
       try {
-        const deserializedData = JSON.parse(savedData);
+        const progress = JSON.parse(savedData) as ProspectArrayProgress;
 
-        // Loop through the deserialized data and create `ResidentProspect` instances
-        for (const key in deserializedData) {
-          if (deserializedData.hasOwnProperty(key)) {
-            const prospectData = deserializedData[key];
+        if (!progress.version) {
+          throw new Error(`Saved progress is missing version; outdated.`);
+        }
+
+        const cleanCurrentVersion = semver.clean(PROSPECT_STORAGE_VERSION);
+        const cleanSavedVersion = semver.clean(progress.version);
+
+        if (!cleanCurrentVersion || !cleanSavedVersion) {
+          throw new Error("Invalid semver version format.");
+        }
+
+        if (!semver.eq(cleanCurrentVersion, cleanSavedVersion)) {
+          throw new Error(`Saved progress version "${progress.version}" is outdated.`);
+        }
+
+        // Loop through the serialized data and create `ResidentProspect` instances
+        for (const key in progress.prospects) {
+          if (progress.prospects.hasOwnProperty(key)) {
+            const prospectData = progress.prospects[key];
             const prospect = ResidentProspect.deserialize(prospectData); // Deserialize the ResidentProspect object
             prospect.key = key;
             this.prospects.set(key, prospect);
-            this.renderList();
-            this.closeModal();
           }
         }
 
+        this.renderList();
+        this.closeModal();
         console.log("Form progress loaded.");
-      } catch (error) {
-        console.error("Error loading form progress from localStorage:", error);
+      } catch (e) {
+        console.error(`Error loading prospects progress: ${e.message}`);
       }
     } else {
       console.log("No saved form progress found.");
