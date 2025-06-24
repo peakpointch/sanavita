@@ -58,9 +58,8 @@ function initializeProspectDecisions<T extends string = string>(
     const group = prospectArray.getClosestGroup(decision.component);
     decision.onChange(() => {
       prospectArray.validateModalGroup(group);
-      const allGroupsValid = prospectArray.groups.every(group => group.isValid === true);
-
-      prospectArray.saveOptions.setAction(allGroupsValid ? 'save' : 'draft');
+      const valid = prospectArray.groups.every(group => group.isValid === true);
+      prospectArray.saveOptions.setAction(valid ? 'save' : 'draft');
     });
 
     prospectArray.onOpen(`decision-${id}`, () => decision.sync());

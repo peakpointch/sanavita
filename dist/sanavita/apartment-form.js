@@ -6163,12 +6163,8 @@ Component:`,
         input.addEventListener("input", () => {
           if (input.matches(FormDecision.selector("input")) || input.matches(`[${LINK_FIELDS_ATTR}] *`)) return;
           this.validateModalGroup(group);
-          const allGroupsValid = this.groups.every((group2) => group2.isValid === true);
-          if (allGroupsValid) {
-            this.saveOptions.setAction("save");
-          } else {
-            this.saveOptions.setAction("draft");
-          }
+          const valid = this.groups.every((group2) => group2.isValid === true);
+          this.saveOptions.setAction(valid ? "save" : "draft");
         });
       });
       this.saveOptions.setActionHandler("save", () => {
@@ -6363,7 +6359,6 @@ Component:`,
       this.setLiveText("full-name", "Neue Person");
       this.unsavedProspect = this.extractData(true);
       this.editingKey = `unsaved-${this.unsavedProspect.key}`;
-      this.saveOptions.setAction("draft");
       this.openModal();
     }
     saveProspectFromModal(opts) {
@@ -6465,7 +6460,6 @@ Component:`,
       this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
       this.editingKey = prospect.key;
       this.populateModal(prospect);
-      this.saveOptions.setAction(prospect.draft ? "draft" : "save");
       this.openModal();
     }
     async onDeleteProspect(prospectOrKey) {
@@ -6658,7 +6652,8 @@ Component:`,
           );
         });
       });
-      this.validateModal(false);
+      const valid = this.validateModal(false);
+      this.saveOptions.setAction(valid ? "save" : "draft");
       this.handleLinkedFieldsVisibility();
       this.openAccordion(0);
       this.triggerOnOpen();
@@ -8624,8 +8619,8 @@ Component:`,
       const group = prospectArray.getClosestGroup(decision.component);
       decision.onChange(() => {
         prospectArray.validateModalGroup(group);
-        const allGroupsValid = prospectArray.groups.every((group2) => group2.isValid === true);
-        prospectArray.saveOptions.setAction(allGroupsValid ? "save" : "draft");
+        const valid = prospectArray.groups.every((group2) => group2.isValid === true);
+        prospectArray.saveOptions.setAction(valid ? "save" : "draft");
       });
       prospectArray.onOpen(`decision-${id}`, () => decision.sync());
       prospectArray.onClose(`decision-${id}`, () => decision.reset());

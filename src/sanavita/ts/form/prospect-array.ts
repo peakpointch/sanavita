@@ -179,13 +179,8 @@ export default class ProspectArray {
         ) return;
 
         this.validateModalGroup(group);
-        const allGroupsValid = this.groups.every(group => group.isValid === true);
-
-        if (allGroupsValid) {
-          this.saveOptions.setAction('save');
-        } else {
-          this.saveOptions.setAction('draft');
-        }
+        const valid = this.groups.every(group => group.isValid === true);
+        this.saveOptions.setAction(valid ? 'save' : 'draft');
       });
     });
 
@@ -434,7 +429,6 @@ export default class ProspectArray {
 
     this.unsavedProspect = this.extractData(true);
     this.editingKey = `unsaved-${this.unsavedProspect.key}`;
-    this.saveOptions.setAction('draft');
     this.openModal();
   }
 
@@ -563,7 +557,6 @@ export default class ProspectArray {
     this.setLiveText("full-name", prospect.getFullName() || "Neue Person");
     this.editingKey = prospect.key; // Set editing key
     this.populateModal(prospect);
-    this.saveOptions.setAction(prospect.draft ? 'draft' : 'save');
     this.openModal();
   }
 
@@ -820,7 +813,8 @@ export default class ProspectArray {
       });
     });
 
-    this.validateModal(false);
+    const valid = this.validateModal(false);
+    this.saveOptions.setAction(valid ? 'save' : 'draft');
     this.handleLinkedFieldsVisibility();
     this.openAccordion(0);
     this.triggerOnOpen();
