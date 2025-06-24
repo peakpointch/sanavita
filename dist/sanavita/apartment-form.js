@@ -6733,12 +6733,12 @@ Component:`,
       if (prospectArray.modal.opened) prospectArray.closeModal();
     });
     const errorMessages = {
-      beilagenSenden: {
+      attachmentSubmission: {
         upload: "Bitte laden Sie alle Beilagen hoch."
       }
     };
     const defaultMessages = {
-      beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder w\xE4hlen Sie die Option "Beilagen per Post senden".`
+      attachmentSubmission: `Bitte laden Sie alle Beilagen hoch oder w\xE4hlen Sie die Option "Beilagen per Post senden".`
     };
     initializeProspectDecisions(
       prospectArray,

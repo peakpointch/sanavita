@@ -152,13 +152,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   const errorMessages = {
-    beilagenSenden: {
+    attachmentSubmission: {
       upload: "Bitte laden Sie alle Beilagen hoch.",
     },
   };
 
   const defaultMessages = {
-    beilagenSenden: `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
+    attachmentSubmission: `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
   };
 
   initializeProspectDecisions(
