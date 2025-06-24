@@ -1,5 +1,5 @@
-import { FormField } from "@peakflow/form";
-import { FieldGroup, FieldGroupValidation } from "@peakflow/form/fieldgroup";
+import { FieldData, FormField } from "@peakflow/form";
+import { FieldGroup, FieldGroupValidation, SerializedFieldGroup } from "@peakflow/form/fieldgroup";
 import mapToObject from "@peakflow/utils/maptoobject";
 import objectToMap from "@peakflow/utils/objecttomap";
 
@@ -22,13 +22,13 @@ type LinkedFieldsId =
 export type ProspectValidation = Record<GroupName, FieldGroupValidation<FormField>>;
 
 export interface SerializedProspect {
-  personalData?: any;
-  doctor?: any;
-  health?: any;
-  primaryRelative?: any;
-  secondaryRelative?: any;
-  linkedFields?: any;
-  draft?: any;
+  personalData?: SerializedFieldGroup;
+  doctor?: SerializedFieldGroup;
+  health?: SerializedFieldGroup;
+  primaryRelative?: SerializedFieldGroup;
+  secondaryRelative?: SerializedFieldGroup;
+  linkedFields?: Record<string, LinkedField>;
+  draft?: boolean;
 }
 
 export interface ResidentProspectData {

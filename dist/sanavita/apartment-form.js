@@ -2732,7 +2732,7 @@ Component:`,
       this.value = data.value || "";
       this.required = data.required || false;
       this.type = data.type || "text";
-      if (this.type === "radio" || "checkbox") {
+      if (["radio", "checkbox"].includes(this.type)) {
         this.checked = data.checked || false;
       }
       if (this.type === "checkbox" && !this.checked) {
@@ -2763,6 +2763,19 @@ Component:`,
         console.warn(`Field "${this.label}" is invalid.`);
       }
       return valid;
+    }
+    serialize() {
+      const serialized = {
+        id: this.id,
+        label: this.label,
+        value: this.value,
+        required: this.required,
+        type: this.type
+      };
+      if (["radio", "checkbox"].includes(this.type)) {
+        serialized.checked = this.checked;
+      }
+      return serialized;
     }
   };
   function fieldFromInput(input, index) {
@@ -2812,7 +2825,11 @@ Component:`,
      * @returns `this.fields` as an object
      */
     serialize() {
-      return mapToObject(this.fields);
+      let fields = {};
+      this.fields.forEach((field, key) => {
+        fields[key] = field.serialize();
+      });
+      return fields;
     }
     /**
      * Deserialize a `FieldGroup`.
