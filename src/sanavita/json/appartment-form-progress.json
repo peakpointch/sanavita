@@ -24,8 +24,8 @@
           "required": true,
           "type": "text"
         },
-        "date-of-birth": {
-          "id": "date-of-birth",
+        "dateOfBirth": {
+          "id": "dateOfBirth",
           "label": "Geburtsdatum",
           "value": "1950-04-23",
           "required": true,
@@ -393,8 +393,8 @@
           "required": true,
           "type": "text"
         },
-        "date-of-birth": {
-          "id": "date-of-birth",
+        "dateOfBirth": {
+          "id": "dateOfBirth",
           "label": "Geburtsdatum",
           "value": "1942-08-15",
           "required": true,
