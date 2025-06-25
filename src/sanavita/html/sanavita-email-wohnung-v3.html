@@ -1,16 +1,16 @@
 <main class="main-wrapper is-email">
-  <section class="section-4" section-style="lightest">
+  <section class="section" section-style="lightest">
     <div class="padding-global-email">
       <div class="padding-section-medium">
         <div class="container-small">
           <div>
-            <div class="section-title">
-              <div class="split_content-text display-block" id="w-node-_40f01964-7c1c-013d-c736-9a78ea8b1216-ea8b1215">
-                <div class="heading-topic animated-by-parent">Formulareingang</div>
+            <div class="section-title" data-wf--layout-section-title--variant="base">
+              <div class="split_content-text display-block">
+                <div class="tagline animated-by-parent">Formulareingang</div>
                 <div class="spacer-xsmall"></div>
                 <div class="animated-by-parent">
                   <div class="text-rich-text w-richtext">
-                    <h3>Anmeldung Sonnenweg: {{1.data.wohnung}}</h3>
+                    <h3>Wohnungsanmeldung: {{1.data.apartment}}</h3>
                   </div>
                 </div>
                 <div>
@@ -34,31 +34,35 @@
               <tbody class="table_body">
                 <tr class="table_row">
                   <td class="table_cell">Wunschwohnung</td>
-                  <td class="table_cell">{{1.data.wohnung}}</td>
+                  <td class="table_cell">{{1.data.apartment}}</td>
                 </tr>
                 <tr class="table_row">
-                  <td class="table_cell">Alternative Wohnungen</td>
-                  <td class="table_cell">{{1.data.alternativeAppartments}}</td>
+                  <td class="table_cell">Alternative Wohnung</td>
+                  <td class="table_cell">{{1.data.alternativeApartment}}</td>
                 </tr>
                 <tr class="table_row">
                   <td class="table_cell">Bezug ab</td>
-                  <td class="table_cell">{{1.data.`bezug-ab`}}</td>
+                  <td class="table_cell">{{1.data.moveInDate}}</td>
                 </tr>
                 <tr class="table_row">
                   <td class="table_cell">Einstellhallenplatz</td>
-                  <td class="table_cell">{{1.data.Einstellhallenplatz}}</td>
+                  <td class="table_cell">{{1.data.parking}}</td>
                 </tr>
                 <tr class="table_row">
                   <td class="table_cell">Autokennzeichen</td>
-                  <td class="table_cell">{{1.data.Autokennzeichen}}</td>
+                  <td class="table_cell">{{1.data.licensePlateNumber}}</td>
                 </tr>
                 <tr class="table_row">
                   <td class="table_cell">Akzeptiere Bedingungen</td>
-                  <td class="table_cell">{{1.data.`akzeptiere-bedingungen`}}</td>
+                  <td class="table_cell">{{1.data.acceptTerms}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Akzeptiere Verbindlichkeit</td>
+                  <td class="table_cell">{{1.data.acceptObligation}}</td>
                 </tr>
                 <tr class="table_row">
                   <td class="table_cell">Bemerkung</td>
-                  <td class="table_cell">{{1.data.bemerkung}}</td>
+                  <td class="table_cell">{{1.data.comment}}</td>
                 </tr>
               </tbody>
               <caption class="table_caption">Allgemeine Informationen</caption>
@@ -73,7 +77,7 @@
               <tbody class="table_body">
                 <tr class="table_row">
                   <td class="table_cell">Übermittlung der Beilagen</td>
-                  <td class="table_cell">{{1.data.beilagenSenden}}</td>
+                  <td class="table_cell">{{1.data.attachmentSubmission}}</td>
                 </tr>
                 <tr class="table_row">
                   <td class="table_cell">Uploadcare Uuid</td>
@@ -82,30 +86,6 @@
                 <tr class="table_row">
                   <td class="table_cell">Beilagen Dateien</td>
                   <td class="table_cell">{{1.data.`uploadcare-file`}}</td>
-                </tr>
-                <tr class="table_row">
-                  <td class="table_cell">Police Hausrat- und Haftpflichtvers.</td>
-                  <td class="table_cell">{{1.data.beilagen_versicherungsPolice}}</td>
-                </tr>
-                <tr class="table_row">
-                  <td class="table_cell">Steuerregisterauszug</td>
-                  <td class="table_cell">{{1.data.beilagen_taxRegister}}</td>
-                </tr>
-                <tr class="table_row">
-                  <td class="table_cell">Pass oder ID</td>
-                  <td class="table_cell">{{1.data.beilagen_passOrId}}</td>
-                </tr>
-                <tr class="table_row">
-                  <td class="table_cell">Krankenversicherungskarte</td>
-                  <td class="table_cell">{{1.data.beilagen_healthInsuranceCard}}</td>
-                </tr>
-                <tr class="table_row">
-                  <td class="table_cell">Betreibungsregisterauszug</td>
-                  <td class="table_cell">{{1.data.beilagen_debtRegister}}</td>
-                </tr>
-                <tr class="table_row">
-                  <td class="table_cell">Pflegebericht</td>
-                  <td class="table_cell">{{1.data.beilagen_pflegebericht}}</td>
                 </tr>
               </tbody>
               <caption class="table_caption">Beilagen</caption>
@@ -123,23 +103,23 @@
                 <tbody class="table_body">
                   <tr class="table_row">
                     <td class="table_cell">Anrede</td>
-                    <td class="table_cell">{{1.data.person1_personalData_anrede}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_salutation}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Vorname</td>
-                    <td class="table_cell">{{1.data.`person1_personalData_first-name`}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_firstName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Name</td>
-                    <td class="table_cell">{{1.data.person1_personalData_name}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_lastName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Geburtsdatum</td>
-                    <td class="table_cell">{{1.data.`person1_personalData_date-of-birth`}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_dateOfBirth}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Zivilstand</td>
-                    <td class="table_cell">{{1.data.person1_personalData_zivilstand}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_maritalStatus}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Konfession</td>
@@ -187,31 +167,31 @@
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">AHV Nummer</td>
-                    <td class="table_cell">{{1.data.person1_personalData_ahvNummer}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_ahvNumber}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Krankenkasse</td>
-                    <td class="table_cell">{{1.data.person1_personalData_krankenkasse}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_healthInsurance}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Anschrift Krankenkasse</td>
-                    <td class="table_cell">{{1.data.person1_personalData_anschriftKrankenkasse}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_healthInsuranceAddress}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Mitgliedernummer</td>
-                    <td class="table_cell">{{1.data.person1_personalData_mitgliedernummer}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_insuranceNumber}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Versicherungsklasse</td>
-                    <td class="table_cell">{{1.data.person1_personalData_versicherungsklasse}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_insuranceCategory}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Haftpflichtversicherung</td>
-                    <td class="table_cell">{{1.data.person1_personalData_haftpflichtversicherung}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_personalLiabilityInsurance}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Policen Nummer</td>
-                    <td class="table_cell">{{1.data.person1_personalData_policenNummer}}</td>
+                    <td class="table_cell">{{1.data.person1_personalData_policyNumber}}</td>
                   </tr>
                 </tbody>
                 <caption class="table_caption">Person 1: Persönliche Angaben</caption>
@@ -226,11 +206,11 @@
                 <tbody class="table_body">
                   <tr class="table_row">
                     <td class="table_cell">Patientenverfügung vorhanden</td>
-                    <td class="table_cell">{{1.data.person1_health_patientenverfuegung}}</td>
+                    <td class="table_cell">{{1.data.person1_health_livingWill}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Pflegebedarf zur Zeit</td>
-                    <td class="table_cell">{{1.data.person1_health_care}}</td>
+                    <td class="table_cell">{{1.data.person1_health_needForCare}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Beschreibung Pflegebedarf</td>
@@ -248,12 +228,47 @@
                 </thead>
                 <tbody class="table_body">
                   <tr class="table_row">
+                    <td class="table_cell">Hausarzt</td>
+                    <td class="table_cell">{{1.data.person1_doctor_doctorName}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Strasse</td>
+                    <td class="table_cell">{{1.data.person1_doctor_street}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">PLZ</td>
+                    <td class="table_cell">{{1.data.person1_doctor_zip}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Ort</td>
+                    <td class="table_cell">{{1.data.person1_doctor_city}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Telefonnummer</td>
+                    <td class="table_cell">{{1.data.person1_doctor_phone}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">E-Mail</td>
+                    <td class="table_cell">{{1.data.person1_doctor_email}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Person 1: Hausarzt</caption>
+              </table>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
                     <td class="table_cell">Vorname</td>
-                    <td class="table_cell">{{1.data.`person1_primaryRelative_first-name`}}</td>
+                    <td class="table_cell">{{1.data.person1_primaryRelative_firstName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Name</td>
-                    <td class="table_cell">{{1.data.person1_primaryRelative_name}}</td>
+                    <td class="table_cell">{{1.data.person1_primaryRelative_lastName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Strasse</td>
@@ -280,7 +295,7 @@
                     <td class="table_cell">{{1.data.person1_primaryRelative_degreeOfRelation}}</td>
                   </tr>
                 </tbody>
-                <caption class="table_caption">Person 1: Primär Angehörige</caption>
+                <caption class="table_caption">Person 1: Primär Angehörige Person</caption>
               </table>
               <table class="table_component">
                 <thead class="table_head">
@@ -292,11 +307,11 @@
                 <tbody class="table_body">
                   <tr class="table_row">
                     <td class="table_cell">Vorname</td>
-                    <td class="table_cell">{{1.data.`person1_secondaryRelative_first-name`}}</td>
+                    <td class="table_cell">{{1.data.person1_secondaryRelative_firstName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Name</td>
-                    <td class="table_cell">{{1.data.person1_secondaryRelative_name}}</td>
+                    <td class="table_cell">{{1.data.person1_secondaryRelative_lastName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Strasse</td>
@@ -323,7 +338,7 @@
                     <td class="table_cell">{{1.data.person1_secondaryRelative_degreeOfRelation}}</td>
                   </tr>
                 </tbody>
-                <caption class="table_caption">Person 1: Weitere Angehörige</caption>
+                <caption class="table_caption">Person 1: Weitere Angehörige Person</caption>
               </table>
             </div>
             <div>
@@ -339,23 +354,23 @@
                 <tbody class="table_body">
                   <tr class="table_row">
                     <td class="table_cell">Anrede</td>
-                    <td class="table_cell">{{1.data.person2_personalData_anrede}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_salutation}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Vorname</td>
-                    <td class="table_cell">{{1.data.`person2_personalData_first-name`}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_firstName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Name</td>
-                    <td class="table_cell">{{1.data.person2_personalData_name}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_lastName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Geburtsdatum</td>
-                    <td class="table_cell">{{1.data.`person2_personalData_date-of-birth`}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_dateOfBirth}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Zivilstand</td>
-                    <td class="table_cell">{{1.data.person2_personalData_zivilstand}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_maritalStatus}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Konfession</td>
@@ -403,34 +418,57 @@
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">AHV Nummer</td>
-                    <td class="table_cell">{{1.data.person2_personalData_ahvNummer}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_ahvNumber}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Krankenkasse</td>
-                    <td class="table_cell">{{1.data.person2_personalData_krankenkasse}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_healthInsurance}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Anschrift Krankenkasse</td>
-                    <td class="table_cell">{{1.data.person2_personalData_anschriftKrankenkasse}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_healthInsuranceAddress}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Mitgliedernummer</td>
-                    <td class="table_cell">{{1.data.person2_personalData_mitgliedernummer}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_insuranceNumber}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Versicherungsklasse</td>
-                    <td class="table_cell">{{1.data.person2_personalData_versicherungsklasse}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_insuranceCategory}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Haftpflichtversicherung</td>
-                    <td class="table_cell">{{1.data.person2_personalData_haftpflichtversicherung}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_personalLiabilityInsurance}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Policen Nummer</td>
-                    <td class="table_cell">{{1.data.person2_personalData_policenNummer}}</td>
+                    <td class="table_cell">{{1.data.person2_personalData_policyNumber}}</td>
                   </tr>
                 </tbody>
                 <caption class="table_caption">Person 2: Persönliche Angaben</caption>
+              </table>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
+                    <td class="table_cell">Patientenverfügung vorhanden</td>
+                    <td class="table_cell">{{1.data.person2_health_livingWill}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Pflegebedarf zur Zeit</td>
+                    <td class="table_cell">{{1.data.person2_health_needForCare}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Beschreibung Pflegebedarf</td>
+                    <td class="table_cell">{{1.data.person2_health_careNeeds}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Person 2: Gesundheitliche Angaben</caption>
               </table>
               <table class="table_component">
                 <thead class="table_head">
@@ -476,35 +514,12 @@
                 </thead>
                 <tbody class="table_body">
                   <tr class="table_row">
-                    <td class="table_cell">Patientenverfügung vorhanden</td>
-                    <td class="table_cell">{{1.data.person2_health_patientenverfuegung}}</td>
-                  </tr>
-                  <tr class="table_row">
-                    <td class="table_cell">Pflegebedarf zur Zeit</td>
-                    <td class="table_cell">{{1.data.person2_health_care}}</td>
-                  </tr>
-                  <tr class="table_row">
-                    <td class="table_cell">Beschreibung Pflegebedarf</td>
-                    <td class="table_cell">{{1.data.person2_health_careNeeds}}</td>
-                  </tr>
-                </tbody>
-                <caption class="table_caption">Person 2: Gesundheitliche Angaben</caption>
-              </table>
-              <table class="table_component">
-                <thead class="table_head">
-                  <tr class="table_row">
-                    <th class="table_header">Feld</th>
-                    <th class="table_header">Wert</th>
-                  </tr>
-                </thead>
-                <tbody class="table_body">
-                  <tr class="table_row">
                     <td class="table_cell">Vorname</td>
-                    <td class="table_cell">{{1.data.`person2_primaryRelative_first-name`}}</td>
+                    <td class="table_cell">{{1.data.person2_primaryRelative_firstName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Name</td>
-                    <td class="table_cell">{{1.data.person2_primaryRelative_name}}</td>
+                    <td class="table_cell">{{1.data.person2_primaryRelative_lastName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Strasse</td>
@@ -531,7 +546,7 @@
                     <td class="table_cell">{{1.data.person2_primaryRelative_degreeOfRelation}}</td>
                   </tr>
                 </tbody>
-                <caption class="table_caption">Person 2: Primär Angehörige</caption>
+                <caption class="table_caption">Person 2: Primär Angehörige Person</caption>
               </table>
               <table class="table_component">
                 <thead class="table_head">
@@ -543,11 +558,11 @@
                 <tbody class="table_body">
                   <tr class="table_row">
                     <td class="table_cell">Vorname</td>
-                    <td class="table_cell">{{1.data.`person2_secondaryRelative_first-name`}}</td>
+                    <td class="table_cell">{{1.data.person2_secondaryRelative_firstName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Name</td>
-                    <td class="table_cell">{{1.data.person2_secondaryRelative_name}}</td>
+                    <td class="table_cell">{{1.data.person2_secondaryRelative_lastName}}</td>
                   </tr>
                   <tr class="table_row">
                     <td class="table_cell">Strasse</td>
@@ -574,7 +589,7 @@
                     <td class="table_cell">{{1.data.person2_secondaryRelative_degreeOfRelation}}</td>
                   </tr>
                 </tbody>
-                <caption class="table_caption">Person 2: Weitere Angehörige</caption>
+                <caption class="table_caption">Person 2: Weitere Angehörige Person</caption>
               </table>
             </div>
           </div>
@@ -582,6 +597,4 @@
       </div>
     </div>
   </section>
-</main>
-</section>
 </main>
