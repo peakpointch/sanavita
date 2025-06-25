@@ -621,7 +621,7 @@ export default class ProspectArray {
   private populateModal(prospect: ResidentProspect) {
     for (const [id] of prospect.linkedFields.entries()) {
       const linkElement = this.modalElement.querySelector<HTMLElement>(`[${LINK_FIELDS_ATTR}][data-id="${id}"]`);
-      if (!linkElement) return;
+      if (!linkElement) continue;
       const linkCheckbox = linkElement.querySelector<HTMLInputElement>(wf.select.checkboxInput);
       linkCheckbox.checked = true;
       linkCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
