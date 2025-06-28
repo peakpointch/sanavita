@@ -236,14 +236,6 @@
         }
       },
       "primaryRelative": {
-        "providePrimaryRelative": {
-          "id": "providePrimaryRelative",
-          "label": "Primär angehörige Person",
-          "value": "Ja",
-          "required": true,
-          "type": "radio",
-          "checked": true
-        },
         "firstName": {
           "id": "firstName",
           "label": "Vorname",
@@ -605,14 +597,6 @@
         }
       },
       "primaryRelative": {
-        "providePrimaryRelative": {
-          "id": "providePrimaryRelative",
-          "label": "Primär angehörige Person",
-          "value": "Ja",
-          "required": true,
-          "type": "radio",
-          "checked": true
-        },
         "firstName": {
           "id": "firstName",
           "label": "Vorname",
