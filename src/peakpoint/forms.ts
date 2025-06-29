@@ -1,7 +1,7 @@
-import { initCal } from "@peakflow/cal/loader";
-import { disableWebflowForm, formElementSelector, reportValidity, getWfFormData, sendFormData } from "@peakflow/form/utility";
-import Modal from "@peakflow/modal";
-import { inputSync, syncSelector } from "@peakflow/inputsync";
+import { initCal } from "peakflow/cal";
+import { disableWebflowForm, formElementSelector, reportValidity, getWfFormData, sendFormData } from "peakflow/form";
+import { Modal } from "peakflow/modal";
+import { inputSync, syncSelector } from "peakflow/inputsync";
 import isURL from "validator/lib/isURL";
 
 /**
@@ -92,7 +92,10 @@ function initNavFormModal(): void {
       type: 'growIn',
       duration: 300,
     },
-    lockBodyScroll: true,
+    bodyScroll: {
+      lock: true,
+      smooth: true,
+    }
   });
   const openNavModalBtns = navModal.selectAll<HTMLButtonElement>('open', false);
   const closeNavModalBtns = navModal.selectAll<HTMLButtonElement>('close', true);
@@ -123,7 +126,10 @@ async function initLeadForms(...formIds: string[]): Promise<void> {
         type: 'growIn',
         duration: 300,
       },
-      lockBodyScroll: true,
+      bodyScroll: {
+        lock: true,
+        smooth: true,
+      },
     });
 
     const modalForm = modal.component.querySelector<HTMLFormElement>("form");

@@ -19390,14 +19390,14 @@
     }
   });
 
-  // node_modules/peakflow/src/canvas.ts
+  // node_modules/peakflow/dist/canvas/canvas.js
   var EditableCanvas = class {
-    canvas;
-    elements = { all: [], hidden: [] };
-    defaultSelector = '[data-canvas-editable="true"]';
-    selectAll = this.defaultSelector;
     constructor(canvas, ...customSelectors) {
-      if (!canvas) throw new Error(`Canvas can't be undefined.`);
+      this.elements = { all: [], hidden: [] };
+      this.defaultSelector = '[data-canvas-editable="true"]';
+      this.selectAll = this.defaultSelector;
+      if (!canvas)
+        throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
       if (customSelectors && customSelectors.length) {
         this.selectAll = `${this.selectAll}, ${customSelectors.join(", ")}`;
@@ -19479,15 +19479,18 @@
       this.elements.all.forEach((element) => {
         const clickListener = element._clickListener;
         const escapeListener = element._escapeListener;
-        if (clickListener) element.removeEventListener("click", clickListener);
-        if (escapeListener) element.removeEventListener("keydown", escapeListener);
+        if (clickListener)
+          element.removeEventListener("click", clickListener);
+        if (escapeListener)
+          element.removeEventListener("keydown", escapeListener);
       });
       const documentClickListener = this._documentClickListener;
-      if (documentClickListener) document.removeEventListener("click", documentClickListener);
+      if (documentClickListener)
+        document.removeEventListener("click", documentClickListener);
     }
   };
 
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -19500,11 +19503,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -19533,7 +19538,8 @@
         result.push(current.trim());
         current = "";
         i3++;
-        while (selector[i3] === " ") i3++;
+        while (selector[i3] === " ")
+          i3++;
         continue;
       }
       current += char;
@@ -19563,9 +19569,8 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/parameterize.ts
+  // node_modules/peakflow/dist/utils/parameterize.js
   function parameterize(text2) {
     return text2.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
   }
@@ -23960,7 +23965,7 @@
     }
   };
 
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/dist/webflow/webflow.js
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -24005,7 +24010,7 @@
     select: wfselect
   };
 
-  // node_modules/peakflow/src/deepmerge.ts
+  // node_modules/peakflow/dist/utils/deepmerge.js
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -24023,23 +24028,13 @@
     return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // node_modules/peakflow/src/renderer.ts
+  // node_modules/peakflow/dist/renderer/renderer.js
   var Renderer = class _Renderer {
-    static defaultOptions = {
-      attributeName: "render",
-      filterAttributes: {},
-      timezone: false
-    };
-    options;
-    canvas;
-    data;
-    fieldAttr;
-    elementAttr;
-    emptyStateAttr;
-    collectionAttr = `data-is-collection`;
-    attributeName = "render";
     constructor(canvas, options) {
-      if (!canvas) throw new Error(`Canvas can't be undefined.`);
+      this.collectionAttr = `data-is-collection`;
+      this.attributeName = "render";
+      if (!canvas)
+        throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
       this.options = deepMerge(_Renderer.defaultOptions, options);
       this.attributeName = this.options.attributeName;
@@ -24099,7 +24094,8 @@
           break;
       }
       let max2 = parseInt(htmlRenderCollection.getAttribute("data-limit-items") || "-1");
-      if (max2 === -1) max2 = renderElement.fields.length;
+      if (max2 === -1)
+        max2 = renderElement.fields.length;
       max2 = Math.min(renderElement.fields.length, max2);
       max2 = Math.max(max2, 0);
       const firstChild = htmlRenderCollection.firstElementChild;
@@ -24352,7 +24348,8 @@
       }
     }
     shouldHideElement(element) {
-      if (element.visibility === false) return true;
+      if (element.visibility === false)
+        return true;
       return element.fields.every((child) => {
         if (_Renderer.isRenderField(child)) {
           return !child.value.trim();
@@ -24408,7 +24405,7 @@
       });
     }
     elementSelector(element) {
-      const elementAttrSelector = attributeselector_default(this.elementAttr);
+      const elementAttrSelector = createAttribute(this.elementAttr);
       if (!element) {
         return elementAttrSelector();
       }
@@ -24419,7 +24416,7 @@
       return selectorString;
     }
     fieldSelector(field) {
-      const fieldAttrSelector = attributeselector_default(this.fieldAttr);
+      const fieldAttrSelector = createAttribute(this.fieldAttr);
       if (!field) {
         return fieldAttrSelector();
       }
@@ -24441,10 +24438,14 @@
       return item.value !== void 0;
     }
   };
-  var renderer_default = Renderer;
+  Renderer.defaultOptions = {
+    attributeName: "render",
+    filterAttributes: {},
+    timezone: false
+  };
 
-  // node_modules/peakflow/src/pdf.ts
-  var import_html2canvas = __toESM(require_html2canvas(), 1);
+  // node_modules/peakflow/dist/pdf/pdf.js
+  var import_html2canvas = __toESM(require_html2canvas());
 
   // node_modules/jspdf/dist/jspdf.es.min.js
   init_typeof();
@@ -32634,8 +32635,8 @@
     }, e2;
   }();
 
-  // node_modules/peakflow/src/hyphenizer.ts
-  var import_hypher = __toESM(require_hypher(), 1);
+  // node_modules/peakflow/dist/hyphenizer/hyphenizer.js
+  var import_hypher = __toESM(require_hypher());
   function softHyphenizer(container, language) {
     const hypher = new import_hypher.default(language);
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
@@ -32659,7 +32660,8 @@
     }
     for (const textNode of textNodes) {
       const parent = textNode.parentElement;
-      if (!parent) continue;
+      if (!parent)
+        continue;
       let stringLineMap = getRenderedLineMap(textNode, "strings");
       const didNodeBreak = stringLineMap.size > 1;
       if (!didNodeBreak) {
@@ -32670,7 +32672,8 @@
       let lineIndex = 0;
       while (lineIndex < stringLineMap.size) {
         const lineText = stringLineMap.get(lineIndex);
-        if (lineText === null) break;
+        if (lineText === null)
+          break;
         let lineReflow = false;
         let newLineText = lineText;
         const lastIndex = lineText.length - 1;
@@ -32735,9 +32738,11 @@
   }
   function doesWordBreak(referenceNode, prefixText, word) {
     const parent = referenceNode.parentElement;
-    if (!parent) return false;
+    if (!parent)
+      return false;
     const superParent = parent.parentElement;
-    if (!superParent) throw new Error("Super parent is not defined.");
+    if (!superParent)
+      throw new Error("Super parent is not defined.");
     const clone2 = parent.cloneNode(false);
     clone2.style.whiteSpace = "pre-wrap";
     const base = document.createElement("span");
@@ -32759,7 +32764,8 @@
     const range = document.createRange();
     const content = textNode.textContent || "";
     const parent = textNode.parentElement;
-    if (!parent) throw new Error("Text node must be in DOM.");
+    if (!parent)
+      throw new Error("Text node must be in DOM.");
     const lineMap = returnType === "indices" ? /* @__PURE__ */ new Map() : /* @__PURE__ */ new Map();
     let lastTop = null;
     let currentLine = 0;
@@ -32768,7 +32774,8 @@
       range.setStart(textNode, i3);
       range.setEnd(textNode, i3 + 1);
       const rects = range.getClientRects();
-      if (rects.length === 0) continue;
+      if (rects.length === 0)
+        continue;
       const top = rects[rects.length - 1].top;
       if (lastTop === null) {
         lastTop = top;
@@ -32796,28 +32803,17 @@
     return lineMap;
   }
 
-  // node_modules/peakflow/src/pdf.ts
-  var import_hyphenation = __toESM(require_de(), 1);
+  // node_modules/peakflow/dist/pdf/pdf.js
+  var import_hyphenation = __toESM(require_de());
   var Pdf = class _Pdf {
-    canvas;
-    renderer;
-    defaultScale;
-    customScale;
-    freezeSelector;
-    scaleElement;
-    pages;
     constructor(container) {
-      if (!container) throw new Error("PDF Element not found.");
+      if (!container)
+        throw new Error("PDF Element not found.");
       this.canvas = container;
-      this.renderer = new renderer_default(container, { attributeName: "pdf" });
+      this.renderer = new Renderer(container, { attributeName: "pdf" });
       this.getPages();
       this.getScaleElement();
     }
-    /**
-     * Use this method to select the elements for a new `Pdf` instance.
-     * @returns CSS selector string
-     */
-    static select = attributeselector_default("data-pdf-element");
     getScaleElement() {
       const scale = this.canvas.querySelector(_Pdf.select("scale"));
       if (!scale) {
@@ -32886,7 +32882,8 @@
      * @param scale Scale value in `em`, e.g. `0.3` will scale the canvas to `0.3em`.
      */
     scale(scale, store = true) {
-      if (store) this.customScale = scale;
+      if (store)
+        this.customScale = scale;
       this.scaleElement.style.fontSize = `${scale}em`;
     }
     resetScale() {
@@ -32906,7 +32903,8 @@
       });
     }
     freezeElement(element) {
-      if (element.tagName === "svg") return;
+      if (element.tagName === "svg")
+        return;
       const elementRect = element.getBoundingClientRect();
       element.style.width = `${elementRect.width}px`;
       element.style.minWidth = `${elementRect.width}px`;
@@ -32965,9 +32963,11 @@
       return window.getComputedStyle(page).getPropertyValue("display") === "none" || window.getComputedStyle(page).getPropertyValue("visibility") === "hidden" || page.classList.contains("hide") || page.offsetWidth === 0 || page.offsetHeight === 0;
     }
     hyphenizePages(...pages) {
-      if (!pages.length) pages = this.pages;
+      if (!pages.length)
+        pages = this.pages;
       pages.forEach((page) => {
-        if (this.isPageHidden(page)) return;
+        if (this.isPageHidden(page))
+          return;
         softHyphenizer(page, import_hyphenation.default);
         solidHyphens(page);
       });
@@ -33024,25 +33024,24 @@ Page:`, page);
       }, 0);
     }
   };
+  Pdf.select = createAttribute("data-pdf-element");
 
-  // node_modules/peakflow/src/wfcollection/wfcollection.ts
+  // node_modules/peakflow/dist/wfcollection/wfcollection.js
   var CollectionList = class {
     constructor(container, options = { name: "", rendererOptions: {} }) {
       this.options = options;
-      if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
+      this.collectionData = [];
+      this.debug = false;
+      if (!container || !container.classList.contains("w-dyn-list"))
+        throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
-      this.renderer = new renderer_default(container, this.options.rendererOptions);
+      this.renderer = new Renderer(container, this.options.rendererOptions);
     }
-    container;
-    renderer;
-    collectionData = [];
-    debug = false;
-    listElement;
-    items;
     log(...args) {
-      if (!this.debug) return;
+      if (!this.debug)
+        return;
       console.log(`"${this.options.name}" CollectionList:`, ...args);
     }
     isEmpty() {
@@ -33070,7 +33069,8 @@ Page:`, page);
      * This method removes every element that was hidden by Webflow's conditional visibility.
      */
     removeInvisibleElements() {
-      if (this.isEmpty()) return;
+      if (this.isEmpty())
+        return;
       this.listElement.querySelectorAll(`.w-condition-invisible:not([data-render-condition="true"])`).forEach((element) => element.remove());
     }
     getAttributeData() {
@@ -33088,10 +33088,10 @@ Page:`, page);
     }
   };
 
-  // node_modules/peakflow/src/wfcollection/filtercollection.ts
+  // node_modules/peakflow/dist/wfcollection/filtercollection.js
   var FilterCollection = class _FilterCollection extends CollectionList {
     constructor(container, options = { name: "", rendererOptions: {} }) {
-      const mergedFilterAttributes = renderer_default.defineAttributes({
+      const mergedFilterAttributes = Renderer.defineAttributes({
         ..._FilterCollection.defaultAttributes,
         ...options.rendererOptions.filterAttributes
       });
@@ -33105,19 +33105,12 @@ Page:`, page);
       super(container, newOptions);
       this.options = options;
     }
-    static defaultAttributes = renderer_default.defineAttributes({
-      "date": "date",
-      "start-date": "date",
-      "end-date": "date"
-    });
     filterByDate(startDate, endDate, ...additionalConditions) {
-      const filtered = [...this.collectionData].filter(
-        (entry) => {
-          const baseCondition = entry.props.date.getTime() >= startDate.getTime() && entry.props.date.getTime() <= endDate.getTime();
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
-          return baseCondition && allAdditionalConditions;
-        }
-      );
+      const filtered = [...this.collectionData].filter((entry) => {
+        const baseCondition = entry.props.date.getTime() >= startDate.getTime() && entry.props.date.getTime() <= endDate.getTime();
+        const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
+        return baseCondition && allAdditionalConditions;
+      });
       this.log("Filtered Data:", filtered);
       return filtered;
     }
@@ -33137,10 +33130,15 @@ Page:`, page);
       return filtered;
     }
   };
+  FilterCollection.defaultAttributes = Renderer.defineAttributes({
+    "date": "date",
+    "start-date": "date",
+    "end-date": "date"
+  });
 
-  // node_modules/peakflow/src/form/utility.ts
-  var formElementSelector = attributeselector_default("data-form-element");
-  var filterFormSelector = attributeselector_default("data-filter-form");
+  // node_modules/peakflow/dist/form/utility.js
+  var formElementSelector = createAttribute("data-form-element");
+  var filterFormSelector = createAttribute("data-filter-form");
   function isRadioInput(input) {
     return input instanceof HTMLInputElement && input.type === "radio";
   }
@@ -33148,16 +33146,232 @@ Page:`, page);
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
 
-  // node_modules/peakflow/src/form/formfield.ts
+  // node_modules/peakflow/dist/form/calendarweekcomponent.js
+  function getISOWeeksOfYear(year) {
+    return getISOWeeksInYear(new Date(year, 5, 1));
+  }
+  var CalendarweekComponent = class _CalendarweekComponent {
+    constructor(container, mode) {
+      this.minDate = null;
+      this.maxDate = null;
+      this.mode = "continuous";
+      this.onChangeActions = [];
+      this.container = container;
+      const weekInput = container.querySelector(_CalendarweekComponent.select("week"));
+      const yearInput = container.querySelector(_CalendarweekComponent.select("year"));
+      if (!weekInput || !yearInput) {
+        throw new Error(`Couldn't find required "week" or "year" input element. Check the attribute selector "${_CalendarweekComponent.select()}"`);
+      }
+      this.weekInput = weekInput;
+      this.yearInput = yearInput;
+      if (!mode) {
+        mode = container.getAttribute("data-mode");
+        if (!["continuous", "loop", "fixed"].some((validMode) => validMode === mode)) {
+          mode = "continuous";
+          console.info(`Mode parsed from attribute was invalid. Mode was set to "${mode}".`);
+        }
+      }
+      this.setMode(mode);
+      const minDateStr = container.getAttribute("data-min-date") || "";
+      const maxDateStr = container.getAttribute("data-max-date") || "";
+      this.setMinMaxDates(new Date(minDateStr), new Date(maxDateStr));
+      this.updateWeekMinMax();
+      this.weekInput.addEventListener("keydown", (event) => this.onWeekKeydown(event));
+      this.yearInput.addEventListener("keydown", (event) => this.onYearKeydown(event));
+      this.weekInput.addEventListener("change", () => this.onWeekChange());
+      this.yearInput.addEventListener("change", () => this.onYearChange());
+    }
+    setDate(date, silent = false) {
+      const year = getISOWeekYear(date);
+      const week = getISOWeek(date);
+      if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
+        throw new Error("The provided date is out of range.");
+      }
+      this.year = year;
+      this.week = week;
+      this.updateWeekMinMax();
+      if (!silent) {
+        this.onChange();
+      } else {
+        this.updateClient();
+      }
+    }
+    setMode(mode) {
+      switch (mode) {
+        case "continuous":
+        case "loop":
+        case "fixed":
+          this.mode = mode;
+          break;
+        default:
+          throw new Error(`"${mode}" is not a valid mode.`);
+      }
+      console.info(`Calendarweek: Mode set to "${this.mode}".`);
+    }
+    setMinMaxDates(newMinDate, newMaxDate) {
+      if (newMinDate instanceof Date && !isNaN(newMinDate.getTime())) {
+        this.minDate = newMinDate;
+        this.minDateYear = getISOWeekYear(newMinDate);
+        this.minDateWeek = getISOWeek(newMinDate);
+        this.yearInput.min = this.minDateYear.toString();
+        this.container.dataset.minDate = format(newMinDate, "yyyy-MM-dd");
+      } else {
+        this.minDate = null;
+        this.minDateYear = null;
+        this.minDateWeek = null;
+        this.yearInput.min = "";
+        this.container.dataset.minDate = "";
+      }
+      if (newMaxDate instanceof Date && !isNaN(newMaxDate.getTime())) {
+        this.maxDate = newMaxDate;
+        this.maxDateYear = getISOWeekYear(newMaxDate);
+        this.maxDateWeek = getISOWeek(newMaxDate);
+        this.yearInput.max = this.maxDateYear.toString();
+        this.container.dataset.maxDate = format(newMaxDate, "yyyy-MM-dd");
+      } else {
+        this.maxDate = null;
+        this.maxDateYear = null;
+        this.maxDateWeek = null;
+        this.yearInput.max = "";
+        this.container.dataset.maxDate = "";
+      }
+      this.updateWeekMinMax();
+    }
+    addOnChange(callback) {
+      this.onChangeActions.push(callback);
+    }
+    removeOnChange(callback) {
+      this.onChangeActions = this.onChangeActions.filter((fn) => fn !== callback);
+    }
+    getCurrentDate() {
+      let date = setISOWeekYear(/* @__PURE__ */ new Date(0), this.year);
+      date = setISOWeek(date, this.week);
+      return startOfISOWeek(date);
+    }
+    parseWeekAndYear() {
+      let parsedYear = parseInt(this.yearInput.value, 10);
+      let parsedWeek = parseInt(this.weekInput.value, 10);
+      parsedYear = this.keepYearInBounds(parsedYear);
+      this.updateWeekMinMax(parsedYear);
+      parsedWeek = this.keepWeekInBounds(parsedWeek);
+      this.year = parsedYear;
+      this.week = parsedWeek;
+    }
+    onChange() {
+      this.updateClient();
+      this.onChangeActions.forEach((callback) => callback(this.week, this.year, this.getCurrentDate()));
+    }
+    updateClient() {
+      this.updateClientWeekMinMax();
+      this.updateClientValues();
+    }
+    updateClientWeekMinMax() {
+      this.weekInput.min = this.currentMinWeek.toString();
+      this.weekInput.max = this.currentMaxWeek.toString();
+    }
+    updateClientValues() {
+      this.yearInput.value = this.year.toString();
+      this.weekInput.value = this.week.toString();
+    }
+    onYearChange() {
+      this.parseWeekAndYear();
+      this.onChange();
+    }
+    onWeekChange() {
+      this.parseWeekAndYear();
+      this.onChange();
+    }
+    updateWeekMinMax(currentYear = this.year) {
+      const maxWeeksOfCurrentYear = getISOWeeksOfYear(currentYear);
+      let minCalendarWeek = 1;
+      let maxCalendarWeek = maxWeeksOfCurrentYear;
+      if (this.minDate !== null && this.minDateYear === currentYear) {
+        minCalendarWeek = this.minDateWeek;
+      }
+      if (this.maxDate !== null && this.maxDateYear === currentYear) {
+        maxCalendarWeek = this.maxDateWeek;
+      }
+      this.currentMinWeek = minCalendarWeek;
+      this.currentMaxWeek = maxCalendarWeek;
+    }
+    onWeekKeydown(event) {
+      this.parseWeekAndYear();
+      let changed = false;
+      if (event.key === "ArrowUp" && this.week >= this.currentMaxWeek) {
+        event.preventDefault();
+        switch (this.mode) {
+          case "continuous":
+            if (this.year === this.maxDateYear)
+              break;
+            this.year += 1;
+            this.week = 1;
+            this.updateWeekMinMax();
+            changed = true;
+            break;
+          case "loop":
+            this.week = this.currentMinWeek;
+            changed = true;
+            break;
+        }
+      } else if (event.key === "ArrowDown" && this.week <= this.currentMinWeek) {
+        event.preventDefault();
+        switch (this.mode) {
+          case "continuous":
+            if (this.year === this.minDateYear)
+              break;
+            this.year -= 1;
+            this.week = getISOWeeksOfYear(this.year);
+            this.updateWeekMinMax();
+            changed = true;
+            break;
+          case "loop":
+            this.week = this.currentMaxWeek;
+            changed = true;
+            break;
+        }
+      }
+      if (changed) {
+        this.onChange();
+      }
+    }
+    keepYearInBounds(year) {
+      if (this.minDateYear !== null && year < this.minDateYear) {
+        return this.minDateYear;
+      }
+      if (this.maxDateYear !== null && year > this.maxDateYear) {
+        return this.maxDateYear;
+      }
+      return year;
+    }
+    keepWeekInBounds(week) {
+      if (week < this.currentMinWeek) {
+        return this.currentMinWeek;
+      } else if (week > this.currentMaxWeek) {
+        return this.currentMaxWeek;
+      }
+      return week;
+    }
+    onYearKeydown(event) {
+      if (this.mode !== "loop" || !this.minDate || !this.maxDate)
+        return;
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown")
+        return;
+      const isArrowUp = event.key === "ArrowUp";
+      const isArrowDown = event.key === "ArrowDown";
+      this.parseWeekAndYear();
+      if (isArrowUp && this.year === this.maxDateYear || isArrowDown && this.year === this.minDateYear) {
+        event.preventDefault();
+        this.year = isArrowUp ? this.minDateYear : this.maxDateYear;
+        this.onChange();
+      }
+    }
+  };
+  CalendarweekComponent.select = createAttribute("data-cweek-element");
+
+  // node_modules/peakflow/dist/form/formfield.js
   var FormField = class {
-    id;
-    label;
-    value;
-    required;
-    type;
-    checked;
-    listeners = /* @__PURE__ */ new Set();
     constructor(data = null) {
+      this.listeners = /* @__PURE__ */ new Set();
       if (!data) {
         return;
       }
@@ -33228,10 +33442,8 @@ Page:`, page);
     return field;
   }
 
-  // node_modules/peakflow/src/form/fieldgroup.ts
+  // node_modules/peakflow/dist/form/fieldgroup.js
   var FieldGroup = class _FieldGroup {
-    fields;
-    validation;
     constructor(fields = /* @__PURE__ */ new Map()) {
       this.fields = fields;
     }
@@ -33246,7 +33458,8 @@ Page:`, page);
     validate(report = true) {
       const invalidFields = [];
       for (const field of this.fields.values()) {
-        if (field.validate(report)) continue;
+        if (field.validate(report))
+          continue;
         invalidFields.push(field);
       }
       this.validation = {
@@ -33282,11 +33495,17 @@ Page:`, page);
     }
   };
 
-  // node_modules/peakflow/src/form/filterform.ts
+  // node_modules/peakflow/dist/form/filterform.js
   var FilterForm = class _FilterForm {
     constructor(container, fieldIds) {
       this.fieldIds = fieldIds;
-      if (!container) throw new Error(`FilterForm container can't be null`);
+      this.beforeChangeActions = [];
+      this.fieldChangeActions = /* @__PURE__ */ new Map();
+      this.globalChangeActions = [];
+      this.defaultDayRange = 7;
+      this.resizeResetFields = /* @__PURE__ */ new Map();
+      if (!container)
+        throw new Error(`FilterForm container can't be null`);
       container = container;
       if (container.tagName === "form") {
         container = container.querySelector("form");
@@ -33303,17 +33522,6 @@ Page:`, page);
       this.actionElements = container.querySelectorAll(_FilterForm.select());
       this.attachChangeListeners();
     }
-    container;
-    data;
-    filterFields;
-    actionElements;
-    beforeChangeActions = [];
-    fieldChangeActions = /* @__PURE__ */ new Map();
-    globalChangeActions = [];
-    // Stores wildcard ('*') actions
-    defaultDayRange = 7;
-    resizeResetFields = /* @__PURE__ */ new Map();
-    static select = attributeselector_default("data-action");
     /**
      * Returns the `HTMLElement` of a specific filter input.
      */
@@ -33438,7 +33646,8 @@ Page:`, page);
      */
     getTargetId(event) {
       const target = event.target;
-      if (!target) return null;
+      if (!target)
+        return null;
       if (event.type === "input") {
         return target.id;
       }
@@ -33449,7 +33658,7 @@ Page:`, page);
     }
     /**
      * Get the FieldGroup from current form state.
-     * Use this method to get all the form field values as structured data 
+     * Use this method to get all the form field values as structured data
      * alongside field metadata.
      */
     getFieldGroup(fields) {
@@ -33550,243 +33759,15 @@ Page:`, page);
       }
     }
   };
-
-  // node_modules/peakflow/src/form/calendarweekcomponent.ts
-  function getISOWeeksOfYear(year) {
-    return getISOWeeksInYear(new Date(year, 5, 1));
-  }
-  var CalendarweekComponent = class _CalendarweekComponent {
-    container;
-    weekInput;
-    yearInput;
-    week;
-    year;
-    minDate = null;
-    maxDate = null;
-    minDateYear;
-    maxDateYear;
-    minDateWeek;
-    maxDateWeek;
-    currentMinWeek;
-    currentMaxWeek;
-    mode = "continuous";
-    onChangeActions = [];
-    constructor(container, mode) {
-      this.container = container;
-      const weekInput = container.querySelector(_CalendarweekComponent.select("week"));
-      const yearInput = container.querySelector(_CalendarweekComponent.select("year"));
-      if (!weekInput || !yearInput) {
-        throw new Error(`Couldn't find required "week" or "year" input element. Check the attribute selector "${_CalendarweekComponent.select()}"`);
-      }
-      this.weekInput = weekInput;
-      this.yearInput = yearInput;
-      if (!mode) {
-        mode = container.getAttribute("data-mode");
-        if (!["continuous", "loop", "fixed"].some((validMode) => validMode === mode)) {
-          mode = "continuous";
-          console.info(`Mode parsed from attribute was invalid. Mode was set to "${mode}".`);
-        }
-      }
-      this.setMode(mode);
-      const minDateStr = container.getAttribute("data-min-date") || "";
-      const maxDateStr = container.getAttribute("data-max-date") || "";
-      this.setMinMaxDates(new Date(minDateStr), new Date(maxDateStr));
-      this.updateWeekMinMax();
-      this.weekInput.addEventListener("keydown", (event) => this.onWeekKeydown(event));
-      this.yearInput.addEventListener("keydown", (event) => this.onYearKeydown(event));
-      this.weekInput.addEventListener("change", () => this.onWeekChange());
-      this.yearInput.addEventListener("change", () => this.onYearChange());
-    }
-    static select = attributeselector_default("data-cweek-element");
-    setDate(date, silent = false) {
-      const year = getISOWeekYear(date);
-      const week = getISOWeek(date);
-      if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
-        throw new Error("The provided date is out of range.");
-      }
-      this.year = year;
-      this.week = week;
-      this.updateWeekMinMax();
-      if (!silent) {
-        this.onChange();
-      } else {
-        this.updateClient();
-      }
-    }
-    setMode(mode) {
-      switch (mode) {
-        case "continuous":
-        case "loop":
-        case "fixed":
-          this.mode = mode;
-          break;
-        default:
-          throw new Error(`"${mode}" is not a valid mode.`);
-      }
-      console.info(`Calendarweek: Mode set to "${this.mode}".`);
-    }
-    setMinMaxDates(newMinDate, newMaxDate) {
-      if (newMinDate instanceof Date && !isNaN(newMinDate.getTime())) {
-        this.minDate = newMinDate;
-        this.minDateYear = getISOWeekYear(newMinDate);
-        this.minDateWeek = getISOWeek(newMinDate);
-        this.yearInput.min = this.minDateYear.toString();
-        this.container.dataset.minDate = format(newMinDate, "yyyy-MM-dd");
-      } else {
-        this.minDate = null;
-        this.minDateYear = null;
-        this.minDateWeek = null;
-        this.yearInput.min = "";
-        this.container.dataset.minDate = "";
-      }
-      if (newMaxDate instanceof Date && !isNaN(newMaxDate.getTime())) {
-        this.maxDate = newMaxDate;
-        this.maxDateYear = getISOWeekYear(newMaxDate);
-        this.maxDateWeek = getISOWeek(newMaxDate);
-        this.yearInput.max = this.maxDateYear.toString();
-        this.container.dataset.maxDate = format(newMaxDate, "yyyy-MM-dd");
-      } else {
-        this.maxDate = null;
-        this.maxDateYear = null;
-        this.maxDateWeek = null;
-        this.yearInput.max = "";
-        this.container.dataset.maxDate = "";
-      }
-      this.updateWeekMinMax();
-    }
-    addOnChange(callback) {
-      this.onChangeActions.push(callback);
-    }
-    removeOnChange(callback) {
-      this.onChangeActions = this.onChangeActions.filter((fn) => fn !== callback);
-    }
-    getCurrentDate() {
-      let date = setISOWeekYear(/* @__PURE__ */ new Date(0), this.year);
-      date = setISOWeek(date, this.week);
-      return startOfISOWeek(date);
-    }
-    parseWeekAndYear() {
-      let parsedYear = parseInt(this.yearInput.value, 10);
-      let parsedWeek = parseInt(this.weekInput.value, 10);
-      parsedYear = this.keepYearInBounds(parsedYear);
-      this.updateWeekMinMax(parsedYear);
-      parsedWeek = this.keepWeekInBounds(parsedWeek);
-      this.year = parsedYear;
-      this.week = parsedWeek;
-    }
-    onChange() {
-      this.updateClient();
-      this.onChangeActions.forEach((callback) => callback(this.week, this.year, this.getCurrentDate()));
-    }
-    updateClient() {
-      this.updateClientWeekMinMax();
-      this.updateClientValues();
-    }
-    updateClientWeekMinMax() {
-      this.weekInput.min = this.currentMinWeek.toString();
-      this.weekInput.max = this.currentMaxWeek.toString();
-    }
-    updateClientValues() {
-      this.yearInput.value = this.year.toString();
-      this.weekInput.value = this.week.toString();
-    }
-    onYearChange() {
-      this.parseWeekAndYear();
-      this.onChange();
-    }
-    onWeekChange() {
-      this.parseWeekAndYear();
-      this.onChange();
-    }
-    updateWeekMinMax(currentYear = this.year) {
-      const maxWeeksOfCurrentYear = getISOWeeksOfYear(currentYear);
-      let minCalendarWeek = 1;
-      let maxCalendarWeek = maxWeeksOfCurrentYear;
-      if (this.minDate !== null && this.minDateYear === currentYear) {
-        minCalendarWeek = this.minDateWeek;
-      }
-      if (this.maxDate !== null && this.maxDateYear === currentYear) {
-        maxCalendarWeek = this.maxDateWeek;
-      }
-      this.currentMinWeek = minCalendarWeek;
-      this.currentMaxWeek = maxCalendarWeek;
-    }
-    onWeekKeydown(event) {
-      this.parseWeekAndYear();
-      let changed = false;
-      if (event.key === "ArrowUp" && this.week >= this.currentMaxWeek) {
-        event.preventDefault();
-        switch (this.mode) {
-          case "continuous":
-            if (this.year === this.maxDateYear) break;
-            this.year += 1;
-            this.week = 1;
-            this.updateWeekMinMax();
-            changed = true;
-            break;
-          case "loop":
-            this.week = this.currentMinWeek;
-            changed = true;
-            break;
-        }
-      } else if (event.key === "ArrowDown" && this.week <= this.currentMinWeek) {
-        event.preventDefault();
-        switch (this.mode) {
-          case "continuous":
-            if (this.year === this.minDateYear) break;
-            this.year -= 1;
-            this.week = getISOWeeksOfYear(this.year);
-            this.updateWeekMinMax();
-            changed = true;
-            break;
-          case "loop":
-            this.week = this.currentMaxWeek;
-            changed = true;
-            break;
-        }
-      }
-      if (changed) {
-        this.onChange();
-      }
-    }
-    keepYearInBounds(year) {
-      if (this.minDateYear !== null && year < this.minDateYear) {
-        return this.minDateYear;
-      }
-      if (this.maxDateYear !== null && year > this.maxDateYear) {
-        return this.maxDateYear;
-      }
-      return year;
-    }
-    keepWeekInBounds(week) {
-      if (week < this.currentMinWeek) {
-        return this.currentMinWeek;
-      } else if (week > this.currentMaxWeek) {
-        return this.currentMaxWeek;
-      }
-      return week;
-    }
-    onYearKeydown(event) {
-      if (this.mode !== "loop" || !this.minDate || !this.maxDate) return;
-      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-      const isArrowUp = event.key === "ArrowUp";
-      const isArrowDown = event.key === "ArrowDown";
-      this.parseWeekAndYear();
-      if (isArrowUp && this.year === this.maxDateYear || isArrowDown && this.year === this.minDateYear) {
-        event.preventDefault();
-        this.year = isArrowUp ? this.minDateYear : this.maxDateYear;
-        this.onChange();
-      }
-    }
-  };
+  FilterForm.select = createAttribute("data-action");
 
   // src/sanavita/ts/activity-pdf.ts
-  var filterAttributes = renderer_default.defineAttributes({
+  var filterAttributes = Renderer.defineAttributes({
     ...FilterCollection.defaultAttributes
   });
   var formatDE = (date, formatStr) => format(date, formatStr, { locale: de });
-  var wfCollectionSelector = attributeselector_default("wf-collection");
-  var actionSelector = attributeselector_default("data-action");
+  var wfCollectionSelector = createAttribute("wf-collection");
+  var actionSelector = createAttribute("data-action");
   var weekOptions = {
     weekStartsOn: 1
   };

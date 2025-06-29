@@ -1,4 +1,4 @@
-import { initializeMarquees } from '@peakflow/marquee';
+import { initializeMarquees } from 'peakflow/marquee';
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeMarquees(document.body);

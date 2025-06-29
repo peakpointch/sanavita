@@ -1,4 +1,4 @@
-import createAttribute, { exclude, AttributeSelector } from "@peakflow/attributeselector";
+import createAttribute, { exclude, AttributeSelector } from "peakflow/attributeselector";
 import {
   isCheckboxInput,
   isRadioInput,
@@ -12,22 +12,21 @@ import {
   FormDecision,
   getRadioGroups,
   setChecked,
-} from "@peakflow/form";
+} from "peakflow";
 import {
   ResidentProspect,
   GroupName,
   prospectMapToObject,
   SerializedProspect,
 } from "./resident-prospect";
-import wf from "@peakflow/webflow";
-import { HTMLFormInput } from "@peakflow/form";
-import { FormMessage } from "@peakflow/form";
-import Accordion from "@peakflow/accordion";
-import Modal from "@peakflow/modal";
-import AlertDialog from "@peakflow/alertdialog";
+import wf from "peakflow/webflow";
+import { HTMLFormInput } from "peakflow/form";
+import { FormMessage } from "peakflow/form";
+import Accordion from "peakflow/accordion";
+import { Modal, AlertDialog } from "peakflow/modal";
 import SaveOptions from "./save-options";
 import { getAlertDialog } from "./alert-dialog";
-import type { ScrollPosition } from "@peakflow/scroll";
+import type { ScrollPosition } from "peakflow/scroll";
 import semver from "semver";
 
 type ProspectElement =

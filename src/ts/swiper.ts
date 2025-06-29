@@ -1,8 +1,8 @@
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules"
-import { toCamelCase } from "@peakflow/parameterize";
+import { toCamelCase } from "peakflow/utils";
 import { AutoplayOptions, NavigationOptions, SwiperOptions } from "swiper/types";
-import type { CamelToDash } from "@peakflow/typeutils"
+import type { CamelToDash } from "peakflow/typeutils"
 
 interface SwiperAttribute {
   name: "swiper-component"

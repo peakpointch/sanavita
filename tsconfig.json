@@ -2,10 +2,6 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@peakflow/*": [
-        "node_modules/peakflow/src/*",
-        "../peakflow/src/*"
-      ],
       "html2pdf.js": [
         "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"
       ]
@@ -18,7 +14,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "noEmit": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowImportingTsExtensions": true
   }
 }

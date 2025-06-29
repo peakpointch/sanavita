@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -12,11 +12,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -45,7 +47,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -75,9 +78,8 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/scroll/scroll.ts
+  // node_modules/peakflow/dist/scroll/scroll.js
   var defaultScrollOptions = {
     defaultOffset: 0,
     defaultBehaviour: "smooth"
@@ -109,16 +111,15 @@
       defaultBehaviour: options.defaultBehaviour ?? defaultScrollOptions.defaultBehaviour
     };
     const link = event.target;
-    if (!link) throw new Error(`Event target is undefined. Cannot scroll from an undefined link.`);
+    if (!link)
+      throw new Error(`Event target is undefined. Cannot scroll from an undefined link.`);
     const scrollId = link.getAttribute("href")?.slice(1) || link.getAttribute("scroll-to") || "";
     const offset = parseInt(link.getAttribute("scroll-offset") || `${opts.defaultOffset}`, 10);
     const behaviour = link.getAttribute("scroll-behaviour") || opts.defaultBehaviour;
     scrollToSection(scrollId, "id", { offset, behaviour });
   }
   function initCMSScrollLinks() {
-    const cmsScrollLinks = document.querySelectorAll(
-      "a[data-href-scroll]"
-    );
+    const cmsScrollLinks = document.querySelectorAll("a[data-href-scroll]");
     cmsScrollLinks.forEach((link) => {
       const hrefPrefix = link.dataset.hrefPrefix || "";
       const hrefScroll = link.dataset.hrefScroll || "";
@@ -126,9 +127,7 @@
     });
   }
   function initGlobalScrollLinks() {
-    const globalScrollLinks = document.querySelectorAll(
-      'a[data-global-scroll="true"]'
-    );
+    const globalScrollLinks = document.querySelectorAll('a[data-global-scroll="true"]');
     const globalFiltered = Array.from(globalScrollLinks).filter((link) => {
       const url = new URL(link.href);
       return url.pathname === location.pathname;
@@ -149,10 +148,8 @@
   function overrideDefaultScroll(options = {}) {
     initCMSScrollLinks();
     initGlobalScrollLinks();
-    const href = attributeselector_default("href");
-    const allScrollLinks = document.querySelectorAll(
-      `${href("#", { matchType: "startsWith" })}, [scroll-to]`
-    );
+    const href = createAttribute("href");
+    const allScrollLinks = document.querySelectorAll(`${href("#", { matchType: "startsWith" })}, [scroll-to]`);
     allScrollLinks.forEach((link) => {
       link.addEventListener("click", (event) => onScroll(event, options));
     });

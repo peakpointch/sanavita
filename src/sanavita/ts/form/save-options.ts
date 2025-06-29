@@ -1,5 +1,5 @@
-import createAttribute from "@peakflow/attributeselector";
-import deepMerge from "@peakflow/deepmerge";
+import createAttribute from "peakflow/attributeselector";
+import { deepMerge } from "peakflow/utils";
 
 type SaveOptionsElement = 'component' | 'button' | 'trigger' | 'list' | 'option';
 

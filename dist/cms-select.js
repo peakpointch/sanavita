@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -12,11 +12,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -45,7 +47,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -75,9 +78,8 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/utils/getelements.ts
+  // node_modules/peakflow/dist/utils/getelements.js
   function getAllElements(input, options = {}) {
     const opts = {
       single: options.single ?? false,
@@ -122,27 +124,14 @@
     }
   }
 
-  // node_modules/peakflow/src/form/cms-select.ts
+  // node_modules/peakflow/dist/form/cms-select.js
   var CMSSelect = class _CMSSelect {
-    opts = {
-      id: void 0
-    };
-    id;
-    source;
-    targets;
-    values;
-    waitEvent;
-    static attr = {
-      id: "data-cms-select-id",
-      element: "data-cms-select-element",
-      prefix: "data-cms-select-prefix",
-      value: "data-cms-select-value",
-      wait: "data-cms-select-wait",
-      status: "data-cms-select-status"
-    };
-    attr = _CMSSelect.attr;
-    onChangeCallbacks = /* @__PURE__ */ new Map();
     constructor(component, options = {}) {
+      this.opts = {
+        id: void 0
+      };
+      this.attr = _CMSSelect.attr;
+      this.onChangeCallbacks = /* @__PURE__ */ new Map();
       try {
         this.source = getElement(component);
         if (!this.source) {
@@ -159,7 +148,6 @@
         console.error(`Failed to create CMSSelect instance: ${e.message}`);
       }
     }
-    static attributeSelector = attributeselector_default("data-cms-select-element");
     /**
      * Static selector
      */
@@ -183,7 +171,8 @@
         const sourceLists = getAllElements(_CMSSelect.selector("source"));
         sourceLists.forEach((list) => {
           const cmsSelect = new _CMSSelect(list);
-          if (cmsSelect.initWaitEvent(true)) return;
+          if (cmsSelect.initWaitEvent(true))
+            return;
           cmsSelect.insertOptions();
         });
       } catch (e) {
@@ -211,7 +200,8 @@
       const targetList = getAllElements(targets, { single: true });
       targetList.forEach((target) => {
         let options = Array.from(target.querySelectorAll("option"));
-        if (keepEmpty) options = options.filter((option) => Boolean(option.value));
+        if (keepEmpty)
+          options = options.filter((option) => Boolean(option.value));
         options.forEach((option) => option.remove());
       });
     }
@@ -227,7 +217,8 @@
         return true;
       } else {
         const message = `The wait event name "${this.waitEvent}" is invalid.`;
-        if (graceful) return false;
+        if (graceful)
+          return false;
         throw new Error(message);
       }
     }
@@ -266,6 +257,15 @@
       }
     }
   };
+  CMSSelect.attr = {
+    id: "data-cms-select-id",
+    element: "data-cms-select-element",
+    prefix: "data-cms-select-prefix",
+    value: "data-cms-select-value",
+    wait: "data-cms-select-wait",
+    status: "data-cms-select-status"
+  };
+  CMSSelect.attributeSelector = createAttribute("data-cms-select-element");
 
   // src/ts/cms-select.ts
   document.addEventListener("DOMContentLoaded", () => {

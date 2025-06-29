@@ -2,14 +2,14 @@
 import {
   formElementSelector,
   MultiStepForm,
-  FormDecision
-} from "@peakflow/form";
+  FormDecision,
+  CMSSelect
+} from "peakflow/form";
 import ProspectArray from "./form/prospect-array";
-import createAttribute from "@peakflow/attributeselector";
+import { createAttribute } from "peakflow/attributeselector";
 import { flattenProspects } from "./form/resident-prospect";
 import { addMonths, format, startOfMonth } from "date-fns";
-import CMSSelect from "@peakflow/form/cms-select";
-import { getElement } from "@peakflow/utils/getelements";
+import { getElement } from "peakflow/utils";
 
 const decisionSelector = createAttribute('data-decision-component');
 

@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -12,11 +12,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -45,7 +47,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -75,7 +78,6 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
   // node_modules/date-fns/constants.js
   var daysInYear = 365.2425;
@@ -1646,7 +1648,7 @@
     return matched[1].replace(doubleQuoteRegExp, "'");
   }
 
-  // node_modules/peakflow/src/dateflow/dateflow.ts
+  // node_modules/peakflow/dist/dateflow/dateflow.js
   function getDomElements(...elements) {
     const containers = [];
     elements.forEach((entry) => {
@@ -1690,7 +1692,7 @@
   }
   function dateflow(locale, ...containers) {
     const containerList = getDomElements(...containers);
-    const dateSelector = attributeselector_default(attr.date);
+    const dateSelector = createAttribute(attr.date);
     const dateQuery = `${dateSelector()}:not(.w-condition-invisible, .w-condition-invisible [${attr.date}])`;
     let i = 0;
     containerList.forEach((c) => {

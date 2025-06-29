@@ -1,7 +1,10 @@
-import { FieldData, FormField } from "@peakflow/form";
-import { FieldGroup, FieldGroupValidation, SerializedFieldGroup } from "@peakflow/form/fieldgroup";
-import mapToObject from "@peakflow/utils/maptoobject";
-import objectToMap from "@peakflow/utils/objecttomap";
+import {
+  FormField,
+  FieldGroup,
+  FieldGroupValidation,
+  SerializedFieldGroup
+} from "peakflow/form";
+import { mapToObject, objectToMap } from "peakflow/utils";
 
 export type GroupName =
   | "personalData"

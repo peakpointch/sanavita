@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -12,11 +12,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -45,7 +47,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -75,10 +78,9 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/marquee.ts
-  var marqueeSelector = attributeselector_default("data-marquee-element");
+  // node_modules/peakflow/dist/marquee/marquee.js
+  var marqueeSelector = createAttribute("data-marquee-element");
   function setMarqueeSpeed(speed, trackOrComponent) {
     if (!trackOrComponent || !(trackOrComponent instanceof HTMLElement)) {
       throw new Error(`Get track element: Please pass a valid HTMLElement.`);
@@ -130,19 +132,24 @@
     }
   }
   function getButtonElement(marquee) {
-    if (!isComponentElement(marquee)) return;
+    if (!isComponentElement(marquee))
+      return;
     let button = marquee.querySelector(marqueeSelector("button"));
-    if (button) return button;
+    if (button)
+      return button;
     const marqueeId = marquee.getAttribute("data-marquee-id");
-    if (!marqueeId) return void 0;
+    if (!marqueeId)
+      return void 0;
     button = document.querySelector(`${marqueeSelector("button")}[data-marquee-id="${marqueeId}"]`);
     return button ? button : void 0;
   }
   function initMarqueeEvents(marquee) {
-    if (!isComponentElement(marquee)) return;
+    if (!isComponentElement(marquee))
+      return;
     const track = getTrackElement(marquee);
     const btn = getButtonElement(marquee);
-    if (!btn || !track) return;
+    if (!btn || !track)
+      return;
     function toggleState() {
       if (marquee.getAttribute("data-marquee-paused") === "true") {
         marquee.setAttribute("data-marquee-paused", "false");
@@ -157,7 +164,8 @@
   function initializeMarquees(main) {
     const allMarquees = main.querySelectorAll(marqueeSelector("component"));
     allMarquees.forEach((marquee) => {
-      if (!isComponentElement(marquee)) return;
+      if (!isComponentElement(marquee))
+        return;
       const speed = parseInt(marquee.dataset.speed || "100");
       const track = getTrackElement(marquee);
       const slides = Array.from(track.children);

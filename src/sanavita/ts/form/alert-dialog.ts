@@ -1,4 +1,4 @@
-import AlertDialog from "@peakflow/alertdialog";
+import { AlertDialog } from "peakflow/modal";
 
 export function getAlertDialog(): AlertDialog {
   const modalElement = AlertDialog.select('component', 'alert-dialog');

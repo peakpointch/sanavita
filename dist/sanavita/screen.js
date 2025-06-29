@@ -1,5 +1,5 @@
 (() => {
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -12,11 +12,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -45,7 +47,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -75,9 +78,8 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/parameterize.ts
+  // node_modules/peakflow/dist/utils/parameterize.js
   function toCamelCase(str) {
     return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
   }
@@ -4436,7 +4438,7 @@
     }
   };
 
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/dist/webflow/webflow.js
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -4481,7 +4483,7 @@
     select: wfselect
   };
 
-  // node_modules/peakflow/src/deepmerge.ts
+  // node_modules/peakflow/dist/utils/deepmerge.js
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -4499,23 +4501,13 @@
     return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // node_modules/peakflow/src/renderer.ts
+  // node_modules/peakflow/dist/renderer/renderer.js
   var Renderer = class _Renderer {
-    static defaultOptions = {
-      attributeName: "render",
-      filterAttributes: {},
-      timezone: false
-    };
-    options;
-    canvas;
-    data;
-    fieldAttr;
-    elementAttr;
-    emptyStateAttr;
-    collectionAttr = `data-is-collection`;
-    attributeName = "render";
     constructor(canvas, options) {
-      if (!canvas) throw new Error(`Canvas can't be undefined.`);
+      this.collectionAttr = `data-is-collection`;
+      this.attributeName = "render";
+      if (!canvas)
+        throw new Error(`Canvas can't be undefined.`);
       this.canvas = canvas;
       this.options = deepMerge(_Renderer.defaultOptions, options);
       this.attributeName = this.options.attributeName;
@@ -4575,7 +4567,8 @@
           break;
       }
       let max = parseInt(htmlRenderCollection.getAttribute("data-limit-items") || "-1");
-      if (max === -1) max = renderElement.fields.length;
+      if (max === -1)
+        max = renderElement.fields.length;
       max = Math.min(renderElement.fields.length, max);
       max = Math.max(max, 0);
       const firstChild = htmlRenderCollection.firstElementChild;
@@ -4828,7 +4821,8 @@
       }
     }
     shouldHideElement(element) {
-      if (element.visibility === false) return true;
+      if (element.visibility === false)
+        return true;
       return element.fields.every((child) => {
         if (_Renderer.isRenderField(child)) {
           return !child.value.trim();
@@ -4884,7 +4878,7 @@
       });
     }
     elementSelector(element) {
-      const elementAttrSelector = attributeselector_default(this.elementAttr);
+      const elementAttrSelector = createAttribute(this.elementAttr);
       if (!element) {
         return elementAttrSelector();
       }
@@ -4895,7 +4889,7 @@
       return selectorString;
     }
     fieldSelector(field) {
-      const fieldAttrSelector = attributeselector_default(this.fieldAttr);
+      const fieldAttrSelector = createAttribute(this.fieldAttr);
       if (!field) {
         return fieldAttrSelector();
       }
@@ -4917,26 +4911,28 @@
       return item.value !== void 0;
     }
   };
-  var renderer_default = Renderer;
+  Renderer.defaultOptions = {
+    attributeName: "render",
+    filterAttributes: {},
+    timezone: false
+  };
 
-  // node_modules/peakflow/src/wfcollection/wfcollection.ts
+  // node_modules/peakflow/dist/wfcollection/wfcollection.js
   var CollectionList = class {
     constructor(container, options = { name: "", rendererOptions: {} }) {
       this.options = options;
-      if (!container || !container.classList.contains("w-dyn-list")) throw new Error(`Container can't be undefined.`);
+      this.collectionData = [];
+      this.debug = false;
+      if (!container || !container.classList.contains("w-dyn-list"))
+        throw new Error(`Container can't be undefined.`);
       this.container = container;
       this.listElement = container.querySelector(".w-dyn-items");
       this.items = Array.from(this.listElement?.querySelectorAll(".w-dyn-item:not(.w-dyn-list .w-dyn-list *)") ?? []);
-      this.renderer = new renderer_default(container, this.options.rendererOptions);
+      this.renderer = new Renderer(container, this.options.rendererOptions);
     }
-    container;
-    renderer;
-    collectionData = [];
-    debug = false;
-    listElement;
-    items;
     log(...args) {
-      if (!this.debug) return;
+      if (!this.debug)
+        return;
       console.log(`"${this.options.name}" CollectionList:`, ...args);
     }
     isEmpty() {
@@ -4964,7 +4960,8 @@
      * This method removes every element that was hidden by Webflow's conditional visibility.
      */
     removeInvisibleElements() {
-      if (this.isEmpty()) return;
+      if (this.isEmpty())
+        return;
       this.listElement.querySelectorAll(`.w-condition-invisible:not([data-render-condition="true"])`).forEach((element) => element.remove());
     }
     getAttributeData() {
@@ -4982,10 +4979,10 @@
     }
   };
 
-  // node_modules/peakflow/src/wfcollection/filtercollection.ts
+  // node_modules/peakflow/dist/wfcollection/filtercollection.js
   var FilterCollection = class _FilterCollection extends CollectionList {
     constructor(container, options = { name: "", rendererOptions: {} }) {
-      const mergedFilterAttributes = renderer_default.defineAttributes({
+      const mergedFilterAttributes = Renderer.defineAttributes({
         ..._FilterCollection.defaultAttributes,
         ...options.rendererOptions.filterAttributes
       });
@@ -4999,19 +4996,12 @@
       super(container, newOptions);
       this.options = options;
     }
-    static defaultAttributes = renderer_default.defineAttributes({
-      "date": "date",
-      "start-date": "date",
-      "end-date": "date"
-    });
     filterByDate(startDate, endDate, ...additionalConditions) {
-      const filtered = [...this.collectionData].filter(
-        (entry) => {
-          const baseCondition = entry.props.date.getTime() >= startDate.getTime() && entry.props.date.getTime() <= endDate.getTime();
-          const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
-          return baseCondition && allAdditionalConditions;
-        }
-      );
+      const filtered = [...this.collectionData].filter((entry) => {
+        const baseCondition = entry.props.date.getTime() >= startDate.getTime() && entry.props.date.getTime() <= endDate.getTime();
+        const allAdditionalConditions = additionalConditions.every((condition) => condition(entry));
+        return baseCondition && allAdditionalConditions;
+      });
       this.log("Filtered Data:", filtered);
       return filtered;
     }
@@ -5031,6 +5021,11 @@
       return filtered;
     }
   };
+  FilterCollection.defaultAttributes = Renderer.defineAttributes({
+    "date": "date",
+    "start-date": "date",
+    "end-date": "date"
+  });
 
   // node_modules/swiper/shared/ssr-window.esm.mjs
   function isObject(obj) {
@@ -10498,9 +10493,9 @@
   });
 
   // src/sanavita/ts/screen.ts
-  var wfCollectionSelector = attributeselector_default("wf-collection");
-  var swiperSelector = attributeselector_default("custom-swiper-component");
-  var filterAttributes = renderer_default.defineAttributes({
+  var wfCollectionSelector = createAttribute("wf-collection");
+  var swiperSelector = createAttribute("custom-swiper-component");
+  var filterAttributes = Renderer.defineAttributes({
     ...FilterCollection.defaultAttributes,
     "screen": "string",
     "use-time-of-day-range": "boolean"

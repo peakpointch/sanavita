@@ -1,4 +1,4 @@
-import CMSSelect from '@peakflow/form/cms-select';
+import { CMSSelect } from 'peakflow/form';
 
 document.addEventListener('DOMContentLoaded', () => {
   CMSSelect.initializeAll();

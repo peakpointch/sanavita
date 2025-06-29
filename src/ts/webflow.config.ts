@@ -1,4 +1,4 @@
-import { Script, Stylesheet } from "@peakflow/script";
+import { Script, Stylesheet } from "peakflow/utils";
 
 declare global {
   interface Window {

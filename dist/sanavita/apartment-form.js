@@ -1933,7 +1933,7 @@
     }
   });
 
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -1946,11 +1946,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -1979,7 +1981,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -2009,9 +2012,8 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/dist/webflow/webflow.js
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -2056,7 +2058,7 @@
     select: wfselect
   };
 
-  // node_modules/peakflow/src/utils/getelements.ts
+  // node_modules/peakflow/dist/utils/getelements.js
   function getAllElements(input, options = {}) {
     const opts = {
       single: options.single ?? false,
@@ -2101,9 +2103,9 @@
     }
   }
 
-  // node_modules/peakflow/src/form/utility.ts
-  var formElementSelector = attributeselector_default("data-form-element");
-  var filterFormSelector = attributeselector_default("data-filter-form");
+  // node_modules/peakflow/dist/form/utility.js
+  var formElementSelector = createAttribute("data-form-element");
+  var filterFormSelector = createAttribute("data-filter-form");
   function isRadioInput(input) {
     return input instanceof HTMLInputElement && input.type === "radio";
   }
@@ -2126,8 +2128,10 @@
       return [];
     }
     const radioGroupMap = inputs.reduce((acc, input) => {
-      if (!isRadioInput(input)) return acc;
-      if (names.length && !names.includes(input.name)) return acc;
+      if (!isRadioInput(input))
+        return acc;
+      if (names.length && !names.includes(input.name))
+        return acc;
       if (!acc.has(input.name)) {
         acc.set(input.name, { name: input.name, inputs: [] });
       }
@@ -2156,15 +2160,13 @@
     try {
       return getRadioGroupStrict(source, name);
     } catch (e) {
-      console.warn(`Get radio group: ${e.message}`);
+      console.warn(`Get radio group: ${e instanceof Error ? e.message : "Unknown error"}`);
       return null;
     }
   }
   function findFormInput(containers, inputId, selectorPrefix = wf.select.formInput) {
     const selector = `${selectorPrefix}#${inputId}`;
-    const matches = Array.from(containers).flatMap(
-      (container) => Array.from(container.querySelectorAll(selector))
-    );
+    const matches = Array.from(containers).flatMap((container) => Array.from(container.querySelectorAll(selector)));
     if (matches.length === 0) {
       throw new Error(`No form input found with selector "${selector}".`);
     }
@@ -2214,11 +2216,13 @@
         customCheckbox.classList.toggle(wf.class.checked, checked);
       }
     }
-    if (silent) return;
+    if (silent)
+      return;
     input.dispatchEvent(new Event("change", { bubbles: true }));
   }
   function enforceButtonTypes(form) {
-    if (!form) return;
+    if (!form)
+      return;
     const buttons = form.querySelectorAll("button:not([type])");
     buttons.forEach((button) => button.setAttribute("type", "button"));
   }
@@ -2236,7 +2240,8 @@
     container.querySelectorAll('input[type="radio"]').forEach((input) => {
       input.addEventListener("change", (event) => {
         const target = event.target;
-        if (!target.checked) return;
+        if (!target.checked)
+          return;
         const radioGroup = getRadioGroup(container, target.name);
         radioGroup.inputs.forEach((radio) => {
           setChecked(radio, radio.value === target.value, true);
@@ -2244,9 +2249,7 @@
       });
     });
     inputTypes.forEach(([type, customClass]) => {
-      container.querySelectorAll(
-        `input[type="${type}"]:not(${customClass})`
-      ).forEach((input) => {
+      container.querySelectorAll(`input[type="${type}"]:not(${customClass})`).forEach((input) => {
         input.addEventListener("focus", (event) => {
           const target = event.target;
           const customElement = target.closest(".w-checkbox, .w-radio")?.querySelector(customClass);
@@ -2303,1215 +2306,6 @@
     return { isValid: isValid2, invalidFields };
   }
 
-  // node_modules/peakflow/src/utils/maptoobject.ts
-  function mapToObject(map, stringify = false) {
-    const obj = {};
-    for (const [key, value] of map) {
-      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
-    }
-    return obj;
-  }
-
-  // node_modules/peakflow/src/deepmerge.ts
-  function deepMerge(target, source) {
-    const result = { ...target };
-    for (const key in source) {
-      const sourceValue = source[key];
-      const targetValue = target[key];
-      if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
-        result[key] = deepMerge(targetValue, sourceValue);
-      } else if (sourceValue !== void 0) {
-        result[key] = sourceValue;
-      }
-    }
-    return result;
-  }
-  function isPlainObject(value) {
-    return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
-  }
-
-  // node_modules/peakflow/src/form/multistep.ts
-  var stepsElementSelector = attributeselector_default("data-steps-element", {
-    defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
-  });
-  var stepsTargetSelector = attributeselector_default("data-step-target");
-  var stepsNavSelector = attributeselector_default("data-steps-nav");
-  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
-  var MultiStepForm = class {
-    options = {
-      recaptcha: false,
-      navigation: {
-        hideInStep: -1
-      },
-      excludeInputSelectors: [],
-      nested: false,
-      pagination: {
-        doneClass: "is-done",
-        activeClass: "is-active"
-      },
-      validation: {
-        validate: true,
-        reportValidity: true
-      }
-    };
-    initialized = false;
-    component;
-    formElement;
-    formSteps;
-    set currentStep(index) {
-      this._currentStep = index;
-    }
-    get currentStep() {
-      return this._currentStep;
-    }
-    _currentStep = 0;
-    navigationElement;
-    paginationItems;
-    buttonsNext;
-    buttonsPrev;
-    customComponents = [];
-    successElement;
-    errorElement;
-    submitButton;
-    constructor(component, options) {
-      this.component = component;
-      this.options = deepMerge(this.options, options);
-      this.validateComponent();
-      this.cacheDomElements();
-      this.setupForm();
-      this.setupEventListeners();
-      this.initialized = true;
-    }
-    validateComponent() {
-      if (!this.component.getAttribute("data-steps-element")) {
-        console.error(
-          `Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector("component")}.
-Component:`,
-          this.component
-        );
-        throw new Error("Component is not a valid multi-step form component.");
-      }
-    }
-    cacheDomElements() {
-      this.formElement = this.component.querySelector("form");
-      if (!this.options.nested && !this.formElement) {
-        throw new Error("Form element not found within the specified component.");
-      }
-      if (this.options.nested) {
-        this.formElement = this.component;
-      }
-      this.formSteps = this.component.querySelectorAll(stepsElementSelector("step"));
-      this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
-      this.navigationElement = this.component.querySelector(stepsElementSelector("navigation"));
-      this.buttonsNext = this.component.querySelectorAll(stepsNavSelector("next"));
-      this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector("prev"));
-      this.successElement = this.component.querySelector(formElementSelector("success"));
-      this.errorElement = this.component.querySelector(formElementSelector("error"));
-      this.submitButton = this.component.querySelector(formElementSelector("submit"));
-    }
-    setupForm() {
-      if (!this.formSteps.length) {
-        console.warn(
-          `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
-          this.component.querySelector(stepsElementSelector("list"))
-        );
-        return;
-      }
-      if (!this.options.nested) {
-        enforceButtonTypes(this.formElement);
-        this.formElement.setAttribute("novalidate", "");
-      }
-      this.formElement.dataset.state = "initialized";
-      initWfInputs(this.component);
-      this.changeToStep(this.currentStep);
-    }
-    setupEventListeners() {
-      if (!this.options.nested) {
-        this.formElement.addEventListener("submit", (event) => {
-          event.preventDefault();
-          this.submitToWebflow();
-        });
-      }
-      this.initPagination();
-      this.initChangeStepOnKeydown();
-    }
-    addCustomComponent(component) {
-      this.customComponents.push(component);
-    }
-    async submitToWebflow() {
-      if (this.options.nested) {
-        throw new Error(`Can't submit a nested MultiStepForm.`);
-      }
-      if (this.currentStep !== this.formSteps.length - 1) {
-        console.error(
-          "SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step."
-        );
-        return;
-      }
-      const allStepsValid = this.validateAllSteps();
-      if (!allStepsValid) {
-        console.warn("Form submission blocked: Not all steps are valid.");
-        return;
-      }
-      this.formElement.dataset.state = "sending";
-      if (this.submitButton) {
-        this.submitButton.dataset.defaultText = this.submitButton.value;
-        this.submitButton.value = this.submitButton.dataset.wait || "Wird gesendet ...";
-      }
-      const formData = this.buildJsonForWebflow();
-      debugger;
-      const success = await sendFormData(formData);
-      if (success) {
-        this.onFormSuccess();
-      } else {
-        this.onFormError();
-      }
-    }
-    buildJsonForWebflow() {
-      if (this.options.nested) {
-        throw new Error(`Can't get FormData for a nested MultiStepForm.`);
-      }
-      const fields = this.getFormData();
-      if (this.options.recaptcha) {
-        const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
-        fields["g-recaptcha-response"] = recaptcha;
-      }
-      return {
-        name: this.formElement.dataset.name,
-        pageId: wf.pageId,
-        elementId: this.formElement.dataset.wfElementId,
-        source: window.location.href,
-        test: false,
-        fields,
-        dolphin: false
-      };
-    }
-    onFormSuccess() {
-      if (this.errorElement) this.errorElement.style.display = "none";
-      if (this.successElement) this.successElement.style.display = "block";
-      this.formElement.style.display = "none";
-      this.formElement.dataset.state = "success";
-      this.formElement.dispatchEvent(new CustomEvent("formSuccess"));
-      if (this.submitButton) {
-        this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
-      }
-    }
-    onFormError() {
-      if (this.errorElement) this.errorElement.style.display = "block";
-      if (this.successElement) this.successElement.style.display = "none";
-      this.formElement.dataset.state = "error";
-      this.formElement.dispatchEvent(new CustomEvent("formError"));
-      if (this.submitButton) {
-        this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
-      }
-    }
-    initChangeStepOnKeydown() {
-      this.formSteps.forEach((step, index) => {
-        step.dataset.stepId = index.toString();
-        step.classList.toggle("hide", index !== this.currentStep);
-        step.querySelectorAll(wf.select.formInput).forEach((input) => {
-          input.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              this.changeToNext();
-            }
-          });
-        });
-      });
-    }
-    initPagination() {
-      this.paginationItems.forEach((item, index) => {
-        item.dataset.stepTarget = index.toString();
-        item.addEventListener("click", (event) => {
-          event.preventDefault();
-          this.changeToStep(index);
-        });
-      });
-      this.buttonsNext.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.preventDefault();
-          this.changeToNext();
-        });
-      });
-      this.buttonsPrev.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          event.preventDefault();
-          this.changeToPrevious();
-        });
-      });
-    }
-    /**
-     * Change to the next step.
-     */
-    changeToNext() {
-      if (this.currentStep < this.formSteps.length - 1) {
-        this.changeToStep(this.currentStep + 1);
-      }
-    }
-    /**
-     * Change to the previous step.
-     */
-    changeToPrevious() {
-      if (this.currentStep > 0) {
-        this.changeToStep(this.currentStep - 1);
-      }
-    }
-    /**
-     * Change to the specified step by `index`.
-     *
-     * If moving forward, the method will validate all intermediate steps before
-     * allowing navigation. If validation fails on any step, it will halt and move
-     * to the invalid step instead.
-     *
-     * Use the CustomEvent "changeStep" to hook into step changes.
-     *
-     * @param index - The zero-based index of the step to navigate to.
-     */
-    changeToStep(index) {
-      if (this.currentStep === index && this.initialized) {
-        return;
-      }
-      if (index > this.currentStep && this.initialized) {
-        for (let step = this.currentStep; step < index; step++) {
-          if (!this.validateCurrentStep(step)) {
-            this.changeToStep(step);
-            return;
-          }
-        }
-        this.component.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
-      const event = new CustomEvent("changeStep", {
-        detail: { previousStep: this.currentStep, currentStep: index }
-      });
-      this.component.dispatchEvent(event);
-      this.updateStepVisibility(index);
-      this.updatePagination(index);
-      this.currentStep = index;
-      console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
-    }
-    updateStepVisibility(target) {
-      const current = this.formSteps[this.currentStep];
-      const next = this.formSteps[target];
-      if (this.options.onStepChange) {
-        this.options.onStepChange({
-          index: target,
-          currentStep: current,
-          targetStep: next
-        });
-      } else {
-        current.classList.add("hide");
-        next.classList.remove("hide");
-      }
-    }
-    set onChangeStep(callback) {
-      this.options.onStepChange = callback;
-    }
-    updatePagination(target) {
-      this.buttonsPrev.forEach((button) => {
-        if (target === 0) {
-          button.style.visibility = "hidden";
-          button.style.opacity = "0";
-        } else {
-          button.style.visibility = "visible";
-          button.style.opacity = "1";
-        }
-      });
-      this.buttonsNext.forEach((button) => {
-        if (target === this.formSteps.length - 1) {
-          button.style.visibility = "hidden";
-          button.style.opacity = "0";
-        } else {
-          button.style.visibility = "visible";
-          button.style.opacity = "1";
-        }
-      });
-      if (target === this.options.navigation.hideInStep) {
-        this.navigationElement.style.visibility = "hidden";
-        this.navigationElement.style.opacity = "0";
-      } else {
-        this.navigationElement.style.removeProperty("visibility");
-        this.navigationElement.style.removeProperty("opacity");
-      }
-      this.paginationItems.forEach((step, index) => {
-        step.classList.toggle(this.options.pagination.doneClass, index < target);
-        step.classList.toggle(this.options.pagination.activeClass, index === target);
-      });
-    }
-    validateAllSteps() {
-      let allValid = true;
-      this.formSteps.forEach((_, index) => {
-        if (!this.validateCurrentStep(index)) {
-          console.warn(`Step ${index + 1} is invalid.`);
-          allValid = false;
-          this.changeToStep(index);
-        }
-      });
-      return allValid;
-    }
-    validateCurrentStep(stepIndex) {
-      if (!this.options.validation.validate) return true;
-      const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length}`;
-      const currentStepElement = this.formSteps[stepIndex];
-      const inputs = currentStepElement.querySelectorAll(wf.select.formInput);
-      const filteredInputs = Array.from(inputs).filter((input) => {
-        const isExcluded = this.options.excludeInputSelectors.some(
-          (selector) => {
-            return input.closest(`${selector}`) !== null || input.matches(selector);
-          }
-        );
-        return !isExcluded;
-      });
-      let { isValid: isValid2 } = validateFields(filteredInputs, this.options.validation.reportValidity);
-      if (!isValid2 && this.options.validation.reportValidity) {
-        console.warn(`${basicError}: Standard validation is not valid`);
-      }
-      if (!isValid2) return false;
-      const customValidators = this.customComponents.filter((entry) => entry.stepIndex === stepIndex).map((entry) => () => entry.validator());
-      const customValid = customValidators?.every((validator) => validator()) ?? true;
-      if (this.options.validation.reportValidity && !customValid) {
-        console.warn(`${basicError}: Custom validation is not valid`);
-      }
-      return isValid2 && customValid;
-    }
-    /**
-     * Gets data of all form fields in a `FormFieldMap`.
-     *
-     * @step Step index of the multi step form
-     * @returns `FormFieldMap` - A map of field id (string) to a `FormField` class instance
-     *
-     * Fields that are a descendant of '[data-steps-element="custom-component"]' are excluded.
-     */
-    getFieldMapForStep(step) {
-      let fields = /* @__PURE__ */ new Map();
-      const stepElement = this.formSteps[step];
-      const stepInputs = stepElement.querySelectorAll(exclude(wf.select.formInput, `${stepsElementSelector("custom-component", { exclusions: [] })} *`));
-      stepInputs.forEach((input, inputIndex) => {
-        const entry = fieldFromInput(input, inputIndex);
-        if (entry.id) {
-          fields.set(entry.id, entry.value);
-        }
-      });
-      return fields;
-    }
-    getFieldMap() {
-      const fields = Array.from(this.formSteps).reduce((acc, _, stepIndex) => {
-        const stepData = this.getFieldMapForStep(stepIndex);
-        return new Map([
-          ...acc,
-          ...stepData
-        ]);
-      }, /* @__PURE__ */ new Map());
-      return fields;
-    }
-    getFormData() {
-      const customFields = this.customComponents.reduce((acc, entry) => {
-        return {
-          ...acc,
-          ...entry.getData ? entry.getData() : {}
-        };
-      }, {});
-      const fields = {
-        ...mapToObject(this.getFieldMap(), false),
-        ...customFields
-      };
-      return fields;
-    }
-    getFormInput(id) {
-      const selector = extend(wf.select.formInput, `#${id}`);
-      return this.component.querySelector(selector);
-    }
-  };
-
-  // node_modules/peakflow/src/parameterize.ts
-  function parameterize(text) {
-    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
-  }
-
-  // node_modules/peakflow/src/form/formfield.ts
-  var FormField = class {
-    id;
-    label;
-    value;
-    required;
-    type;
-    checked;
-    listeners = /* @__PURE__ */ new Set();
-    constructor(data = null) {
-      if (!data) {
-        return;
-      }
-      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
-      this.label = data.label || `Untitled`;
-      this.value = data.value || "";
-      this.required = data.required || false;
-      this.type = data.type || "text";
-      if (["radio", "checkbox"].includes(this.type)) {
-        this.checked = data.checked || false;
-      }
-      if (this.type === "checkbox" && !this.checked) {
-        this.value = "Nicht angew\xE4hlt";
-      }
-    }
-    setValue(newValue) {
-      this.value = newValue;
-      this.listeners.forEach((callback) => callback(newValue));
-    }
-    onChange(callback) {
-      this.listeners.add(callback);
-    }
-    validate(report = true) {
-      let valid = true;
-      if (this.required) {
-        if (this.type === "radio" || this.type === "checkbox") {
-          if (!this.checked) {
-            valid = false;
-          }
-        } else {
-          if (!this.value.trim()) {
-            valid = false;
-          }
-        }
-      }
-      if (!valid && report) {
-        console.warn(`Field "${this.label}" is invalid.`);
-      }
-      return valid;
-    }
-    serialize() {
-      const serialized = {
-        id: this.id,
-        label: this.label,
-        value: this.value,
-        required: this.required,
-        type: this.type
-      };
-      if (["radio", "checkbox"].includes(this.type)) {
-        serialized.checked = this.checked;
-      }
-      return serialized;
-    }
-  };
-  function fieldFromInput(input, index) {
-    if (input.type === "radio" && !input.checked) {
-      return new FormField();
-    }
-    const id = input.id || parameterize(input.dataset.name || `untitled ${index}`);
-    const field = new FormField({
-      id: isRadioInput(input) ? input.name : id,
-      label: input.dataset.name || `Untitled ${index}`,
-      value: input.value,
-      required: input.required || false,
-      type: input.type,
-      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
-    });
-    return field;
-  }
-
-  // node_modules/peakflow/src/form/fieldgroup.ts
-  var FieldGroup = class _FieldGroup {
-    fields;
-    validation;
-    constructor(fields = /* @__PURE__ */ new Map()) {
-      this.fields = fields;
-    }
-    /**
-     * Finds a specific `FormField` instance by id.
-     *
-     * @param fieldId The id attribute of the associated DOM element.
-     */
-    getField(fieldId) {
-      return this.fields.get(fieldId);
-    }
-    validate(report = true) {
-      const invalidFields = [];
-      for (const field of this.fields.values()) {
-        if (field.validate(report)) continue;
-        invalidFields.push(field);
-      }
-      this.validation = {
-        isValid: invalidFields.length === 0,
-        invalidFields
-      };
-      return this.validation;
-    }
-    /**
-     * Serialize this `FieldGroup`.
-     *
-     * @returns `this.fields` as an object
-     */
-    serialize() {
-      let fields = {};
-      this.fields.forEach((field, key) => {
-        fields[key] = field.serialize();
-      });
-      return fields;
-    }
-    /**
-     * Deserialize a `FieldGroup`.
-     *
-     * @returns A new `FieldGroup` instance
-     */
-    static deserialize(fieldGroupData) {
-      const fieldsMap = /* @__PURE__ */ new Map();
-      Object.entries(fieldGroupData).forEach(([key, fieldData]) => {
-        const field = new FormField(fieldData);
-        fieldsMap.set(key, field);
-      });
-      return new _FieldGroup(fieldsMap);
-    }
-  };
-
-  // node_modules/peakflow/src/form/formmessage.ts
-  var FormMessage = class {
-    initialized = false;
-    messageFor;
-    component;
-    messageElement;
-    resetTimeoutId = null;
-    /**
-     * Constructs a new FormMessage instance.
-     * @param componentName The name of the component (used in `data-message-component`).
-     * @param messageFor The target form field identifier (used in `data-message-for`).
-     */
-    constructor(componentName, messageFor) {
-      this.messageFor = messageFor;
-      const component = document.querySelector(
-        `[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`
-      );
-      if (!component) {
-        console.warn(
-          `No FormMessage component was found: ${componentName}, ${this.messageFor}`
-        );
-        return;
-      }
-      this.component = component;
-      this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
-      this.reset();
-      this.initialized = true;
-    }
-    /**
-     * Displays an informational message.
-     * @param message The message text to display. Defaults to `null`.
-     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
-     */
-    info(message2 = null, silent = false) {
-      if (!this.initialized) return;
-      this.clearTimeout();
-      if (!silent) {
-        this.component.setAttribute("aria-live", "polite");
-      }
-      this.setMessage(message2, "info", silent);
-    }
-    /**
-     * Displays an error message.
-     * @param message The message text to display. Defaults to `null`.
-     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
-     */
-    error(message2 = null, silent = false) {
-      if (!this.initialized) return;
-      this.clearTimeout();
-      if (!silent) {
-        this.component.setAttribute("role", "alert");
-        this.component.setAttribute("aria-live", "assertive");
-      }
-      this.setMessage(message2, "error", silent);
-    }
-    /**
-     * Resets the message component, hiding any displayed message.
-     */
-    reset() {
-      if (!this.initialized) return;
-      this.clearTimeout();
-      this.component.classList.remove("info", "error");
-      if (this.messageElement) {
-        this.messageElement.textContent = "";
-      }
-      this.component.removeAttribute("aria-live");
-      this.component.removeAttribute("role");
-    }
-    /**
-     * Schedules an automatic reset or custom action of the message component after a `delay`.
-     * Cancels any existing reset timer.
-     *
-     * @param delay - Time in milliseconds after which the reset or callback is triggered.
-     * @param callback - Optional function to execute when the timer fires instead of the default reset.
-     */
-    setTimedReset(delay, callback) {
-      if (!this.initialized) return;
-      this.clearTimeout();
-      this.resetTimeoutId = setTimeout(() => {
-        if (callback) {
-          callback();
-        } else {
-          this.reset();
-        }
-        this.resetTimeoutId = null;
-      }, delay);
-    }
-    /**
-     * Cancels any existing timer.
-     */
-    clearTimeout() {
-      if (!this.initialized) return;
-      if (this.resetTimeoutId !== null) {
-        clearTimeout(this.resetTimeoutId);
-        this.resetTimeoutId = null;
-      }
-    }
-    /**
-     * Sets the message text and type (private method).
-     * @param message The message text to display. Defaults to `null`.
-     * @param type The type of message (`"info"` or `"error"`).
-     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
-     */
-    setMessage(message2 = null, type, silent = false) {
-      if (!this.initialized) return;
-      if (this.messageElement && message2) {
-        this.messageElement.textContent = message2;
-      } else if (!this.messageElement) {
-        console.warn("Message text element not found.");
-      }
-      this.component.classList.remove("info", "error");
-      this.component.classList.add(type);
-      if (silent) return;
-      this.component.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    }
-  };
-
-  // node_modules/peakflow/src/form/formdecision.ts
-  var FormDecision = class _FormDecision {
-    opts = {
-      id: void 0,
-      clearPathOnChange: false,
-      defaultPath: null
-    };
-    component;
-    paths = /* @__PURE__ */ new Map();
-    formMessage;
-    decisionInputs;
-    errorMessages = {};
-    defaultErrorMessage = "Please complete the required fields.";
-    onChangeCallback = () => {
-    };
-    attr = _FormDecision.attr;
-    static get attr() {
-      return {
-        component: "data-decision-component",
-        element: "data-decision-element",
-        pathId: "data-path-id",
-        required: "data-decision-required"
-      };
-    }
-    _currentPath;
-    get currentPath() {
-      return this._currentPath;
-    }
-    set currentPath(pathId) {
-      this._currentPath = pathId;
-    }
-    /**
-     * Constructs a new FormDecision instance.
-     * @param component The FormDecision element.
-     * @param id Unique identifier for the specific instance.
-     */
-    constructor(component, options) {
-      if (!component) {
-        console.error(`FormDecision: Component not found.`);
-        return;
-      } else if (!component.hasAttribute("data-decision-component")) {
-        console.error(
-          `FormDecision: Selected element is not a FormDecision component:`,
-          component
-        );
-        return;
-      }
-      this.component = component;
-      this.opts = {
-        id: options.id || this.component.getAttribute(this.attr.component) || this.opts.id,
-        clearPathOnChange: options.clearPathOnChange || this.opts.clearPathOnChange,
-        defaultPath: options.defaultPath || this.opts.defaultPath
-      };
-      this.formMessage = new FormMessage("FormDecision", this.opts.id);
-      this.initialize();
-    }
-    static selector = attributeselector_default(_FormDecision.attr.element);
-    selector = attributeselector_default(_FormDecision.attr.element);
-    /**
-     * Initializes the FormDecision instance by setting up decision inputs & paths as well as their event listeners.
-     */
-    initialize() {
-      const decisionFieldsWrapper = this.component.querySelector(this.selector("decision")) || this.component;
-      const decisionInputsList = decisionFieldsWrapper.querySelectorAll(this.selector("input"));
-      this.decisionInputs = Array.from(decisionInputsList);
-      if (this.decisionInputs.length === 0) {
-        console.warn(
-          `Decision component "${this.opts.id}" does not contain any decision input elements.`
-        );
-        return;
-      }
-      this.decisionInputs.forEach((input) => {
-        const pathId = input.getAttribute(this.attr.pathId) || input.value;
-        const pathSelector = `${this.selector("path")}[${this.attr.pathId}="${pathId}"]`;
-        const path = this.component.querySelector(pathSelector);
-        if (path) {
-          path.style.display = "none";
-          this.initRequiredAttributes(path);
-        }
-        this.paths.set(pathId, path);
-        input.addEventListener("change", (event) => {
-          this.changeToPath(pathId, event);
-        });
-      });
-      this.component.addEventListener("change", () => this.formMessage.reset());
-    }
-    /**
-     * Handles changes to the decision input fields and updates the associated path visibility.
-     * @param path The HTMLElement that contains the form fields of this path.
-     * @param event The event that invokes this change.
-     */
-    changeToPath(pathId, event) {
-      if (pathId === null) {
-        this.hideAllPaths();
-        this.decisionInputs.forEach((input) => {
-          setChecked(input, false);
-        });
-      }
-      if (this.currentPath === pathId) return;
-      const prevPath = this.paths.get(this.currentPath);
-      if (prevPath) {
-        prevPath.style.display = "none";
-      }
-      this.currentPath = pathId;
-      const path = this.paths.get(this.currentPath);
-      if (path) {
-        path.style.removeProperty("display");
-      }
-      this.paths.forEach((path2, pathId2) => {
-        this.updateRequiredAttributes(pathId2);
-        if (this.opts.clearPathOnChange) {
-          this.clearPath(pathId2);
-        }
-      });
-      this.onChangeCallback();
-      this.formMessage.reset();
-    }
-    reset(force) {
-      this.clearAllPaths();
-      this.changeToPath(force !== void 0 ? force : this.opts.defaultPath);
-    }
-    /**
-     * Sync the path shown do the actual selected path, if the component ever gets out of sync.
-     */
-    sync() {
-      const path = this.getCurrentPath();
-      this.changeToPath(path);
-    }
-    /**
-     * Sets the display of all path elements to 'none'.
-     */
-    hideAllPaths() {
-      this.paths.forEach((path) => {
-        if (!path) return;
-        path.style.display = "none";
-      });
-    }
-    /**
-     * Retrieves the currently selected decision input.
-     * @returns The selected input element, or undefined if none is selected.
-     */
-    getSelectedInput() {
-      return Array.from(this.decisionInputs).find((input) => input.checked);
-    }
-    /**
-     * Retrieves the current `PathId` from the currently selected decision input.
-     */
-    getCurrentPath() {
-      const selected = this.getSelectedInput();
-      if (!selected) return null;
-      return selected.getAttribute(this.attr.pathId);
-    }
-    /**
-     * Validates the FormDecision based on the selected path to ensure the form's correctness.
-     * @returns A boolean indicating whether the validation passed.
-     */
-    validate() {
-      const selectedInput = this.getSelectedInput();
-      const { isValid: decisionValid } = validateFields(this.decisionInputs);
-      if (!decisionValid || !selectedInput) {
-        console.warn("No decision selected!");
-        this.handleValidationMessages(false);
-        return false;
-      }
-      const pathId = selectedInput.getAttribute(this.attr.pathId) || selectedInput.value;
-      const isValid2 = !this.paths.has(pathId) || this.checkPathValidity(pathId);
-      this.handleValidationMessages(isValid2);
-      return isValid2;
-    }
-    /**
-     * Sets custom error messages for the decision inputs.
-     * @param messages An object mapping decision input values to error messages.
-     * @param defaultMessage An optional default error message to use when no specific message is provided.
-     */
-    setErrorMessages(messages, defaultMessage) {
-      this.errorMessages = messages;
-      if (defaultMessage) {
-        this.defaultErrorMessage = defaultMessage;
-      }
-    }
-    /**
-     * Validates the fields within the specified path and returns whether they are valid.
-     * @param pathIndex The index of the path to validate.
-     * @returns A boolean indicating whether the specified path is valid.
-     */
-    checkPathValidity(pathId) {
-      const pathElement = this.paths.get(pathId);
-      if (!pathElement) return true;
-      const inputs = pathElement.querySelectorAll(wf.select.formInput);
-      const { isValid: isValid2 } = validateFields(inputs, true);
-      return isValid2;
-    }
-    initRequiredAttributes(path) {
-      const inputs = path.querySelectorAll(wf.select.input);
-      inputs.forEach((input) => {
-        input.setAttribute(this.attr.required, `${input.required}`);
-        input.required = false;
-      });
-    }
-    /**
-     * Updates the required attributes of input fields within the paths based on the selected decision input.
-     */
-    updateRequiredAttributes(pathId) {
-      const path = this.paths.get(pathId);
-      if (!path) return;
-      if (pathId === this.currentPath) {
-        const pathInputs = path.querySelectorAll(wf.select.formInput);
-        pathInputs.forEach((input) => {
-          const isRequired = input.matches(`[${this.attr.required}="required"], [${this.attr.required}="true"]`);
-          input.required = isRequired;
-        });
-      } else {
-        const pathInputs = path.querySelectorAll(wf.select.formInput);
-        pathInputs.forEach((input) => {
-          input.required = false;
-        });
-      }
-    }
-    clearPath(pathId, silent = false) {
-      const path = this.paths.get(pathId);
-      if (!path) return;
-      const pathInputs = path.querySelectorAll(wf.select.formInput);
-      pathInputs.forEach((input) => {
-        input.value = null;
-        if (silent) return;
-        input.dispatchEvent(new Event("change", { bubbles: true }));
-      });
-    }
-    clearAllPaths(clearCurrentPath = true) {
-      this.paths.forEach((path, pathId) => {
-        if (clearCurrentPath) {
-          this.clearPath(pathId);
-        } else if (pathId !== this.currentPath) {
-          this.clearPath(pathId);
-        }
-      });
-    }
-    /**
-     * Displays validation message based on the current path.
-     * @param currentGroupValid A boolean indicating whether the current group of inputs is valid.
-     */
-    handleValidationMessages(currentGroupValid) {
-      if (!currentGroupValid) {
-        const customMessage = this.errorMessages[this.currentPath] || this.defaultErrorMessage;
-        this.formMessage.error(customMessage);
-      } else {
-        this.formMessage.reset();
-      }
-    }
-    onChange(callback) {
-      this.clearOnChange();
-      this.onChangeCallback = callback;
-    }
-    clearOnChange() {
-      this.onChangeCallback = () => {
-      };
-    }
-  };
-
-  // node_modules/peakflow/src/form/filterform.ts
-  var FilterForm = class _FilterForm {
-    constructor(container, fieldIds) {
-      this.fieldIds = fieldIds;
-      if (!container) throw new Error(`FilterForm container can't be null`);
-      container = container;
-      if (container.tagName === "form") {
-        container = container.querySelector("form");
-      }
-      if (!container) {
-        throw new Error(`Form cannot be undefined.`);
-      }
-      container.classList.remove("w-form");
-      container.addEventListener("submit", (event) => {
-        event.preventDefault();
-      });
-      this.container = container;
-      this.filterFields = container.querySelectorAll(wf.select.formInput);
-      this.actionElements = container.querySelectorAll(_FilterForm.select());
-      this.attachChangeListeners();
-    }
-    container;
-    data;
-    filterFields;
-    actionElements;
-    beforeChangeActions = [];
-    fieldChangeActions = /* @__PURE__ */ new Map();
-    globalChangeActions = [];
-    // Stores wildcard ('*') actions
-    defaultDayRange = 7;
-    resizeResetFields = /* @__PURE__ */ new Map();
-    static select = attributeselector_default("data-action");
-    /**
-     * Returns the `HTMLElement` of a specific filter input.
-     */
-    getFilterInput(fieldId) {
-      const existingFields = this.getFieldIds(this.filterFields);
-      if (!this.fieldExists(fieldId, existingFields)) {
-        throw new Error(`Field with ID "${fieldId}" was not found`);
-      }
-      return Array.from(this.filterFields).find((field) => field.id === fieldId);
-    }
-    /**
-     * Returns the `HTMLElement` of a specific action element.
-     */
-    getActionElement(id) {
-      return Array.from(this.actionElements).find((element) => element.id === id);
-    }
-    /**
-     * Get all the field-ids inside the current instance.
-     */
-    getFieldIds(fields) {
-      return Array.from(fields).map((input) => input.id);
-    }
-    /**
-     * Check if a field-id exists in a list of field-ids.
-     */
-    fieldExists(fieldId, fieldIds) {
-      const matches = fieldIds.filter((id) => id === fieldId);
-      if (matches.length === 1) {
-        return true;
-      } else if (matches.length > 1) {
-        throw new Error(`FieldId ${fieldId} was found more than once!`);
-      }
-      return false;
-    }
-    /**
-     * Attach all the event listeners needed for the form to function.
-     * These event listeners ensure the instance is always in sync with the
-     * current state of the FilterForm.
-     */
-    attachChangeListeners() {
-      this.filterFields.forEach((field) => {
-        field.addEventListener("input", (event) => this.onChange(event));
-      });
-      this.actionElements.forEach((element) => {
-        element.addEventListener("click", (event) => this.onChange(event));
-      });
-    }
-    /**
-     * Add an action to be exectued before all the onChange actions get called.
-     * Use this function to validate or modify inputs if needed.
-     */
-    addBeforeChange(action) {
-      this.beforeChangeActions.push(action);
-    }
-    /**
-     * Push actions that run when specific fields change. Actions are executed in the order of insertion.
-     * @param fields - An array of field IDs and action element IDs OR '*' for any change event.
-     * @param action - An array of actions to execute when the field(s) change.
-     */
-    addOnChange(fields, action) {
-      if (fields === "*") {
-        this.globalChangeActions.push(action);
-      } else {
-        fields.forEach((fieldId) => {
-          if (!this.fieldChangeActions.has(fieldId)) {
-            this.fieldChangeActions.set(fieldId, []);
-          }
-          this.fieldChangeActions.get(fieldId)?.push(action);
-        });
-      }
-    }
-    /**
-     * Execute change actions for the specific field that changed.
-     * If wildcard actions exist, they run on every change.
-     */
-    onChange(event) {
-      let filters = this.getFieldGroup(this.filterFields);
-      const targetId = this.getTargetId(event);
-      if (!targetId) {
-        throw new Error(`Target is neither a FilterField nor an ActionElement.`);
-      }
-      this.beforeChangeActions.forEach((action) => action(filters, targetId));
-      filters = this.getFieldGroup(this.filterFields);
-      const actions = this.fieldChangeActions.get(targetId) || [];
-      actions.forEach((action) => action(filters, targetId));
-      this.globalChangeActions.forEach((action) => action(filters, targetId));
-    }
-    /**
-     * Simulate an onChange event and invoke change actions for specified fields.
-     * @param fields - An array of field IDs OR '*' for all fields.
-     */
-    invokeOnChange(fields) {
-      let invokedBy;
-      let filters = this.getFieldGroup(this.filterFields);
-      if (fields === "*") {
-        invokedBy = "";
-        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
-        filters = this.getFieldGroup(this.filterFields);
-        const done = [];
-        this.fieldChangeActions.forEach((actions) => {
-          actions.forEach((action) => {
-            if (!done.includes(action)) {
-              action(filters, invokedBy);
-              done.push(action);
-            }
-          });
-        });
-      } else {
-        invokedBy = fields.length === 1 ? fields[0] : "";
-        this.beforeChangeActions.forEach((action) => action(filters, invokedBy));
-        filters = this.getFieldGroup(this.filterFields);
-        fields.forEach((fieldId) => {
-          invokedBy = fieldId;
-          const actions = this.fieldChangeActions.get(fieldId) || [];
-          actions.forEach((action) => action(filters, invokedBy));
-        });
-      }
-      this.globalChangeActions.forEach((action) => action(filters, invokedBy));
-    }
-    /**
-     * Extracts the target ID from an event, whether it's a filter field or an action element.
-     */
-    getTargetId(event) {
-      const target = event.target;
-      if (!target) return null;
-      if (event.type === "input") {
-        return target.id;
-      }
-      if (event.type === "click" && target.hasAttribute("data-action")) {
-        return target.getAttribute("data-action");
-      }
-      return null;
-    }
-    /**
-     * Get the FieldGroup from current form state.
-     * Use this method to get all the form field values as structured data 
-     * alongside field metadata.
-     */
-    getFieldGroup(fields) {
-      this.data = new FieldGroup();
-      fields = fields;
-      fields.forEach((input, index) => {
-        const field = fieldFromInput(input, index);
-        if (field?.id) {
-          this.data.fields.set(field.id, field);
-        }
-      });
-      return this.data;
-    }
-    /**
-     * Reset a field to a specific value on `window.resize` event.
-     */
-    addResizeReset(fieldId, getValue) {
-      const existingFields = this.getFieldIds(this.filterFields);
-      if (!this.fieldExists(fieldId, existingFields)) {
-        throw new Error(`Field with ID "${fieldId}" was not found`);
-      }
-      this.resizeResetFields.set(fieldId, getValue);
-      if (this.resizeResetFields.size === 1) {
-        window.addEventListener("resize", () => this.applyResizeResets());
-      }
-    }
-    /**
-     * Remove a field from the reset on resize list. This will no longer reset the field on resize.
-     */
-    removeResizeReset(fieldId) {
-      this.resizeResetFields.delete(fieldId);
-      if (this.resizeResetFields.size === 0) {
-        window.removeEventListener("resize", this.applyResizeResets);
-      }
-    }
-    /**
-     * Applies the reset values to the fields.
-     */
-    applyResizeResets() {
-      this.resizeResetFields.forEach((getValue, fieldId) => {
-        let value = getValue();
-        if (value instanceof Date) {
-          value = value.toISOString().split("T")[0];
-        }
-        this.getFilterInput(fieldId).value = value.toString();
-      });
-    }
-    /**
-     * Set a custom day range for validation.
-     * If no custom range is needed, revert to default.
-     */
-    setDayRange(dayRange) {
-      if (dayRange <= 0) {
-        throw new Error(`Day range must be at least "1".`);
-      }
-      this.defaultDayRange = dayRange;
-      return this.defaultDayRange;
-    }
-    /**
-     * Validate the date range between startDate and endDate.
-     * Ensure they remain within the chosen day range.
-     *
-     * @param startDateFieldId The field id of the startdate `HTMLFormInput`
-     * @param endDateFieldId The field id of the enddate `HTMLFormInput`
-     */
-    validateDateRange(startDateFieldId, endDateFieldId, customDayRange) {
-      const startDateInput = this.getFilterInput(startDateFieldId);
-      const endDateInput = this.getFilterInput(endDateFieldId);
-      const startDate = new Date(startDateInput.value);
-      const endDate = new Date(endDateInput.value);
-      let activeRange = customDayRange ?? this.defaultDayRange;
-      activeRange -= 1;
-      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-        const diffInDays = (endDate.getTime() - startDate.getTime()) / (1e3 * 60 * 60 * 24);
-        let activeField = "other";
-        if (document.activeElement === startDateInput) {
-          activeField = "startDate";
-        } else if (document.activeElement === endDateInput) {
-          activeField = "endDate";
-        }
-        if (activeField === "startDate" || activeField === "other") {
-          if (diffInDays !== activeRange) {
-            const newEndDate = new Date(startDate);
-            newEndDate.setDate(startDate.getDate() + activeRange);
-            endDateInput.value = newEndDate.toISOString().split("T")[0];
-          } else if (diffInDays < 0) {
-            endDateInput.value = startDate.toISOString().split("T")[0];
-          }
-        } else if (activeField === "endDate") {
-          if (diffInDays !== activeRange) {
-            const newStartDate = new Date(endDate);
-            newStartDate.setDate(endDate.getDate() - activeRange);
-            startDateInput.value = newStartDate.toISOString().split("T")[0];
-          } else if (diffInDays < 0) {
-            startDateInput.value = endDate.toISOString().split("T")[0];
-          }
-        }
-      }
-    }
-  };
-
   // node_modules/date-fns/constants.js
   var daysInYear = 365.2425;
   var maxTime = Math.pow(10, 8) * 24 * 60 * 60 * 1e3;
@@ -3538,15 +2332,6 @@ Component:`,
   // node_modules/date-fns/toDate.js
   function toDate(argument, context) {
     return constructFrom(context || argument, argument);
-  }
-
-  // node_modules/date-fns/addDays.js
-  function addDays(date, amount, options) {
-    const _date = toDate(date, options?.in);
-    if (isNaN(amount)) return constructFrom(options?.in || date, NaN);
-    if (!amount) return _date;
-    _date.setDate(_date.getDate() + amount);
-    return _date;
   }
 
   // node_modules/date-fns/addMonths.js
@@ -3671,26 +2456,6 @@ Component:`,
     fourthOfJanuary.setFullYear(year, 0, 4);
     fourthOfJanuary.setHours(0, 0, 0, 0);
     return startOfISOWeek(fourthOfJanuary);
-  }
-
-  // node_modules/date-fns/setISOWeekYear.js
-  function setISOWeekYear(date, weekYear, options) {
-    let _date = toDate(date, options?.in);
-    const diff = differenceInCalendarDays(
-      _date,
-      startOfISOWeekYear(_date, options)
-    );
-    const fourthOfJanuary = constructFrom(options?.in || date, 0);
-    fourthOfJanuary.setFullYear(weekYear, 0, 4);
-    fourthOfJanuary.setHours(0, 0, 0, 0);
-    _date = startOfISOWeekYear(fourthOfJanuary);
-    _date.setDate(_date.getDate() + diff);
-    return _date;
-  }
-
-  // node_modules/date-fns/addWeeks.js
-  function addWeeks(date, amount, options) {
-    return addDays(date, amount * 7, options);
   }
 
   // node_modules/date-fns/isDate.js
@@ -5141,252 +3906,686 @@ Component:`,
     return matched[1].replace(doubleQuoteRegExp, "'");
   }
 
-  // node_modules/date-fns/getISOWeeksInYear.js
-  function getISOWeeksInYear(date, options) {
-    const thisYear = startOfISOWeekYear(date, options);
-    const nextYear = startOfISOWeekYear(addWeeks(thisYear, 60));
-    const diff = +nextYear - +thisYear;
-    return Math.round(diff / millisecondsInWeek);
-  }
-
-  // node_modules/date-fns/setISOWeek.js
-  function setISOWeek(date, week, options) {
-    const _date = toDate(date, options?.in);
-    const diff = getISOWeek(_date, options) - week;
-    _date.setDate(_date.getDate() - diff * 7);
-    return _date;
-  }
-
-  // node_modules/peakflow/src/form/calendarweekcomponent.ts
-  function getISOWeeksOfYear(year) {
-    return getISOWeeksInYear(new Date(year, 5, 1));
-  }
-  var CalendarweekComponent = class _CalendarweekComponent {
-    container;
-    weekInput;
-    yearInput;
-    week;
-    year;
-    minDate = null;
-    maxDate = null;
-    minDateYear;
-    maxDateYear;
-    minDateWeek;
-    maxDateWeek;
-    currentMinWeek;
-    currentMaxWeek;
-    mode = "continuous";
-    onChangeActions = [];
-    constructor(container, mode) {
-      this.container = container;
-      const weekInput = container.querySelector(_CalendarweekComponent.select("week"));
-      const yearInput = container.querySelector(_CalendarweekComponent.select("year"));
-      if (!weekInput || !yearInput) {
-        throw new Error(`Couldn't find required "week" or "year" input element. Check the attribute selector "${_CalendarweekComponent.select()}"`);
-      }
-      this.weekInput = weekInput;
-      this.yearInput = yearInput;
-      if (!mode) {
-        mode = container.getAttribute("data-mode");
-        if (!["continuous", "loop", "fixed"].some((validMode) => validMode === mode)) {
-          mode = "continuous";
-          console.info(`Mode parsed from attribute was invalid. Mode was set to "${mode}".`);
+  // node_modules/peakflow/dist/form/cms-select.js
+  var CMSSelect = class _CMSSelect {
+    constructor(component, options = {}) {
+      this.opts = {
+        id: void 0
+      };
+      this.attr = _CMSSelect.attr;
+      this.onChangeCallbacks = /* @__PURE__ */ new Map();
+      try {
+        this.source = getElement(component);
+        if (!this.source) {
+          throw new Error(`Source list element is not defined.`);
         }
+        this.opts = { id: options.id ?? this.opts.id };
+        this.id = this.opts.id || this.source.getAttribute(this.attr.id);
+        this.source.setAttribute(this.attr.id, this.opts.id);
+        this.waitEvent = this.source.dataset.formSelectWait || null;
+        this.targets = getAllElements(this.selector("target"));
+        this.readValues();
+        this.initOnChange();
+      } catch (e) {
+        console.error(`Failed to create CMSSelect instance: ${e.message}`);
       }
-      this.setMode(mode);
-      const minDateStr = container.getAttribute("data-min-date") || "";
-      const maxDateStr = container.getAttribute("data-max-date") || "";
-      this.setMinMaxDates(new Date(minDateStr), new Date(maxDateStr));
-      this.updateWeekMinMax();
-      this.weekInput.addEventListener("keydown", (event) => this.onWeekKeydown(event));
-      this.yearInput.addEventListener("keydown", (event) => this.onYearKeydown(event));
-      this.weekInput.addEventListener("change", () => this.onWeekChange());
-      this.yearInput.addEventListener("change", () => this.onYearChange());
     }
-    static select = attributeselector_default("data-cweek-element");
-    setDate(date, silent = false) {
-      const year = getISOWeekYear(date);
-      const week = getISOWeek(date);
-      if (this.minDate && date < this.minDate || this.maxDate && date > this.maxDate) {
-        throw new Error("The provided date is out of range.");
-      }
-      this.year = year;
-      this.week = week;
-      this.updateWeekMinMax();
-      if (!silent) {
-        this.onChange();
+    /**
+     * Static selector
+     */
+    static selector(element, instance) {
+      const base = _CMSSelect.attributeSelector(element);
+      const instanceSelector = instance ? `[${_CMSSelect.attr.id}="${instance}"]` : "";
+      if (element === "option") {
+        return `${instanceSelector} ${base}`.trim();
       } else {
-        this.updateClient();
+        return `${base}${instanceSelector}`;
       }
     }
-    setMode(mode) {
-      switch (mode) {
-        case "continuous":
-        case "loop":
-        case "fixed":
-          this.mode = mode;
-          break;
-        default:
-          throw new Error(`"${mode}" is not a valid mode.`);
+    /**
+     * Instance selector
+     */
+    selector(element, local = true) {
+      return local ? _CMSSelect.selector(element, this.id) : _CMSSelect.selector(element);
+    }
+    static initializeAll() {
+      try {
+        const sourceLists = getAllElements(_CMSSelect.selector("source"));
+        sourceLists.forEach((list) => {
+          const cmsSelect = new _CMSSelect(list);
+          if (cmsSelect.initWaitEvent(true))
+            return;
+          cmsSelect.insertOptions();
+        });
+      } catch (e) {
+        console.error(`Failed to initialize all CMS select components: ${e.message}`);
       }
-      console.info(`Calendarweek: Mode set to "${this.mode}".`);
     }
-    setMinMaxDates(newMinDate, newMaxDate) {
-      if (newMinDate instanceof Date && !isNaN(newMinDate.getTime())) {
-        this.minDate = newMinDate;
-        this.minDateYear = getISOWeekYear(newMinDate);
-        this.minDateWeek = getISOWeek(newMinDate);
-        this.yearInput.min = this.minDateYear.toString();
-        this.container.dataset.minDate = format(newMinDate, "yyyy-MM-dd");
-      } else {
-        this.minDate = null;
-        this.minDateYear = null;
-        this.minDateWeek = null;
-        this.yearInput.min = "";
-        this.container.dataset.minDate = "";
-      }
-      if (newMaxDate instanceof Date && !isNaN(newMaxDate.getTime())) {
-        this.maxDate = newMaxDate;
-        this.maxDateYear = getISOWeekYear(newMaxDate);
-        this.maxDateWeek = getISOWeek(newMaxDate);
-        this.yearInput.max = this.maxDateYear.toString();
-        this.container.dataset.maxDate = format(newMaxDate, "yyyy-MM-dd");
-      } else {
-        this.maxDate = null;
-        this.maxDateYear = null;
-        this.maxDateWeek = null;
-        this.yearInput.max = "";
-        this.container.dataset.maxDate = "";
-      }
-      this.updateWeekMinMax();
+    static createOption(value) {
+      const optionElement = document.createElement("option");
+      optionElement.setAttribute("value", value);
+      optionElement.innerText = value;
+      return optionElement;
     }
-    addOnChange(callback) {
-      this.onChangeActions.push(callback);
-    }
-    removeOnChange(callback) {
-      this.onChangeActions = this.onChangeActions.filter((fn) => fn !== callback);
-    }
-    getCurrentDate() {
-      let date = setISOWeekYear(/* @__PURE__ */ new Date(0), this.year);
-      date = setISOWeek(date, this.week);
-      return startOfISOWeek(date);
-    }
-    parseWeekAndYear() {
-      let parsedYear = parseInt(this.yearInput.value, 10);
-      let parsedWeek = parseInt(this.weekInput.value, 10);
-      parsedYear = this.keepYearInBounds(parsedYear);
-      this.updateWeekMinMax(parsedYear);
-      parsedWeek = this.keepWeekInBounds(parsedWeek);
-      this.year = parsedYear;
-      this.week = parsedWeek;
-    }
-    onChange() {
-      this.updateClient();
-      this.onChangeActions.forEach((callback) => callback(this.week, this.year, this.getCurrentDate()));
-    }
-    updateClient() {
-      this.updateClientWeekMinMax();
-      this.updateClientValues();
-    }
-    updateClientWeekMinMax() {
-      this.weekInput.min = this.currentMinWeek.toString();
-      this.weekInput.max = this.currentMaxWeek.toString();
-    }
-    updateClientValues() {
-      this.yearInput.value = this.year.toString();
-      this.weekInput.value = this.week.toString();
-    }
-    onYearChange() {
-      this.parseWeekAndYear();
-      this.onChange();
-    }
-    onWeekChange() {
-      this.parseWeekAndYear();
-      this.onChange();
-    }
-    updateWeekMinMax(currentYear = this.year) {
-      const maxWeeksOfCurrentYear = getISOWeeksOfYear(currentYear);
-      let minCalendarWeek = 1;
-      let maxCalendarWeek = maxWeeksOfCurrentYear;
-      if (this.minDate !== null && this.minDateYear === currentYear) {
-        minCalendarWeek = this.minDateWeek;
-      }
-      if (this.maxDate !== null && this.maxDateYear === currentYear) {
-        maxCalendarWeek = this.maxDateWeek;
-      }
-      this.currentMinWeek = minCalendarWeek;
-      this.currentMaxWeek = maxCalendarWeek;
-    }
-    onWeekKeydown(event) {
-      this.parseWeekAndYear();
-      let changed = false;
-      if (event.key === "ArrowUp" && this.week >= this.currentMaxWeek) {
-        event.preventDefault();
-        switch (this.mode) {
-          case "continuous":
-            if (this.year === this.maxDateYear) break;
-            this.year += 1;
-            this.week = 1;
-            this.updateWeekMinMax();
-            changed = true;
-            break;
-          case "loop":
-            this.week = this.currentMinWeek;
-            changed = true;
-            break;
+    static insertOptions(targets, values) {
+      const targetList = getAllElements(targets, { single: true });
+      values.forEach((val) => {
+        if (val) {
+          const option = _CMSSelect.createOption(val);
+          targetList.forEach((target) => target.appendChild(option));
+        } else {
+          console.warn("CMS select: skip empty option");
         }
-      } else if (event.key === "ArrowDown" && this.week <= this.currentMinWeek) {
-        event.preventDefault();
-        switch (this.mode) {
-          case "continuous":
-            if (this.year === this.minDateYear) break;
-            this.year -= 1;
-            this.week = getISOWeeksOfYear(this.year);
-            this.updateWeekMinMax();
-            changed = true;
-            break;
-          case "loop":
-            this.week = this.currentMaxWeek;
-            changed = true;
-            break;
-        }
-      }
-      if (changed) {
-        this.onChange();
+      });
+    }
+    static clearOptions(targets, keepEmpty) {
+      const targetList = getAllElements(targets, { single: true });
+      targetList.forEach((target) => {
+        let options = Array.from(target.querySelectorAll("option"));
+        if (keepEmpty)
+          options = options.filter((option) => Boolean(option.value));
+        options.forEach((option) => option.remove());
+      });
+    }
+    /**
+     * @param graceful Whether to throw an error if the wait event is invalid.
+     * @returns A boolean indicating whether the wait event was initialized successfully.
+     */
+    initWaitEvent(graceful = false) {
+      if (this.waitEvent) {
+        this.source.addEventListener(this.waitEvent, () => {
+          this.insertOptions();
+        });
+        return true;
+      } else {
+        const message2 = `The wait event name "${this.waitEvent}" is invalid.`;
+        if (graceful)
+          return false;
+        throw new Error(message2);
       }
     }
-    keepYearInBounds(year) {
-      if (this.minDateYear !== null && year < this.minDateYear) {
-        return this.minDateYear;
-      }
-      if (this.maxDateYear !== null && year > this.maxDateYear) {
-        return this.maxDateYear;
-      }
-      return year;
+    readValues() {
+      this.values = [];
+      const optionElements = this.source.querySelectorAll(_CMSSelect.selector("option"));
+      optionElements.forEach((element) => {
+        this.values.push(this.getSelectValue(element));
+      });
     }
-    keepWeekInBounds(week) {
-      if (week < this.currentMinWeek) {
-        return this.currentMinWeek;
-      } else if (week > this.currentMaxWeek) {
-        return this.currentMaxWeek;
-      }
-      return week;
+    insertOptions() {
+      _CMSSelect.insertOptions(this.targets, this.values);
     }
-    onYearKeydown(event) {
-      if (this.mode !== "loop" || !this.minDate || !this.maxDate) return;
-      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
-      const isArrowUp = event.key === "ArrowUp";
-      const isArrowDown = event.key === "ArrowDown";
-      this.parseWeekAndYear();
-      if (isArrowUp && this.year === this.maxDateYear || isArrowDown && this.year === this.minDateYear) {
-        event.preventDefault();
-        this.year = isArrowUp ? this.minDateYear : this.maxDateYear;
-        this.onChange();
+    getSelectValue(item) {
+      const prefix = item.getAttribute(this.attr.prefix) || "";
+      const value = item.getAttribute(this.attr.value) || "";
+      const optionValue = prefix ? `${prefix} ${value}` : value;
+      return optionValue;
+    }
+    initOnChange() {
+      this.targets.forEach((target) => {
+        target.addEventListener("change", () => {
+          this.triggerOnChange();
+        });
+      });
+    }
+    onChange(name, callback) {
+      this.onChangeCallbacks.set(name, callback);
+    }
+    clearOnChange(name) {
+      this.onChangeCallbacks.delete(name);
+    }
+    triggerOnChange() {
+      for (const callback of this.onChangeCallbacks.values()) {
+        callback();
       }
     }
   };
+  CMSSelect.attr = {
+    id: "data-cms-select-id",
+    element: "data-cms-select-element",
+    prefix: "data-cms-select-prefix",
+    value: "data-cms-select-value",
+    wait: "data-cms-select-wait",
+    status: "data-cms-select-status"
+  };
+  CMSSelect.attributeSelector = createAttribute("data-cms-select-element");
 
-  // node_modules/peakflow/src/utils/objecttomap.ts
+  // node_modules/peakflow/dist/utils/parameterize.js
+  function parameterize(text) {
+    return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-+/g, "-");
+  }
+
+  // node_modules/peakflow/dist/form/formfield.js
+  var FormField = class {
+    constructor(data = null) {
+      this.listeners = /* @__PURE__ */ new Set();
+      if (!data) {
+        return;
+      }
+      this.id = data.id || `field-${Math.random().toString(36).substring(2)}`;
+      this.label = data.label || `Untitled`;
+      this.value = data.value || "";
+      this.required = data.required || false;
+      this.type = data.type || "text";
+      if (["radio", "checkbox"].includes(this.type)) {
+        this.checked = data.checked || false;
+      }
+      if (this.type === "checkbox" && !this.checked) {
+        this.value = "Nicht angew\xE4hlt";
+      }
+    }
+    setValue(newValue) {
+      this.value = newValue;
+      this.listeners.forEach((callback) => callback(newValue));
+    }
+    onChange(callback) {
+      this.listeners.add(callback);
+    }
+    validate(report = true) {
+      let valid = true;
+      if (this.required) {
+        if (this.type === "radio" || this.type === "checkbox") {
+          if (!this.checked) {
+            valid = false;
+          }
+        } else {
+          if (!this.value.trim()) {
+            valid = false;
+          }
+        }
+      }
+      if (!valid && report) {
+        console.warn(`Field "${this.label}" is invalid.`);
+      }
+      return valid;
+    }
+    serialize() {
+      const serialized = {
+        id: this.id,
+        label: this.label,
+        value: this.value,
+        required: this.required,
+        type: this.type
+      };
+      if (["radio", "checkbox"].includes(this.type)) {
+        serialized.checked = this.checked;
+      }
+      return serialized;
+    }
+  };
+  function fieldFromInput(input, index) {
+    if (input.type === "radio" && !input.checked) {
+      return new FormField();
+    }
+    const id = input.id || parameterize(input.dataset.name || `untitled ${index}`);
+    const field = new FormField({
+      id: isRadioInput(input) ? input.name : id,
+      label: input.dataset.name || `Untitled ${index}`,
+      value: input.value,
+      required: input.required || false,
+      type: input.type,
+      checked: isCheckboxInput(input) || isRadioInput(input) ? input.checked : void 0
+    });
+    return field;
+  }
+
+  // node_modules/peakflow/dist/form/fieldgroup.js
+  var FieldGroup = class _FieldGroup {
+    constructor(fields = /* @__PURE__ */ new Map()) {
+      this.fields = fields;
+    }
+    /**
+     * Finds a specific `FormField` instance by id.
+     *
+     * @param fieldId The id attribute of the associated DOM element.
+     */
+    getField(fieldId) {
+      return this.fields.get(fieldId);
+    }
+    validate(report = true) {
+      const invalidFields = [];
+      for (const field of this.fields.values()) {
+        if (field.validate(report))
+          continue;
+        invalidFields.push(field);
+      }
+      this.validation = {
+        isValid: invalidFields.length === 0,
+        invalidFields
+      };
+      return this.validation;
+    }
+    /**
+     * Serialize this `FieldGroup`.
+     *
+     * @returns `this.fields` as an object
+     */
+    serialize() {
+      let fields = {};
+      this.fields.forEach((field, key) => {
+        fields[key] = field.serialize();
+      });
+      return fields;
+    }
+    /**
+     * Deserialize a `FieldGroup`.
+     *
+     * @returns A new `FieldGroup` instance
+     */
+    static deserialize(fieldGroupData) {
+      const fieldsMap = /* @__PURE__ */ new Map();
+      Object.entries(fieldGroupData).forEach(([key, fieldData]) => {
+        const field = new FormField(fieldData);
+        fieldsMap.set(key, field);
+      });
+      return new _FieldGroup(fieldsMap);
+    }
+  };
+
+  // node_modules/peakflow/dist/form/formmessage.js
+  var FormMessage = class {
+    /**
+     * Constructs a new FormMessage instance.
+     * @param componentName The name of the component (used in `data-message-component`).
+     * @param messageFor The target form field identifier (used in `data-message-for`).
+     */
+    constructor(componentName, messageFor) {
+      this.initialized = false;
+      this.resetTimeoutId = null;
+      this.messageFor = messageFor;
+      const component = document.querySelector(`[data-message-component="${componentName}"][data-message-for="${this.messageFor}"]`);
+      if (!component) {
+        console.warn(`No FormMessage component was found: ${componentName}, ${this.messageFor}`);
+        return;
+      }
+      this.component = component;
+      this.messageElement = this.component?.querySelector('[data-message-element="message"]') || null;
+      this.reset();
+      this.initialized = true;
+    }
+    /**
+     * Displays an informational message.
+     * @param message The message text to display. Defaults to `null`.
+     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
+     */
+    info(message2 = null, silent = false) {
+      if (!this.initialized)
+        return;
+      this.clearTimeout();
+      if (!silent) {
+        this.component.setAttribute("aria-live", "polite");
+      }
+      this.setMessage(message2, "info", silent);
+    }
+    /**
+     * Displays an error message.
+     * @param message The message text to display. Defaults to `null`.
+     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
+     */
+    error(message2 = null, silent = false) {
+      if (!this.initialized)
+        return;
+      this.clearTimeout();
+      if (!silent) {
+        this.component.setAttribute("role", "alert");
+        this.component.setAttribute("aria-live", "assertive");
+      }
+      this.setMessage(message2, "error", silent);
+    }
+    /**
+     * Resets the message component, hiding any displayed message.
+     */
+    reset() {
+      if (!this.initialized)
+        return;
+      this.clearTimeout();
+      this.component.classList.remove("info", "error");
+      if (this.messageElement) {
+        this.messageElement.textContent = "";
+      }
+      this.component.removeAttribute("aria-live");
+      this.component.removeAttribute("role");
+    }
+    /**
+     * Schedules an automatic reset or custom action of the message component after a `delay`.
+     * Cancels any existing reset timer.
+     *
+     * @param delay - Time in milliseconds after which the reset or callback is triggered.
+     * @param callback - Optional function to execute when the timer fires instead of the default reset.
+     */
+    setTimedReset(delay, callback) {
+      if (!this.initialized)
+        return;
+      this.clearTimeout();
+      this.resetTimeoutId = setTimeout(() => {
+        if (callback) {
+          callback();
+        } else {
+          this.reset();
+        }
+        this.resetTimeoutId = null;
+      }, delay);
+    }
+    /**
+     * Cancels any existing timer.
+     */
+    clearTimeout() {
+      if (!this.initialized)
+        return;
+      if (this.resetTimeoutId !== null) {
+        clearTimeout(this.resetTimeoutId);
+        this.resetTimeoutId = null;
+      }
+    }
+    /**
+     * Sets the message text and type (private method).
+     * @param message The message text to display. Defaults to `null`.
+     * @param type The type of message (`"info"` or `"error"`).
+     * @param silent If `true`, skips accessibility announcements. Defaults to `false`.
+     */
+    setMessage(message2 = null, type, silent = false) {
+      if (!this.initialized)
+        return;
+      if (this.messageElement && message2) {
+        this.messageElement.textContent = message2;
+      } else if (!this.messageElement) {
+        console.warn("Message text element not found.");
+      }
+      this.component.classList.remove("info", "error");
+      this.component.classList.add(type);
+      if (silent)
+        return;
+      this.component.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }
+  };
+
+  // node_modules/peakflow/dist/form/formdecision.js
+  var FormDecision = class _FormDecision {
+    static get attr() {
+      return {
+        component: "data-decision-component",
+        element: "data-decision-element",
+        pathId: "data-path-id",
+        required: "data-decision-required"
+      };
+    }
+    get currentPath() {
+      return this._currentPath;
+    }
+    set currentPath(pathId) {
+      this._currentPath = pathId;
+    }
+    /**
+     * Constructs a new FormDecision instance.
+     * @param component The FormDecision element.
+     * @param id Unique identifier for the specific instance.
+     */
+    constructor(component, options) {
+      this.opts = {
+        id: void 0,
+        clearPathOnChange: false,
+        defaultPath: null
+      };
+      this.paths = /* @__PURE__ */ new Map();
+      this.errorMessages = {};
+      this.defaultErrorMessage = "Please complete the required fields.";
+      this.onChangeCallback = () => {
+      };
+      this.attr = _FormDecision.attr;
+      this.selector = createAttribute(_FormDecision.attr.element);
+      if (!component) {
+        console.error(`FormDecision: Component not found.`);
+        return;
+      } else if (!component.hasAttribute("data-decision-component")) {
+        console.error(`FormDecision: Selected element is not a FormDecision component:`, component);
+        return;
+      }
+      this.component = component;
+      this.opts = {
+        id: options.id || this.component.getAttribute(this.attr.component) || this.opts.id,
+        clearPathOnChange: options.clearPathOnChange || this.opts.clearPathOnChange,
+        defaultPath: options.defaultPath || this.opts.defaultPath
+      };
+      this.formMessage = new FormMessage("FormDecision", this.opts.id);
+      this.initialize();
+    }
+    /**
+     * Initializes the FormDecision instance by setting up decision inputs & paths as well as their event listeners.
+     */
+    initialize() {
+      const decisionFieldsWrapper = this.component.querySelector(this.selector("decision")) || this.component;
+      const decisionInputsList = decisionFieldsWrapper.querySelectorAll(this.selector("input"));
+      this.decisionInputs = Array.from(decisionInputsList);
+      if (this.decisionInputs.length === 0) {
+        console.warn(`Decision component "${this.opts.id}" does not contain any decision input elements.`);
+        return;
+      }
+      this.decisionInputs.forEach((input) => {
+        const pathId = input.getAttribute(this.attr.pathId) || input.value;
+        const pathSelector = `${this.selector("path")}[${this.attr.pathId}="${pathId}"]`;
+        const path = this.component.querySelector(pathSelector);
+        if (path) {
+          path.style.display = "none";
+          this.initRequiredAttributes(path);
+        }
+        this.paths.set(pathId, path);
+        input.addEventListener("change", (event) => {
+          this.changeToPath(pathId, event);
+        });
+      });
+      this.component.addEventListener("change", () => this.formMessage.reset());
+    }
+    /**
+     * Handles changes to the decision input fields and updates the associated path visibility.
+     * @param path The HTMLElement that contains the form fields of this path.
+     * @param event The event that invokes this change.
+     */
+    changeToPath(pathId, event) {
+      if (pathId === null) {
+        this.hideAllPaths();
+        this.decisionInputs.forEach((input) => {
+          setChecked(input, false);
+        });
+      }
+      if (this.currentPath === pathId)
+        return;
+      const prevPath = this.paths.get(this.currentPath);
+      if (prevPath) {
+        prevPath.style.display = "none";
+      }
+      this.currentPath = pathId;
+      const path = this.paths.get(this.currentPath);
+      if (path) {
+        path.style.removeProperty("display");
+      }
+      this.paths.forEach((path2, pathId2) => {
+        this.updateRequiredAttributes(pathId2);
+        if (this.opts.clearPathOnChange) {
+          this.clearPath(pathId2);
+        }
+      });
+      this.onChangeCallback();
+      this.formMessage.reset();
+    }
+    reset(force) {
+      this.clearAllPaths();
+      this.changeToPath(force !== void 0 ? force : this.opts.defaultPath);
+    }
+    /**
+     * Sync the path shown do the actual selected path, if the component ever gets out of sync.
+     */
+    sync() {
+      const path = this.getCurrentPath();
+      this.changeToPath(path);
+    }
+    /**
+     * Sets the display of all path elements to 'none'.
+     */
+    hideAllPaths() {
+      this.paths.forEach((path) => {
+        if (!path)
+          return;
+        path.style.display = "none";
+      });
+    }
+    /**
+     * Retrieves the currently selected decision input.
+     * @returns The selected input element, or undefined if none is selected.
+     */
+    getSelectedInput() {
+      return Array.from(this.decisionInputs).find((input) => input.checked);
+    }
+    /**
+     * Retrieves the current `PathId` from the currently selected decision input.
+     */
+    getCurrentPath() {
+      const selected = this.getSelectedInput();
+      if (!selected)
+        return null;
+      return selected.getAttribute(this.attr.pathId);
+    }
+    /**
+     * Validates the FormDecision based on the selected path to ensure the form's correctness.
+     * @returns A boolean indicating whether the validation passed.
+     */
+    validate() {
+      const selectedInput = this.getSelectedInput();
+      const { isValid: decisionValid } = validateFields(this.decisionInputs);
+      if (!decisionValid || !selectedInput) {
+        console.warn("No decision selected!");
+        this.handleValidationMessages(false);
+        return false;
+      }
+      const pathId = selectedInput.getAttribute(this.attr.pathId) || selectedInput.value;
+      const isValid2 = !this.paths.has(pathId) || this.checkPathValidity(pathId);
+      this.handleValidationMessages(isValid2);
+      return isValid2;
+    }
+    /**
+     * Sets custom error messages for the decision inputs.
+     * @param messages An object mapping decision input values to error messages.
+     * @param defaultMessage An optional default error message to use when no specific message is provided.
+     */
+    setErrorMessages(messages, defaultMessage) {
+      this.errorMessages = messages;
+      if (defaultMessage) {
+        this.defaultErrorMessage = defaultMessage;
+      }
+    }
+    /**
+     * Validates the fields within the specified path and returns whether they are valid.
+     * @param pathIndex The index of the path to validate.
+     * @returns A boolean indicating whether the specified path is valid.
+     */
+    checkPathValidity(pathId) {
+      const pathElement = this.paths.get(pathId);
+      if (!pathElement)
+        return true;
+      const inputs = pathElement.querySelectorAll(wf.select.formInput);
+      const { isValid: isValid2 } = validateFields(inputs, true);
+      return isValid2;
+    }
+    initRequiredAttributes(path) {
+      const inputs = path.querySelectorAll(wf.select.input);
+      inputs.forEach((input) => {
+        input.setAttribute(this.attr.required, `${input.required}`);
+        input.required = false;
+      });
+    }
+    /**
+     * Updates the required attributes of input fields within the paths based on the selected decision input.
+     */
+    updateRequiredAttributes(pathId) {
+      const path = this.paths.get(pathId);
+      if (!path)
+        return;
+      if (pathId === this.currentPath) {
+        const pathInputs = path.querySelectorAll(wf.select.formInput);
+        pathInputs.forEach((input) => {
+          const isRequired = input.matches(`[${this.attr.required}="required"], [${this.attr.required}="true"]`);
+          input.required = isRequired;
+        });
+      } else {
+        const pathInputs = path.querySelectorAll(wf.select.formInput);
+        pathInputs.forEach((input) => {
+          input.required = false;
+        });
+      }
+    }
+    clearPath(pathId, silent = false) {
+      const path = this.paths.get(pathId);
+      if (!path)
+        return;
+      const pathInputs = path.querySelectorAll(wf.select.formInput);
+      pathInputs.forEach((input) => {
+        input.value = null;
+        if (silent)
+          return;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+    }
+    clearAllPaths(clearCurrentPath = true) {
+      this.paths.forEach((path, pathId) => {
+        if (clearCurrentPath) {
+          this.clearPath(pathId);
+        } else if (pathId !== this.currentPath) {
+          this.clearPath(pathId);
+        }
+      });
+    }
+    /**
+     * Displays validation message based on the current path.
+     * @param currentGroupValid A boolean indicating whether the current group of inputs is valid.
+     */
+    handleValidationMessages(currentGroupValid) {
+      if (!currentGroupValid) {
+        const customMessage = this.errorMessages[this.currentPath] || this.defaultErrorMessage;
+        this.formMessage.error(customMessage);
+      } else {
+        this.formMessage.reset();
+      }
+    }
+    onChange(callback) {
+      this.clearOnChange();
+      this.onChangeCallback = callback;
+    }
+    clearOnChange() {
+      this.onChangeCallback = () => {
+      };
+    }
+  };
+  FormDecision.selector = createAttribute(FormDecision.attr.element);
+
+  // node_modules/peakflow/dist/utils/deepmerge.js
+  function deepMerge(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+      const sourceValue = source[key];
+      const targetValue = target[key];
+      if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
+        result[key] = deepMerge(targetValue, sourceValue);
+      } else if (sourceValue !== void 0) {
+        result[key] = sourceValue;
+      }
+    }
+    return result;
+  }
+  function isPlainObject(value) {
+    return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
+  }
+
+  // node_modules/peakflow/dist/utils/maptoobject.js
+  function mapToObject(map, stringify = false) {
+    const obj = {};
+    for (const [key, value] of map) {
+      obj[key] = value instanceof Map ? mapToObject(value, stringify) : stringify ? JSON.stringify(value) : value;
+    }
+    return obj;
+  }
+
+  // node_modules/peakflow/dist/utils/objecttomap.js
   function objectToMap(obj, deep = false) {
     const map = /* @__PURE__ */ new Map();
     for (const [key, value] of Object.entries(obj)) {
@@ -5398,6 +4597,850 @@ Component:`,
     }
     return map;
   }
+
+  // node_modules/peakflow/dist/form/multistep.js
+  var stepsElementSelector = createAttribute("data-steps-element", {
+    defaultExclusions: ['[data-steps-element="component"] [data-steps-element="component"] *']
+  });
+  var stepsTargetSelector = createAttribute("data-step-target");
+  var stepsNavSelector = createAttribute("data-steps-nav");
+  var STEPS_PAGINATION_ITEM_SELECTOR = `button${stepsTargetSelector()}`;
+  var MultiStepForm = class {
+    set currentStep(index) {
+      this._currentStep = index;
+    }
+    get currentStep() {
+      return this._currentStep;
+    }
+    constructor(component, options) {
+      this.options = {
+        recaptcha: false,
+        navigation: {
+          hideInStep: -1
+        },
+        excludeInputSelectors: [],
+        nested: false,
+        pagination: {
+          doneClass: "is-done",
+          activeClass: "is-active"
+        },
+        validation: {
+          validate: true,
+          reportValidity: true
+        }
+      };
+      this.initialized = false;
+      this._currentStep = 0;
+      this.customComponents = [];
+      this.component = component;
+      this.options = deepMerge(this.options, options);
+      this.validateComponent();
+      this.cacheDomElements();
+      this.setupForm();
+      this.setupEventListeners();
+      this.initialized = true;
+    }
+    validateComponent() {
+      if (!this.component.getAttribute("data-steps-element")) {
+        console.error(`Form Steps: Component is not a steps component or is missing the attribute ${stepsElementSelector("component")}.
+Component:`, this.component);
+        throw new Error("Component is not a valid multi-step form component.");
+      }
+    }
+    cacheDomElements() {
+      this.formElement = this.component.querySelector("form");
+      if (!this.options.nested && !this.formElement) {
+        throw new Error("Form element not found within the specified component.");
+      }
+      if (this.options.nested) {
+        this.formElement = this.component;
+      }
+      this.formSteps = this.component.querySelectorAll(stepsElementSelector("step"));
+      this.paginationItems = this.component.querySelectorAll(STEPS_PAGINATION_ITEM_SELECTOR);
+      this.navigationElement = this.component.querySelector(stepsElementSelector("navigation"));
+      this.buttonsNext = this.component.querySelectorAll(stepsNavSelector("next"));
+      this.buttonsPrev = this.component.querySelectorAll(stepsNavSelector("prev"));
+      this.successElement = this.component.querySelector(formElementSelector("success"));
+      this.errorElement = this.component.querySelector(formElementSelector("error"));
+      this.submitButton = this.component.querySelector(formElementSelector("submit"));
+    }
+    setupForm() {
+      if (!this.formSteps.length) {
+        console.warn(`Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`, this.component.querySelector(stepsElementSelector("list")));
+        return;
+      }
+      if (!this.options.nested) {
+        enforceButtonTypes(this.formElement);
+        this.formElement.setAttribute("novalidate", "");
+      }
+      this.formElement.dataset.state = "initialized";
+      initWfInputs(this.component);
+      this.changeToStep(this.currentStep);
+    }
+    setupEventListeners() {
+      if (!this.options.nested) {
+        this.formElement.addEventListener("submit", (event) => {
+          event.preventDefault();
+          this.submitToWebflow();
+        });
+      }
+      this.initPagination();
+      this.initChangeStepOnKeydown();
+    }
+    addCustomComponent(component) {
+      this.customComponents.push(component);
+    }
+    async submitToWebflow() {
+      if (this.options.nested) {
+        throw new Error(`Can't submit a nested MultiStepForm.`);
+      }
+      if (this.currentStep !== this.formSteps.length - 1) {
+        console.error("SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step.");
+        return;
+      }
+      const allStepsValid = this.validateAllSteps();
+      if (!allStepsValid) {
+        console.warn("Form submission blocked: Not all steps are valid.");
+        return;
+      }
+      this.formElement.dataset.state = "sending";
+      if (this.submitButton) {
+        this.submitButton.dataset.defaultText = this.submitButton.value;
+        this.submitButton.value = this.submitButton.dataset.wait || "Wird gesendet ...";
+      }
+      const formData = this.buildJsonForWebflow();
+      debugger;
+      const success = await sendFormData(formData);
+      if (success) {
+        this.onFormSuccess();
+      } else {
+        this.onFormError();
+      }
+    }
+    buildJsonForWebflow() {
+      if (this.options.nested) {
+        throw new Error(`Can't get FormData for a nested MultiStepForm.`);
+      }
+      const fields = this.getFormData();
+      if (this.options.recaptcha) {
+        const recaptcha = this.formElement.querySelector("#g-recaptcha-response").value;
+        fields["g-recaptcha-response"] = recaptcha;
+      }
+      return {
+        name: this.formElement.dataset.name,
+        pageId: wf.pageId,
+        elementId: this.formElement.dataset.wfElementId,
+        source: window.location.href,
+        test: false,
+        fields,
+        dolphin: false
+      };
+    }
+    onFormSuccess() {
+      if (this.errorElement)
+        this.errorElement.style.display = "none";
+      if (this.successElement)
+        this.successElement.style.display = "block";
+      this.formElement.style.display = "none";
+      this.formElement.dataset.state = "success";
+      this.formElement.dispatchEvent(new CustomEvent("formSuccess"));
+      if (this.submitButton) {
+        this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
+      }
+    }
+    onFormError() {
+      if (this.errorElement)
+        this.errorElement.style.display = "block";
+      if (this.successElement)
+        this.successElement.style.display = "none";
+      this.formElement.dataset.state = "error";
+      this.formElement.dispatchEvent(new CustomEvent("formError"));
+      if (this.submitButton) {
+        this.submitButton.value = this.submitButton.dataset.defaultText || "Submit";
+      }
+    }
+    initChangeStepOnKeydown() {
+      this.formSteps.forEach((step, index) => {
+        step.dataset.stepId = index.toString();
+        step.classList.toggle("hide", index !== this.currentStep);
+        step.querySelectorAll(wf.select.formInput).forEach((input) => {
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              this.changeToNext();
+            }
+          });
+        });
+      });
+    }
+    initPagination() {
+      this.paginationItems.forEach((item, index) => {
+        item.dataset.stepTarget = index.toString();
+        item.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.changeToStep(index);
+        });
+      });
+      this.buttonsNext.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.changeToNext();
+        });
+      });
+      this.buttonsPrev.forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          this.changeToPrevious();
+        });
+      });
+    }
+    /**
+     * Change to the next step.
+     */
+    changeToNext() {
+      if (this.currentStep < this.formSteps.length - 1) {
+        this.changeToStep(this.currentStep + 1);
+      }
+    }
+    /**
+     * Change to the previous step.
+     */
+    changeToPrevious() {
+      if (this.currentStep > 0) {
+        this.changeToStep(this.currentStep - 1);
+      }
+    }
+    /**
+     * Change to the specified step by `index`.
+     *
+     * If moving forward, the method will validate all intermediate steps before
+     * allowing navigation. If validation fails on any step, it will halt and move
+     * to the invalid step instead.
+     *
+     * Use the CustomEvent "changeStep" to hook into step changes.
+     *
+     * @param index - The zero-based index of the step to navigate to.
+     */
+    changeToStep(index) {
+      if (this.currentStep === index && this.initialized) {
+        return;
+      }
+      if (index > this.currentStep && this.initialized) {
+        for (let step = this.currentStep; step < index; step++) {
+          if (!this.validateCurrentStep(step)) {
+            this.changeToStep(step);
+            return;
+          }
+        }
+        this.component.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+      const event = new CustomEvent("changeStep", {
+        detail: { previousStep: this.currentStep, currentStep: index }
+      });
+      this.component.dispatchEvent(event);
+      this.updateStepVisibility(index);
+      this.updatePagination(index);
+      this.currentStep = index;
+      console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
+    }
+    updateStepVisibility(target) {
+      const current = this.formSteps[this.currentStep];
+      const next = this.formSteps[target];
+      if (this.options.onStepChange) {
+        this.options.onStepChange({
+          index: target,
+          currentStep: current,
+          targetStep: next
+        });
+      } else {
+        current.classList.add("hide");
+        next.classList.remove("hide");
+      }
+    }
+    set onChangeStep(callback) {
+      this.options.onStepChange = callback;
+    }
+    updatePagination(target) {
+      this.buttonsPrev.forEach((button) => {
+        if (target === 0) {
+          button.style.visibility = "hidden";
+          button.style.opacity = "0";
+        } else {
+          button.style.visibility = "visible";
+          button.style.opacity = "1";
+        }
+      });
+      this.buttonsNext.forEach((button) => {
+        if (target === this.formSteps.length - 1) {
+          button.style.visibility = "hidden";
+          button.style.opacity = "0";
+        } else {
+          button.style.visibility = "visible";
+          button.style.opacity = "1";
+        }
+      });
+      if (target === this.options.navigation.hideInStep) {
+        this.navigationElement.style.visibility = "hidden";
+        this.navigationElement.style.opacity = "0";
+      } else {
+        this.navigationElement.style.removeProperty("visibility");
+        this.navigationElement.style.removeProperty("opacity");
+      }
+      this.paginationItems.forEach((step, index) => {
+        step.classList.toggle(this.options.pagination.doneClass, index < target);
+        step.classList.toggle(this.options.pagination.activeClass, index === target);
+      });
+    }
+    validateAllSteps() {
+      let allValid = true;
+      this.formSteps.forEach((_, index) => {
+        if (!this.validateCurrentStep(index)) {
+          console.warn(`Step ${index + 1} is invalid.`);
+          allValid = false;
+          this.changeToStep(index);
+        }
+      });
+      return allValid;
+    }
+    validateCurrentStep(stepIndex) {
+      if (!this.options.validation.validate)
+        return true;
+      const basicError = `Validation failed for step: ${stepIndex + 1}/${this.formSteps.length}`;
+      const currentStepElement = this.formSteps[stepIndex];
+      const inputs = currentStepElement.querySelectorAll(wf.select.formInput);
+      const filteredInputs = Array.from(inputs).filter((input) => {
+        const isExcluded = this.options.excludeInputSelectors.some((selector) => {
+          return input.closest(`${selector}`) !== null || input.matches(selector);
+        });
+        return !isExcluded;
+      });
+      let { isValid: isValid2 } = validateFields(filteredInputs, this.options.validation.reportValidity);
+      if (!isValid2 && this.options.validation.reportValidity) {
+        console.warn(`${basicError}: Standard validation is not valid`);
+      }
+      if (!isValid2)
+        return false;
+      const customValidators = this.customComponents.filter((entry) => entry.stepIndex === stepIndex).map((entry) => () => entry.validator());
+      const customValid = customValidators?.every((validator) => validator()) ?? true;
+      if (this.options.validation.reportValidity && !customValid) {
+        console.warn(`${basicError}: Custom validation is not valid`);
+      }
+      return isValid2 && customValid;
+    }
+    /**
+     * Gets data of all form fields in a `FormFieldMap`.
+     *
+     * @step Step index of the multi step form
+     * @returns `FormFieldMap` - A map of field id (string) to a `FormField` class instance
+     *
+     * Fields that are a descendant of '[data-steps-element="custom-component"]' are excluded.
+     */
+    getFieldMapForStep(step) {
+      let fields = /* @__PURE__ */ new Map();
+      const stepElement = this.formSteps[step];
+      const stepInputs = stepElement.querySelectorAll(exclude(wf.select.formInput, `${stepsElementSelector("custom-component", { exclusions: [] })} *`));
+      stepInputs.forEach((input, inputIndex) => {
+        const entry = fieldFromInput(input, inputIndex);
+        if (entry.id) {
+          fields.set(entry.id, entry.value);
+        }
+      });
+      return fields;
+    }
+    getFieldMap() {
+      const fields = Array.from(this.formSteps).reduce((acc, _, stepIndex) => {
+        const stepData = this.getFieldMapForStep(stepIndex);
+        return new Map([
+          ...acc,
+          ...stepData
+        ]);
+      }, /* @__PURE__ */ new Map());
+      return fields;
+    }
+    getFormData() {
+      const customFields = this.customComponents.reduce((acc, entry) => {
+        return {
+          ...acc,
+          ...entry.getData ? entry.getData() : {}
+        };
+      }, {});
+      const fields = {
+        ...mapToObject(this.getFieldMap(), false),
+        ...customFields
+      };
+      return fields;
+    }
+    getFormInput(id) {
+      const selector = extend(wf.select.formInput, `#${id}`);
+      return this.component.querySelector(selector);
+    }
+  };
+
+  // node_modules/peakflow/dist/accordion/accordion.js
+  var Accordion = class {
+    constructor(component) {
+      this.isOpen = false;
+      this.onClickCallback = () => {
+      };
+      this.component = component;
+      this.trigger = component.querySelector('[data-animate="trigger"]');
+      this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]');
+      this.icon = component.querySelector('[data-animate="icon"]');
+    }
+    onClick(callback) {
+      this.removeOnClick();
+      this.onClickCallback = callback;
+      this.uiTrigger.addEventListener("click", this.onClickCallback);
+    }
+    removeOnClick() {
+      this.uiTrigger.removeEventListener("click", this.onClickCallback);
+    }
+    open() {
+      if (!this.isOpen) {
+        this.trigger.click();
+        setTimeout(() => {
+          this.icon.classList.add("is-open");
+        }, 200);
+        this.isOpen = true;
+      }
+    }
+    close() {
+      if (this.isOpen) {
+        this.trigger.click();
+        setTimeout(() => {
+          this.icon.classList.remove("is-open");
+        }, 200);
+        this.isOpen = false;
+      }
+    }
+    toggle() {
+      if (this.isOpen) {
+        this.close();
+      } else {
+        this.open();
+      }
+    }
+    scrollIntoView(scrollWrapper, offset = 0) {
+      const elementPosition = this.component.getBoundingClientRect().top;
+      if (scrollWrapper) {
+        const wrapperPosition = scrollWrapper.getBoundingClientRect().top;
+        offset = scrollWrapper.querySelector('[data-scroll-child="sticky"]').clientHeight;
+        scrollWrapper.scrollBy({
+          top: elementPosition - wrapperPosition - offset - 2,
+          behavior: "smooth"
+        });
+      } else {
+        window.scrollTo({
+          top: elementPosition + window.scrollY - offset - 2,
+          behavior: "smooth"
+        });
+      }
+    }
+  };
+
+  // node_modules/peakflow/dist/scroll/scrollbar.js
+  function getVisibleScrollbarWidth(element) {
+    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
+  }
+  function isScrollbarVisible(element) {
+    const style = getComputedStyle(element);
+    const overflowY = style.overflowY;
+    if (overflowY === "hidden" || overflowY === "clip") {
+      return false;
+    }
+    if (element === document.body || element === document.documentElement) {
+      return window.innerWidth > document.documentElement.clientWidth;
+    }
+    return element.scrollHeight > element.clientHeight;
+  }
+  function getScrollbarWidth(element) {
+    const scrollDiv = document.createElement("div");
+    scrollDiv.style.visibility = "hidden";
+    scrollDiv.style.overflow = "scroll";
+    scrollDiv.style.position = "absolute";
+    scrollDiv.style.top = "-9999px";
+    scrollDiv.style.width = "100px";
+    element.appendChild(scrollDiv);
+    const innerDiv = document.createElement("div");
+    innerDiv.style.width = "100%";
+    scrollDiv.appendChild(innerDiv);
+    const scrollbarWidth = scrollDiv.offsetWidth - innerDiv.offsetWidth;
+    scrollDiv.remove();
+    return scrollbarWidth;
+  }
+  function addScrollbarPadding(element, scrollbarElement) {
+    if (!scrollbarElement)
+      scrollbarElement = element;
+    const scrollbarWidth = getVisibleScrollbarWidth(scrollbarElement);
+    const currentPadding = parseFloat(getComputedStyle(element).paddingRight || "0");
+    if (scrollbarWidth === 0)
+      return;
+    if (!element.dataset.originalPaddingRight) {
+      element.dataset.originalPaddingRight = currentPadding.toString();
+    }
+    element.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
+  }
+  function removeScrollbarPadding(element) {
+    const originalPadding = element.dataset.originalPaddingRight;
+    if (originalPadding !== void 0) {
+      element.style.paddingRight = `${originalPadding}px`;
+      if (originalPadding === "0") {
+        element.style.removeProperty("paddingRight");
+      }
+      delete element.dataset.originalPaddingRight;
+    }
+  }
+
+  // node_modules/peakflow/dist/scroll/lock.js
+  var scrollLockCount = 0;
+  function lockBodyScroll(smooth) {
+    scrollLockCount++;
+    if (scrollLockCount === 1) {
+      if (smooth)
+        addScrollbarPadding(document.body);
+      document.body.style.overflow = "hidden";
+    }
+  }
+  function unlockBodyScroll(smooth) {
+    if (scrollLockCount > 0)
+      scrollLockCount--;
+    if (scrollLockCount === 0) {
+      if (smooth)
+        removeScrollbarPadding(document.body);
+      document.body.style.removeProperty("overflow");
+    }
+  }
+
+  // node_modules/peakflow/dist/scroll/handler.js
+  var ScrollHandler = class {
+    constructor(config) {
+      this.scrollTimeoutId = null;
+      this.scrollWrapper = config.scrollWrapper;
+      this.stickyTop = config.stickyTop ?? null;
+      this.stickyBottom = config.stickyBottom ?? null;
+      if (!this.scrollWrapper) {
+        throw new Error(`Couldn't construct ScrollHandler: The property "scrollWrapper" can't be undefined`);
+      }
+    }
+    clearScrollTimeout() {
+      if (this.scrollTimeoutId !== null) {
+        clearTimeout(this.scrollTimeoutId);
+        this.scrollTimeoutId = null;
+      }
+    }
+    scrollTo(element, options = {}) {
+      this.clearScrollTimeout();
+      if (!element || !this.scrollWrapper.contains(element)) {
+        return Promise.reject(new Error("The element to scroll into view is not inside the scroll container."));
+      }
+      if (!isScrollbarVisible(this.scrollWrapper))
+        return Promise.resolve();
+      const opts = {
+        delay: options.delay ?? 0,
+        offset: options.offset ?? 0,
+        position: options.position ?? "start",
+        behavior: options.behavior ?? "smooth"
+      };
+      return new Promise((resolve) => {
+        this.scrollTimeoutId = window.setTimeout(() => {
+          const elementRect = element.getBoundingClientRect();
+          const wrapperRect = this.scrollWrapper.getBoundingClientRect();
+          const stickyTopHeight = this.stickyTop?.clientHeight || 0;
+          const stickyBottomHeight = this.stickyBottom?.clientHeight || 0;
+          const relativePosition = elementRect.top - wrapperRect.top;
+          const isFullyVisible = elementRect.top >= wrapperRect.top + stickyTopHeight && elementRect.bottom <= wrapperRect.bottom - stickyBottomHeight;
+          let scrollOffset = 0;
+          switch (opts.position) {
+            case "start":
+              scrollOffset = relativePosition - stickyTopHeight - opts.offset - 2;
+              break;
+            case "center":
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              break;
+            case "end":
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight + element.clientHeight + stickyBottomHeight + opts.offset;
+              break;
+            case "nearest":
+              if (isFullyVisible) {
+                this.clearScrollTimeout();
+                resolve();
+                return;
+              }
+              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
+              break;
+          }
+          this.scrollWrapper.scrollBy({
+            top: scrollOffset,
+            behavior: opts.behavior
+          });
+          resolve();
+        }, opts.delay);
+      });
+    }
+  };
+
+  // node_modules/peakflow/dist/modal/modal.js
+  var defaultModalAnimation = {
+    type: "none",
+    duration: 0,
+    className: "is-closed"
+  };
+  var defaultModalSettings = {
+    id: void 0,
+    animation: defaultModalAnimation,
+    stickyFooter: false,
+    stickyHeader: false,
+    bodyScroll: {
+      lock: true,
+      smooth: false
+    }
+  };
+  var Modal = class _Modal {
+    constructor(component, settings = {}) {
+      this.initialized = false;
+      if (!component) {
+        throw new Error(`The component HTMLElement cannot be undefined.`);
+      }
+      this.component = component;
+      this.settings = deepMerge(defaultModalSettings, settings);
+      this.modal = this.getModalElement();
+      this.instance = this.settings.id || component.getAttribute(_Modal.attr.id);
+      component.setAttribute(_Modal.attr.id, this.instance);
+      this.component.setAttribute("role", "dialog");
+      this.component.setAttribute("aria-modal", "true");
+      this.setupScrollTo();
+      this.setInitialState();
+      this.setupStickyFooter();
+      if (this.modal === this.component) {
+        console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.selector("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
+      }
+      this.initialized = true;
+    }
+    /**
+     * Static selector
+     */
+    static selector(element, instance) {
+      const base = _Modal.attributeSelector(element);
+      const instanceSelector = instance ? `[${_Modal.attr.id}="${instance}"]` : "";
+      return element === "component" ? `${base}${instanceSelector}` : `${base}${instanceSelector}, ${instanceSelector} ${base}`;
+    }
+    /**
+     * Instance selector
+     */
+    selector(element, local = true) {
+      return local ? _Modal.selector(element, this.instance) : _Modal.selector(element);
+    }
+    static select(element, instance) {
+      return document.querySelector(_Modal.selector(element, instance));
+    }
+    static selectAll(element, instance) {
+      return document.querySelectorAll(_Modal.selector(element, instance));
+    }
+    select(element, local = true) {
+      return local ? this.component.querySelector(_Modal.selector(element)) : document.querySelector(_Modal.selector(element, this.instance));
+    }
+    selectAll(element, local = true) {
+      return local ? this.component.querySelectorAll(_Modal.selector(element)) : document.querySelectorAll(_Modal.selector(element, this.instance));
+    }
+    getModalElement() {
+      if (this.component.matches(_Modal.selector("modal"))) {
+        this.modal = this.component;
+      } else {
+        this.modal = this.component.querySelector(this.selector("modal"));
+      }
+      if (!this.modal)
+        this.modal = this.component;
+      return this.modal;
+    }
+    setupScrollTo() {
+      this.scrollHandler = new ScrollHandler({
+        scrollWrapper: this.modal,
+        stickyTop: this.select("sticky-top"),
+        stickyBottom: this.select("sticky-bottom")
+      });
+      this.scrollTo = this.scrollHandler.scrollTo.bind(this.scrollHandler);
+      this.clearScrollTimeout = this.scrollHandler.clearScrollTimeout.bind(this.scrollHandler);
+    }
+    setupStickyFooter() {
+      const modalContent = this.component.querySelector(_Modal.selector("scroll"));
+      const stickyFooter = this.component.querySelector(_Modal.selector("sticky-bottom"));
+      if (!modalContent || !stickyFooter) {
+        console.warn("Initialize modal: skip sticky footer");
+      } else {
+        this.setupScrollEvent(modalContent, stickyFooter);
+      }
+    }
+    setupScrollEvent(modalContent, stickyFooter) {
+      modalContent.addEventListener("scroll", () => {
+        const { scrollHeight, scrollTop, clientHeight } = modalContent;
+        const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
+        if (isScrolledToBottom) {
+          stickyFooter.classList.remove("modal-scroll-shadow");
+        } else {
+          stickyFooter.classList.add("modal-scroll-shadow");
+        }
+      });
+    }
+    setInitialState() {
+      this.component.style.display = "none";
+      this.component.classList.remove("hide");
+      this.hide();
+      switch (this.settings.animation.type) {
+        case "growIn":
+        case "slideUp":
+          this.modal.style.willChange = "transform";
+          this.modal.style.transitionProperty = "transform";
+          this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
+        case "fade":
+          this.component.style.willChange = "opacity";
+          this.component.style.transitionProperty = "opacity";
+          this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
+          break;
+        case "none":
+          break;
+      }
+      this.component.dataset.state = "closed";
+    }
+    async show() {
+      this.component.style.removeProperty("display");
+      await animationFrame();
+      switch (this.settings.animation.type) {
+        case "fade":
+          this.component.style.opacity = "1";
+          break;
+        case "slideUp":
+          this.component.style.opacity = "1";
+          this.modal.style.transform = "translateY(0vh)";
+          break;
+        case "growIn":
+          this.component.style.opacity = "1";
+          this.modal.style.transform = "scale(1)";
+          break;
+        default:
+          this.component.classList.remove("is-closed");
+      }
+      setTimeout(() => {
+      }, this.settings.animation.duration);
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, this.settings.animation.duration);
+      });
+    }
+    async hide() {
+      await animationFrame();
+      switch (this.settings.animation.type) {
+        case "fade":
+          this.component.style.opacity = "0";
+          break;
+        case "slideUp":
+          this.component.style.opacity = "0";
+          this.modal.style.transform = "translateY(10vh)";
+          break;
+        case "growIn":
+          this.component.style.opacity = "0";
+          this.modal.style.transform = "scale(0.9)";
+          break;
+        default:
+          break;
+      }
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          this.component.style.display = "none";
+          resolve();
+        }, this.settings.animation.duration);
+      });
+    }
+    /**
+     * Opens the modal instance.
+     *
+     * This method calls the `show` method and locks the scroll of the document body.
+     */
+    async open() {
+      this.component.dataset.state = "opening";
+      if (this.settings.bodyScroll.lock) {
+        addScrollbarPadding(this.component, document.body);
+        lockBodyScroll(this.settings.bodyScroll.smooth);
+      }
+      await this.show();
+      this.opened = true;
+      this.component.dataset.state = "open";
+    }
+    /**
+     * Closes the modal instance.
+     *
+     * This method calls the `hide` method and unlocks the scroll of the document body.
+     */
+    async close() {
+      this.component.dataset.state = "closing";
+      if (this.settings.bodyScroll.lock) {
+        removeScrollbarPadding(this.component);
+        unlockBodyScroll(this.settings.bodyScroll.smooth);
+      }
+      await this.hide();
+      this.opened = false;
+      this.component.dataset.state = "closed";
+    }
+  };
+  Modal.attr = {
+    id: "data-modal-id",
+    element: "data-modal-element"
+  };
+  Modal.attributeSelector = createAttribute(Modal.attr.element);
+  function animationFrame() {
+    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  }
+
+  // node_modules/peakflow/dist/modal/alertdialog.js
+  var AlertDialog = class extends Modal {
+    confirm(message2) {
+      this.message = message2;
+      this.open();
+      return new Promise((resolve) => {
+        const confirmBtn = this.select("confirm");
+        const cancelBtn = this.select("cancel");
+        const onConfirm = () => {
+          cleanup();
+          this.close();
+          resolve(true);
+        };
+        const onCancel = () => {
+          cleanup();
+          this.close();
+          resolve(false);
+        };
+        const cleanup = () => {
+          confirmBtn.removeEventListener("click", onConfirm);
+          cancelBtn.removeEventListener("click", onCancel);
+        };
+        confirmBtn.addEventListener("click", onConfirm);
+        cancelBtn.addEventListener("click", onCancel);
+      });
+    }
+    set message(message2) {
+      this._message = message2;
+      this.renderMessage(message2);
+    }
+    get message() {
+      return this._message;
+    }
+    renderMessage(message2) {
+      for (const key in message2) {
+        const element = this.getElement(key);
+        if (element) {
+          element.innerText = message2[key];
+        } else {
+          console.warn(`AlertDialog: Missing element for key "${key}"`);
+        }
+      }
+    }
+    getElement(element) {
+      return this.component.querySelector(`[data-alert-dialog="${element}"]`);
+    }
+  };
 
   // src/sanavita/ts/form/resident-prospect.ts
   function prospectMapToObject(prospects) {
@@ -5542,433 +5585,6 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/accordion.ts
-  var Accordion = class {
-    component;
-    uiTrigger;
-    isOpen = false;
-    trigger;
-    icon;
-    onClickCallback = () => {
-    };
-    constructor(component) {
-      this.component = component;
-      this.trigger = component.querySelector('[data-animate="trigger"]');
-      this.uiTrigger = component.querySelector('[data-animate="ui-trigger"]');
-      this.icon = component.querySelector('[data-animate="icon"]');
-    }
-    onClick(callback) {
-      this.removeOnClick();
-      this.onClickCallback = callback;
-      this.uiTrigger.addEventListener("click", this.onClickCallback);
-    }
-    removeOnClick() {
-      this.uiTrigger.removeEventListener("click", this.onClickCallback);
-    }
-    open() {
-      if (!this.isOpen) {
-        this.trigger.click();
-        setTimeout(() => {
-          this.icon.classList.add("is-open");
-        }, 200);
-        this.isOpen = true;
-      }
-    }
-    close() {
-      if (this.isOpen) {
-        this.trigger.click();
-        setTimeout(() => {
-          this.icon.classList.remove("is-open");
-        }, 200);
-        this.isOpen = false;
-      }
-    }
-    toggle() {
-      if (this.isOpen) {
-        this.close();
-      } else {
-        this.open();
-      }
-    }
-    scrollIntoView(scrollWrapper, offset = 0) {
-      const elementPosition = this.component.getBoundingClientRect().top;
-      if (scrollWrapper) {
-        const wrapperPosition = scrollWrapper.getBoundingClientRect().top;
-        offset = scrollWrapper.querySelector('[data-scroll-child="sticky"]').clientHeight;
-        scrollWrapper.scrollBy({
-          top: elementPosition - wrapperPosition - offset - 2,
-          behavior: "smooth"
-        });
-      } else {
-        window.scrollTo({
-          top: elementPosition + window.scrollY - offset - 2,
-          behavior: "smooth"
-        });
-      }
-    }
-  };
-
-  // node_modules/peakflow/src/scroll/scrollbar.ts
-  function getVisibleScrollbarWidth(element) {
-    return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
-  }
-  function isScrollbarVisible(element) {
-    const style = getComputedStyle(element);
-    const overflowY = style.overflowY;
-    if (overflowY === "hidden" || overflowY === "clip") {
-      return false;
-    }
-    if (element === document.body || element === document.documentElement) {
-      return window.innerWidth > document.documentElement.clientWidth;
-    }
-    return element.scrollHeight > element.clientHeight;
-  }
-  function getScrollbarWidth(element) {
-    const scrollDiv = document.createElement("div");
-    scrollDiv.style.visibility = "hidden";
-    scrollDiv.style.overflow = "scroll";
-    scrollDiv.style.position = "absolute";
-    scrollDiv.style.top = "-9999px";
-    scrollDiv.style.width = "100px";
-    element.appendChild(scrollDiv);
-    const innerDiv = document.createElement("div");
-    innerDiv.style.width = "100%";
-    scrollDiv.appendChild(innerDiv);
-    const scrollbarWidth = scrollDiv.offsetWidth - innerDiv.offsetWidth;
-    scrollDiv.remove();
-    return scrollbarWidth;
-  }
-  function addScrollbarPadding(element, scrollbarElement) {
-    if (!scrollbarElement) scrollbarElement = element;
-    const scrollbarWidth = getVisibleScrollbarWidth(scrollbarElement);
-    const currentPadding = parseFloat(getComputedStyle(element).paddingRight || "0");
-    if (scrollbarWidth === 0) return;
-    if (!element.dataset.originalPaddingRight) {
-      element.dataset.originalPaddingRight = currentPadding.toString();
-    }
-    element.style.paddingRight = `${currentPadding + scrollbarWidth}px`;
-  }
-  function removeScrollbarPadding(element) {
-    const originalPadding = element.dataset.originalPaddingRight;
-    if (originalPadding !== void 0) {
-      element.style.paddingRight = `${originalPadding}px`;
-      if (originalPadding === "0") {
-        element.style.removeProperty("paddingRight");
-      }
-      delete element.dataset.originalPaddingRight;
-    }
-  }
-
-  // node_modules/peakflow/src/scroll/lock.ts
-  var scrollLockCount = 0;
-  function lockBodyScroll(smooth) {
-    scrollLockCount++;
-    if (scrollLockCount === 1) {
-      if (smooth) addScrollbarPadding(document.body);
-      document.body.style.overflow = "hidden";
-    }
-  }
-  function unlockBodyScroll(smooth) {
-    if (scrollLockCount > 0) scrollLockCount--;
-    if (scrollLockCount === 0) {
-      if (smooth) removeScrollbarPadding(document.body);
-      document.body.style.removeProperty("overflow");
-    }
-  }
-
-  // node_modules/peakflow/src/scroll/handler.ts
-  var ScrollHandler = class {
-    scrollWrapper;
-    stickyTop;
-    stickyBottom;
-    scrollTimeoutId = null;
-    constructor(config) {
-      this.scrollWrapper = config.scrollWrapper;
-      this.stickyTop = config.stickyTop ?? null;
-      this.stickyBottom = config.stickyBottom ?? null;
-      if (!this.scrollWrapper) {
-        throw new Error(`Couldn't construct ScrollHandler: The property "scrollWrapper" can't be undefined`);
-      }
-    }
-    clearScrollTimeout() {
-      if (this.scrollTimeoutId !== null) {
-        clearTimeout(this.scrollTimeoutId);
-        this.scrollTimeoutId = null;
-      }
-    }
-    scrollTo(element, options = {}) {
-      this.clearScrollTimeout();
-      if (!element || !this.scrollWrapper.contains(element)) {
-        return Promise.reject(
-          new Error(
-            "The element to scroll into view is not inside the scroll container."
-          )
-        );
-      }
-      if (!isScrollbarVisible(this.scrollWrapper)) return Promise.resolve();
-      const opts = {
-        delay: options.delay ?? 0,
-        offset: options.offset ?? 0,
-        position: options.position ?? "start",
-        behavior: options.behavior ?? "smooth"
-      };
-      return new Promise((resolve) => {
-        this.scrollTimeoutId = window.setTimeout(() => {
-          const elementRect = element.getBoundingClientRect();
-          const wrapperRect = this.scrollWrapper.getBoundingClientRect();
-          const stickyTopHeight = this.stickyTop?.clientHeight || 0;
-          const stickyBottomHeight = this.stickyBottom?.clientHeight || 0;
-          const relativePosition = elementRect.top - wrapperRect.top;
-          const isFullyVisible = elementRect.top >= wrapperRect.top + stickyTopHeight && elementRect.bottom <= wrapperRect.bottom - stickyBottomHeight;
-          let scrollOffset = 0;
-          switch (opts.position) {
-            case "start":
-              scrollOffset = relativePosition - stickyTopHeight - opts.offset - 2;
-              break;
-            case "center":
-              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
-              break;
-            case "end":
-              scrollOffset = relativePosition - this.scrollWrapper.clientHeight + element.clientHeight + stickyBottomHeight + opts.offset;
-              break;
-            case "nearest":
-              if (isFullyVisible) {
-                this.clearScrollTimeout();
-                resolve();
-                return;
-              }
-              scrollOffset = relativePosition - this.scrollWrapper.clientHeight / 2 + element.clientHeight / 2 + opts.offset;
-              break;
-          }
-          this.scrollWrapper.scrollBy({
-            top: scrollOffset,
-            behavior: opts.behavior
-          });
-          resolve();
-        }, opts.delay);
-      });
-    }
-  };
-
-  // node_modules/peakflow/src/modal.ts
-  var defaultModalAnimation = {
-    type: "none",
-    duration: 0,
-    className: "is-closed"
-  };
-  var defaultModalSettings = {
-    id: void 0,
-    animation: defaultModalAnimation,
-    stickyFooter: false,
-    stickyHeader: false,
-    bodyScroll: {
-      lock: true,
-      smooth: false
-    }
-  };
-  var Modal = class _Modal {
-    component;
-    modal;
-    opened;
-    initialized = false;
-    settings;
-    instance;
-    static attr = {
-      id: "data-modal-id",
-      element: "data-modal-element"
-    };
-    scrollHandler;
-    scrollTo;
-    clearScrollTimeout;
-    constructor(component, settings = {}) {
-      if (!component) {
-        throw new Error(`The component HTMLElement cannot be undefined.`);
-      }
-      this.component = component;
-      this.settings = deepMerge(defaultModalSettings, settings);
-      this.modal = this.getModalElement();
-      this.instance = this.settings.id || component.getAttribute(_Modal.attr.id);
-      component.setAttribute(_Modal.attr.id, this.instance);
-      this.component.setAttribute("role", "dialog");
-      this.component.setAttribute("aria-modal", "true");
-      this.setupScrollTo();
-      this.setInitialState();
-      this.setupStickyFooter();
-      if (this.modal === this.component) {
-        console.warn(`Modal: The modal instance was successfully initialized, but the "modal" element is equal to the "component" element, which will affect the modal animations. To fix this, add the "${_Modal.selector("modal")}" attribute to a descendant of the component element. Find out more about the difference between the "component" and the "modal" element in the documentation.`);
-      }
-      this.initialized = true;
-    }
-    static attributeSelector = attributeselector_default(_Modal.attr.element);
-    /**
-     * Static selector
-     */
-    static selector(element, instance) {
-      const base = _Modal.attributeSelector(element);
-      const instanceSelector = instance ? `[${_Modal.attr.id}="${instance}"]` : "";
-      return element === "component" ? `${base}${instanceSelector}` : `${base}${instanceSelector}, ${instanceSelector} ${base}`;
-    }
-    /**
-     * Instance selector
-     */
-    selector(element, local = true) {
-      return local ? _Modal.selector(element, this.instance) : _Modal.selector(element);
-    }
-    static select(element, instance) {
-      return document.querySelector(_Modal.selector(element, instance));
-    }
-    static selectAll(element, instance) {
-      return document.querySelectorAll(_Modal.selector(element, instance));
-    }
-    select(element, local = true) {
-      return local ? this.component.querySelector(_Modal.selector(element)) : document.querySelector(_Modal.selector(element, this.instance));
-    }
-    selectAll(element, local = true) {
-      return local ? this.component.querySelectorAll(_Modal.selector(element)) : document.querySelectorAll(_Modal.selector(element, this.instance));
-    }
-    getModalElement() {
-      if (this.component.matches(_Modal.selector("modal"))) {
-        this.modal = this.component;
-      } else {
-        this.modal = this.component.querySelector(this.selector("modal"));
-      }
-      if (!this.modal) this.modal = this.component;
-      return this.modal;
-    }
-    setupScrollTo() {
-      this.scrollHandler = new ScrollHandler({
-        scrollWrapper: this.modal,
-        stickyTop: this.select("sticky-top"),
-        stickyBottom: this.select("sticky-bottom")
-      });
-      this.scrollTo = this.scrollHandler.scrollTo.bind(this.scrollHandler);
-      this.clearScrollTimeout = this.scrollHandler.clearScrollTimeout.bind(this.scrollHandler);
-    }
-    setupStickyFooter() {
-      const modalContent = this.component.querySelector(_Modal.selector("scroll"));
-      const stickyFooter = this.component.querySelector(_Modal.selector("sticky-bottom"));
-      if (!modalContent || !stickyFooter) {
-        console.warn("Initialize modal: skip sticky footer");
-      } else {
-        this.setupScrollEvent(modalContent, stickyFooter);
-      }
-    }
-    setupScrollEvent(modalContent, stickyFooter) {
-      modalContent.addEventListener("scroll", () => {
-        const { scrollHeight, scrollTop, clientHeight } = modalContent;
-        const isScrolledToBottom = scrollHeight - scrollTop <= clientHeight + 1;
-        if (isScrolledToBottom) {
-          stickyFooter.classList.remove("modal-scroll-shadow");
-        } else {
-          stickyFooter.classList.add("modal-scroll-shadow");
-        }
-      });
-    }
-    setInitialState() {
-      this.component.style.display = "none";
-      this.component.classList.remove("hide");
-      this.hide();
-      switch (this.settings.animation.type) {
-        case "growIn":
-        case "slideUp":
-          this.modal.style.willChange = "transform";
-          this.modal.style.transitionProperty = "transform";
-          this.modal.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
-        case "fade":
-          this.component.style.willChange = "opacity";
-          this.component.style.transitionProperty = "opacity";
-          this.component.style.transitionDuration = `${this.settings.animation.duration.toString()}ms`;
-          break;
-        case "none":
-          break;
-      }
-      this.component.dataset.state = "closed";
-    }
-    async show() {
-      this.component.style.removeProperty("display");
-      await animationFrame();
-      switch (this.settings.animation.type) {
-        case "fade":
-          this.component.style.opacity = "1";
-          break;
-        case "slideUp":
-          this.component.style.opacity = "1";
-          this.modal.style.transform = "translateY(0vh)";
-          break;
-        case "growIn":
-          this.component.style.opacity = "1";
-          this.modal.style.transform = "scale(1)";
-          break;
-        default:
-          this.component.classList.remove("is-closed");
-      }
-      setTimeout(() => {
-      }, this.settings.animation.duration);
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, this.settings.animation.duration);
-      });
-    }
-    async hide() {
-      await animationFrame();
-      switch (this.settings.animation.type) {
-        case "fade":
-          this.component.style.opacity = "0";
-          break;
-        case "slideUp":
-          this.component.style.opacity = "0";
-          this.modal.style.transform = "translateY(10vh)";
-          break;
-        case "growIn":
-          this.component.style.opacity = "0";
-          this.modal.style.transform = "scale(0.9)";
-          break;
-        default:
-          break;
-      }
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          this.component.style.display = "none";
-          resolve();
-        }, this.settings.animation.duration);
-      });
-    }
-    /**
-     * Opens the modal instance.
-     *
-     * This method calls the `show` method and locks the scroll of the document body.
-     */
-    async open() {
-      this.component.dataset.state = "opening";
-      if (this.settings.bodyScroll.lock) {
-        addScrollbarPadding(this.component, document.body);
-        lockBodyScroll(this.settings.bodyScroll.smooth);
-      }
-      await this.show();
-      this.opened = true;
-      this.component.dataset.state = "open";
-    }
-    /**
-     * Closes the modal instance.
-     *
-     * This method calls the `hide` method and unlocks the scroll of the document body.
-     */
-    async close() {
-      this.component.dataset.state = "closing";
-      if (this.settings.bodyScroll.lock) {
-        removeScrollbarPadding(this.component);
-        unlockBodyScroll(this.settings.bodyScroll.smooth);
-      }
-      await this.hide();
-      this.opened = false;
-      this.component.dataset.state = "closed";
-    }
-  };
-  function animationFrame() {
-    return new Promise((resolve) => requestAnimationFrame(() => resolve()));
-  }
-
   // src/sanavita/ts/form/save-options.ts
   var SaveOptions = class _SaveOptions {
     constructor(component, settings = {}) {
@@ -6017,7 +5633,7 @@ Component:`,
       };
     }
     static {
-      this.attributeSelector = attributeselector_default(_SaveOptions.attr.element);
+      this.attributeSelector = createAttribute(_SaveOptions.attr.element);
     }
     /**
      * Static selector
@@ -6083,55 +5699,6 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/alertdialog.ts
-  var AlertDialog = class extends Modal {
-    _message;
-    confirm(message2) {
-      this.message = message2;
-      this.open();
-      return new Promise((resolve) => {
-        const confirmBtn = this.select("confirm");
-        const cancelBtn = this.select("cancel");
-        const onConfirm = () => {
-          cleanup();
-          this.close();
-          resolve(true);
-        };
-        const onCancel = () => {
-          cleanup();
-          this.close();
-          resolve(false);
-        };
-        const cleanup = () => {
-          confirmBtn.removeEventListener("click", onConfirm);
-          cancelBtn.removeEventListener("click", onCancel);
-        };
-        confirmBtn.addEventListener("click", onConfirm);
-        cancelBtn.addEventListener("click", onCancel);
-      });
-    }
-    set message(message2) {
-      this._message = message2;
-      this.renderMessage(message2);
-    }
-    get message() {
-      return this._message;
-    }
-    renderMessage(message2) {
-      for (const key in message2) {
-        const element = this.getElement(key);
-        if (element) {
-          element.innerText = message2[key];
-        } else {
-          console.warn(`AlertDialog: Missing element for key "${key}"`);
-        }
-      }
-    }
-    getElement(element) {
-      return this.component.querySelector(`[data-alert-dialog="${element}"]`);
-    }
-  };
-
   // src/sanavita/ts/form/alert-dialog.ts
   function getAlertDialog() {
     const modalElement = AlertDialog.select("component", "alert-dialog");
@@ -6150,7 +5717,7 @@ Component:`,
 
   // src/sanavita/ts/form/prospect-array.ts
   var import_semver = __toESM(require_semver2());
-  var prospectSelector = attributeselector_default("data-prospect-element");
+  var prospectSelector = createAttribute("data-prospect-element");
   var LINK_FIELDS_ATTR = `data-link-fields`;
   var FIELD_GROUP_ATTR = `data-prospect-field-group`;
   var ARRAY_LIST_SELECTOR = '[data-form-array-element="list"]';
@@ -6923,153 +6490,8 @@ Component:`,
     }
   };
 
-  // node_modules/peakflow/src/form/cms-select.ts
-  var CMSSelect = class _CMSSelect {
-    opts = {
-      id: void 0
-    };
-    id;
-    source;
-    targets;
-    values;
-    waitEvent;
-    static attr = {
-      id: "data-cms-select-id",
-      element: "data-cms-select-element",
-      prefix: "data-cms-select-prefix",
-      value: "data-cms-select-value",
-      wait: "data-cms-select-wait",
-      status: "data-cms-select-status"
-    };
-    attr = _CMSSelect.attr;
-    onChangeCallbacks = /* @__PURE__ */ new Map();
-    constructor(component, options = {}) {
-      try {
-        this.source = getElement(component);
-        if (!this.source) {
-          throw new Error(`Source list element is not defined.`);
-        }
-        this.opts = { id: options.id ?? this.opts.id };
-        this.id = this.opts.id || this.source.getAttribute(this.attr.id);
-        this.source.setAttribute(this.attr.id, this.opts.id);
-        this.waitEvent = this.source.dataset.formSelectWait || null;
-        this.targets = getAllElements(this.selector("target"));
-        this.readValues();
-        this.initOnChange();
-      } catch (e) {
-        console.error(`Failed to create CMSSelect instance: ${e.message}`);
-      }
-    }
-    static attributeSelector = attributeselector_default("data-cms-select-element");
-    /**
-     * Static selector
-     */
-    static selector(element, instance) {
-      const base = _CMSSelect.attributeSelector(element);
-      const instanceSelector = instance ? `[${_CMSSelect.attr.id}="${instance}"]` : "";
-      if (element === "option") {
-        return `${instanceSelector} ${base}`.trim();
-      } else {
-        return `${base}${instanceSelector}`;
-      }
-    }
-    /**
-     * Instance selector
-     */
-    selector(element, local = true) {
-      return local ? _CMSSelect.selector(element, this.id) : _CMSSelect.selector(element);
-    }
-    static initializeAll() {
-      try {
-        const sourceLists = getAllElements(_CMSSelect.selector("source"));
-        sourceLists.forEach((list) => {
-          const cmsSelect = new _CMSSelect(list);
-          if (cmsSelect.initWaitEvent(true)) return;
-          cmsSelect.insertOptions();
-        });
-      } catch (e) {
-        console.error(`Failed to initialize all CMS select components: ${e.message}`);
-      }
-    }
-    static createOption(value) {
-      const optionElement = document.createElement("option");
-      optionElement.setAttribute("value", value);
-      optionElement.innerText = value;
-      return optionElement;
-    }
-    static insertOptions(targets, values) {
-      const targetList = getAllElements(targets, { single: true });
-      values.forEach((val) => {
-        if (val) {
-          const option = _CMSSelect.createOption(val);
-          targetList.forEach((target) => target.appendChild(option));
-        } else {
-          console.warn("CMS select: skip empty option");
-        }
-      });
-    }
-    static clearOptions(targets, keepEmpty) {
-      const targetList = getAllElements(targets, { single: true });
-      targetList.forEach((target) => {
-        let options = Array.from(target.querySelectorAll("option"));
-        if (keepEmpty) options = options.filter((option) => Boolean(option.value));
-        options.forEach((option) => option.remove());
-      });
-    }
-    /**
-     * @param graceful Whether to throw an error if the wait event is invalid.
-     * @returns A boolean indicating whether the wait event was initialized successfully.
-     */
-    initWaitEvent(graceful = false) {
-      if (this.waitEvent) {
-        this.source.addEventListener(this.waitEvent, () => {
-          this.insertOptions();
-        });
-        return true;
-      } else {
-        const message2 = `The wait event name "${this.waitEvent}" is invalid.`;
-        if (graceful) return false;
-        throw new Error(message2);
-      }
-    }
-    readValues() {
-      this.values = [];
-      const optionElements = this.source.querySelectorAll(_CMSSelect.selector("option"));
-      optionElements.forEach((element) => {
-        this.values.push(this.getSelectValue(element));
-      });
-    }
-    insertOptions() {
-      _CMSSelect.insertOptions(this.targets, this.values);
-    }
-    getSelectValue(item) {
-      const prefix = item.getAttribute(this.attr.prefix) || "";
-      const value = item.getAttribute(this.attr.value) || "";
-      const optionValue = prefix ? `${prefix} ${value}` : value;
-      return optionValue;
-    }
-    initOnChange() {
-      this.targets.forEach((target) => {
-        target.addEventListener("change", () => {
-          this.triggerOnChange();
-        });
-      });
-    }
-    onChange(name, callback) {
-      this.onChangeCallbacks.set(name, callback);
-    }
-    clearOnChange(name) {
-      this.onChangeCallbacks.delete(name);
-    }
-    triggerOnChange() {
-      for (const callback of this.onChangeCallbacks.values()) {
-        callback();
-      }
-    }
-  };
-
   // src/sanavita/ts/apartment-form.ts
-  var decisionSelector = attributeselector_default("data-decision-component");
+  var decisionSelector = createAttribute("data-decision-component");
   function initializeFormDecisions(form, errorMessages, defaultMessages = {}) {
     form.formSteps.forEach((step, stepIndex) => {
       const formDecisions = step.querySelectorAll(decisionSelector());

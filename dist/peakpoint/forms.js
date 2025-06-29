@@ -390,9 +390,10 @@
     }
   });
 
-  // node_modules/peakflow/src/cal/loader.ts
+  // node_modules/peakflow/dist/cal/loader.js
   async function loadCal(namespace) {
-    if (typeof window.Cal !== "undefined") return window.Cal;
+    if (typeof window.Cal !== "undefined")
+      return window.Cal;
     (function(windw, embedJS, action) {
       const p = (api, args) => {
         api.q.push(args);
@@ -434,9 +435,13 @@
   async function initCal(namespace) {
     const Cal = await loadCal(namespace);
     const element = document.querySelector(`[cal-id="${namespace}"]`);
-    if (!element) throw new Error("Embed container not found");
+    if (!element)
+      throw new Error("Embed container not found");
+    const calLink = element.getAttribute("cal-link");
+    if (!calLink)
+      throw new Error(`Please specify a cal link`);
     const calDOMOptions = {
-      link: element.getAttribute("cal-link"),
+      link: calLink,
       hideEventTypeDetails: element.getAttribute("cal-hide-event-details") === "true"
     };
     Cal.ns[namespace]("inline", {
@@ -456,7 +461,7 @@
     return Cal;
   }
 
-  // node_modules/peakflow/src/attributeselector.ts
+  // node_modules/peakflow/dist/attributeselector/attributeselector.js
   var attrMatchTypes = {
     startsWith: "^",
     endsWith: "$",
@@ -469,11 +474,13 @@
     return attrMatchTypes[type] || "";
   }
   function exclude(selector, ...exclusions) {
-    if (exclusions.length === 0) return selector;
+    if (exclusions.length === 0)
+      return selector;
     return extend(selector, `:not(${exclusions.join(", ")})`);
   }
   function extend(selector, ...extensions) {
-    if (extensions.length === 0) return selector;
+    if (extensions.length === 0)
+      return selector;
     const selectors = split(selector);
     const selectorsWithExtensions = extensions.map((extension) => {
       return append(selectors, extension);
@@ -502,7 +509,8 @@
         result.push(current.trim());
         current = "";
         i++;
-        while (selector[i] === " ") i++;
+        while (selector[i] === " ")
+          i++;
         continue;
       }
       current += char;
@@ -532,9 +540,8 @@
       return exclude(selector, ...mergedOptions.exclusions ?? []);
     };
   };
-  var attributeselector_default = createAttribute;
 
-  // node_modules/peakflow/src/webflow/webflow.ts
+  // node_modules/peakflow/dist/webflow/webflow.js
   var siteId = document.documentElement.dataset.wfSite || "";
   var pageId = document.documentElement.dataset.wfPage || "";
   var wfclass = {
@@ -579,15 +586,15 @@
     select: wfselect
   };
 
-  // node_modules/peakflow/src/form/utility.ts
-  var formElementSelector = attributeselector_default("data-form-element");
-  var filterFormSelector = attributeselector_default("data-filter-form");
+  // node_modules/peakflow/dist/form/utility.js
+  var formElementSelector = createAttribute("data-form-element");
+  var filterFormSelector = createAttribute("data-filter-form");
   function isCheckboxInput(input) {
     return input instanceof HTMLInputElement && input.type === "checkbox";
   }
   function getWfFormData(form, fields, test = false) {
-    if (!(form instanceof HTMLFormElement)) {
-      form = form.querySelector("form");
+    if (!form || !(form instanceof HTMLFormElement)) {
+      form = form?.querySelector("form");
     }
     if (!form || !(form instanceof HTMLFormElement)) {
       throw new TypeError(`The passed "form" is not a form.`);
@@ -647,7 +654,7 @@
     form.parentElement.classList.remove("w-form");
   }
 
-  // node_modules/peakflow/src/deepmerge.ts
+  // node_modules/peakflow/dist/utils/deepmerge.js
   function deepMerge(target, source) {
     const result = { ...target };
     for (const key in source) {
@@ -665,7 +672,7 @@
     return value !== void 0 && value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
   }
 
-  // node_modules/peakflow/src/scroll/scrollbar.ts
+  // node_modules/peakflow/dist/scroll/scrollbar.js
   function getVisibleScrollbarWidth(element) {
     return isScrollbarVisible(element) ? getScrollbarWidth(element) : 0;
   }
@@ -696,10 +703,12 @@
     return scrollbarWidth;
   }
   function addScrollbarPadding(element, scrollbarElement) {
-    if (!scrollbarElement) scrollbarElement = element;
+    if (!scrollbarElement)
+      scrollbarElement = element;
     const scrollbarWidth = getVisibleScrollbarWidth(scrollbarElement);
     const currentPadding = parseFloat(getComputedStyle(element).paddingRight || "0");
-    if (scrollbarWidth === 0) return;
+    if (scrollbarWidth === 0)
+      return;
     if (!element.dataset.originalPaddingRight) {
       element.dataset.originalPaddingRight = currentPadding.toString();
     }
@@ -716,30 +725,30 @@
     }
   }
 
-  // node_modules/peakflow/src/scroll/lock.ts
+  // node_modules/peakflow/dist/scroll/lock.js
   var scrollLockCount = 0;
   function lockBodyScroll(smooth) {
     scrollLockCount++;
     if (scrollLockCount === 1) {
-      if (smooth) addScrollbarPadding(document.body);
+      if (smooth)
+        addScrollbarPadding(document.body);
       document.body.style.overflow = "hidden";
     }
   }
   function unlockBodyScroll(smooth) {
-    if (scrollLockCount > 0) scrollLockCount--;
+    if (scrollLockCount > 0)
+      scrollLockCount--;
     if (scrollLockCount === 0) {
-      if (smooth) removeScrollbarPadding(document.body);
+      if (smooth)
+        removeScrollbarPadding(document.body);
       document.body.style.removeProperty("overflow");
     }
   }
 
-  // node_modules/peakflow/src/scroll/handler.ts
+  // node_modules/peakflow/dist/scroll/handler.js
   var ScrollHandler = class {
-    scrollWrapper;
-    stickyTop;
-    stickyBottom;
-    scrollTimeoutId = null;
     constructor(config) {
+      this.scrollTimeoutId = null;
       this.scrollWrapper = config.scrollWrapper;
       this.stickyTop = config.stickyTop ?? null;
       this.stickyBottom = config.stickyBottom ?? null;
@@ -756,13 +765,10 @@
     scrollTo(element, options = {}) {
       this.clearScrollTimeout();
       if (!element || !this.scrollWrapper.contains(element)) {
-        return Promise.reject(
-          new Error(
-            "The element to scroll into view is not inside the scroll container."
-          )
-        );
+        return Promise.reject(new Error("The element to scroll into view is not inside the scroll container."));
       }
-      if (!isScrollbarVisible(this.scrollWrapper)) return Promise.resolve();
+      if (!isScrollbarVisible(this.scrollWrapper))
+        return Promise.resolve();
       const opts = {
         delay: options.delay ?? 0,
         offset: options.offset ?? 0,
@@ -807,7 +813,7 @@
     }
   };
 
-  // node_modules/peakflow/src/modal.ts
+  // node_modules/peakflow/dist/modal/modal.js
   var defaultModalAnimation = {
     type: "none",
     duration: 0,
@@ -824,20 +830,8 @@
     }
   };
   var Modal = class _Modal {
-    component;
-    modal;
-    opened;
-    initialized = false;
-    settings;
-    instance;
-    static attr = {
-      id: "data-modal-id",
-      element: "data-modal-element"
-    };
-    scrollHandler;
-    scrollTo;
-    clearScrollTimeout;
     constructor(component, settings = {}) {
+      this.initialized = false;
       if (!component) {
         throw new Error(`The component HTMLElement cannot be undefined.`);
       }
@@ -856,7 +850,6 @@
       }
       this.initialized = true;
     }
-    static attributeSelector = attributeselector_default(_Modal.attr.element);
     /**
      * Static selector
      */
@@ -889,7 +882,8 @@
       } else {
         this.modal = this.component.querySelector(this.selector("modal"));
       }
-      if (!this.modal) this.modal = this.component;
+      if (!this.modal)
+        this.modal = this.component;
       return this.modal;
     }
     setupScrollTo() {
@@ -1022,12 +1016,17 @@
       this.component.dataset.state = "closed";
     }
   };
+  Modal.attr = {
+    id: "data-modal-id",
+    element: "data-modal-element"
+  };
+  Modal.attributeSelector = createAttribute(Modal.attr.element);
   function animationFrame() {
     return new Promise((resolve) => requestAnimationFrame(() => resolve()));
   }
 
-  // node_modules/peakflow/src/inputsync.ts
-  var syncSelector = attributeselector_default("input-sync");
+  // node_modules/peakflow/dist/inputsync/inputsync.js
+  var syncSelector = createAttribute("input-sync");
   function constructInputMap(inputs) {
     const inputMap = /* @__PURE__ */ new Map();
     inputs.forEach((input) => {
@@ -1044,7 +1043,8 @@
     groupInputs.filter((otherInput) => otherInput !== input).forEach((otherInput) => otherInput.value = input.value);
   }
   function inputSync(container = document.body) {
-    if (!container) throw new Error(`Container cannot be undefined.`);
+    if (!container)
+      throw new Error(`Container cannot be undefined.`);
     const inputs = Array.from(container.querySelectorAll(syncSelector()));
     const inputMap = constructInputMap(inputs);
     const inputGroups = Array.from(inputMap.entries());
@@ -1118,7 +1118,10 @@
         type: "growIn",
         duration: 300
       },
-      lockBodyScroll: true
+      bodyScroll: {
+        lock: true,
+        smooth: true
+      }
     });
     const openNavModalBtns = navModal.selectAll("open", false);
     const closeNavModalBtns = navModal.selectAll("close", true);
@@ -1142,7 +1145,10 @@
           type: "growIn",
           duration: 300
         },
-        lockBodyScroll: true
+        bodyScroll: {
+          lock: true,
+          smooth: true
+        }
       });
       const modalForm = modal.component.querySelector("form");
       disableWebflowForm(modalForm);

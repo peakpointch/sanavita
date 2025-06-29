@@ -1,14 +1,16 @@
 // Imports
-import EditableCanvas from '@peakflow/canvas';
-import Pdf, { PdfFormat } from '@peakflow/pdf';
-import { FilterCollection } from '@peakflow/wfcollection';
-import Renderer, { RenderData, RenderElement, RenderField } from '@peakflow/renderer';
-import { FilterForm } from '@peakflow/form/filterform';
-import { filterFormSelector } from '@peakflow/form/utility';
-import { CalendarweekComponent } from '@peakflow/form/calendarweekcomponent';
+import EditableCanvas from 'peakflow/canvas';
+import Pdf, { PdfFormat } from 'peakflow/pdf';
+import { FilterCollection } from 'peakflow/wfcollection';
+import Renderer, { RenderData, RenderElement, RenderField } from 'peakflow/renderer';
+import {
+  FilterForm,
+  filterFormSelector,
+  CalendarweekComponent,
+} from 'peakflow/form';
 
 // Utility functions
-import createAttribute from '@peakflow/attributeselector';
+import createAttribute from 'peakflow/attributeselector';
 import { addDays, startOfWeek, format, getWeek, addWeeks, getYear, WeekOptions, getISOWeek, getISOWeekYear, StartOfWeekOptions, parse } from 'date-fns';
 import { de } from 'date-fns/locale';
 

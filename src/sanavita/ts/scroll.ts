@@ -1,4 +1,4 @@
-import { overrideWebflowScroll } from '@peakflow/scroll';
+import { overrideWebflowScroll } from 'peakflow/scroll';
 
 document.addEventListener('DOMContentLoaded', () => {
   overrideWebflowScroll({
