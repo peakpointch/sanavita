@@ -1,6 +1,20 @@
-const esbuild = require("esbuild");
-const fg = require("fast-glob");
-const path = require("path");
+import esbuild from 'esbuild';
+import path from 'path';
+import fs from 'fs';
+import fg from 'fast-glob';
+import { findUpSync } from 'find-up';
+
+export function getPackageJson() {
+  const packagePath = findUpSync('package.json');
+  const raw = fs.readFileSync(packagePath, 'utf-8');
+  return JSON.parse(raw);
+}
+
+export function getDevBoolean() {
+  const pkg = getPackageJson();
+  const peakflowValue = `${pkg.dependencies.peakflow}`;
+  return peakflowValue.startsWith('file:');
+}
 
 // Function to exclude specific files
 function excludeFiles(files, extensions = [], excludeList = []) {
@@ -31,14 +45,15 @@ function excludeFiles(files, extensions = [], excludeList = []) {
 }
 
 // General build function for both modular and non-modular scripts
-async function buildScripts(options) {
+export async function buildScripts(options) {
   const {
     dir,
     outDir,
     excludeList = [],
     minify = true,
     format = "iife",
-    recursive = false
+    recursive = false,
+    tsconfig
   } = options;
   let {
     extensions = ['ts'],
@@ -65,13 +80,18 @@ async function buildScripts(options) {
         sourcemap: true,
         format,
         minifyIdentifiers: false,
+        tsconfig
       }).catch(() => process.exit(1));
     }
   }
 }
 
 // Helper function for building development files
-function buildDevFiles(devFiles) {
+export function buildDevFiles(options) {
+  const {
+    devFiles,
+    tsconfig
+  } = options;
   esbuild.build({
     entryPoints: devFiles.map(file => `${file}`),
     outdir: "dist",
@@ -80,11 +100,12 @@ function buildDevFiles(devFiles) {
     sourcemap: true,
     format: "esm",
     minifyIdentifiers: false,
+    tsconfig
   }).catch(() => process.exit(1));
 }
 
 
-function build() {
+export function build(tsconfig = tsconfigFile) {
   // Build the scripts
   buildScripts({
     dir: 'src/sanavita',
@@ -97,6 +118,7 @@ function build() {
     minify: false,
     format: 'iife',
     recursive: true,
+    tsconfig
   });
 
   buildScripts({
@@ -107,6 +129,7 @@ function build() {
     minify: false,
     format: 'iife',
     recursive: true,
+    tsconfig
   });
 
   buildScripts({
@@ -117,6 +140,7 @@ function build() {
     minify: false,
     format: 'iife',
     recursive: false,
+    tsconfig
   });
 
   buildScripts({
@@ -127,9 +151,14 @@ function build() {
     minify: false,
     format: 'iife',
     recursive: false,
+    tsconfig
   });
 }
 
-build();
+const dev = getDevBoolean();
+const tsconfigFile = dev === true
+  ? findUpSync('./tsconfig.dev.json')
+  : findUpSync('./tsconfig.json');
 
-module.exports = { build, buildScripts, buildDevFiles };
+build(tsconfigFile);
+

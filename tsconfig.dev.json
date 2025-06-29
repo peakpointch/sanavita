@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "peakflow": [
+        "../peakflow/src/index.ts"
+      ],
+      "peakflow/*": [
+        "../peakflow/src/*"
+      ]
+    }
+  }
+}
