@@ -87,12 +87,12 @@ export async function buildScripts(options) {
 }
 
 // Helper function for building development files
-export function buildDevFiles(options) {
+export async function buildDevFiles(options) {
   const {
     devFiles,
     tsconfig
   } = options;
-  esbuild.build({
+  await esbuild.build({
     entryPoints: devFiles.map(file => `${file}`),
     outdir: "dist",
     bundle: true,
@@ -105,9 +105,24 @@ export function buildDevFiles(options) {
 }
 
 
-export function build(tsconfig = tsconfigFile) {
+export async function build(tsconfig) {
+  const dev = getDevBoolean();
+  const tsconfigFile = dev === true
+    ? findUpSync('./tsconfig.dev.json')
+    : findUpSync('./tsconfig.json');
+
+  if (dev) {
+    console.log('🛠️ Building with local lib.');
+  } else {
+    console.log('🛠️ Building with remote lib.');
+  }
+
+  if (!tsconfig) {
+    tsconfig = tsconfigFile;
+  }
+
   // Build the scripts
-  buildScripts({
+  await buildScripts({
     dir: 'src/sanavita',
     outDir: 'dist/sanavita',
     extensions: ['ts', 'js'],
@@ -121,7 +136,7 @@ export function build(tsconfig = tsconfigFile) {
     tsconfig
   });
 
-  buildScripts({
+  await buildScripts({
     dir: 'src/peakpoint',
     outDir: 'dist/peakpoint',
     extensions: ['ts', 'js'],
@@ -132,7 +147,7 @@ export function build(tsconfig = tsconfigFile) {
     tsconfig
   });
 
-  buildScripts({
+  await buildScripts({
     dir: 'src/ts',
     outDir: 'dist',
     extensions: 'ts',
@@ -143,7 +158,7 @@ export function build(tsconfig = tsconfigFile) {
     tsconfig
   });
 
-  buildScripts({
+  await buildScripts({
     dir: 'src/js',
     outDir: 'dist',
     extensions: 'js',
@@ -153,12 +168,10 @@ export function build(tsconfig = tsconfigFile) {
     recursive: false,
     tsconfig
   });
+
+  console.log('✅ Done!');
 }
 
-const dev = getDevBoolean();
-const tsconfigFile = dev === true
-  ? findUpSync('./tsconfig.dev.json')
-  : findUpSync('./tsconfig.json');
-
-build(tsconfigFile);
-
+if (import.meta.url === `file://${process.argv[1]}`) {
+  await build();
+}

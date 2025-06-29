@@ -13,21 +13,11 @@ if (!dev) {
   // Install local lib
   try {
     execSync(`npm install ${localLibPath}`, { stdio: 'inherit' });
+    console.log('');
   } catch (err) {
     console.error('❌ Failed to install local lib:', err);
     process.exit(1);
   }
-
-  // Rebuild
-  try {
-    console.log('\n🛠️ Building with local lib.');
-    execSync('npm run build --silent', { stdio: 'inherit' });
-  } catch (err) {
-    console.error('❌ Failed to build.');
-    process.exit(1);
-  }
-
-  console.log('✅ Done!');
 } else {
   console.log(`✅ Already using local lib.`);
 }

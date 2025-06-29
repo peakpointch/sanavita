@@ -10,8 +10,8 @@
     "clean": "rimraf ./dist/",
     "build": "npm run clean --silent && node builder.js",
     "livereload": "node esbuild.config.js",
-    "use-local-lib": "node scripts/use-local-lib.js",
-    "use-remote-lib": "node scripts/use-remote-lib.js",
+    "use-local-lib": "node scripts/use-local-lib.js && npm run build --silent",
+    "use-remote-lib": "node scripts/use-remote-lib.js && npm run build --silent",
     "install-remote-lib": "npm install github:peakpointch/peakflow.git"
   },
   "author": "",
