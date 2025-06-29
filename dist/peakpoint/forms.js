@@ -1062,7 +1062,7 @@
   }
 
   // src/peakpoint/forms.ts
-  var import_isURL = __toESM(require_isURL());
+  var import_isURL = __toESM(require_isURL(), 1);
   function setupHookForm(form, modal) {
     disableWebflowForm(form);
     const closeModalButtons = modal.selectAll("close");

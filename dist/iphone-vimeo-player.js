@@ -6376,7 +6376,7 @@
   });
 
   // src/ts/iphone-vimeo-player.ts
-  var import_jquery = __toESM(require_jquery());
+  var import_jquery = __toESM(require_jquery(), 1);
   (0, import_jquery.default)(document).ready(function() {
     const vimeoIframe = (0, import_jquery.default)("<iframe>");
     vimeoIframe.prop({

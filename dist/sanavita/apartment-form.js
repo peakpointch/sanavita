@@ -5716,7 +5716,7 @@ Component:`, this.component);
   }
 
   // src/sanavita/ts/form/prospect-array.ts
-  var import_semver = __toESM(require_semver2());
+  var import_semver = __toESM(require_semver2(), 1);
   var prospectSelector = createAttribute("data-prospect-element");
   var LINK_FIELDS_ATTR = `data-link-fields`;
   var FIELD_GROUP_ATTR = `data-prospect-field-group`;
