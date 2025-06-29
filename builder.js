@@ -85,11 +85,6 @@ function buildDevFiles(devFiles) {
 
 
 function build() {
-  // Define paths
-  const devFiles = [
-    "livereload/livereload.js",
-  ];
-
   // Build the scripts
   buildScripts({
     dir: 'src/sanavita',
@@ -133,9 +128,6 @@ function build() {
     format: 'iife',
     recursive: false,
   });
-
-  // Build development files
-  buildDevFiles(devFiles);
 }
 
 build();
