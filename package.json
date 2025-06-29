@@ -10,11 +10,15 @@
     "clean": "rimraf ./dist/",
     "build": "npm run clean --silent && node builder.js",
     "livereload": "node esbuild.config.js",
-    "use-local-lib": "node scripts/use-local-lib.js && npm run build --silent",
-    "use-remote-lib": "node scripts/use-remote-lib.js && npm run build --silent",
+    "use-local-lib": "libswitch local && npm run build --silent",
+    "use-remote-lib": "libswitch remote && npm run build --silent",
     "install-remote-lib": "npm install github:peakpointch/peakflow.git"
   },
-  "author": "",
+  "libswitch": {
+    "name": "peakflow",
+    "local": "../peakflow/",
+    "remote": "github:peakpointch/peakflow.git"
+  },
   "license": "ISC",
   "devDependencies": {
     "@types/html2canvas": "^0.5.35",
@@ -22,6 +26,7 @@
     "@types/semver": "^7.7.0",
     "@types/validator": "^13.15.0",
     "esbuild": "^0.25.2",
+    "libswitch": "github:peakpointch/libswitch",
     "serve": "^14.2.4",
     "typescript": "^5.8.3"
   },

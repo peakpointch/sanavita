@@ -1,20 +1,7 @@
 import esbuild from 'esbuild';
 import path from 'path';
-import fs from 'fs';
 import fg from 'fast-glob';
-import { findUpSync } from 'find-up';
-
-export function getPackageJson() {
-  const packagePath = findUpSync('package.json');
-  const raw = fs.readFileSync(packagePath, 'utf-8');
-  return JSON.parse(raw);
-}
-
-export function getDevBoolean() {
-  const pkg = getPackageJson();
-  const peakflowValue = `${pkg.dependencies.peakflow}`;
-  return peakflowValue.startsWith('file:');
-}
+import { Libswitch } from 'libswitch';
 
 // Function to exclude specific files
 function excludeFiles(files, extensions = [], excludeList = []) {
@@ -105,20 +92,18 @@ export async function buildDevFiles(options) {
 }
 
 
-export async function build(tsconfig) {
-  const dev = getDevBoolean();
-  const tsconfigFile = dev === true
-    ? findUpSync('./tsconfig.dev.json')
-    : findUpSync('./tsconfig.json');
+export async function build() {
+  const peakflow = new Libswitch({
+    tsconfigDev: 'tsconfig.dev.json',
+    tsconfigProd: 'tsconfig.json'
+  });
 
-  if (dev) {
+  const tsconfig = peakflow.getTsconfigFile();
+
+  if (peakflow.isLocal()) {
     console.log('🛠️ Building with local lib.');
   } else {
     console.log('🛠️ Building with remote lib.');
-  }
-
-  if (!tsconfig) {
-    tsconfig = tsconfigFile;
   }
 
   // Build the scripts
