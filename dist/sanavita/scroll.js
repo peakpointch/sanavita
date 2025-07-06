@@ -104,13 +104,12 @@
       }
     }, 10);
   }
-  function onScroll(event, options = {}) {
+  function onScroll(link, event, options = {}) {
     event.preventDefault();
     const opts = {
       defaultOffset: options.defaultOffset ?? defaultScrollOptions.defaultOffset,
       defaultBehaviour: options.defaultBehaviour ?? defaultScrollOptions.defaultBehaviour
     };
-    const link = event.target;
     if (!link)
       throw new Error(`Event target is undefined. Cannot scroll from an undefined link.`);
     const scrollId = link.getAttribute("href")?.slice(1) || link.getAttribute("scroll-to") || "";
@@ -151,7 +150,7 @@
     const href = createAttribute("href");
     const allScrollLinks = document.querySelectorAll(`${href("#", { matchType: "startsWith" })}, [scroll-to]`);
     allScrollLinks.forEach((link) => {
-      link.addEventListener("click", (event) => onScroll(event, options));
+      link.addEventListener("click", (event) => onScroll(link, event, options));
     });
   }
   function overrideWebflowScroll(options = {}) {
