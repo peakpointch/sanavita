@@ -7922,7 +7922,7 @@
   function createDOMPurify() {
     let window2 = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : getGlobal();
     const DOMPurify = (root) => createDOMPurify(root);
-    DOMPurify.version = "3.2.5";
+    DOMPurify.version = "3.2.6";
     DOMPurify.removed = [];
     if (!window2 || !window2.document || window2.document.nodeType !== NODE_TYPE.document || !window2.Element) {
       DOMPurify.isSupported = false;
@@ -8069,8 +8069,8 @@
       URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, "ADD_URI_SAFE_ATTR") ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
       DATA_URI_TAGS = objectHasOwnProperty(cfg, "ADD_DATA_URI_TAGS") ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
       FORBID_CONTENTS = objectHasOwnProperty(cfg, "FORBID_CONTENTS") ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
-      FORBID_TAGS = objectHasOwnProperty(cfg, "FORBID_TAGS") ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
-      FORBID_ATTR = objectHasOwnProperty(cfg, "FORBID_ATTR") ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
+      FORBID_TAGS = objectHasOwnProperty(cfg, "FORBID_TAGS") ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
+      FORBID_ATTR = objectHasOwnProperty(cfg, "FORBID_ATTR") ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
       USE_PROFILES = objectHasOwnProperty(cfg, "USE_PROFILES") ? cfg.USE_PROFILES : false;
       ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false;
       ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false;
@@ -8334,7 +8334,7 @@
         tagName,
         allowedTags: ALLOWED_TAGS
       });
-      if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
+      if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
         _forceRemove(currentNode);
         return true;
       }
@@ -8447,7 +8447,8 @@
           value: attrValue
         } = attr;
         const lcName = transformCaseFunc(name);
-        let value = name === "value" ? attrValue : stringTrim(attrValue);
+        const initValue = attrValue;
+        let value = name === "value" ? initValue : stringTrim(initValue);
         hookEvent.attrName = lcName;
         hookEvent.attrValue = value;
         hookEvent.keepAttr = true;
@@ -8465,8 +8466,8 @@
         if (hookEvent.forceKeepAttr) {
           continue;
         }
-        _removeAttribute(name, currentNode);
         if (!hookEvent.keepAttr) {
+          _removeAttribute(name, currentNode);
           continue;
         }
         if (!ALLOW_SELF_CLOSE_IN_ATTR && regExpTest(/\/>/i, value)) {
@@ -8480,6 +8481,7 @@
         }
         const lcTag = transformCaseFunc(currentNode.nodeName);
         if (!_isValidAttribute(lcTag, lcName, value)) {
+          _removeAttribute(name, currentNode);
           continue;
         }
         if (trustedTypesPolicy && typeof trustedTypes === "object" && typeof trustedTypes.getAttributeType === "function") {
@@ -8497,18 +8499,21 @@
             }
           }
         }
-        try {
-          if (namespaceURI) {
-            currentNode.setAttributeNS(namespaceURI, name, value);
-          } else {
-            currentNode.setAttribute(name, value);
+        if (value !== initValue) {
+          try {
+            if (namespaceURI) {
+              currentNode.setAttributeNS(namespaceURI, name, value);
+            } else {
+              currentNode.setAttribute(name, value);
+            }
+            if (_isClobbered(currentNode)) {
+              _forceRemove(currentNode);
+            } else {
+              arrayPop(DOMPurify.removed);
+            }
+          } catch (_3) {
+            _removeAttribute(name, currentNode);
           }
-          if (_isClobbered(currentNode)) {
-            _forceRemove(currentNode);
-          } else {
-            arrayPop(DOMPurify.removed);
-          }
-        } catch (_3) {
         }
       }
       _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
@@ -8731,7 +8736,7 @@
       DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/);
       ARIA_ATTR = seal(/^aria-[\-\w]+$/);
       IS_ALLOWED_URI = seal(
-        /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+        /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
         // eslint-disable-line no-useless-escape
       );
       IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
@@ -9217,10 +9222,10 @@
       var SHARED = "__core-js_shared__";
       var store = module.exports = globalThis2[SHARED] || defineGlobalProperty(SHARED, {});
       (store.versions || (store.versions = [])).push({
-        version: "3.39.0",
+        version: "3.44.0",
         mode: IS_PURE ? "pure" : "global",
-        copyright: "\xA9 2014-2024 Denis Pushkarev (zloirock.ru)",
-        license: "https://github.com/zloirock/core-js/blob/v3.39.0/LICENSE",
+        copyright: "\xA9 2014-2025 Denis Pushkarev (zloirock.ru)",
+        license: "https://github.com/zloirock/core-js/blob/v3.44.0/LICENSE",
         source: "https://github.com/zloirock/core-js"
       });
     }
@@ -9269,7 +9274,7 @@
       var uncurryThis = require_function_uncurry_this();
       var id = 0;
       var postfix = Math.random();
-      var toString = uncurryThis(1 .toString);
+      var toString = uncurryThis(1.1.toString);
       module.exports = function(key) {
         return "Symbol(" + (key === void 0 ? "" : key) + ")_" + toString(++id + postfix, 36);
       };
@@ -10017,6 +10022,15 @@
     }
   });
 
+  // node_modules/core-js/internals/path.js
+  var require_path = __commonJS({
+    "node_modules/core-js/internals/path.js"(exports, module) {
+      "use strict";
+      var globalThis2 = require_global_this();
+      module.exports = globalThis2;
+    }
+  });
+
   // node_modules/core-js/internals/function-uncurry-this-accessor.js
   var require_function_uncurry_this_accessor = __commonJS({
     "node_modules/core-js/internals/function-uncurry-this-accessor.js"(exports, module) {
@@ -10701,6 +10715,7 @@
       var IS_PURE = require_is_pure();
       var IS_NODE = require_environment_is_node();
       var globalThis2 = require_global_this();
+      var path = require_path();
       var call = require_function_call();
       var defineBuiltIn = require_define_built_in();
       var setPrototypeOf2 = require_object_set_prototype_of();
@@ -10950,6 +10965,7 @@
       $2({ global: true, constructor: true, wrap: true, forced: FORCED_PROMISE_CONSTRUCTOR }, {
         Promise: PromiseConstructor
       });
+      PromiseWrapper = path.Promise;
       setToStringTag(PromiseConstructor, PROMISE, false, true);
       setSpecies(PROMISE);
     }
@@ -11069,7 +11085,7 @@
         var fn = bind(unboundFunction, that);
         var iterator, iterFn, index2, length, result, next, step;
         var stop = function(condition) {
-          if (iterator) iteratorClose(iterator, "normal", condition);
+          if (iterator) iteratorClose(iterator, "normal");
           return new Result(true, condition);
         };
         var callFn = function(value) {
@@ -11777,6 +11793,63 @@
     }
   });
 
+  // node_modules/core-js/internals/regexp-flags-detection.js
+  var require_regexp_flags_detection = __commonJS({
+    "node_modules/core-js/internals/regexp-flags-detection.js"(exports, module) {
+      "use strict";
+      var globalThis2 = require_global_this();
+      var fails = require_fails();
+      var RegExp2 = globalThis2.RegExp;
+      var FLAGS_GETTER_IS_CORRECT = !fails(function() {
+        var INDICES_SUPPORT = true;
+        try {
+          RegExp2(".", "d");
+        } catch (error) {
+          INDICES_SUPPORT = false;
+        }
+        var O3 = {};
+        var calls = "";
+        var expected = INDICES_SUPPORT ? "dgimsy" : "gimsy";
+        var addGetter = function(key2, chr) {
+          Object.defineProperty(O3, key2, { get: function() {
+            calls += chr;
+            return true;
+          } });
+        };
+        var pairs = {
+          dotAll: "s",
+          global: "g",
+          ignoreCase: "i",
+          multiline: "m",
+          sticky: "y"
+        };
+        if (INDICES_SUPPORT) pairs.hasIndices = "d";
+        for (var key in pairs) addGetter(key, pairs[key]);
+        var result = Object.getOwnPropertyDescriptor(RegExp2.prototype, "flags").get.call(O3);
+        return result !== expected || calls !== expected;
+      });
+      module.exports = { correct: FLAGS_GETTER_IS_CORRECT };
+    }
+  });
+
+  // node_modules/core-js/internals/regexp-get-flags.js
+  var require_regexp_get_flags = __commonJS({
+    "node_modules/core-js/internals/regexp-get-flags.js"(exports, module) {
+      "use strict";
+      var call = require_function_call();
+      var hasOwn = require_has_own_property();
+      var isPrototypeOf = require_object_is_prototype_of();
+      var regExpFlagsDetection = require_regexp_flags_detection();
+      var regExpFlagsGetterImplementation = require_regexp_flags();
+      var RegExpPrototype = RegExp.prototype;
+      module.exports = regExpFlagsDetection.correct ? function(it2) {
+        return it2.flags;
+      } : function(it2) {
+        return !regExpFlagsDetection.correct && isPrototypeOf(RegExpPrototype, it2) && !hasOwn(it2, "flags") ? call(regExpFlagsGetterImplementation, it2) : it2.flags;
+      };
+    }
+  });
+
   // node_modules/core-js/internals/regexp-exec-abstract.js
   var require_regexp_exec_abstract = __commonJS({
     "node_modules/core-js/internals/regexp-exec-abstract.js"(exports, module) {
@@ -11805,22 +11878,25 @@
     "node_modules/core-js/modules/es.string.match.js"() {
       "use strict";
       var call = require_function_call();
+      var uncurryThis = require_function_uncurry_this();
       var fixRegExpWellKnownSymbolLogic = require_fix_regexp_well_known_symbol_logic();
       var anObject = require_an_object();
-      var isNullOrUndefined = require_is_null_or_undefined();
+      var isObject = require_is_object();
       var toLength = require_to_length();
       var toString = require_to_string();
       var requireObjectCoercible = require_require_object_coercible();
       var getMethod = require_get_method();
       var advanceStringIndex = require_advance_string_index();
+      var getRegExpFlags = require_regexp_get_flags();
       var regExpExec = require_regexp_exec_abstract();
+      var stringIndexOf2 = uncurryThis("".indexOf);
       fixRegExpWellKnownSymbolLogic("match", function(MATCH, nativeMatch, maybeCallNative) {
         return [
           // `String.prototype.match` method
           // https://tc39.es/ecma262/#sec-string.prototype.match
           function match3(regexp) {
             var O3 = requireObjectCoercible(this);
-            var matcher = isNullOrUndefined(regexp) ? void 0 : getMethod(regexp, MATCH);
+            var matcher = isObject(regexp) ? getMethod(regexp, MATCH) : void 0;
             return matcher ? call(matcher, regexp, O3) : new RegExp(regexp)[MATCH](toString(O3));
           },
           // `RegExp.prototype[@@match]` method
@@ -11830,8 +11906,9 @@
             var S2 = toString(string);
             var res = maybeCallNative(nativeMatch, rx, S2);
             if (res.done) return res.value;
-            if (!rx.global) return regExpExec(rx, S2);
-            var fullUnicode = rx.unicode;
+            var flags = toString(getRegExpFlags(rx));
+            if (stringIndexOf2(flags, "g") === -1) return regExpExec(rx, S2);
+            var fullUnicode = stringIndexOf2(flags, "u") !== -1;
             rx.lastIndex = 0;
             var A2 = [];
             var n3 = 0;
@@ -11911,7 +11988,7 @@
       var fails = require_fails();
       var anObject = require_an_object();
       var isCallable = require_is_callable();
-      var isNullOrUndefined = require_is_null_or_undefined();
+      var isObject = require_is_object();
       var toIntegerOrInfinity = require_to_integer_or_infinity();
       var toLength = require_to_length();
       var toString = require_to_string();
@@ -11919,6 +11996,7 @@
       var advanceStringIndex = require_advance_string_index();
       var getMethod = require_get_method();
       var getSubstitution = require_get_substitution();
+      var getRegExpFlags = require_regexp_get_flags();
       var regExpExec = require_regexp_exec_abstract();
       var wellKnownSymbol = require_well_known_symbol();
       var REPLACE = wellKnownSymbol("replace");
@@ -11956,7 +12034,7 @@
           // https://tc39.es/ecma262/#sec-string.prototype.replace
           function replace(searchValue, replaceValue) {
             var O3 = requireObjectCoercible(this);
-            var replacer = isNullOrUndefined(searchValue) ? void 0 : getMethod(searchValue, REPLACE);
+            var replacer = isObject(searchValue) ? getMethod(searchValue, REPLACE) : void 0;
             return replacer ? call(replacer, searchValue, O3, replaceValue) : call(nativeReplace, toString(O3), searchValue, replaceValue);
           },
           // `RegExp.prototype[@@replace]` method
@@ -11970,10 +12048,11 @@
             }
             var functionalReplace = isCallable(replaceValue);
             if (!functionalReplace) replaceValue = toString(replaceValue);
-            var global2 = rx.global;
+            var flags = toString(getRegExpFlags(rx));
+            var global2 = stringIndexOf2(flags, "g") !== -1;
             var fullUnicode;
             if (global2) {
-              fullUnicode = rx.unicode;
+              fullUnicode = stringIndexOf2(flags, "u") !== -1;
               rx.lastIndex = 0;
             }
             var results = [];
@@ -12649,7 +12728,7 @@
       var uncurryThis = require_function_uncurry_this();
       var fixRegExpWellKnownSymbolLogic = require_fix_regexp_well_known_symbol_logic();
       var anObject = require_an_object();
-      var isNullOrUndefined = require_is_null_or_undefined();
+      var isObject = require_is_object();
       var requireObjectCoercible = require_require_object_coercible();
       var speciesConstructor = require_species_constructor();
       var advanceStringIndex = require_advance_string_index();
@@ -12685,7 +12764,7 @@
           // https://tc39.es/ecma262/#sec-string.prototype.split
           function split2(separator, limit) {
             var O3 = requireObjectCoercible(this);
-            var splitter = isNullOrUndefined(separator) ? void 0 : getMethod(separator, SPLIT);
+            var splitter = isObject(separator) ? getMethod(separator, SPLIT) : void 0;
             return splitter ? call(splitter, separator, O3, limit) : call(internalSplit, toString(O3), separator, limit);
           },
           // `RegExp.prototype[@@split]` method
@@ -13640,22 +13719,6 @@
         }, i3.CLOSE_PATH = 1, i3.MOVE_TO = 2, i3.HORIZ_LINE_TO = 4, i3.VERT_LINE_TO = 8, i3.LINE_TO = 16, i3.CURVE_TO = 32, i3.SMOOTH_CURVE_TO = 64, i3.QUAD_TO = 128, i3.SMOOTH_QUAD_TO = 256, i3.ARC = 512, i3.LINE_COMMANDS = i3.LINE_TO | i3.HORIZ_LINE_TO | i3.VERT_LINE_TO, i3.DRAWING_COMMANDS = i3.HORIZ_LINE_TO | i3.VERT_LINE_TO | i3.LINE_TO | i3.CURVE_TO | i3.SMOOTH_CURVE_TO | i3.QUAD_TO | i3.SMOOTH_QUAD_TO | i3.ARC, i3;
       }(l);
       N = ((O = {})[_.MOVE_TO] = 2, O[_.LINE_TO] = 2, O[_.HORIZ_LINE_TO] = 1, O[_.VERT_LINE_TO] = 1, O[_.CLOSE_PATH] = 0, O[_.QUAD_TO] = 4, O[_.SMOOTH_QUAD_TO] = 2, O[_.CURVE_TO] = 6, O[_.SMOOTH_CURVE_TO] = 4, O[_.ARC] = 7, O);
-    }
-  });
-
-  // node_modules/core-js/internals/regexp-get-flags.js
-  var require_regexp_get_flags = __commonJS({
-    "node_modules/core-js/internals/regexp-get-flags.js"(exports, module) {
-      "use strict";
-      var call = require_function_call();
-      var hasOwn = require_has_own_property();
-      var isPrototypeOf = require_object_is_prototype_of();
-      var regExpFlags = require_regexp_flags();
-      var RegExpPrototype = RegExp.prototype;
-      module.exports = function(R2) {
-        var flags = R2.flags;
-        return flags === void 0 && !("flags" in RegExpPrototype) && !hasOwn(R2, "flags") && isPrototypeOf(RegExpPrototype, R2) ? call(regExpFlags, R2) : flags;
-      };
     }
   });
 
@@ -33994,7 +34057,7 @@ html2canvas/dist/html2canvas.js:
       ***************************************************************************** *)
 
 dompurify/dist/purify.es.mjs:
-  (*! @license DOMPurify 3.2.5 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.5/LICENSE *)
+  (*! @license DOMPurify 3.2.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.6/LICENSE *)
 
 svg-pathdata/lib/SVGPathData.module.js:
   (*! *****************************************************************************

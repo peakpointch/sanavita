@@ -556,7 +556,7 @@
     }
   };
 
-  // node_modules/chart.js/dist/chunks/helpers.segment.js
+  // node_modules/chart.js/dist/chunks/helpers.dataset.js
   function noop() {
   }
   var uid = /* @__PURE__ */ (() => {
@@ -2379,6 +2379,34 @@
       delete ctx.prevTextDirection;
       ctx.canvas.style.setProperty("direction", original[0], original[1]);
     }
+  }
+  function getSizeForArea(scale, chartArea, field) {
+    return scale.options.clip ? scale[field] : chartArea[field];
+  }
+  function getDatasetArea(meta, chartArea) {
+    const { xScale, yScale } = meta;
+    if (xScale && yScale) {
+      return {
+        left: getSizeForArea(xScale, chartArea, "left"),
+        right: getSizeForArea(xScale, chartArea, "right"),
+        top: getSizeForArea(yScale, chartArea, "top"),
+        bottom: getSizeForArea(yScale, chartArea, "bottom")
+      };
+    }
+    return chartArea;
+  }
+  function getDatasetClipArea(chart, meta) {
+    const clip = meta._clip;
+    if (clip.disabled) {
+      return false;
+    }
+    const area = getDatasetArea(meta, chart.chartArea);
+    return {
+      left: clip.left === false ? 0 : area.left - (clip.left === true ? 0 : clip.left),
+      right: clip.right === false ? chart.width : area.right + (clip.right === true ? 0 : clip.right),
+      top: clip.top === false ? 0 : area.top - (clip.top === true ? 0 : clip.top),
+      bottom: clip.bottom === false ? chart.height : area.bottom + (clip.bottom === true ? 0 : clip.bottom)
+    };
   }
 
   // node_modules/chart.js/dist/chart.js
@@ -6792,7 +6820,7 @@
     }
     return false;
   }
-  var version = "4.4.8";
+  var version = "4.5.0";
   var KNOWN_POSITIONS = [
     "top",
     "bottom",
@@ -6860,21 +6888,6 @@
       return lastEvent;
     }
     return e;
-  }
-  function getSizeForArea(scale, chartArea, field) {
-    return scale.options.clip ? scale[field] : chartArea[field];
-  }
-  function getDatasetArea(meta, chartArea) {
-    const { xScale, yScale } = meta;
-    if (xScale && yScale) {
-      return {
-        left: getSizeForArea(xScale, chartArea, "left"),
-        right: getSizeForArea(xScale, chartArea, "right"),
-        top: getSizeForArea(yScale, chartArea, "top"),
-        bottom: getSizeForArea(yScale, chartArea, "bottom")
-      };
-    }
-    return chartArea;
   }
   var Chart = class {
     static defaults = defaults;
@@ -7374,27 +7387,20 @@
     }
     _drawDataset(meta) {
       const ctx = this.ctx;
-      const clip = meta._clip;
-      const useClip = !clip.disabled;
-      const area = getDatasetArea(meta, this.chartArea);
       const args = {
         meta,
         index: meta.index,
         cancelable: true
       };
+      const clip = getDatasetClipArea(this, meta);
       if (this.notifyPlugins("beforeDatasetDraw", args) === false) {
         return;
       }
-      if (useClip) {
-        clipArea(ctx, {
-          left: clip.left === false ? 0 : area.left - clip.left,
-          right: clip.right === false ? this.width : area.right + clip.right,
-          top: clip.top === false ? 0 : area.top - clip.top,
-          bottom: clip.bottom === false ? this.height : area.bottom + clip.bottom
-        });
+      if (clip) {
+        clipArea(ctx, clip);
       }
       meta.controller.draw();
-      if (useClip) {
+      if (clip) {
         unclipArea(ctx);
       }
       args.cancelable = false;
@@ -7706,6 +7712,34 @@
   function invalidatePlugins() {
     return each(Chart.instances, (chart) => chart._plugins.invalidate());
   }
+  function clipSelf(ctx, element, endAngle) {
+    const { startAngle, x, y, outerRadius, innerRadius, options } = element;
+    const { borderWidth, borderJoinStyle } = options;
+    const outerAngleClip = Math.min(borderWidth / outerRadius, _normalizeAngle(startAngle - endAngle));
+    ctx.beginPath();
+    ctx.arc(x, y, outerRadius - borderWidth / 2, startAngle + outerAngleClip / 2, endAngle - outerAngleClip / 2);
+    if (innerRadius > 0) {
+      const innerAngleClip = Math.min(borderWidth / innerRadius, _normalizeAngle(startAngle - endAngle));
+      ctx.arc(x, y, innerRadius + borderWidth / 2, endAngle - innerAngleClip / 2, startAngle + innerAngleClip / 2, true);
+    } else {
+      const clipWidth = Math.min(borderWidth / 2, outerRadius * _normalizeAngle(startAngle - endAngle));
+      if (borderJoinStyle === "round") {
+        ctx.arc(x, y, clipWidth, endAngle - PI / 2, startAngle + PI / 2, true);
+      } else if (borderJoinStyle === "bevel") {
+        const r = 2 * clipWidth * clipWidth;
+        const endX = -r * Math.cos(endAngle + PI / 2) + x;
+        const endY = -r * Math.sin(endAngle + PI / 2) + y;
+        const startX = r * Math.cos(startAngle + PI / 2) + x;
+        const startY = r * Math.sin(startAngle + PI / 2) + y;
+        ctx.lineTo(endX, endY);
+        ctx.lineTo(startX, startY);
+      }
+    }
+    ctx.closePath();
+    ctx.moveTo(0, 0);
+    ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.clip("evenodd");
+  }
   function clipArc(ctx, element, endAngle) {
     const { startAngle, pixelMargin, x, y, outerRadius, innerRadius } = element;
     let angleMargin = pixelMargin / outerRadius;
@@ -7832,7 +7866,7 @@
   }
   function drawBorder(ctx, element, offset, spacing, circular) {
     const { fullCircles, startAngle, circumference, options } = element;
-    const { borderWidth, borderJoinStyle, borderDash, borderDashOffset } = options;
+    const { borderWidth, borderJoinStyle, borderDash, borderDashOffset, borderRadius } = options;
     const inner = options.borderAlign === "inner";
     if (!borderWidth) {
       return;
@@ -7859,6 +7893,9 @@
     if (inner) {
       clipArc(ctx, element, endAngle);
     }
+    if (options.selfJoin && endAngle - startAngle >= PI && borderRadius === 0 && borderJoinStyle !== "miter") {
+      clipSelf(ctx, element, endAngle);
+    }
     if (!fullCircles) {
       pathArc(ctx, element, offset, spacing, endAngle, circular);
       ctx.stroke();
@@ -7877,7 +7914,8 @@
       offset: 0,
       spacing: 0,
       angle: void 0,
-      circular: true
+      circular: true,
+      selfJoin: false
     };
     static defaultRoutes = {
       backgroundColor: "backgroundColor"
@@ -11016,17 +11054,10 @@
    * Released under the MIT License
    *)
 
-chart.js/dist/chunks/helpers.segment.js:
-  (*!
-   * Chart.js v4.4.8
-   * https://www.chartjs.org
-   * (c) 2025 Chart.js Contributors
-   * Released under the MIT License
-   *)
-
+chart.js/dist/chunks/helpers.dataset.js:
 chart.js/dist/chart.js:
   (*!
-   * Chart.js v4.4.8
+   * Chart.js v4.5.0
    * https://www.chartjs.org
    * (c) 2025 Chart.js Contributors
    * Released under the MIT License

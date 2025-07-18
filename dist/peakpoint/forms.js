@@ -33,22 +33,9 @@
         value: true
       });
       exports.default = assertString;
-      function _typeof(o) {
-        "@babel/helpers - typeof";
-        return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(o2) {
-          return typeof o2;
-        } : function(o2) {
-          return o2 && "function" == typeof Symbol && o2.constructor === Symbol && o2 !== Symbol.prototype ? "symbol" : typeof o2;
-        }, _typeof(o);
-      }
       function assertString(input) {
-        var isString = typeof input === "string" || input instanceof String;
-        if (!isString) {
-          var invalidType = _typeof(input);
-          if (input === null) invalidType = "null";
-          else if (invalidType === "object") invalidType = input.constructor.name;
-          throw new TypeError("Expected a string but received a ".concat(invalidType));
-        }
+        if (input === void 0 || input === null) throw new TypeError("Expected a string but received a ".concat(input));
+        if (input.constructor.name !== "String") throw new TypeError("Expected a string but received a ".concat(input.constructor.name));
       }
       module.exports = exports.default;
       module.exports.default = exports.default;
@@ -75,6 +62,23 @@
         }
         return false;
       }
+      module.exports = exports.default;
+      module.exports.default = exports.default;
+    }
+  });
+
+  // node_modules/validator/lib/util/includesString.js
+  var require_includesString = __commonJS({
+    "node_modules/validator/lib/util/includesString.js"(exports, module) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", {
+        value: true
+      });
+      exports.default = void 0;
+      var includes = function includes2(str, val) {
+        return str.indexOf(val) !== -1;
+      };
+      var _default = exports.default = includes;
       module.exports = exports.default;
       module.exports.default = exports.default;
     }
@@ -185,23 +189,35 @@
       function _interopRequireDefault(e) {
         return e && e.__esModule ? e : { default: e };
       }
+      function _typeof(o) {
+        "@babel/helpers - typeof";
+        return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(o2) {
+          return typeof o2;
+        } : function(o2) {
+          return o2 && "function" == typeof Symbol && o2.constructor === Symbol && o2 !== Symbol.prototype ? "symbol" : typeof o2;
+        }, _typeof(o);
+      }
       var IPv4SegmentFormat = "(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
       var IPv4AddressFormat = "(".concat(IPv4SegmentFormat, "[.]){3}").concat(IPv4SegmentFormat);
       var IPv4AddressRegExp = new RegExp("^".concat(IPv4AddressFormat, "$"));
       var IPv6SegmentFormat = "(?:[0-9a-fA-F]{1,4})";
-      var IPv6AddressRegExp = new RegExp("^(" + "(?:".concat(IPv6SegmentFormat, ":){7}(?:").concat(IPv6SegmentFormat, "|:)|") + "(?:".concat(IPv6SegmentFormat, ":){6}(?:").concat(IPv4AddressFormat, "|:").concat(IPv6SegmentFormat, "|:)|") + "(?:".concat(IPv6SegmentFormat, ":){5}(?::").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,2}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){4}(?:(:").concat(IPv6SegmentFormat, "){0,1}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,3}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){3}(?:(:").concat(IPv6SegmentFormat, "){0,2}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,4}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){2}(?:(:").concat(IPv6SegmentFormat, "){0,3}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,5}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){1}(?:(:").concat(IPv6SegmentFormat, "){0,4}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,6}|:)|") + "(?::((?::".concat(IPv6SegmentFormat, "){0,5}:").concat(IPv4AddressFormat, "|(?::").concat(IPv6SegmentFormat, "){1,7}|:))") + ")(%[0-9a-zA-Z-.:]{1,})?$");
-      function isIP(str) {
-        var version = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : "";
-        (0, _assertString.default)(str);
-        version = String(version);
+      var IPv6AddressRegExp = new RegExp("^(" + "(?:".concat(IPv6SegmentFormat, ":){7}(?:").concat(IPv6SegmentFormat, "|:)|") + "(?:".concat(IPv6SegmentFormat, ":){6}(?:").concat(IPv4AddressFormat, "|:").concat(IPv6SegmentFormat, "|:)|") + "(?:".concat(IPv6SegmentFormat, ":){5}(?::").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,2}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){4}(?:(:").concat(IPv6SegmentFormat, "){0,1}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,3}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){3}(?:(:").concat(IPv6SegmentFormat, "){0,2}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,4}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){2}(?:(:").concat(IPv6SegmentFormat, "){0,3}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,5}|:)|") + "(?:".concat(IPv6SegmentFormat, ":){1}(?:(:").concat(IPv6SegmentFormat, "){0,4}:").concat(IPv4AddressFormat, "|(:").concat(IPv6SegmentFormat, "){1,6}|:)|") + "(?::((?::".concat(IPv6SegmentFormat, "){0,5}:").concat(IPv4AddressFormat, "|(?::").concat(IPv6SegmentFormat, "){1,7}|:))") + ")(%[0-9a-zA-Z.]{1,})?$");
+      function isIP(ipAddress) {
+        var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
+        (0, _assertString.default)(ipAddress);
+        var version = (_typeof(options) === "object" ? options.version : arguments[1]) || "";
         if (!version) {
-          return isIP(str, 4) || isIP(str, 6);
+          return isIP(ipAddress, {
+            version: 4
+          }) || isIP(ipAddress, {
+            version: 6
+          });
         }
-        if (version === "4") {
-          return IPv4AddressRegExp.test(str);
+        if (version.toString() === "4") {
+          return IPv4AddressRegExp.test(ipAddress);
         }
-        if (version === "6") {
-          return IPv6AddressRegExp.test(str);
+        if (version.toString() === "6") {
+          return IPv6AddressRegExp.test(ipAddress);
         }
         return false;
       }
@@ -220,6 +236,7 @@
       exports.default = isURL2;
       var _assertString = _interopRequireDefault(require_assertString());
       var _checkHost = _interopRequireDefault(require_checkHost());
+      var _includesString = _interopRequireDefault(require_includesString());
       var _isFQDN = _interopRequireDefault(require_isFQDN());
       var _isIP = _interopRequireDefault(require_isIP());
       var _merge = _interopRequireDefault(require_merge());
@@ -296,10 +313,10 @@
         if (options.validate_length && url.length > options.max_allowed_length) {
           return false;
         }
-        if (!options.allow_fragments && url.includes("#")) {
+        if (!options.allow_fragments && (0, _includesString.default)(url, "#")) {
           return false;
         }
-        if (!options.allow_query_components && (url.includes("?") || url.includes("&"))) {
+        if (!options.allow_query_components && ((0, _includesString.default)(url, "?") || (0, _includesString.default)(url, "&"))) {
           return false;
         }
         var protocol, auth, host, hostname, port, port_str, split2, ipv6;
