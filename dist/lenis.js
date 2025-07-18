@@ -1,6 +1,6 @@
 (() => {
   // node_modules/lenis/dist/lenis.mjs
-  var version = "1.3.1";
+  var version = "1.3.7";
   function clamp(min, input, max) {
     return Math.max(min, Math.min(input, max));
   }
@@ -314,6 +314,7 @@
       };
     };
   };
+  var defaultEasing = (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
   var Lenis = class {
     _isScrolling = false;
     // true when scroll is animating
@@ -381,10 +382,10 @@
       smoothWheel = true,
       syncTouch = false,
       syncTouchLerp = 0.075,
-      touchInertiaMultiplier = 35,
+      touchInertiaExponent = 1.7,
       duration,
       // in seconds
-      easing = (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      easing,
       lerp: lerp2 = 0.1,
       infinite = false,
       orientation = "vertical",
@@ -408,6 +409,11 @@
       if (!wrapper || wrapper === document.documentElement) {
         wrapper = window;
       }
+      if (typeof duration === "number" && typeof easing !== "function") {
+        easing = defaultEasing;
+      } else if (typeof easing === "function" && typeof duration !== "number") {
+        duration = 1;
+      }
       this.options = {
         wrapper,
         content,
@@ -415,7 +421,7 @@
         smoothWheel,
         syncTouch,
         syncTouchLerp,
-        touchInertiaMultiplier,
+        touchInertiaExponent,
         duration,
         easing,
         lerp: lerp2,
@@ -528,9 +534,9 @@
         const property = this.isHorizontal ? "overflow-x" : "overflow-y";
         const overflow = getComputedStyle(this.rootElement)[property];
         if (["hidden", "clip"].includes(overflow)) {
-          this.stop();
+          this.internalStop();
         } else {
-          this.start();
+          this.internalStart();
         }
       }
     };
@@ -591,7 +597,9 @@
       ))
         return;
       if (this.isStopped || this.isLocked) {
-        event.preventDefault();
+        if (event.cancelable) {
+          event.preventDefault();
+        }
         return;
       }
       const isSmooth = this.options.syncTouch && isTouch || this.options.smoothWheel && isWheel;
@@ -610,12 +618,14 @@
       if (!this.options.overscroll || this.options.infinite || this.options.wrapper !== window && (this.animatedScroll > 0 && this.animatedScroll < this.limit || this.animatedScroll === 0 && deltaY > 0 || this.animatedScroll === this.limit && deltaY < 0)) {
         event.lenisStopPropagation = true;
       }
-      event.preventDefault();
+      if (event.cancelable) {
+        event.preventDefault();
+      }
       const isSyncTouch = isTouch && this.options.syncTouch;
       const isTouchEnd = isTouch && event.type === "touchend";
-      const hasTouchInertia = isTouchEnd && Math.abs(delta) > 5;
+      const hasTouchInertia = isTouchEnd;
       if (hasTouchInertia) {
-        delta = this.velocity * this.options.touchInertiaMultiplier;
+        delta = Math.sign(this.velocity) * Math.pow(Math.abs(this.velocity), this.options.touchInertiaExponent);
       }
       this.scrollTo(this.targetScroll + delta, {
         programmatic: false,
@@ -683,16 +693,34 @@
      */
     start() {
       if (!this.isStopped) return;
+      if (this.options.autoToggle) {
+        this.rootElement.style.removeProperty("overflow");
+        return;
+      }
+      this.internalStart();
+    }
+    internalStart() {
+      if (!this.isStopped) return;
       this.reset();
       this.isStopped = false;
+      this.emit();
     }
     /**
      * Stop lenis scroll
      */
     stop() {
       if (this.isStopped) return;
+      if (this.options.autoToggle) {
+        this.rootElement.style.setProperty("overflow", "clip");
+        return;
+      }
+      this.internalStop();
+    }
+    internalStop() {
+      if (this.isStopped) return;
       this.reset();
       this.isStopped = true;
+      this.emit();
     }
     /**
      * RequestAnimationFrame for lenis
@@ -800,6 +828,11 @@
       }
       if (!programmatic) {
         this.targetScroll = target;
+      }
+      if (typeof duration === "number" && typeof easing !== "function") {
+        easing = defaultEasing;
+      } else if (typeof easing === "function" && typeof duration !== "number") {
+        duration = 1;
       }
       this.animate.fromTo(this.animatedScroll, target, {
         duration,
@@ -1031,8 +1064,14 @@
   };
 
   // src/ts/lenis.ts
-  var lenis = new Lenis({
-    autoRaf: true
+  document.addEventListener("DOMContentLoaded", () => {
+    const lenis = new Lenis({
+      autoRaf: true
+    });
+    const resizeObserver = new ResizeObserver(() => {
+      lenis.resize();
+    });
+    resizeObserver.observe(document.body);
   });
 })();
 //# sourceMappingURL=lenis.js.map

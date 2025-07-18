@@ -1,6 +1,13 @@
 import Lenis from "lenis";
 
-// Initialize Lenis
-const lenis = new Lenis({
-  autoRaf: true,
+document.addEventListener("DOMContentLoaded", () => {
+  const lenis = new Lenis({
+    autoRaf: true,
+  });
+
+  const resizeObserver = new ResizeObserver(() => {
+    lenis.resize();
+  });
+
+  resizeObserver.observe(document.body);
 });
