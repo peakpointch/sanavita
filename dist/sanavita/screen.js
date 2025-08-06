@@ -10338,6 +10338,7 @@
   }
 
   // src/ts/swiper.ts
+  var swiperSelector = createAttribute("data-swiper-element");
   function swiperEmpty(swiperElement) {
     const slides = swiperElement.querySelectorAll(".swiper-slide");
     if (slides.length === 0) {
@@ -10471,6 +10472,20 @@
     };
     return swiperOptions;
   }
+  function updateCounter(swiper, currentElement, totalElement) {
+    const current = swiper.realIndex + 1;
+    const total = swiper.slides.length;
+    currentElement.textContent = current.toString();
+    totalElement.textContent = total.toString();
+  }
+  function initCounter(swiper) {
+    const currentElement = swiper.el.querySelector(swiperSelector("counter-current"));
+    const totalElement = swiper.el.querySelector(swiperSelector("counter-total"));
+    if (!currentElement || !totalElement) return;
+    swiper.on("init", () => updateCounter(swiper, currentElement, totalElement));
+    swiper.on("slideChange", () => updateCounter(swiper, currentElement, totalElement));
+    updateCounter(swiper, currentElement, totalElement);
+  }
   function initWebflowSwiper(swiperElement) {
     if (swiperEmpty(swiperElement)) {
       hideEmptySwiper(swiperElement);
@@ -10478,6 +10493,7 @@
     }
     const swiperOptions = readSwiperOptions(swiperElement);
     const swiper = new Swiper(swiperElement, swiperOptions);
+    initCounter(swiper);
     if (swiperOptions.autoplay !== false) {
       swiper.autoplay.stop();
       const observer = new IntersectionObserver((entries) => {
@@ -10537,7 +10553,7 @@
 
   // src/sanavita/ts/screen.ts
   var wfCollectionSelector = createAttribute("wf-collection");
-  var swiperSelector = createAttribute("custom-swiper-component");
+  var swiperSelector2 = createAttribute("custom-swiper-component");
   var filterAttributes = Renderer.defineAttributes({
     ...FilterCollection.defaultAttributes,
     "screen": "string",
@@ -10696,7 +10712,7 @@
     });
     collection.removeInvisibleElements();
     collection.readData();
-    const newsSwiperEl = document.body.querySelector(swiperSelector("news"));
+    const newsSwiperEl = document.body.querySelector(swiperSelector2("news"));
     const swiperOptions = {
       ...readSwiperOptions(newsSwiperEl),
       modules: [Autoplay, Navigation, Pagination, Manipulation]

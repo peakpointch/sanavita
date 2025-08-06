@@ -3,6 +3,7 @@ import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules"
 import { toCamelCase } from "peakflow/utils";
 import { AutoplayOptions, NavigationOptions, SwiperOptions } from "swiper/types";
 import type { CamelToDash } from "peakflow/typeutils"
+import { createAttribute } from "peakflow";
 
 interface SwiperAttribute {
   name: "swiper-component"
@@ -31,6 +32,8 @@ interface CustomSwiperOptions {
 }
 
 type SwiperHideOptions = "hideNone" | "hideComponent" | "emptyState";
+type SwiperElement = "counter-current" | "counter-separator" | "counter-total";
+const swiperSelector = createAttribute<SwiperElement>("data-swiper-element");
 
 function swiperEmpty(swiperElement: HTMLElement): boolean {
   const slides = swiperElement.querySelectorAll<HTMLElement>(".swiper-slide");
@@ -184,10 +187,33 @@ export function readSwiperOptions(swiperElement: HTMLElement): SwiperOptions {
     spaceBetween: settings.spaceBetween,
     loop: settings.loop,
     slidesPerView: "auto",
-    modules: [Autoplay, Navigation, Pagination]
+    modules: [Autoplay, Navigation, Pagination],
   }
 
   return swiperOptions;
+}
+
+function updateCounter(
+  swiper: Swiper,
+  currentElement: HTMLElement,
+  totalElement: HTMLElement
+): void {
+  const current = swiper.realIndex + 1;
+  const total = swiper.slides.length;
+
+  currentElement.textContent = current.toString();
+  totalElement.textContent = total.toString();
+}
+
+function initCounter(swiper: Swiper): void {
+  const currentElement = swiper.el.querySelector<HTMLElement>(swiperSelector('counter-current'));
+  const totalElement = swiper.el.querySelector<HTMLElement>(swiperSelector('counter-total'));
+
+  if (!currentElement || !totalElement) return;
+
+  swiper.on('init', () => updateCounter(swiper, currentElement, totalElement));
+  swiper.on('slideChange', () => updateCounter(swiper, currentElement, totalElement));
+  updateCounter(swiper, currentElement, totalElement);
 }
 
 function initWebflowSwiper(swiperElement: HTMLElement): Swiper {
@@ -198,6 +224,8 @@ function initWebflowSwiper(swiperElement: HTMLElement): Swiper {
 
   const swiperOptions = readSwiperOptions(swiperElement);
   const swiper = new Swiper(swiperElement, swiperOptions);
+
+  initCounter(swiper);
 
   if (swiperOptions.autoplay !== false) {
     swiper.autoplay.stop();
