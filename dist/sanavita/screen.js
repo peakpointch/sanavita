@@ -4719,7 +4719,7 @@
         props: {}
       };
       element.instance = instance || void 0;
-      if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
+      if (child.classList.contains(wf.class.invisible) || child.closest(wf.select.invisible)) {
         element.visibility = false;
       } else {
         element.visibility = true;
@@ -4747,7 +4747,7 @@
         props: {}
       };
       field.instance = instance || void 0;
-      if (child.classList.contains(wf.class.invisible) || child.closest(wf.class.invisible)) {
+      if (child.classList.contains(wf.class.invisible) || child.closest(wf.select.invisible)) {
         field.visibility = false;
       } else {
         field.visibility = true;
@@ -4787,7 +4787,7 @@
               if (!targetElement) {
                 throw new Error(`Can't parse boolean filter: No element found with attribute "[${attr}]". Perhaps you misspelled the attribute?`);
               }
-              value = Boolean(!targetElement.classList.contains("w-condition-invisible"));
+              value = Boolean(!targetElement.classList.contains(wf.class.invisible));
             } else {
               value = JSON.parse(value);
             }
