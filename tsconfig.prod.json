@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "html2pdf.js": [
+        "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"
+      ]
+    },
+    "target": "ES2015",
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
+    "esModuleInterop": true,
+    "declaration": true,
+    "noEmit": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true
+  }
+}

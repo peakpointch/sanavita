@@ -95,7 +95,7 @@ export async function buildDevFiles(options) {
 export async function build() {
   const peakflow = new Libswitch({
     tsconfigDev: 'tsconfig.dev.json',
-    tsconfigProd: 'tsconfig.json'
+    tsconfigProd: 'tsconfig.prod.json'
   });
 
   const tsconfig = peakflow.getTsconfigFile();
