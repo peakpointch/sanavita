@@ -32706,7 +32706,7 @@
     let node2;
     while (node2 = walker.nextNode()) {
       const parent = node2?.parentElement;
-      if (parent && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName) && !parent.matches(`[data-hyphenate="false"]`) && node2.nodeValue?.trim()) {
+      if (parent && !["SCRIPT", "STYLE", "NOSCRIPT"].includes(parent.tagName) && !parent.matches(`[data-hyphenate="false"], [data-hyphenate="false"] *`) && node2.nodeValue?.trim()) {
         const hyphenated = hypher.hyphenateText(node2.nodeValue);
         node2.nodeValue = hyphenated;
       }
