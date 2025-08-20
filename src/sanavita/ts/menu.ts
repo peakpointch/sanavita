@@ -21,18 +21,17 @@ type CategoryType = string;
 type CategoryList = Record<string, Category>;
 type MenuList = Record<string, Menu>;
 
-interface SubCategory {
+interface Category {
   id: string;
   name: string;
+  type: CategoryType;
   description: string | boolean;
   dishes: Dish[];
   isSubcategory: boolean;
-}
-
-interface Category extends SubCategory {
-  type: CategoryType;
   subcategories: SubCategory[];
 }
+
+interface SubCategory extends Omit<Category, "type" | "subcategories"> {}
 
 interface Menu {
   id: string;
@@ -40,6 +39,7 @@ interface Menu {
   type: string;
   domElement: HTMLElement;
   menuContentElement: HTMLElement;
+  /** Sections inside a menu represent a dish category */
   sections: string[];
   className: string;
 }
@@ -236,7 +236,6 @@ function initialize(): void {
 
     let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
 
-    // Assuming you already have the categories array structure
     menu.sections.forEach((section) => {
       let sectionCategory = categories[section];
 
