@@ -92,7 +92,7 @@ function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
         ${filteredSubcategories
           .map(
             (sub) => `
-            <div class="heading-topic">${sub.name}</div>
+            <div class="tagline">${sub.name}</div>
             <div class="spacer-small"></div>
             <div class="${menu.classname}">
               ${sub.dishes.map((dish) => dish.htmlString).join("")}

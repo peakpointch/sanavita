@@ -100,7 +100,7 @@
         <!-- Now render the subcategories and their dishes (if they have dishes) -->
         ${filteredSubcategories.map(
       (sub) => `
-            <div class="heading-topic">${sub.name}</div>
+            <div class="tagline">${sub.name}</div>
             <div class="spacer-small"></div>
             <div class="${menu.classname}">
               ${sub.dishes.map((dish) => dish.htmlString).join("")}
