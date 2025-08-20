@@ -55,7 +55,7 @@ interface Dish {
   htmlString: string;
 }
 
-function pushDishes(nodeList: NodeListOf<HTMLElement>) {
+function pushDishes(nodeList: HTMLElement[]) {
   nodeList.forEach((dishEl) => {
     const dishMenu = dishEl.dataset.dishMenu;
 
@@ -106,29 +106,48 @@ function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
     `;
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  const menuListElement =
-    document.querySelector<HTMLElement>(MENU_LIST_SELECTOR);
+function getDishItems(): HTMLElement[] {
   const dishListElement =
     document.querySelector<HTMLElement>(DISH_LIST_SELECTOR);
-  const drinkListElement =
-    document.querySelector<HTMLElement>(DRINK_LIST_SELECTOR);
-  const categoryListElement = document.querySelector<HTMLElement>(
-    CATEGORY_LIST_SELECTOR,
-  );
-
   const dishListItems = dishListElement.querySelectorAll<HTMLElement>(
     wf.select.cmsItem,
   );
+  return Array.from(dishListItems);
+}
+
+function getDrinkItems(): HTMLElement[] {
+  const drinkListElement =
+    document.querySelector<HTMLElement>(DRINK_LIST_SELECTOR);
   const drinkListItems = drinkListElement.querySelectorAll<HTMLElement>(
     wf.select.cmsItem,
   );
+  return Array.from(drinkListItems);
+}
+
+function getMenuItems(): HTMLElement[] {
+  const menuListElement =
+    document.querySelector<HTMLElement>(MENU_LIST_SELECTOR);
   const menuListItems = menuListElement.querySelectorAll<HTMLElement>(
     `[aria-role="${MENU_NAME + cmsItemSuffix}"]`,
+  );
+  return Array.from(menuListItems);
+}
+
+function getCategoryItems(): HTMLElement[] {
+  const categoryListElement = document.querySelector<HTMLElement>(
+    CATEGORY_LIST_SELECTOR,
   );
   const categoryListItems = categoryListElement.querySelectorAll<HTMLElement>(
     wf.select.cmsItem,
   );
+  return Array.from(categoryListItems);
+}
+
+function initialize(): void {
+  const menuListItems = getMenuItems();
+  const dishListItems = getDishItems();
+  const drinkListItems = getDrinkItems();
+  const categoryListItems = getCategoryItems();
 
   // Iterate through each category item
   categoryListItems.forEach((item) => {
@@ -242,4 +261,8 @@ window.addEventListener("DOMContentLoaded", () => {
   console.log("MENUS", menus);
   console.log("CATEGORIES", categories);
   console.log("DISHES", dishes);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  initialize();
 });

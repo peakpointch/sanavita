@@ -112,25 +112,41 @@
       </div>
     `;
   }
-  window.addEventListener("DOMContentLoaded", () => {
-    const menuListElement = document.querySelector(MENU_LIST_SELECTOR);
+  function getDishItems() {
     const dishListElement = document.querySelector(DISH_LIST_SELECTOR);
-    const drinkListElement = document.querySelector(DRINK_LIST_SELECTOR);
-    const categoryListElement = document.querySelector(
-      CATEGORY_LIST_SELECTOR
-    );
     const dishListItems = dishListElement.querySelectorAll(
       wf.select.cmsItem
     );
+    return Array.from(dishListItems);
+  }
+  function getDrinkItems() {
+    const drinkListElement = document.querySelector(DRINK_LIST_SELECTOR);
     const drinkListItems = drinkListElement.querySelectorAll(
       wf.select.cmsItem
     );
+    return Array.from(drinkListItems);
+  }
+  function getMenuItems() {
+    const menuListElement = document.querySelector(MENU_LIST_SELECTOR);
     const menuListItems = menuListElement.querySelectorAll(
       `[aria-role="${MENU_NAME + cmsItemSuffix}"]`
+    );
+    return Array.from(menuListItems);
+  }
+  function getCategoryItems() {
+    const categoryListElement = document.querySelector(
+      CATEGORY_LIST_SELECTOR
     );
     const categoryListItems = categoryListElement.querySelectorAll(
       wf.select.cmsItem
     );
+    return Array.from(categoryListItems);
+  }
+  function initialize() {
+    const menuListItems = getMenuItems();
+    const dishListItems = getDishItems();
+    const drinkListItems = getDrinkItems();
+    const categoryListItems = getCategoryItems();
     categoryListItems.forEach((item) => {
       const subcategoryElement = item.querySelector(
         "[data-is-subcategory]"
@@ -208,6 +224,9 @@
     console.log("MENUS", menus);
     console.log("CATEGORIES", categories);
     console.log("DISHES", dishes);
+  }
+  window.addEventListener("DOMContentLoaded", () => {
+    initialize();
   });
 })();
 //# sourceMappingURL=menu.js.map
