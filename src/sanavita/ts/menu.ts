@@ -19,7 +19,6 @@ const CATEGORY_LIST_SELECTOR = `[aria-role="${CATEGORY_NAME + cmsListSuffix}"]`;
 type DishType = "food" | "drink";
 type CategoryType = string;
 type CategoryList = Record<string, Category>;
-type MenuList = Record<string, Menu>;
 
 interface Category {
   id: string;
@@ -215,6 +214,39 @@ function parseMenu(menuElement: HTMLElement): Menu {
   };
 }
 
+function renderMenu(
+  menu: Menu,
+  categories: CategoryList,
+  dishes: Dish[],
+): void {
+  let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
+
+  menu.sections.forEach((section) => {
+    let sectionCategory = categories[section];
+    if (!sectionCategory) {
+      throw new Error(
+        `Invalid cross reference: Menu "${menu.id}": Category not found for menu section "${section}".`,
+      );
+    }
+
+    // Find dishes that belong to the current section
+    sectionCategory.dishes = menuDishes.filter(
+      (dish) => dish.category === sectionCategory.id,
+    );
+
+    // Find dishes that belong to each subcategory
+    sectionCategory.subcategories.forEach((subcat) => {
+      subcat.dishes = menuDishes.filter((dish) => dish.category === subcat.id);
+    });
+
+    // Create HTML for the section with its subcategories and dishes
+    const sectionHTML = DISH_GROUP_TEMPLATE(menu, sectionCategory);
+
+    // Insert the sectionHTML into your desired DOM element
+    menu.menuContentElement.insertAdjacentHTML("beforeend", sectionHTML);
+  });
+}
+
 function initialize(): void {
   const root = document;
   const menuListItems = getMenuItems(root);
@@ -228,41 +260,10 @@ function initialize(): void {
   ];
   const categories = parseCategories(categoryListItems);
 
-  let menus: MenuList = {};
-
-  menuListItems.forEach((menuElement) => {
-    let menu: Menu = parseMenu(menuElement);
-    menus[menu.id] = menu;
-
-    let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
-
-    menu.sections.forEach((section) => {
-      let sectionCategory = categories[section];
-
-      // Find dishes that belong to the current section
-      sectionCategory.dishes = menuDishes.filter(
-        (dish) => dish.category === sectionCategory.id,
-      );
-
-      // If sectionCategory has subcategories, handle them
-      if (sectionCategory.subcategories.length > 0) {
-        sectionCategory.subcategories.forEach((subcat) => {
-          // Find dishes that belong to the current subcategory
-          subcat.dishes = menuDishes.filter(
-            (dish) => dish.category === subcat.id,
-          );
-        });
-      }
-
-      // Only render the section if it has dishes in the main category or subcategories
-      if (sectionCategory) {
-        // Create HTML for the section with its subcategories and dishes
-        const sectionHTML = DISH_GROUP_TEMPLATE(menu, sectionCategory);
-
-        // Insert the sectionHTML into your desired DOM element
-        menu.menuContentElement.insertAdjacentHTML("beforeend", sectionHTML);
-      }
-    });
+  const menus = menuListItems.map((menuElement) => {
+    const menu: Menu = parseMenu(menuElement);
+    renderMenu(menu, categories, dishes);
+    return menu;
   });
 
   console.log("MENUS", menus);

@@ -201,6 +201,25 @@
       className: menuElement.dataset.menuType === "Gerichte" ? "gerichte-cms_list" : "drinks-cms_list"
     };
   }
+  function renderMenu(menu, categories, dishes) {
+    let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
+    menu.sections.forEach((section) => {
+      let sectionCategory = categories[section];
+      if (!sectionCategory) {
+        throw new Error(
+          `Invalid cross reference: Menu "${menu.id}": Category not found for menu section "${section}".`
+        );
+      }
+      sectionCategory.dishes = menuDishes.filter(
+        (dish) => dish.category === sectionCategory.id
+      );
+      sectionCategory.subcategories.forEach((subcat) => {
+        subcat.dishes = menuDishes.filter((dish) => dish.category === subcat.id);
+      });
+      const sectionHTML = DISH_GROUP_TEMPLATE(menu, sectionCategory);
+      menu.menuContentElement.insertAdjacentHTML("beforeend", sectionHTML);
+    });
+  }
   function initialize() {
     const root = document;
     const menuListItems = getMenuItems(root);
@@ -212,28 +231,10 @@
       ...parseDishes(dishListItems)
     ];
     const categories = parseCategories(categoryListItems);
-    let menus = {};
-    menuListItems.forEach((menuElement) => {
-      let menu = parseMenu(menuElement);
-      menus[menu.id] = menu;
-      let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
-      menu.sections.forEach((section) => {
-        let sectionCategory = categories[section];
-        sectionCategory.dishes = menuDishes.filter(
-          (dish) => dish.category === sectionCategory.id
-        );
-        if (sectionCategory.subcategories.length > 0) {
-          sectionCategory.subcategories.forEach((subcat) => {
-            subcat.dishes = menuDishes.filter(
-              (dish) => dish.category === subcat.id
-            );
-          });
-        }
-        if (sectionCategory) {
-          const sectionHTML = DISH_GROUP_TEMPLATE(menu, sectionCategory);
-          menu.menuContentElement.insertAdjacentHTML("beforeend", sectionHTML);
-        }
-      });
+    const menus = menuListItems.map((menuElement) => {
+      const menu = parseMenu(menuElement);
+      renderMenu(menu, categories, dishes);
+      return menu;
     });
     console.log("MENUS", menus);
     console.log("CATEGORIES", categories);
