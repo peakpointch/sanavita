@@ -24041,7 +24041,10 @@
     checkbox: "w-checkbox-input",
     checked: "w--redirected-checked",
     focus: "w--redirected-focus",
-    focusVisible: "w--redirected-focus-visible"
+    focusVisible: "w--redirected-focus-visible",
+    cmsWrapper: "w-dyn-list",
+    cmsList: "w-dyn-items",
+    cmsItem: "w-dyn-item"
   };
   var inputSelectorList = [
     `.${wfclass.input}`,
@@ -24061,6 +24064,9 @@
     focused: `:focus-visible, [data-wf-focus-visible]`,
     focus: `.${wfclass.focus}`,
     focusVisible: `.${wfclass.focusVisible}`,
+    cmsWrapper: `.${wfclass.cmsWrapper}`,
+    cmsList: `.${wfclass.cmsList}`,
+    cmsItem: `.${wfclass.cmsItem}`,
     formInput: inputSelectorList.join(", "),
     radioInput: `.${wfclass.wradio} input[type="radio"]`,
     checkboxInput: `.${wfclass.wcheckbox} input[type="checkbox"]:not(.${wfclass.checkbox})`,
