@@ -130,6 +130,15 @@ function getMenuItems(root: HTMLElement | Document): HTMLElement[] {
   return Array.from(menuListItems);
 }
 
+function getMenuSectionItems(menuElement: HTMLElement): HTMLElement[] {
+  const menuSectionListElement = menuElement.querySelector<HTMLElement>(
+    MENU_SECTION_LIST_SELECTOR,
+  );
+  const menuSectionListItems =
+    menuSectionListElement.querySelectorAll<HTMLElement>(".w-dyn-item");
+  return Array.from(menuSectionListItems);
+}
+
 function getCategoryItems(root: HTMLElement | Document): HTMLElement[] {
   const categoryListElement = root.querySelector<HTMLElement>(
     CATEGORY_LIST_SELECTOR,
@@ -189,13 +198,16 @@ function parseCategories(categoryListItems: HTMLElement[]): CategoryList {
 }
 
 function parseMenu(menuElement: HTMLElement): Menu {
+  const menuSections = getMenuSectionItems(menuElement);
   return {
     id: menuElement.dataset.menu,
     name: menuElement.dataset.menuName,
     type: menuElement.dataset.menuType,
     domElement: menuElement,
     menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
-    sections: [],
+    sections: menuSections.map<string>(
+      (section) => section.dataset.menuSection,
+    ),
     className:
       menuElement.dataset.menuType === "Gerichte"
         ? "gerichte-cms_list"
@@ -221,16 +233,6 @@ function initialize(): void {
   menuListItems.forEach((menuElement) => {
     let menu: Menu = parseMenu(menuElement);
     menus[menu.id] = menu;
-
-    const menuSectionListElement = menuElement.querySelector<HTMLElement>(
-      MENU_SECTION_LIST_SELECTOR,
-    );
-    const menuSectionListItems =
-      menuSectionListElement.querySelectorAll<HTMLElement>(".w-dyn-item");
-
-    menuSectionListItems.forEach((section) => {
-      menu.sections.push(section.dataset.menuSection);
-    });
 
     let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
 

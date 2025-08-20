@@ -132,6 +132,13 @@
     );
     return Array.from(menuListItems);
   }
+  function getMenuSectionItems(menuElement) {
+    const menuSectionListElement = menuElement.querySelector(
+      MENU_SECTION_LIST_SELECTOR
+    );
+    const menuSectionListItems = menuSectionListElement.querySelectorAll(".w-dyn-item");
+    return Array.from(menuSectionListItems);
+  }
   function getCategoryItems(root) {
     const categoryListElement = root.querySelector(
       CATEGORY_LIST_SELECTOR
@@ -181,13 +188,16 @@
     return categories;
   }
   function parseMenu(menuElement) {
+    const menuSections = getMenuSectionItems(menuElement);
     return {
       id: menuElement.dataset.menu,
       name: menuElement.dataset.menuName,
       type: menuElement.dataset.menuType,
       domElement: menuElement,
       menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
-      sections: [],
+      sections: menuSections.map(
+        (section) => section.dataset.menuSection
+      ),
       className: menuElement.dataset.menuType === "Gerichte" ? "gerichte-cms_list" : "drinks-cms_list"
     };
   }
@@ -206,13 +216,6 @@
     menuListItems.forEach((menuElement) => {
       let menu = parseMenu(menuElement);
       menus[menu.id] = menu;
-      const menuSectionListElement = menuElement.querySelector(
-        MENU_SECTION_LIST_SELECTOR
-      );
-      const menuSectionListItems = menuSectionListElement.querySelectorAll(".w-dyn-item");
-      menuSectionListItems.forEach((section) => {
-        menu.sections.push(section.dataset.menuSection);
-      });
       let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
       menu.sections.forEach((section) => {
         let sectionCategory = categories[section];
