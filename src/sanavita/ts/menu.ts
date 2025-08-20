@@ -239,11 +239,13 @@ function initialize(): void {
     menu.sections.forEach((section) => {
       let sectionCategory = categories[section];
 
+      // Store dishes directly under the category if they don't belong to subcategories
+      sectionCategory.dishes = menuDishes.filter(
+        (dish) => dish.category === sectionCategory.id,
+      );
+
       // If sectionCategory has subcategories, handle them
-      if (
-        !sectionCategory.isSubcategory &&
-        sectionCategory.subcategories.length > 0
-      ) {
+      if (sectionCategory.subcategories.length > 0) {
         sectionCategory.subcategories.forEach((subcat) => {
           // Find dishes belonging to this subcategory and store them in subcat.dishes
           subcat.dishes = menuDishes.filter(
@@ -251,11 +253,6 @@ function initialize(): void {
           );
         });
       }
-
-      // Store dishes directly under the category if they don't belong to subcategories
-      sectionCategory.dishes = menuDishes.filter(
-        (dish) => dish.category === sectionCategory.id,
-      );
 
       // Only render the section if it has dishes in the main category or subcategories
       if (sectionCategory) {

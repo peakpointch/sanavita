@@ -219,16 +219,16 @@
       let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
       menu.sections.forEach((section) => {
         let sectionCategory = categories[section];
-        if (!sectionCategory.isSubcategory && sectionCategory.subcategories.length > 0) {
+        sectionCategory.dishes = menuDishes.filter(
+          (dish) => dish.category === sectionCategory.id
+        );
+        if (sectionCategory.subcategories.length > 0) {
           sectionCategory.subcategories.forEach((subcat) => {
             subcat.dishes = menuDishes.filter(
               (dish) => dish.category === subcat.id
             );
           });
         }
-        sectionCategory.dishes = menuDishes.filter(
-          (dish) => dish.category === sectionCategory.id
-        );
         if (sectionCategory) {
           const sectionHTML = DISH_GROUP_TEMPLATE(menu, sectionCategory);
           menu.menuContentElement.insertAdjacentHTML("beforeend", sectionHTML);
