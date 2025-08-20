@@ -64,7 +64,6 @@
   var DISH_LIST_SELECTOR = `[aria-role="${DISH_NAME + cmsListSuffix}"]`;
   var DRINK_LIST_SELECTOR = `[aria-role="${DRINK_NAME + cmsListSuffix}"]`;
   var CATEGORY_LIST_SELECTOR = `[aria-role="${CATEGORY_NAME + cmsListSuffix}"]`;
-  var menus = {};
   function parseDishes(nodeList) {
     const dishes = [];
     nodeList.forEach((dishEl) => {
@@ -112,29 +111,29 @@
       </div>
     `;
   }
-  function getDishItems() {
-    const dishListElement = document.querySelector(DISH_LIST_SELECTOR);
+  function getDishItems(root) {
+    const dishListElement = root.querySelector(DISH_LIST_SELECTOR);
     const dishListItems = dishListElement.querySelectorAll(
       wf.select.cmsItem
     );
     return Array.from(dishListItems);
   }
-  function getDrinkItems() {
-    const drinkListElement = document.querySelector(DRINK_LIST_SELECTOR);
+  function getDrinkItems(root) {
+    const drinkListElement = root.querySelector(DRINK_LIST_SELECTOR);
     const drinkListItems = drinkListElement.querySelectorAll(
       wf.select.cmsItem
     );
     return Array.from(drinkListItems);
   }
-  function getMenuItems() {
-    const menuListElement = document.querySelector(MENU_LIST_SELECTOR);
+  function getMenuItems(root) {
+    const menuListElement = root.querySelector(MENU_LIST_SELECTOR);
     const menuListItems = menuListElement.querySelectorAll(
       `[aria-role="${MENU_NAME + cmsItemSuffix}"]`
     );
     return Array.from(menuListItems);
   }
-  function getCategoryItems() {
-    const categoryListElement = document.querySelector(
+  function getCategoryItems(root) {
+    const categoryListElement = root.querySelector(
       CATEGORY_LIST_SELECTOR
     );
     const categoryListItems = categoryListElement.querySelectorAll(
@@ -181,27 +180,32 @@
     });
     return categories;
   }
+  function parseMenu(menuElement) {
+    return {
+      id: menuElement.dataset.menu,
+      name: menuElement.dataset.menuName,
+      type: menuElement.dataset.menuType,
+      domElement: menuElement,
+      menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
+      sections: [],
+      classname: menuElement.dataset.menuType === "Gerichte" ? "gerichte-cms_list" : "drinks-cms_list"
+    };
+  }
   function initialize() {
-    const menuListItems = getMenuItems();
-    const dishListItems = getDishItems();
-    const drinkListItems = getDrinkItems();
-    const categoryListItems = getCategoryItems();
+    const root = document;
+    const menuListItems = getMenuItems(root);
+    const dishListItems = getDishItems(root);
+    const drinkListItems = getDrinkItems(root);
+    const categoryListItems = getCategoryItems(root);
     const dishes = [
       ...parseDishes(drinkListItems),
       ...parseDishes(dishListItems)
     ];
     const categories = parseCategories(categoryListItems);
+    let menus = {};
     menuListItems.forEach((menuElement) => {
-      menus[menuElement.dataset.menu] = {
-        id: menuElement.dataset.menu,
-        name: menuElement.dataset.menuName,
-        type: menuElement.dataset.menuType,
-        domElement: menuElement,
-        menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
-        sections: [],
-        classname: menuElement.dataset.menuType === "Gerichte" ? "gerichte-cms_list" : "drinks-cms_list"
-      };
-      let menu = menus[menuElement.dataset.menu];
+      let menu = parseMenu(menuElement);
+      menus[menu.id] = menu;
       const menuSectionListElement = menuElement.querySelector(
         MENU_SECTION_LIST_SELECTOR
       );

@@ -16,8 +16,6 @@ const DISH_LIST_SELECTOR = `[aria-role="${DISH_NAME + cmsListSuffix}"]`;
 const DRINK_LIST_SELECTOR = `[aria-role="${DRINK_NAME + cmsListSuffix}"]`;
 const CATEGORY_LIST_SELECTOR = `[aria-role="${CATEGORY_NAME + cmsListSuffix}"]`;
 
-let menus: MenuList = {};
-
 type DishType = "food" | "drink";
 type CategoryType = string;
 type CategoryList = Record<string, Category>;
@@ -108,35 +106,32 @@ function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
     `;
 }
 
-function getDishItems(): HTMLElement[] {
-  const dishListElement =
-    document.querySelector<HTMLElement>(DISH_LIST_SELECTOR);
+function getDishItems(root: HTMLElement | Document): HTMLElement[] {
+  const dishListElement = root.querySelector<HTMLElement>(DISH_LIST_SELECTOR);
   const dishListItems = dishListElement.querySelectorAll<HTMLElement>(
     wf.select.cmsItem,
   );
   return Array.from(dishListItems);
 }
 
-function getDrinkItems(): HTMLElement[] {
-  const drinkListElement =
-    document.querySelector<HTMLElement>(DRINK_LIST_SELECTOR);
+function getDrinkItems(root: HTMLElement | Document): HTMLElement[] {
+  const drinkListElement = root.querySelector<HTMLElement>(DRINK_LIST_SELECTOR);
   const drinkListItems = drinkListElement.querySelectorAll<HTMLElement>(
     wf.select.cmsItem,
   );
   return Array.from(drinkListItems);
 }
 
-function getMenuItems(): HTMLElement[] {
-  const menuListElement =
-    document.querySelector<HTMLElement>(MENU_LIST_SELECTOR);
+function getMenuItems(root: HTMLElement | Document): HTMLElement[] {
+  const menuListElement = root.querySelector<HTMLElement>(MENU_LIST_SELECTOR);
   const menuListItems = menuListElement.querySelectorAll<HTMLElement>(
     `[aria-role="${MENU_NAME + cmsItemSuffix}"]`,
   );
   return Array.from(menuListItems);
 }
 
-function getCategoryItems(): HTMLElement[] {
-  const categoryListElement = document.querySelector<HTMLElement>(
+function getCategoryItems(root: HTMLElement | Document): HTMLElement[] {
+  const categoryListElement = root.querySelector<HTMLElement>(
     CATEGORY_LIST_SELECTOR,
   );
   const categoryListItems = categoryListElement.querySelectorAll<HTMLElement>(
@@ -193,11 +188,27 @@ function parseCategories(categoryListItems: HTMLElement[]): CategoryList {
   return categories;
 }
 
+function parseMenu(menuElement: HTMLElement): Menu {
+  return {
+    id: menuElement.dataset.menu,
+    name: menuElement.dataset.menuName,
+    type: menuElement.dataset.menuType,
+    domElement: menuElement,
+    menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
+    sections: [],
+    classname:
+      menuElement.dataset.menuType === "Gerichte"
+        ? "gerichte-cms_list"
+        : "drinks-cms_list",
+  };
+}
+
 function initialize(): void {
-  const menuListItems = getMenuItems();
-  const dishListItems = getDishItems();
-  const drinkListItems = getDrinkItems();
-  const categoryListItems = getCategoryItems();
+  const root = document;
+  const menuListItems = getMenuItems(root);
+  const dishListItems = getDishItems(root);
+  const drinkListItems = getDrinkItems(root);
+  const categoryListItems = getCategoryItems(root);
 
   const dishes = [
     ...parseDishes(drinkListItems),
@@ -205,23 +216,11 @@ function initialize(): void {
   ];
   const categories = parseCategories(categoryListItems);
 
+  let menus: MenuList = {};
+
   menuListItems.forEach((menuElement) => {
-    // console.log("MENU: " + menuElement.dataset.menuName.toUpperCase());
-
-    menus[menuElement.dataset.menu] = {
-      id: menuElement.dataset.menu,
-      name: menuElement.dataset.menuName,
-      type: menuElement.dataset.menuType,
-      domElement: menuElement,
-      menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
-      sections: [],
-      classname:
-        menuElement.dataset.menuType === "Gerichte"
-          ? "gerichte-cms_list"
-          : "drinks-cms_list",
-    };
-
-    let menu: Menu = menus[menuElement.dataset.menu];
+    let menu: Menu = parseMenu(menuElement);
+    menus[menu.id] = menu;
 
     const menuSectionListElement = menuElement.querySelector<HTMLElement>(
       MENU_SECTION_LIST_SELECTOR,
