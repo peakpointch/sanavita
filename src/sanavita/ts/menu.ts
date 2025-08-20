@@ -16,12 +16,12 @@ const DISH_LIST_SELECTOR = `[aria-role="${DISH_NAME + cmsListSuffix}"]`;
 const DRINK_LIST_SELECTOR = `[aria-role="${DRINK_NAME + cmsListSuffix}"]`;
 const CATEGORY_LIST_SELECTOR = `[aria-role="${CATEGORY_NAME + cmsListSuffix}"]`;
 
-let menus: Record<string, Menu> = {};
-let categories: Record<string, Category> = {};
-let dishes: Dish[] = [];
+let menus: MenuList = {};
 
 type DishType = "food" | "drink";
 type CategoryType = string;
+type CategoryList = Record<string, Category>;
+type MenuList = Record<string, Menu>;
 
 interface SubCategory {
   id: string;
@@ -55,7 +55,8 @@ interface Dish {
   htmlString: string;
 }
 
-function pushDishes(nodeList: HTMLElement[]) {
+function parseDishes(nodeList: HTMLElement[]): Dish[] {
+  const dishes: Dish[] = [];
   nodeList.forEach((dishEl) => {
     const dishMenu = dishEl.dataset.dishMenu;
 
@@ -71,6 +72,7 @@ function pushDishes(nodeList: HTMLElement[]) {
       dishes.push(dish);
     }
   });
+  return dishes;
 }
 
 function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
@@ -143,12 +145,8 @@ function getCategoryItems(): HTMLElement[] {
   return Array.from(categoryListItems);
 }
 
-function initialize(): void {
-  const menuListItems = getMenuItems();
-  const dishListItems = getDishItems();
-  const drinkListItems = getDrinkItems();
-  const categoryListItems = getCategoryItems();
-
+function parseCategories(categoryListItems: HTMLElement[]): CategoryList {
+  let categories: CategoryList = {};
   // Iterate through each category item
   categoryListItems.forEach((item) => {
     const subcategoryElement = item.querySelector<HTMLElement>(
@@ -192,8 +190,20 @@ function initialize(): void {
     }
   });
 
-  pushDishes(drinkListItems);
-  pushDishes(dishListItems);
+  return categories;
+}
+
+function initialize(): void {
+  const menuListItems = getMenuItems();
+  const dishListItems = getDishItems();
+  const drinkListItems = getDrinkItems();
+  const categoryListItems = getCategoryItems();
+
+  const dishes = [
+    ...parseDishes(drinkListItems),
+    ...parseDishes(dishListItems),
+  ];
+  const categories = parseCategories(categoryListItems);
 
   menuListItems.forEach((menuElement) => {
     // console.log("MENU: " + menuElement.dataset.menuName.toUpperCase());

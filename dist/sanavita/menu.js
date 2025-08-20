@@ -65,9 +65,8 @@
   var DRINK_LIST_SELECTOR = `[aria-role="${DRINK_NAME + cmsListSuffix}"]`;
   var CATEGORY_LIST_SELECTOR = `[aria-role="${CATEGORY_NAME + cmsListSuffix}"]`;
   var menus = {};
-  var categories = {};
-  var dishes = [];
-  function pushDishes(nodeList) {
+  function parseDishes(nodeList) {
+    const dishes = [];
     nodeList.forEach((dishEl) => {
       const dishMenu = dishEl.dataset.dishMenu;
       if (dishMenu) {
@@ -82,6 +81,7 @@
         dishes.push(dish);
       }
     });
+    return dishes;
   }
   function DISH_GROUP_TEMPLATE(menu, category) {
     const filteredSubcategories = category.subcategories.filter(
@@ -142,11 +142,8 @@
     );
     return Array.from(categoryListItems);
   }
-  function initialize() {
-    const menuListItems = getMenuItems();
-    const dishListItems = getDishItems();
-    const drinkListItems = getDrinkItems();
-    const categoryListItems = getCategoryItems();
+  function parseCategories(categoryListItems) {
+    let categories = {};
     categoryListItems.forEach((item) => {
       const subcategoryElement = item.querySelector(
         "[data-is-subcategory]"
@@ -182,8 +179,18 @@
         });
       }
     });
-    pushDishes(drinkListItems);
-    pushDishes(dishListItems);
+    return categories;
+  }
+  function initialize() {
+    const menuListItems = getMenuItems();
+    const dishListItems = getDishItems();
+    const drinkListItems = getDrinkItems();
+    const categoryListItems = getCategoryItems();
+    const dishes = [
+      ...parseDishes(drinkListItems),
+      ...parseDishes(dishListItems)
+    ];
+    const categories = parseCategories(categoryListItems);
     menuListItems.forEach((menuElement) => {
       menus[menuElement.dataset.menu] = {
         id: menuElement.dataset.menu,
