@@ -41,7 +41,7 @@ interface Menu {
   domElement: HTMLElement;
   menuContentElement: HTMLElement;
   sections: string[];
-  classname: string;
+  className: string;
 }
 
 interface Dish {
@@ -82,7 +82,7 @@ function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
       <div class="dish-group">
         <div class="heading-style-h6">${category.name}</div>
         <div class="spacer-small"></div>
-        <div class="${menu.classname}">
+        <div class="${menu.className}">
         <!-- Render dishes that belong directly to the category -->
         ${category.dishes.map((dish) => dish.htmlString).join("")}
         </div>
@@ -94,7 +94,7 @@ function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
             (sub) => `
             <div class="tagline">${sub.name}</div>
             <div class="spacer-small"></div>
-            <div class="${menu.classname}">
+            <div class="${menu.className}">
               ${sub.dishes.map((dish) => dish.htmlString).join("")}
             </div>
             ${sub.description ? '<div class="spacer-regular"></div>' + sub.description : ""}
@@ -196,7 +196,7 @@ function parseMenu(menuElement: HTMLElement): Menu {
     domElement: menuElement,
     menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
     sections: [],
-    classname:
+    className:
       menuElement.dataset.menuType === "Gerichte"
         ? "gerichte-cms_list"
         : "drinks-cms_list",
