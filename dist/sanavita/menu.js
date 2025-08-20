@@ -245,9 +245,6 @@
       renderMenu(menu, categories, dishes);
       return menu;
     });
-    console.log("MENUS", menus);
-    console.log("CATEGORIES", categories);
-    console.log("DISHES", dishes);
   }
   window.addEventListener("DOMContentLoaded", () => {
     initialize();
