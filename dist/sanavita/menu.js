@@ -220,9 +220,18 @@
       menu.menuContentElement.insertAdjacentHTML("beforeend", sectionHTML);
     });
   }
-  function initialize() {
-    const root = document;
-    const menuListItems = getMenuItems(root);
+  async function fetchDocument(path) {
+    const securePath = path.startsWith("/") ? path.slice(1) : path;
+    const url = `https://${window.location.hostname}/${securePath}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, "text/html");
+    return doc;
+  }
+  async function initialize() {
+    const root = await fetchDocument("/cms/menu-data");
+    const menuListItems = getMenuItems(document);
     const dishListItems = getDishItems(root);
     const drinkListItems = getDrinkItems(root);
     const categoryListItems = getCategoryItems(root);
