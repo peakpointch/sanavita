@@ -20,7 +20,7 @@
     "serve": "^14.2.4"
   },
   "dependencies": {
-    "@xatom/build-tool": "^1.0.5",
+    "@xatom-fork/build-tool": "file:../../xatom-fork/build-tool",
     "@xatom/core": "^1.0.12",
     "date-fns": "^4.1.0",
     "libswitch": "github:peakpointch/libswitch",
