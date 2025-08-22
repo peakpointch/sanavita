@@ -1,7 +1,7 @@
 // Function to calculate the number of days between two dates
 function calculateDaysUntil(dateString) {
   // Split the European formatted date (dd.mm.yyyy) into day, month, year
-  const [day, month, year] = dateString.split('.');
+  const [day, month, year] = dateString.split(".");
 
   // Create a Date object for the target date
   const targetDate = new Date(`${year}-${month}-${day}`);
@@ -19,14 +19,17 @@ function calculateDaysUntil(dateString) {
   return daysUntil;
 }
 
-// Get all div elements with the attribute 'data-count-down'
-const countDownElements = document.querySelectorAll('[data-count-down]');
+export function initCountDown() {
+  // Get all div elements with the attribute 'data-count-down'
+  const countDownElements = document.querySelectorAll("[data-count-down]");
 
-// Iterate over each div and calculate the days until the target date
-countDownElements.forEach(div => {
-  const dateString = div.getAttribute('data-count-down');
-  const daysUntil = calculateDaysUntil(dateString);
+  // Iterate over each div and calculate the days until the target date
+  countDownElements.forEach((div) => {
+    const dateString = div.getAttribute("data-count-down");
+    const daysUntil = calculateDaysUntil(dateString);
 
-  // Insert the number of days into the div's innerText
-  div.innerText = `${daysUntil}`;
-});
+    // Insert the number of days into the div's innerText
+    div.innerText = `${daysUntil}`;
+  });
+}
+

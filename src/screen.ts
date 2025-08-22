@@ -5,16 +5,19 @@ import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules";
 import { readSwiperOptions } from "../../ts/swiper";
 import { SwiperOptions } from "swiper/types";
+import { onReady } from "@xatom/core";
 
 type WfCollection = "screen";
 type SwiperInstance = "news" | "tagesmenu" | "wochenhit" | "activity";
 
 const wfCollectionSelector = createAttribute<WfCollection>("wf-collection");
-const swiperSelector = createAttribute<SwiperInstance>("custom-swiper-component");
+const swiperSelector = createAttribute<SwiperInstance>(
+  "custom-swiper-component",
+);
 
 const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
-  "screen": "string",
+  screen: "string",
   "use-time-of-day-range": "boolean",
 });
 
@@ -22,7 +25,7 @@ type OverlayFilterAttrs = typeof filterAttributes;
 
 function getScreen(): string {
   const params = new URLSearchParams(window.location.search);
-  return params.get('id') || '';
+  return params.get("id") || "";
 }
 
 class ElementManager {
@@ -38,7 +41,11 @@ class ElementManager {
    */
   private overlaycount: number = 0;
 
-  constructor(allElements: RenderData<OverlayFilterAttrs>, swiper: Swiper, collectionElement: HTMLElement) {
+  constructor(
+    allElements: RenderData<OverlayFilterAttrs>,
+    swiper: Swiper,
+    collectionElement: HTMLElement,
+  ) {
     this.data = allElements;
     this.screen = getScreen();
     this.filteredData = []; // Track currently visible elements
@@ -50,7 +57,7 @@ class ElementManager {
   // Filters the RenderData and returns the elements that should be shown
   private filterElements(): RenderData {
     this.filteredData = [...this.data].filter((entry) => {
-      if (!entry.props.screen) entry.props.screen = '';
+      if (!entry.props.screen) entry.props.screen = "";
       entry.props.screen = entry.props.screen.toLowerCase();
 
       let matchScreen = entry.props.screen === this.screen;
@@ -76,17 +83,26 @@ class ElementManager {
     return this.filteredData;
   }
 
-  private sortByDate(data: RenderData<OverlayFilterAttrs>): RenderData<OverlayFilterAttrs> {
-    return data.sort((a, b) => a.props.startDate.getTime() - b.props.startDate.getTime());
+  private sortByDate(
+    data: RenderData<OverlayFilterAttrs>,
+  ): RenderData<OverlayFilterAttrs> {
+    return data.sort(
+      (a, b) => a.props.startDate.getTime() - b.props.startDate.getTime(),
+    );
   }
 
   // Finds the original HTMLElement for a given entry in the collectionElement (hidden designs)
   private findElement(entry: RenderData[number]): HTMLElement | null {
     const selector = `[slug="${entry.instance}"]`;
-    const elementFound = this.collectionElement.querySelector<HTMLElement>(selector).firstElementChild;
+    const elementFound =
+      this.collectionElement.querySelector<HTMLElement>(
+        selector,
+      ).firstElementChild;
 
     if (!elementFound) {
-      throw new Error(`The element "selector" doesn't exist inside the webflow collection list it was parsed from.`);
+      throw new Error(
+        `The element "selector" doesn't exist inside the webflow collection list it was parsed from.`,
+      );
     }
 
     return elementFound as HTMLElement;
@@ -96,9 +112,9 @@ class ElementManager {
   private insertElement(element: RenderData[number]): void {
     const designToInsert = this.findElement(element);
     const elementToInsert = designToInsert.cloneNode(true) as HTMLElement;
-    const wfElementId = elementToInsert.getAttribute("data-wf-element")
+    const wfElementId = elementToInsert.getAttribute("data-wf-element");
 
-    if (element.element === 'birthday') {
+    if (element.element === "birthday") {
       // Insert the cloned element into the visible swiper area for birthday elements
       elementToInsert.classList.add("swiper-slide");
       this.swiper.prependSlide(elementToInsert); // Assuming automatic call to swiper.update() by library
@@ -106,7 +122,9 @@ class ElementManager {
       this.swiper.slideTo(0);
     } else {
       if (this.overlaycount >= 1) {
-        console.info(`insertElement: One or more overlays are already active. Skipping "${wfElementId}"`);
+        console.info(
+          `insertElement: One or more overlays are already active. Skipping "${wfElementId}"`,
+        );
         return;
       }
       // Insert the cloned element into the visible swiper area for event/memorial elements
@@ -123,7 +141,7 @@ class ElementManager {
   // Removes elements from the swiper (the visible area)
   private removeElement(element: RenderData[number]): void {
     const clonedElementToRemove = this.insertedElements.get(element.instance);
-    const wfElementId = clonedElementToRemove.getAttribute("data-wf-element")
+    const wfElementId = clonedElementToRemove.getAttribute("data-wf-element");
 
     if (clonedElementToRemove) {
       console.log(`Remove "${wfElementId}"`);
@@ -135,13 +153,15 @@ class ElementManager {
       // Remove from the tracked inserted elements map
       this.insertedElements.delete(element.instance);
 
-      if (element.element !== 'birthday') {
+      if (element.element !== "birthday") {
         this.overlaycount--;
       } else {
         this.swiper.autoplay.resume();
       }
     } else {
-      console.warn(`Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`);
+      console.warn(
+        `Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`,
+      );
     }
   }
 
@@ -161,7 +181,9 @@ class ElementManager {
 
     // Remove elements that should no longer be shown
     this.insertedElements.forEach((insertedHTML, insertedKey) => {
-      const insertedEl = this.data.find(entry => entry.instance === insertedKey);
+      const insertedEl = this.data.find(
+        (entry) => entry.instance === insertedKey,
+      );
       if (!this.filteredData.includes(insertedEl)) {
         this.removeElement(insertedEl);
         changed = true;
@@ -190,7 +212,7 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
     startDate.getHours(),
     startDate.getMinutes(),
     startDate.getSeconds(),
-    startDate.getMilliseconds()
+    startDate.getMilliseconds(),
   );
 
   const todayEnd = new Date();
@@ -198,7 +220,7 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
     endDate.getHours(),
     endDate.getMinutes(),
     endDate.getSeconds(),
-    endDate.getMilliseconds()
+    endDate.getMilliseconds(),
   );
 
   if (todayEnd >= todayStart) {
@@ -234,7 +256,10 @@ function applyOffset(base: Date, offset: TimeOffset): Date {
   return d;
 }
 
-function setTestItem(data: RenderData<OverlayFilterAttrs>, config: TestItemConfig): void {
+function setTestItem(
+  data: RenderData<OverlayFilterAttrs>,
+  config: TestItemConfig,
+): void {
   const item = data[config.index];
   const now = new Date();
 
@@ -245,45 +270,56 @@ function setTestItem(data: RenderData<OverlayFilterAttrs>, config: TestItemConfi
   console.log("TestItem:", item.props);
 }
 
-function initialize() {
-  const collectionElement = document.body.querySelector<HTMLElement>(wfCollectionSelector("screen"));
+export function initDigitalSignage() {
+  const collectionElement = document.body.querySelector<HTMLElement>(
+    wfCollectionSelector("screen"),
+  );
 
   const collection = new FilterCollection(collectionElement, {
     name: "Overlays",
     rendererOptions: {
-      attributeName: 'wf',
+      attributeName: "wf",
       filterAttributes: filterAttributes,
-      timezone: "Europe/Zurich"
-    }
+      timezone: "Europe/Zurich",
+    },
   });
   collection.removeInvisibleElements();
   collection.readData();
 
-  const newsSwiperEl = document.body.querySelector<HTMLElement>(swiperSelector("news"));
+  const newsSwiperEl = document.body.querySelector<HTMLElement>(
+    swiperSelector("news"),
+  );
   const swiperOptions: SwiperOptions = {
     ...readSwiperOptions(newsSwiperEl),
-    modules: [Autoplay, Navigation, Pagination, Manipulation]
-  }
+    modules: [Autoplay, Navigation, Pagination, Manipulation],
+  };
   const swiper = new Swiper(newsSwiperEl, swiperOptions);
   swiper.autoplay.stop();
 
   if (swiperOptions.autoplay !== false) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          swiper.autoplay.start();
-        } else {
-          swiper.autoplay.stop();
-        }
-      });
-    }, {
-      threshold: 0.2
-    });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            swiper.autoplay.start();
+          } else {
+            swiper.autoplay.stop();
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+      },
+    );
 
     observer.observe(swiper.el);
   }
 
-  const manager = new ElementManager(collection.getData(), swiper, collectionElement);
+  const manager = new ElementManager(
+    collection.getData(),
+    swiper,
+    collectionElement,
+  );
   setInterval(() => {
     manager.update();
   }, 3000);
@@ -294,6 +330,6 @@ function initialize() {
   window.elementManager = manager;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  initialize();
+onReady(() => {
+  initDigitalSignage();
 });

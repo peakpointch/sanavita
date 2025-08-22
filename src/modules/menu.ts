@@ -260,7 +260,7 @@ async function fetchDocument(path: string): Promise<Document> {
   return doc;
 }
 
-async function initialize(): Promise<void> {
+export async function initBistroMenus(): Promise<void> {
   const root = await fetchDocument("/cms/menu-data");
   const menuListItems = getMenuItems(document);
   const dishListItems = getDishItems(root);
@@ -278,12 +278,4 @@ async function initialize(): Promise<void> {
     renderMenu(menu, categories, dishes);
     return menu;
   });
-
-  // console.log("MENUS", menus);
-  // console.log("CATEGORIES", categories);
-  // console.log("DISHES", dishes);
 }
-
-window.addEventListener("DOMContentLoaded", () => {
-  initialize();
-});

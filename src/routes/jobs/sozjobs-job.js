@@ -1,7 +1,5 @@
 function toKebabCase(str) {
-  return str
-    .replace(/([a-z])([A-Z])/g, '$1-$2')
-    .toLowerCase();
+  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
 function toJobDataset(str) {
@@ -9,45 +7,57 @@ function toJobDataset(str) {
 }
 
 function removePlaceholderClass() {
-  document.querySelector('[data-job-element="layout"]').classList.remove('placeholder');
+  document
+    .querySelector('[data-job-element="layout"]')
+    .classList.remove("placeholder");
 }
 
-window.addEventListener('jobDataReady', () => {
-  const job = window.jobData;
-  const contractTypes = window.contractTypesData;
-  const props = ['title', 'accessionPer', 'rate', 'categoryNames', 'contractTypeName'];
+export function initJob() {
+  window.addEventListener("jobDataReady", () => {
+    const job = window.jobData;
+    const contractTypes = window.contractTypesData;
+    const props = [
+      "title",
+      "accessionPer",
+      "rate",
+      "categoryNames",
+      "contractTypeName",
+    ];
 
-  // Determine rate
-  if (job.isparttime) {
-    job.rate = `${job.parttimefrom}-${job.parttimeto}%`;
-  } else {
-    job.rate = `Vollzeit 100%`;
-  }
+    // Determine rate
+    if (job.isparttime) {
+      job.rate = `${job.parttimefrom}-${job.parttimeto}%`;
+    } else {
+      job.rate = `Vollzeit 100%`;
+    }
 
-  // Determine category names
-  job.categorynames = job.categories
-    .map(category => {
-      return category ? category.name : '';
-    })
-    .filter(name => name !== null)
-    .join(', ');
+    // Determine category names
+    job.categorynames = job.categories
+      .map((category) => {
+        return category ? category.name : "";
+      })
+      .filter((name) => name !== null)
+      .join(", ");
 
-  job.contracttypename = contractTypes.find(type => type.key === job.contracttype)?.value
+    job.contracttypename = contractTypes.find(
+      (type) => type.key === job.contracttype,
+    )?.value;
 
-  props.forEach(prop => {
-    const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
-    const elements = document.querySelectorAll(attr);
-    elements.forEach(el => {
-      el.innerText = job[prop.toLowerCase()];
-      el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+    props.forEach((prop) => {
+      const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
+      const elements = document.querySelectorAll(attr);
+      elements.forEach((el) => {
+        el.innerText = job[prop.toLowerCase()];
+        el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
+      });
     });
+
+    const abstractWrapper = document.querySelector("[data-job-abstract]");
+    abstractWrapper.insertAdjacentHTML("beforeend", job.abstract);
+
+    const detailWrapper = document.querySelector("[data-job-detail]");
+    detailWrapper.insertAdjacentHTML("beforeend", job.detail);
+
+    removePlaceholderClass();
   });
-
-  const abstractWrapper = document.querySelector('[data-job-abstract]');
-  abstractWrapper.insertAdjacentHTML('beforeend', job.abstract)
-
-  const detailWrapper = document.querySelector('[data-job-detail]');
-  detailWrapper.insertAdjacentHTML('beforeend', job.detail)
-
-  removePlaceholderClass();
-})
+}

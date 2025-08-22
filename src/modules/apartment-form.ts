@@ -3,7 +3,7 @@ import {
   formElementSelector,
   MultiStepForm,
   FormDecision,
-  CMSSelect
+  CMSSelect,
 } from "peakflow/form";
 import ProspectArray from "./form/prospect-array";
 import { createAttribute } from "peakflow/attributeselector";
@@ -11,15 +11,16 @@ import { flattenProspects } from "./form/resident-prospect";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getElement } from "peakflow/utils";
 
-const decisionSelector = createAttribute('data-decision-component');
+const decisionSelector = createAttribute("data-decision-component");
 
 function initializeFormDecisions(
   form: MultiStepForm,
   errorMessages: { [id: string]: { [key: string]: string } },
-  defaultMessages: { [id: string]: string } = {}
+  defaultMessages: { [id: string]: string } = {},
 ): void {
   form.formSteps.forEach((step, stepIndex) => {
-    const formDecisions = step.querySelectorAll<HTMLElement>(decisionSelector());
+    const formDecisions =
+      step.querySelectorAll<HTMLElement>(decisionSelector());
 
     formDecisions.forEach((element) => {
       const id = element.dataset.decisionComponent;
@@ -40,26 +41,35 @@ function initializeFormDecisions(
   });
 }
 
-type PathId = string & ('show' | 'hide');
+type PathId = string & ("show" | "hide");
 
 function initializeProspectDecisions<T extends string = string>(
   prospectArray: ProspectArray,
   errorMessages: { [id: string]: { [key: string]: string } },
-  defaultMessages: { [id: string]: string } = {}
+  defaultMessages: { [id: string]: string } = {},
 ): Map<T, FormDecision<PathId>> {
-  const decisionElements = prospectArray.modalElement.querySelectorAll<HTMLElement>(decisionSelector());
+  const decisionElements =
+    prospectArray.modalElement.querySelectorAll<HTMLElement>(
+      decisionSelector(),
+    );
   const formDecisions: Map<T, FormDecision<PathId>> = new Map();
 
   decisionElements.forEach((element, index) => {
-    const id = element.getAttribute(FormDecision.attr.component) || index.toString();
-    const decision = new FormDecision<PathId>(element, { id, clearPathOnChange: false });
+    const id =
+      element.getAttribute(FormDecision.attr.component) || index.toString();
+    const decision = new FormDecision<PathId>(element, {
+      id,
+      clearPathOnChange: false,
+    });
     formDecisions.set(decision.opts.id as T, decision);
 
     const group = prospectArray.getClosestGroup(decision.component);
     decision.onChange(() => {
       prospectArray.validateModalGroup(group);
-      const valid = prospectArray.groups.every(group => group.isValid === true);
-      prospectArray.saveOptions.setAction(valid ? 'save' : 'draft');
+      const valid = prospectArray.groups.every(
+        (group) => group.isValid === true,
+      );
+      prospectArray.saveOptions.setAction(valid ? "save" : "draft");
     });
 
     prospectArray.onOpen(`decision-${id}`, () => decision.sync());
@@ -78,12 +88,12 @@ function insertSearchParamValues(): void {
   if (window.location.search) {
     const params = new URLSearchParams(window.location.search);
     const selectElement = document.querySelector(
-      "#wohnung"
+      "#wohnung",
     ) as HTMLInputElement;
 
     const wohnungValue = params.get("wohnung");
     const option = selectElement.querySelector(
-      `option[value="${wohnungValue}"]`
+      `option[value="${wohnungValue}"]`,
     );
     if (wohnungValue && option) {
       // If you want to handle cases where the value doesn't exist
@@ -95,34 +105,37 @@ function insertSearchParamValues(): void {
 }
 
 function initCMSSelect(): void {
-  const source = CMSSelect.selector('source', 'apartment');
+  const source = CMSSelect.selector("source", "apartment");
   const apartmentSelect = new CMSSelect(source);
   apartmentSelect.insertOptions();
 
   const wrapper = getElement('[data-field-wrapper-id="alternativeApartment"]');
 
   if (apartmentSelect.values.length <= 1) {
-    wrapper.style.display = 'none';
-    return
+    wrapper.style.display = "none";
+    return;
   }
 
-  const alternative = CMSSelect.selector('target', 'alternativeApartment');
-  const alternativeSelect = wrapper.querySelector<HTMLSelectElement>(alternative);
-  apartmentSelect.onChange('syncAlternatives', () => {
+  const alternative = CMSSelect.selector("target", "alternativeApartment");
+  const alternativeSelect =
+    wrapper.querySelector<HTMLSelectElement>(alternative);
+  apartmentSelect.onChange("syncAlternatives", () => {
     const values = Array.from(apartmentSelect.values);
-    const filtered = values.filter(val => val !== apartmentSelect.targets[0].value)
+    const filtered = values.filter(
+      (val) => val !== apartmentSelect.targets[0].value,
+    );
     CMSSelect.clearOptions(alternativeSelect, true);
     CMSSelect.insertOptions(alternativeSelect, filtered);
   });
   apartmentSelect.triggerOnChange();
 }
 
-const formElement: HTMLElement | null = document.querySelector(
-  formElementSelector('component', { exclusions: [] })
-);
-formElement?.classList.remove("w-form");
+export function initApartmentRegistrationForm(): void {
+  const formElement: HTMLElement | null = document.querySelector(
+    formElementSelector("component", { exclusions: [] }),
+  );
+  formElement?.classList.remove("w-form");
 
-document.addEventListener("DOMContentLoaded", async () => {
   if (!formElement) {
     console.error("Form not found.");
     return;
@@ -136,7 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     recaptcha: true,
     excludeInputSelectors: [
       '[data-decision-path="upload"]',
-      '[data-decision-component]',
+      "[data-decision-component]",
     ],
   });
 
@@ -144,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     stepIndex: 2,
     instance: prospectArray,
     validator: () => prospectArray.validate(),
-    getData: () => flattenProspects(prospectArray.prospects)
+    getData: () => flattenProspects(prospectArray.prospects),
   });
   FORM.component.addEventListener("changeStep", () => {
     if (prospectArray.modal.opened) prospectArray.closeModal();
@@ -160,11 +173,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     attachmentSubmission: `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
   };
 
-  initializeProspectDecisions(
-    prospectArray,
-    errorMessages,
-    defaultMessages
-  );
+  initializeProspectDecisions(prospectArray, errorMessages, defaultMessages);
   initializeFormDecisions(FORM, errorMessages, defaultMessages);
   insertSearchParamValues();
   initCMSSelect();
@@ -174,10 +183,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     prospectArray.clearProgress();
   });
 
-  const monthStart = startOfMonth(new Date())
+  const monthStart = startOfMonth(new Date());
   const nextMonthStart = addMonths(monthStart, 1);
-  const nextMonthStartString = format(nextMonthStart, 'yyyy-MM-dd');
-  const moveInDateInput = FORM.getFormInput<HTMLInputElement>('moveInDate');
+  const nextMonthStartString = format(nextMonthStart, "yyyy-MM-dd");
+  const moveInDateInput = FORM.getFormInput<HTMLInputElement>("moveInDate");
   moveInDateInput.min = nextMonthStartString;
 
   // @ts-ignore
@@ -189,4 +198,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   // prospectArray.editProspect(prospectArray.getProspect(0));
 
   console.log("Form initialized:", FORM.initialized, FORM);
-});
+}
