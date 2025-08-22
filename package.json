@@ -1,14 +1,12 @@
 {
-  "name": "peakflow-client",
+  "name": "sanavita",
   "version": "1.0.0",
-  "description": "",
   "type": "module",
+  "private": false,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "serve": "serve",
-    "dev": "serve -l 7000",
-    "clean": "rimraf ./dist/",
-    "build": "npm run clean --silent && node builder.js"
+    "serve": "serve -l 7000",
+    "start": "xatom dev",
+    "build": "xatom build"
   },
   "libswitch": {
     "name": "peakflow",
@@ -17,7 +15,7 @@
     "tsconfigDev": "tsconfig.dev.json",
     "tsconfigProd": "tsconfig.prod.json"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "serve": "^14.2.4",
     "typescript": "^5.8.3"
@@ -25,6 +23,8 @@
   "dependencies": {
     "@calcom/embed-core": "^1.5.3",
     "@vime/core": "^5.4.1",
+    "@xatom/build-tool": "^1.0.5",
+    "@xatom/core": "^1.0.12",
     "libswitch": "github:peakpointch/libswitch",
     "peakflow": "github:peakpointch/peakflow",
     "swiper": "^11.2.5"
