@@ -1,6 +1,4 @@
-function toKebabCase(str) {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
-}
+import { toDashCase } from "peakflow/utils";
 
 function toJobDataset(str) {
   return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
@@ -87,7 +85,7 @@ export function initSozjobsList() {
         )?.value;
 
         props.forEach((prop) => {
-          const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
+          const attr = `[data-job-${toDashCase(prop)}]:not(a)`;
           const el = jobCard.querySelector(attr);
           el.innerText = job[prop.toLowerCase()];
           el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";

@@ -1,7 +1,7 @@
 import { WFRoute } from "@xatom/core";
 import { initCircleTabs } from "./circle-tabs.js";
-import { initSozjobsList } from "./sozjobs.js";
-import { initJob } from "./sozjobs-job.js";
+import { initSozjobsList } from "@/modules/sozjobs/list";
+import { initJob } from "@/modules/sozjobs/job";
 
 /**
  * WFRoute "/jobs"
