@@ -5,7 +5,7 @@
   "private": false,
   "scripts": {
     "serve": "serve -l 7000",
-    "start": "xatom dev",
+    "start": "npm run serve --silent & xatom dev",
     "build": "xatom build"
   },
   "libswitch": {
@@ -17,16 +17,15 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "serve": "^14.2.4",
-    "typescript": "^5.8.3"
+    "serve": "^14.2.4"
   },
   "dependencies": {
-    "@calcom/embed-core": "^1.5.3",
-    "@vime/core": "^5.4.1",
     "@xatom/build-tool": "^1.0.5",
     "@xatom/core": "^1.0.12",
+    "date-fns": "^4.1.0",
     "libswitch": "github:peakpointch/libswitch",
     "peakflow": "github:peakpointch/peakflow",
+    "semver": "^7.7.2",
     "swiper": "^11.2.5"
   }
 }
