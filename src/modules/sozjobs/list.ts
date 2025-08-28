@@ -148,7 +148,7 @@ export async function initSozjobsList() {
   );
 
   const jobIds = publicationsOwn.map((pub) => pub.jobidentitynumber);
-  jobIds.push("J931213"); // Change this for dev
+  // jobIds.push("J931213"); // Change this for dev
   const jobs = await getSozjobsItem("jobs", jobIds);
 
   if (!jobs.length) {
