@@ -9,6 +9,7 @@ onReady(() => {
 
   // By module
   forms();
+  bistroMenus();
 
   // By page
   app();
