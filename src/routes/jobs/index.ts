@@ -1,7 +1,7 @@
 import { WFRoute } from "@xatom/core";
 import { initCircleTabs } from "./circle-tabs.js";
 import { initSozjobsList } from "@/modules/sozjobs/list";
-import { initJob } from "@/modules/sozjobs/job";
+import { initJobItemPage } from "@/modules/sozjobs/job";
 
 /**
  * WFRoute "/jobs"
@@ -18,6 +18,6 @@ export const jobs = () => {
  */
 export const job = () => {
   new WFRoute("/jobs/job").execute(() => {
-    initJob();
+    initJobItemPage();
   });
 };

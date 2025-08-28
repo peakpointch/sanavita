@@ -4,9 +4,8 @@
   "type": "module",
   "private": false,
   "scripts": {
-    "serve": "serve -l 7000",
-    "start": "npm run serve --silent & xatom dev",
-    "build": "xatom build"
+    "dev": "devflow dev",
+    "build": "devflow build"
   },
   "libswitch": {
     "name": "peakflow",
@@ -16,16 +15,15 @@
     "tsconfigProd": "tsconfig.prod.json"
   },
   "license": "MIT",
-  "devDependencies": {
-    "serve": "^14.2.4"
-  },
   "dependencies": {
-    "@xatom-fork/build-tool": "file:../../xatom-fork/build-tool",
     "@xatom/core": "^1.0.12",
     "date-fns": "^4.1.0",
-    "libswitch": "github:peakpointch/libswitch",
-    "peakflow": "github:peakpointch/peakflow",
+    "devflow": "file:../../devflow",
+    "peakflow": "file:../../peakflow",
     "semver": "^7.7.2",
     "swiper": "^11.2.5"
+  },
+  "devDependencies": {
+    "libswitch": "github:peakpointch/libswitch"
   }
 }

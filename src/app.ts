@@ -1,14 +1,28 @@
 import { onReady } from "@xatom/core";
-import { root } from "./routes";
+import { app, bistroMenus, forms } from "./routes";
 import { job, jobs } from "./routes/jobs";
 import { zukunftswohnen } from "./routes/zukunftswohnen";
-import { forms } from "./routes/forms";
+import { overrideWebflowScroll } from "peakflow/scroll";
 
 onReady(() => {
+  global();
+
+  // By module
   forms();
-  root();
+
+  // By page
+  app();
   jobs();
   job();
   zukunftswohnen();
-  console.log("HELLO");
 });
+
+/**
+ * Code that runs on all pages
+ */
+function global(): void {
+  overrideWebflowScroll({
+    defaultOffset: 99,
+    defaultBehaviour: "smooth",
+  });
+}
