@@ -1,63 +1,29 @@
-function toKebabCase(str) {
-  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
-}
+import { getSozjobsCollection, getSozjobsItem } from "./api";
+import { getJobRenderData } from "./list";
+import { Renderer } from "peakflow";
 
-function toJobDataset(str) {
-  return `job${str.charAt(0).toUpperCase() + str.slice(1)}`;
-}
-
-function removePlaceholderClass() {
+function removePlaceholderClass(): void {
   document
-    .querySelector('[data-job-element="layout"]')
+    .querySelector<HTMLElement>('[data-job-element="layout"]')
     .classList.remove("placeholder");
 }
 
-export function initJob() {
-  window.addEventListener("jobDataReady", () => {
-    const job = window.jobData;
-    const contractTypes = window.contractTypesData;
-    const props = [
-      "title",
-      "accessionPer",
-      "rate",
-      "categoryNames",
-      "contractTypeName",
-    ];
+export async function initJobItemPage() {
+  const url = new URL(window.location.href);
+  const { contractTypes } = await getSozjobsCollection("contractTypes");
+  const jobId = url.searchParams.get("id");
+  const job = await getSozjobsItem("jobs", jobId);
 
-    // Determine rate
-    if (job.isparttime) {
-      job.rate = `${job.parttimefrom}-${job.parttimeto}%`;
-    } else {
-      job.rate = `Vollzeit 100%`;
-    }
-
-    // Determine category names
-    job.categorynames = job.categories
-      .map((category) => {
-        return category ? category.name : "";
-      })
-      .filter((name) => name !== null)
-      .join(", ");
-
-    job.contracttypename = contractTypes.find(
-      (type) => type.key === job.contracttype,
-    )?.value;
-
-    props.forEach((prop) => {
-      const attr = `[data-job-${toKebabCase(prop)}]:not(a)`;
-      const elements = document.querySelectorAll(attr);
-      elements.forEach((el) => {
-        el.innerText = job[prop.toLowerCase()];
-        el.dataset[toJobDataset(prop)] = job[prop.toLowerCase()] || "init";
-      });
-    });
-
-    const abstractWrapper = document.querySelector("[data-job-abstract]");
-    abstractWrapper.insertAdjacentHTML("beforeend", job.abstract);
-
-    const detailWrapper = document.querySelector("[data-job-detail]");
-    detailWrapper.insertAdjacentHTML("beforeend", job.detail);
-
-    removePlaceholderClass();
+  const renderer = new Renderer(document.body, {
+    attributeName: "job",
   });
+
+  const renderData = getJobRenderData({
+    job: job,
+    contractTypes: contractTypes,
+  });
+
+  renderer.render(renderData);
+
+  removePlaceholderClass();
 }
