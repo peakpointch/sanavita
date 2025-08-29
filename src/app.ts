@@ -1,6 +1,5 @@
 import { onReady } from "@xatom/core";
 import { app, bistroMenus, forms } from "./routes";
-import { job, jobs } from "./routes/jobs";
 import { zukunftswohnen } from "./routes/zukunftswohnen";
 import { overrideWebflowScroll } from "peakflow/scroll";
 
@@ -13,8 +12,6 @@ onReady(() => {
 
   // By page
   app();
-  jobs();
-  job();
   zukunftswohnen();
 });
 

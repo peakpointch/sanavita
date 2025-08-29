@@ -3,11 +3,13 @@
   "port": 3020,
   "source": [
     "./src/app.ts",
+    "./src/admin.ts",
     "./src/screen.ts"
   ],
   "dist": "./dist",
   "scriptList": [
     "app.js",
+    "admin.js",
     "screen.js"
   ],
   "scriptAttribute": "xa-script"

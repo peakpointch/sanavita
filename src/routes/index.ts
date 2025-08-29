@@ -4,6 +4,9 @@ import { initBistroMenus } from "src/modules/menu";
 import { initWfVideo } from "src/modules/wfvideo";
 import { initVimePlayer } from "peakflow/video";
 import { initApartmentRegistrationForm } from "src/modules/apartment-form";
+import { initCircleTabs } from "./jobs/circle-tabs.js";
+import { initSozjobsList } from "@/modules/sozjobs/list";
+import { initJobItemPage } from "@/modules/sozjobs/job";
 
 /**
  * WFRoute "/"
@@ -26,6 +29,31 @@ export const app = () => {
     initVimePlayer({
       customPoster: true,
     });
+  });
+
+  new WFRoute("/jobs").execute(() => {
+    initCircleTabs();
+    initSozjobsList();
+    peakflow.execute("uploadcare");
+    new Stylesheet({
+      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
+    }).load();
+  });
+
+  new WFRoute("/jobs/job").execute(() => {
+    initJobItemPage();
+  });
+
+  new WFRoute("/bistro").execute(() => {
+    peakflow.execute("inlinecms", "swiper", "dateflow");
+  });
+
+  new WFRoute("/bistro/bankette").execute(() => {
+    peakflow.execute("cmsselect");
+  });
+
+  new WFRoute("/uber-uns").execute(() => {
+    peakflow.execute("copyComponent");
   });
 };
 
