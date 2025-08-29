@@ -11,7 +11,7 @@ import { initApartmentRegistrationForm } from "src/modules/apartment-form";
 export const app = () => {
   new WFRoute("/").execute(() => {
     initWfVideo();
-    peakflow.execute("inlinecms", "dateflow");
+    peakflow.execute("inlinecms", "swiper", "dateflow");
   });
 
   new WFRoute("/lindenpark").execute(() => {
@@ -22,6 +22,7 @@ export const app = () => {
   });
 
   new WFRoute("/wohnungen").execute(() => {
+    peakflow.execute("swiper");
     initVimePlayer({
       customPoster: true,
     });

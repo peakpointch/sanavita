@@ -1,10 +1,14 @@
 {
   "webflowSubdomain": "sanavita-ag",
   "port": 3020,
-  "source": "./src/app.ts",
+  "source": [
+    "./src/app.ts",
+    "./src/screen.ts"
+  ],
   "dist": "./dist",
   "scriptList": [
-    "app.js"
+    "app.js",
+    "screen.js"
   ],
   "scriptAttribute": "xa-script"
 }
