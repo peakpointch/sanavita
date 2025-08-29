@@ -11,12 +11,15 @@ onReady(() => {
   ];
   for (const route of homeRoutes) {
     new WFRoute(route).execute(() => {
+      peakflow.execute("inlinecms", "swiper");
       initDigitalSignage();
+      peakflow.execute("dateflow");
     });
   }
 
   new WFRoute("/screen/bistro").execute(() => {
-    peakflow.execute("swiper");
     initBistroMenus();
+    peakflow.execute("inlinecms", "swiper");
+    peakflow.execute("dateflow");
   });
 });
