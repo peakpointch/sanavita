@@ -1,5 +1,5 @@
 import { WFRoute } from "@xatom/core";
-import peakflow, { dateflow, Script, Stylesheet } from "peakflow";
+import peakflow, { AnyFn, dateflow, Script, Stylesheet, wf } from "peakflow";
 import { initBistroMenus } from "src/modules/menu";
 import { initWfVideo } from "src/modules/wfvideo";
 import { initVimePlayer } from "peakflow/video";
@@ -8,6 +8,7 @@ import { initCircleTabs } from "./jobs/circle-tabs.js";
 import { initSozjobsList } from "@/modules/sozjobs/list";
 import { initJobItemPage } from "@/modules/sozjobs/job";
 import { de } from "date-fns/locale";
+import { initListFilter } from "@/modules/list-filter.js";
 
 /**
  * WFRoute "/"
@@ -58,28 +59,8 @@ export const app = async () => {
   });
 
   new WFRoute("/aktuelles").execute(async () => {
-    await new Script({
-      src: "https://cdn.jsdelivr.net/npm/@finsweet/attributes@2/attributes.js",
-      type: "module",
-      async: true,
-      attributes: {
-        "fs-list": null,
-      },
-    }).load();
-
-    const listWrapperSelector = `[data-wf-collection="news"]`;
-    const listWrapper =
-      document.querySelector<HTMLElement>(listWrapperSelector);
-
-    dateflow(de, listWrapper);
-
-    const selector = `[fs-list-fuzzy]`;
-    const searchInputs = document.querySelectorAll<HTMLElement>(selector);
-    searchInputs.forEach((input) => {
-      input.addEventListener("input", () => {
-        dateflow(de, listWrapper);
-      });
-    });
+    peakflow.execute("dateflow");
+    initListFilter();
   });
 
   new WFRoute("/dokumente").execute(() => {
