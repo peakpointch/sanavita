@@ -9,7 +9,7 @@
   },
   "libswitch": {
     "name": "peakflow",
-    "local": "../peakflow/",
+    "local": "../../peakflow/",
     "remote": "github:peakpointch/peakflow.git",
     "tsconfigDev": "tsconfig.dev.json",
     "tsconfigProd": "tsconfig.prod.json"
