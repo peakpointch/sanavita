@@ -1,6 +1,6 @@
 import createAttribute from "peakflow/attributeselector";
 import { FilterCollection } from "peakflow/wfcollection";
-import Renderer, { RenderData } from "peakflow/renderer";
+import Renderer, { RenderData, RenderNode } from "peakflow/renderer";
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules";
 import { readSwiperOptions } from "peakflow/swiper";
@@ -91,7 +91,7 @@ class ElementManager {
   }
 
   // Finds the original HTMLElement for a given entry in the collectionElement (hidden designs)
-  private findElement(entry: RenderData[number]): HTMLElement | null {
+  private findElement(entry: RenderNode): HTMLElement | null {
     const selector = `[slug="${entry.instance}"]`;
     const elementFound =
       this.collectionElement.querySelector<HTMLElement>(
@@ -108,12 +108,12 @@ class ElementManager {
   }
 
   // Inserts elements into the swiper (the visible area)
-  private insertElement(element: RenderData[number]): void {
+  private insertElement(element: RenderNode): void {
     const designToInsert = this.findElement(element);
     const elementToInsert = designToInsert.cloneNode(true) as HTMLElement;
     const wfElementId = elementToInsert.getAttribute("data-wf-element");
 
-    if (element.element === "birthday") {
+    if (element.name === "birthday") {
       // Insert the cloned element into the visible swiper area for birthday elements
       elementToInsert.classList.add("swiper-slide");
       this.swiper.prependSlide(elementToInsert); // Assuming automatic call to swiper.update() by library
@@ -138,7 +138,7 @@ class ElementManager {
   }
 
   // Removes elements from the swiper (the visible area)
-  private removeElement(element: RenderData[number]): void {
+  private removeElement(element: RenderNode): void {
     const clonedElementToRemove = this.insertedElements.get(element.instance);
     const wfElementId = clonedElementToRemove.getAttribute("data-wf-element");
 
@@ -152,7 +152,7 @@ class ElementManager {
       // Remove from the tracked inserted elements map
       this.insertedElements.delete(element.instance);
 
-      if (element.element !== "birthday") {
+      if (element.name !== "birthday") {
         this.overlaycount--;
       } else {
         this.swiper.autoplay.resume();
