@@ -28,19 +28,19 @@ export function getJobRenderData(data: {
 
   const renderData: RenderData = [
     {
-      element: "title",
+      name: "title",
       value: job.title,
       type: "text",
       visibility: true,
     },
     {
-      element: "accession-per",
+      name: "accession-per",
       value: job.accessionper,
       type: "text",
       visibility: true,
     },
     {
-      element: "rate",
+      name: "rate",
       value: job.isparttime
         ? job.parttimefrom === job.parttimeto
           ? `${job.parttimeto}%`
@@ -50,7 +50,7 @@ export function getJobRenderData(data: {
       visibility: true,
     },
     {
-      element: "categories",
+      name: "categories",
       value: (() => {
         return job.categories
           .map((category: any) => (category ? category.name : ""))
@@ -61,7 +61,7 @@ export function getJobRenderData(data: {
       visibility: true,
     },
     {
-      element: "contract-type",
+      name: "contract-type",
       value: (() => {
         return contractTypes.find((type) => type.key === job.contracttype)
           ?.value;
@@ -70,13 +70,13 @@ export function getJobRenderData(data: {
       visibility: true,
     },
     {
-      element: "abstract",
+      name: "abstract",
       value: job.abstract,
       type: "html",
       visibility: true,
     },
     {
-      element: "detail",
+      name: "detail",
       value: job.detail,
       type: "html",
       visibility: true,
