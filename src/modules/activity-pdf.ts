@@ -231,7 +231,7 @@ export function initActivityPdf(): void {
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
 
-  filterCollection.debug = true;
+  // filterCollection.debug = true;
 
   try {
     filterCollection.readData();
