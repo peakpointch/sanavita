@@ -150,16 +150,15 @@ function tagActivitySpecial(list: HTMLElement): void {
     const normalItem = item.children[0] as HTMLElement;
     const specialItem = item.children[1] as HTMLElement;
 
-    const type = normalItem.matches(".w-condition-invisible")
-      ? "special"
-      : "normal";
+    const type = !normalItem.matches(".w-condition-invisible")
+      ? "normal"
+      : "special";
     switch (type) {
       case "normal":
         specialItem.remove();
         break;
 
       case "special":
-        normalItem.remove();
         item.setAttribute("data-pdf-element", "activitySpecial");
         break;
     }
