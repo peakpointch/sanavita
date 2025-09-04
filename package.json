@@ -21,7 +21,8 @@
     "devflow": "file:../../devflow",
     "peakflow": "github:peakpointch/peakflow",
     "semver": "^7.7.2",
-    "swiper": "^11.2.5"
+    "swiper": "^11.2.5",
+    "type-fest": "^4.41.0"
   },
   "devDependencies": {
     "libswitch": "github:peakpointch/libswitch"
