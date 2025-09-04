@@ -4,7 +4,7 @@ import Pdf, { PdfFormat } from "peakflow/pdf";
 import { FilterCollection } from "peakflow/wfcollection";
 import Renderer, {
   RenderData,
-  RenderElement,
+  RenderBlock,
   RenderField,
 } from "peakflow/renderer";
 import {
@@ -233,7 +233,14 @@ export function initActivityPdf(): void {
   const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
 
   filterCollection.debug = true;
-  filterCollection.readData();
+
+  try {
+    filterCollection.readData();
+  } catch (err) {
+    console.error(err);
+    return;
+  }
+
   const [minDate, maxDate] = setMinMaxDate(
     filterForm,
     filterCollection.getData(),
@@ -267,8 +274,7 @@ export function initActivityPdf(): void {
     });
 
     requestAnimationFrame(() => {
-      pdf.hyphenizePages();
-      canvas.update();
+      filterForm.invokeOnChange(["startDate"]);
     });
   });
 
@@ -297,16 +303,23 @@ export function initActivityPdf(): void {
       // Static render fields
       const staticRenderFields: RenderField[] = [
         {
-          element: "title",
+          name: "title",
           value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(maxDate, "d. MMMM yyyy")}`,
           visibility: true,
         },
       ];
 
-      canvas.showHiddenElements();
-      pdf.render([...staticRenderFields, ...filtered]);
-      pdf.hyphenizePages();
-      canvas.update();
+      try {
+        canvas.showHiddenElements();
+        pdf.render(
+          [...staticRenderFields, ...filtered],
+          filters.getField("design").value,
+        );
+        pdf.hyphenizePages();
+        canvas.update();
+      } catch (err) {
+        console.error(err);
+      }
     },
   );
 

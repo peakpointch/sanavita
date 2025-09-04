@@ -4,7 +4,7 @@ import Pdf, { PdfFormat } from "peakflow/pdf";
 import { FilterCollection } from "peakflow/wfcollection";
 import Renderer, {
   RenderData,
-  RenderElement,
+  RenderBlock,
   RenderField,
 } from "peakflow/renderer";
 import {
@@ -232,7 +232,13 @@ export function initMenuplanPdf(): void {
   filterCollection.renderer.addFilterAttributes({
     "weekly-hit-boolean": "boolean",
   });
-  filterCollection.readData();
+
+  try {
+    filterCollection.readData();
+  } catch (err) {
+    console.error(err);
+    return;
+  }
 
   // Initialize drink-lists collection list
   const drinksCollection = new FilterCollection(
@@ -275,7 +281,7 @@ export function initMenuplanPdf(): void {
   });
 
   filterForm.addOnChange(["design"], (filters) => {
-    const designs = pdf.getDesigns();
+    const designs = pdf.getDesignWrappers();
     const selectedDesign = filters.getField("design").value;
     pdfStorage.menuplan.design = selectedDesign;
     localStorage.setItem("pdf", JSON.stringify(pdfStorage));
@@ -289,8 +295,7 @@ export function initMenuplanPdf(): void {
     });
 
     requestAnimationFrame(() => {
-      pdf.hyphenizePages();
-      canvas.update();
+      filterForm.invokeOnChange(["startDate"]);
     });
   });
 
@@ -317,7 +322,7 @@ export function initMenuplanPdf(): void {
       // Static render fields
       const staticRenderFields: RenderField[] = [
         {
-          element: "title",
+          name: "title",
           value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(endDate, "d. MMMM yyyy")}`,
           visibility: true,
         },
@@ -327,10 +332,10 @@ export function initMenuplanPdf(): void {
         startDate,
         endDate,
       );
-      const renderCollections: RenderElement[] = [
+      const renderCollections: RenderBlock[] = [
         {
-          element: "drink-list-collection",
-          fields: filteredDrinks,
+          name: "drink-list-collection",
+          children: filteredDrinks,
           visibility: filteredDrinks.length === 0 ? false : true,
         },
       ];
@@ -341,10 +346,14 @@ export function initMenuplanPdf(): void {
         ...renderCollections,
       ];
 
-      canvas.showHiddenElements();
-      pdf.render(renderData);
-      pdf.hyphenizePages();
-      canvas.update();
+      try {
+        canvas.showHiddenElements();
+        pdf.render(renderData, filters.getField("design").value);
+        pdf.hyphenizePages();
+        canvas.update();
+      } catch (err) {
+        console.error(err);
+      }
     },
   );
 
