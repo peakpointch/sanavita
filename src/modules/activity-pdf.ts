@@ -308,6 +308,14 @@ export function initActivityPdf(): void {
         },
       ];
 
+      if (!filtered.find((node) => node.name === "activitySpecial")) {
+        filtered.push({
+          name: "activitySpecial",
+          children: [],
+          visibility: true,
+        });
+      }
+
       try {
         canvas.showHiddenElements();
         pdf.render(
@@ -327,14 +335,14 @@ export function initActivityPdf(): void {
     pdf.scale(scale);
   });
 
-  filterForm.addOnChange("*", () => {
-    document.querySelectorAll<HTMLElement>(".pdf-image").forEach((el) => {
-      el.style.removeProperty("display");
-      if (el.offsetHeight < 80) {
-        el.style.display = "none";
-      }
-    });
-  });
+  // filterForm.addOnChange("*", () => {
+  //   document.querySelectorAll<HTMLElement>(".pdf-image").forEach((el) => {
+  //     el.style.removeProperty("display");
+  //     if (el.offsetHeight < 80) {
+  //       el.style.display = "none";
+  //     }
+  //   });
+  // });
 
   filterForm.addResizeReset("scale", () => {
     const defaultScale = pdf.getDefaultScale();
