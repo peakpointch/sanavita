@@ -9,6 +9,7 @@ import { initSozjobsList } from "@/modules/sozjobs/list";
 import { initJobItemPage } from "@/modules/sozjobs/job";
 import { de } from "date-fns/locale";
 import { initListFilter } from "@/modules/list-filter.js";
+import { initRoomRegistrationForm } from "@/modules/lindenpark-form.js";
 
 /**
  * WFRoute "/"
@@ -24,6 +25,14 @@ export const app = async () => {
       customPoster: true,
     });
     peakflow.execute("copyComponent");
+  });
+
+  new WFRoute("/lindenpark/anmeldung").execute(() => {
+    initRoomRegistrationForm();
+    peakflow.execute("uploadcare");
+    new Stylesheet({
+      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
+    }).load();
   });
 
   new WFRoute("/wohnungen").execute(() => {

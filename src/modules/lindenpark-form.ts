@@ -130,7 +130,7 @@ function initCMSSelect(): void {
   apartmentSelect.triggerOnChange();
 }
 
-export function initApartmentRegistrationForm(): void {
+export function initRoomRegistrationForm(): void {
   const formElement: HTMLElement | null = document.querySelector(
     formElementSelector("component", { exclusions: [] }),
   );
@@ -143,7 +143,7 @@ export function initApartmentRegistrationForm(): void {
 
   const prospectArray = new ProspectArray(formElement, {
     id: "resident-prospects",
-    limit: 2,
+    limit: 1,
   });
   const FORM = new MultiStepForm(formElement, {
     navigation: {
@@ -173,7 +173,7 @@ export function initApartmentRegistrationForm(): void {
   };
 
   const defaultMessages = {
-    attachmentSubmission: `Bitte laden Sie alle Beilagen hoch oder wählen Sie die Option "Beilagen per Post senden".`,
+    attachmentSubmission: `Bitte laden Sie alle Beilagen hoch oder w├ñhlen Sie die Option "Beilagen per Post senden".`,
   };
 
   initializeProspectDecisions(prospectArray, errorMessages, defaultMessages);
