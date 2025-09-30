@@ -72965,8 +72965,10 @@ Page:`, page);
       console.error("Form not found.");
       return;
     }
+    const progressManager = new progress_manager_default();
     const prospectArray = new ProspectArray(formElement, {
       id: "resident-prospects",
+      formId: "wohnungsanmeldung",
       limit: 2
     });
     const FORM = new MultiStepForm(formElement, {
@@ -73002,7 +73004,7 @@ Page:`, page);
     initCMSSelect();
     prospectArray.loadProgress();
     FORM.formElement.addEventListener("formSuccess", () => {
-      prospectArray.clearProgress();
+      progressManager.clear();
     });
     const monthStart = startOfMonth(/* @__PURE__ */ new Date());
     const nextMonthStart = addMonths(monthStart, 1);

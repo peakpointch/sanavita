@@ -10,6 +10,7 @@ import { createAttribute } from "peakflow/attributeselector";
 import { flattenProspects } from "./form/resident-prospect";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getElement } from "peakflow/utils";
+import FormProgressManager from "./form/progress-manager";
 
 const decisionSelector = createAttribute("data-decision-component");
 
@@ -141,8 +142,10 @@ export function initApartmentRegistrationForm(): void {
     return;
   }
 
+  const progressManager = new FormProgressManager();
   const prospectArray = new ProspectArray(formElement, {
     id: "resident-prospects",
+    formId: "wohnungsanmeldung",
     limit: 2,
   });
   const FORM = new MultiStepForm(formElement, {
@@ -183,7 +186,7 @@ export function initApartmentRegistrationForm(): void {
 
   prospectArray.loadProgress();
   FORM.formElement.addEventListener("formSuccess", () => {
-    prospectArray.clearProgress();
+    progressManager.clear();
   });
 
   const monthStart = startOfMonth(new Date());
