@@ -22,6 +22,7 @@ import {
   GroupName,
   prospectMapToObject,
   SerializedProspect,
+  ResidentProspectData,
 } from "./resident-prospect";
 import wf from "peakflow/webflow";
 import { HTMLFormInput } from "peakflow/form";
@@ -29,9 +30,14 @@ import { FormMessage } from "peakflow/form";
 import Accordion from "peakflow/accordion";
 import { Modal, AlertDialog } from "peakflow/modal";
 import SaveOptions from "./save-options";
+import FormProgressManager, {
+  FormProgress,
+  FormProgressComponent,
+} from "./progress-manager";
 import { getAlertDialog } from "./alert-dialog";
 import type { ScrollPosition } from "peakflow/scroll";
 import semver from "semver";
+import { PartialDeep } from "type-fest";
 
 type ProspectElement =
   | "template"
@@ -55,20 +61,20 @@ const FIELD_GROUP_SELECTOR = `[${FIELD_GROUP_ATTR}]`;
 const ACCORDION_SELECTOR = `[data-animate="accordion"]`;
 
 // Unique key to store form data in localStorage
-const PROSPECT_STORAGE_KEY = "formProgress";
-const PROSPECT_STORAGE_VERSION = "v1.0.0";
-
-interface ProspectArrayProgress {
-  version: string;
-  prospects: Record<string, SerializedProspect>;
-}
+const PROSPECT_STORAGE_VERSION = "1.0.0";
 
 interface ProspectArrayOptions {
   /** Unique identifier of this prospect array */
   id: string | number;
 
+  /** Used to store progress of this component */
+  formId: string;
+
   /** Limit the number of items allowed */
   limit?: number;
+
+  /** Progress Manager of the parent form */
+  manager: FormProgressManager;
 }
 
 type ModalGroup = {
@@ -83,8 +89,11 @@ type OnCloseCallback = () => void;
 export default class ProspectArray {
   public static readonly options: ProspectArrayOptions = {
     id: "prospect-array",
+    formId: "form",
     limit: undefined,
+    manager: new FormProgressManager(),
   };
+
   public options: ProspectArrayOptions;
 
   public initialized: boolean = false;
@@ -110,7 +119,10 @@ export default class ProspectArray {
   private editingKey: string | null = null;
   private unsavedProspect: ResidentProspect | null = null;
 
-  constructor(container: HTMLElement, options: ProspectArrayOptions) {
+  constructor(
+    container: HTMLElement,
+    options: PartialDeep<ProspectArrayOptions>,
+  ) {
     this.options = deepMerge(ProspectArray.options, options);
     this.id = this.options.id;
     this.container = container;
@@ -378,7 +390,7 @@ export default class ProspectArray {
       `[${LINK_FIELDS_ATTR}]`,
     );
 
-    if (this.options.limit !== undefined && length < this.options.limit) {
+    if (this.options.limit !== undefined && length !== 2) {
       links.forEach((link) => {
         link.style.display = "none";
       });
@@ -1093,28 +1105,24 @@ export default class ProspectArray {
    */
   public saveProgress(): void {
     // Serialize the prospect map to an object
-    const progress: ProspectArrayProgress = {
-      version: PROSPECT_STORAGE_VERSION,
-      prospects: prospectMapToObject(this.prospects),
+    const prospectArrayComponent: FormProgressComponent<SerializedProspect[]> =
+      {
+        id: `${this.options.id}`,
+        version: PROSPECT_STORAGE_VERSION,
+        data: prospectMapToObject(this.prospects),
+      };
+
+    const formProgress: FormProgress = {
+      fields: {},
+      components: [prospectArrayComponent],
     };
 
     // Store the serialized data in localStorage
     try {
-      localStorage.setItem(PROSPECT_STORAGE_KEY, JSON.stringify(progress));
+      this.options.manager.saveForm(this.options.formId, formProgress);
       console.info("Form progress saved.");
     } catch (error) {
       console.error("Error saving form progress to localStorage:", error);
-    }
-  }
-
-  /**
-   * Clear the saved progress from localStorage
-   */
-  public clearProgress(): void {
-    try {
-      localStorage.removeItem(PROSPECT_STORAGE_KEY);
-    } catch (error) {
-      console.error("Error clearing form progress from localStorage:", error);
     }
   }
 
@@ -1123,47 +1131,49 @@ export default class ProspectArray {
    */
   public loadProgress(): void {
     // Check if there's any saved data in localStorage
-    const savedData = localStorage.getItem(PROSPECT_STORAGE_KEY);
+    const form = this.options.manager.getForm(`${this.options.formId}`);
+    const progress = form?.components.find(
+      (comp) => comp.id === this.options.id,
+    ) as FormProgressComponent<SerializedProspect[]>;
 
-    if (savedData) {
-      try {
-        const progress = JSON.parse(savedData) as ProspectArrayProgress;
-
-        if (!progress.version) {
-          throw new Error(`Saved progress is missing version; outdated.`);
-        }
-
-        const cleanCurrentVersion = semver.clean(PROSPECT_STORAGE_VERSION);
-        const cleanSavedVersion = semver.clean(progress.version);
-
-        if (!cleanCurrentVersion || !cleanSavedVersion) {
-          throw new Error("Invalid semver version format.");
-        }
-
-        if (!semver.eq(cleanCurrentVersion, cleanSavedVersion)) {
-          throw new Error(
-            `Saved progress version "${progress.version}" is outdated.`,
-          );
-        }
-
-        // Loop through the serialized data and create `ResidentProspect` instances
-        for (const key in progress.prospects) {
-          if (progress.prospects.hasOwnProperty(key)) {
-            const prospectData = progress.prospects[key];
-            const prospect = ResidentProspect.deserialize(prospectData); // Deserialize the ResidentProspect object
-            prospect.key = key;
-            this.prospects.set(key, prospect);
-          }
-        }
-
-        this.renderList();
-        this.closeModal();
-        console.log("Form progress loaded.");
-      } catch (e) {
-        console.error(`Error loading prospects progress: ${e.message}`);
-      }
-    } else {
+    if (!form || !progress) {
       console.log("No saved form progress found.");
+      return;
+    }
+
+    try {
+      if (!progress.version) {
+        throw new Error(`Saved progress is missing version; outdated.`);
+      }
+
+      const cleanCurrentVersion = semver.clean(PROSPECT_STORAGE_VERSION);
+      const cleanSavedVersion = semver.clean(progress.version);
+
+      if (!cleanCurrentVersion || !cleanSavedVersion) {
+        throw new Error("Invalid semver version format.");
+      }
+
+      if (!semver.eq(cleanCurrentVersion, cleanSavedVersion)) {
+        throw new Error(
+          `Saved progress version "${progress.version}" is outdated.`,
+        );
+      }
+
+      // Loop through the serialized data and create `ResidentProspect` instances
+      for (const key in progress.data) {
+        if (progress.data.hasOwnProperty(key)) {
+          const prospectData = progress.data[key];
+          const prospect = ResidentProspect.deserialize(prospectData); // Deserialize the ResidentProspect object
+          prospect.key = key;
+          this.prospects.set(key, prospect);
+        }
+      }
+
+      this.renderList();
+      this.closeModal();
+      console.log("Array progress loaded.");
+    } catch (e) {
+      console.error(`Error loading prospects progress:`, e);
     }
   }
 }
