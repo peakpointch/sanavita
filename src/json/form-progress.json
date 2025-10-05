@@ -53,10 +53,24 @@
                   "required": false,
                   "type": "text"
                 },
-                "formerOccupation": {
-                  "id": "formerOccupation",
+                "livingSituation": {
+                  "id": "livingSituation",
+                  "label": "Zivilstand",
+                  "value": "allein lebend",
+                  "required": true,
+                  "type": "select-one"
+                },
+                "nationality": {
+                  "id": "nationality",
                   "label": "Ehemaliger Beruf",
-                  "value": "Elektriker",
+                  "value": "Schweizer",
+                  "required": false,
+                  "type": "text"
+                },
+                "nationOfOrigin": {
+                  "id": "nationOfOrigin",
+                  "label": "Ehemaliger Beruf",
+                  "value": "Schweiz",
                   "required": false,
                   "type": "text"
                 },
@@ -67,25 +81,25 @@
                   "required": true,
                   "type": "text"
                 },
-                "municipalities": {
-                  "id": "municipalities",
-                  "label": "Bezug zu Trägergemeinden",
-                  "value": "Zürich, Winterthur",
+                "placeOfBirth": {
+                  "id": "placeOfBirth",
+                  "label": "Ehemaliger Beruf",
+                  "value": "Zollikon ZH",
                   "required": false,
                   "type": "text"
                 },
-                "pets": {
-                  "id": "pets",
+                "livesInMunicipality": {
+                  "id": "livesInMunicipality",
                   "label": "Haustiere",
                   "value": "Ja",
                   "required": true,
                   "type": "radio",
                   "checked": true
                 },
-                "specifiedPets": {
-                  "id": "specifiedPets",
-                  "label": "Angegebene Haustiere",
-                  "value": "Katze",
+                "inMunicipalitySince": {
+                  "id": "inMunicipalitySince",
+                  "label": "Wohnhaft in Trägergemeinde",
+                  "value": "Seit 2015",
                   "required": true,
                   "type": "text"
                 },
@@ -218,36 +232,22 @@
                   "type": "email"
                 }
               },
-              "health": {
-                "livingWill": {
-                  "id": "livingWill",
-                  "label": "Patientenverfügung",
-                  "value": "Ja",
-                  "required": true,
-                  "type": "radio",
-                  "checked": true
-                },
-                "needForCare": {
-                  "id": "needForCare",
-                  "label": "Pflegebedarf",
-                  "value": "Ja",
-                  "required": true,
-                  "type": "radio",
-                  "checked": true
-                },
-                "careNeeds": {
-                  "id": "careNeeds",
-                  "label": "Beschreibung Pflegebedarf",
-                  "value": "Unterstützung bei der Körperpflege und Medikamenteneinnahme.",
-                  "required": true,
-                  "type": "textarea"
-                }
-              },
-              "primaryRelative": {
+              "health": {},
+              "linkedFields": {},
+              "draft": false
+            }
+          }
+        },
+        {
+          "id": "contacts",
+          "version": "1.0.0",
+          "data": {
+            "person-f89674fc-8dec-4421-b8fb-ec9fd0410f79": {
+              "personalData": {
                 "firstName": {
                   "id": "firstName",
                   "label": "Vorname",
-                  "value": "Anna",
+                  "value": "Sarina",
                   "required": true,
                   "type": "text"
                 },
@@ -261,35 +261,35 @@
                 "street": {
                   "id": "street",
                   "label": "Strasse",
-                  "value": "Familienweg 2",
-                  "required": false,
+                  "value": "Zürcherstrasse 11",
+                  "required": true,
                   "type": "text"
                 },
                 "zip": {
                   "id": "zip",
                   "label": "PLZ",
-                  "value": "8002",
-                  "required": false,
+                  "value": "8001",
+                  "required": true,
                   "type": "text"
                 },
                 "city": {
                   "id": "city",
                   "label": "Ort",
                   "value": "Zürich",
-                  "required": false,
+                  "required": true,
                   "type": "text"
                 },
                 "phone": {
                   "id": "phone",
                   "label": "Telefonnummer",
-                  "value": "+41 79 456 78 90",
+                  "value": "077 090 90 09",
                   "required": true,
                   "type": "tel"
                 },
                 "email": {
                   "id": "email",
                   "label": "E-Mail",
-                  "value": "anna.muster@example.com",
+                  "value": "sarina.muster@example.com",
                   "required": true,
                   "type": "email"
                 },
@@ -297,73 +297,7 @@
                   "id": "degreeOfRelation",
                   "label": "Angehörige Verwandschaftsgrad",
                   "value": "Tochter",
-                  "required": false,
-                  "type": "text"
-                }
-              },
-              "secondaryRelative": {
-                "provideSecondaryRelative": {
-                  "id": "provideSecondaryRelative",
-                  "label": "Weitere angehörige Person",
-                  "value": "Ja",
                   "required": true,
-                  "type": "radio",
-                  "checked": true
-                },
-                "firstName": {
-                  "id": "firstName",
-                  "label": "Vorname",
-                  "value": "Thomas",
-                  "required": true,
-                  "type": "text"
-                },
-                "lastName": {
-                  "id": "lastName",
-                  "label": "Name",
-                  "value": "Meier",
-                  "required": true,
-                  "type": "text"
-                },
-                "street": {
-                  "id": "street",
-                  "label": "Strasse",
-                  "value": "Beispielweg 3",
-                  "required": false,
-                  "type": "text"
-                },
-                "zip": {
-                  "id": "zip",
-                  "label": "PLZ",
-                  "value": "8003",
-                  "required": false,
-                  "type": "text"
-                },
-                "city": {
-                  "id": "city",
-                  "label": "Ort",
-                  "value": "Zürich",
-                  "required": false,
-                  "type": "text"
-                },
-                "phone": {
-                  "id": "phone",
-                  "label": "Telefonnummer",
-                  "value": "+41 79 123 45 67",
-                  "required": true,
-                  "type": "tel"
-                },
-                "email": {
-                  "id": "email",
-                  "label": "E-Mail",
-                  "value": "thomas.meier@example.com",
-                  "required": true,
-                  "type": "email"
-                },
-                "degreeOfRelation": {
-                  "id": "degreeOfRelation",
-                  "label": "Angehörige Verwandschaftsgrad",
-                  "value": "Neffe",
-                  "required": false,
                   "type": "text"
                 }
               },
@@ -371,11 +305,6 @@
               "draft": false
             }
           }
-        },
-        {
-          "id": "contacts",
-          "version": "1.0.0",
-          "data": {}
         }
       ]
     },
