@@ -1,6 +1,5 @@
 // Imports
 import {
-  CMSSelect,
   FormArray,
   MultiStepForm,
   FormDecision,
@@ -9,8 +8,6 @@ import {
 } from "peakflow/form";
 import { createAttribute } from "peakflow/attributeselector";
 import { flattenPeople } from "./form/tenant";
-import { addMonths, format, startOfMonth } from "date-fns";
-import { getElement } from "peakflow/utils";
 import { Resident } from "./form/resident";
 import { ContactPerson } from "./form/contact-person";
 import { getAlertDialog } from "./form/alert-dialog";
@@ -109,32 +106,6 @@ function insertSearchParamValues(): void {
   }
 }
 
-function initCMSSelect(): void {
-  const source = CMSSelect.selector("source", "apartment");
-  const apartmentSelect = new CMSSelect(source);
-  apartmentSelect.insertOptions();
-
-  const wrapper = getElement('[data-field-wrapper-id="alternativeApartment"]');
-
-  if (apartmentSelect.values.length <= 1) {
-    wrapper.style.display = "none";
-    return;
-  }
-
-  const alternative = CMSSelect.selector("target", "alternativeApartment");
-  const alternativeSelect =
-    wrapper.querySelector<HTMLSelectElement>(alternative);
-  apartmentSelect.onChange("syncAlternatives", () => {
-    const values = Array.from(apartmentSelect.values);
-    const filtered = values.filter(
-      (val) => val !== apartmentSelect.targets[0].value,
-    );
-    CMSSelect.clearOptions(alternativeSelect, true);
-    CMSSelect.insertOptions(alternativeSelect, filtered);
-  });
-  apartmentSelect.triggerOnChange();
-}
-
 function saveComponentProgress(
   progressManager: FormProgressManager,
   formId: string,
@@ -179,7 +150,7 @@ export function initRoomRegistrationForm(): void {
     id: "contacts",
     formId: formId,
     container: formElement,
-    limit: 10,
+    limit: 4,
     manager: progressManager,
     itemClass: ContactPerson,
     alertDialog,
@@ -224,7 +195,6 @@ export function initRoomRegistrationForm(): void {
   initializeProspectDecisions(prospectArray, errorMessages, defaultMessages);
   initializeFormDecisions(FORM, errorMessages, defaultMessages);
   insertSearchParamValues();
-  initCMSSelect();
 
   prospectArray.loadProgress();
   contactArray.loadProgress();
@@ -235,20 +205,26 @@ export function initRoomRegistrationForm(): void {
   prospectArray.onSave("save-progress", (component) =>
     saveComponentProgress(progressManager, formId, component),
   );
+  prospectArray.onSave("hide-add", () => {
+    const addButtonWrapper = prospectArray.select("add").parentElement;
+    if (prospectArray.items.size === prospectArray.options.limit) {
+      addButtonWrapper.style.display = "none";
+    } else {
+      addButtonWrapper.style.removeProperty("display");
+    }
+  });
+  prospectArray.registerSelects("(Ich)");
+  prospectArray.triggerOnSave();
   contactArray.onSave("save-progress", (component) =>
     saveComponentProgress(progressManager, formId, component),
   );
-
-  const monthStart = startOfMonth(new Date());
-  const nextMonthStart = addMonths(monthStart, 1);
-  const nextMonthStartString = format(nextMonthStart, "yyyy-MM-dd");
-  const moveInDateInput = FORM.getFormInput<HTMLInputElement>("moveInDate");
-  moveInDateInput.min = nextMonthStartString;
+  contactArray.registerSelects("(Kontaktperson)");
+  contactArray.triggerOnSave();
 
   // @ts-ignore
   window.MultiStepForm = FORM;
 
-  FORM.options.validation.validate = false;
+  FORM.options.validation.validate = true;
   FORM.changeToStep(2);
   // await new Promise(resolve => setTimeout(resolve, 600));
   // prospectArray.editProspect(prospectArray.getProspect(0));
