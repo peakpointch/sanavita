@@ -1,16 +1,20 @@
 // Imports
 import {
-  formElementSelector,
+  CMSSelect,
+  FormArray,
   MultiStepForm,
   FormDecision,
-  CMSSelect,
+  FormProgressManager,
+  formElementSelector,
 } from "peakflow/form";
-import ProspectArray from "./form/prospect-array";
 import { createAttribute } from "peakflow/attributeselector";
-import { flattenProspects } from "./form/resident-prospect";
+import { flattenProspects as flattenPerson } from "./form/resident-prospect";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getElement } from "peakflow/utils";
-import FormProgressManager from "./form/progress-manager";
+import { ResidentProspect } from "./form/resident-prospect";
+import { ContactPerson } from "./form/contact-person";
+import { getAlertDialog } from "./form/alert-dialog";
+import { FormProgressComponent } from "peakflow";
 
 const decisionSelector = createAttribute("data-decision-component");
 
@@ -45,7 +49,7 @@ function initializeFormDecisions(
 type PathId = string & ("show" | "hide");
 
 function initializeProspectDecisions<T extends string = string>(
-  prospectArray: ProspectArray,
+  prospectArray: FormArray<ResidentProspect>,
   errorMessages: { [id: string]: { [key: string]: string } },
   defaultMessages: { [id: string]: string } = {},
 ): Map<T, FormDecision<PathId>> {
@@ -70,7 +74,7 @@ function initializeProspectDecisions<T extends string = string>(
       const valid = prospectArray.groups.every(
         (group) => group.isValid === true,
       );
-      prospectArray.saveOptions.setAction(valid ? "save" : "draft");
+      prospectArray.splitButton.setAction(valid ? "save" : "draft");
     });
 
     prospectArray.onOpen(`decision-${id}`, () => decision.sync());
@@ -131,7 +135,23 @@ function initCMSSelect(): void {
   apartmentSelect.triggerOnChange();
 }
 
+function saveComponentProgress(
+  progressManager: FormProgressManager,
+  formId: string,
+  component: FormProgressComponent,
+): void {
+  const form = progressManager.getForm(formId);
+  const foundIndex = form.components.findIndex((c) => c.id === component.id);
+  if (foundIndex === -1) {
+    form.components.push(component);
+  } else {
+    form.components[foundIndex] = component;
+  }
+  progressManager.saveForm(formId, form);
+}
+
 export function initRoomRegistrationForm(): void {
+  const formId = "lindenpark-anmeldung-zimmer";
   const formElement: HTMLElement | null = document.querySelector(
     formElementSelector("component", { exclusions: [] }),
   );
@@ -143,10 +163,24 @@ export function initRoomRegistrationForm(): void {
   }
 
   const progressManager = new FormProgressManager();
-  const prospectArray = new ProspectArray(formElement, {
-    id: "resident-prospects",
-    formId: "lindenpark-anmeldung-zimmer",
+  const alertDialog = getAlertDialog();
+  const prospectArray = new FormArray<ResidentProspect>({
+    id: "resident-prospect",
+    formId: formId,
+    container: formElement,
     limit: 1,
+    manager: progressManager,
+    itemClass: ResidentProspect,
+    alertDialog,
+  });
+  const contactArray = new FormArray<ContactPerson>({
+    id: "contact-person",
+    formId: formId,
+    container: formElement,
+    limit: 10,
+    manager: progressManager,
+    itemClass: ContactPerson,
+    alertDialog,
   });
   const FORM = new MultiStepForm(formElement, {
     navigation: {
@@ -160,10 +194,16 @@ export function initRoomRegistrationForm(): void {
   });
 
   FORM.addCustomComponent({
-    stepIndex: 2,
+    stepIndex: 1,
     instance: prospectArray,
     validator: () => prospectArray.validate(),
-    getData: () => flattenProspects(prospectArray.prospects),
+    getData: () => flattenPerson(prospectArray.items),
+  });
+  FORM.addCustomComponent({
+    stepIndex: 2,
+    instance: contactArray,
+    validator: () => contactArray.validate(),
+    getData: () => flattenPerson(contactArray.items),
   });
   FORM.component.addEventListener("changeStep", () => {
     if (prospectArray.modal.opened) prospectArray.closeModal();
@@ -185,9 +225,17 @@ export function initRoomRegistrationForm(): void {
   initCMSSelect();
 
   prospectArray.loadProgress();
+  contactArray.loadProgress();
   FORM.formElement.addEventListener("formSuccess", () => {
     progressManager.clear();
   });
+
+  prospectArray.onSave("save-progress", (component) =>
+    saveComponentProgress(progressManager, formId, component),
+  );
+  contactArray.onSave("save-progress", (component) =>
+    saveComponentProgress(progressManager, formId, component),
+  );
 
   const monthStart = startOfMonth(new Date());
   const nextMonthStart = addMonths(monthStart, 1);
@@ -196,10 +244,10 @@ export function initRoomRegistrationForm(): void {
   moveInDateInput.min = nextMonthStartString;
 
   // @ts-ignore
-  window.prospectArray = prospectArray;
+  window.MultiStepForm = FORM;
 
-  // FORM.options.validation.validate = false;
-  // FORM.changeToStep(1);
+  FORM.options.validation.validate = false;
+  FORM.changeToStep(2);
   // await new Promise(resolve => setTimeout(resolve, 600));
   // prospectArray.editProspect(prospectArray.getProspect(0));
 

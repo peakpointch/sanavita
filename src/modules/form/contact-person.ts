@@ -6,23 +6,10 @@ import {
   FormArrayItem,
 } from "peakflow/form";
 import { mapToObject, objectToMap } from "peakflow/utils";
-import { ContactPerson } from "./contact-person";
 
-export type GroupName =
-  | "personalData"
-  | "doctor"
-  | "health"
-  | "primaryRelative"
-  | "secondaryRelative";
+export type GroupName = "personalData";
 
-type LinkedFieldsId =
-  | "heimatort"
-  | "phone"
-  | "email"
-  | "address"
-  | "doctor"
-  | "primaryRelative"
-  | "secondaryRelative";
+type LinkedFieldsId = "phone" | "email" | "address";
 
 export type ProspectValidation = Record<
   GroupName,
@@ -31,51 +18,14 @@ export type ProspectValidation = Record<
 
 export interface SerializedProspect {
   personalData?: SerializedFieldGroup;
-  doctor?: SerializedFieldGroup;
-  health?: SerializedFieldGroup;
-  primaryRelative?: SerializedFieldGroup;
-  secondaryRelative?: SerializedFieldGroup;
   linkedFields?: Record<string, LinkedField>;
   draft?: boolean;
 }
 
 export interface ResidentProspectData {
   personalData: FieldGroup;
-  doctor: FieldGroup;
-  health: FieldGroup;
-  primaryRelative: FieldGroup;
-  secondaryRelative: FieldGroup;
   linkedFields: LinkedFields;
   draft: boolean;
-}
-
-/**
- * Used to save the prospect to local storage.
- */
-export function prospectMapToObject(
-  prospects: Map<string, ResidentProspect>,
-): any {
-  // Convert a ResidentProspect's structure, which contains FieldGroups with fields as Maps
-  const prospectsObj: any = {};
-  for (const [key, prospect] of prospects) {
-    prospectsObj[key] = prospect.serialize();
-  }
-  return prospectsObj;
-}
-
-/**
- * Used to submit a prospect.
- */
-export function flattenProspects(
-  prospects: Map<string, ContactPerson | ResidentProspect>,
-): any {
-  let prospectsObj: any = {};
-  let prospectArray = [...prospects.values()];
-  for (let i = 0; i < prospectArray.length; i++) {
-    let prospect = prospectArray[i];
-    prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
-  }
-  return prospectsObj;
 }
 
 interface LinkedField {
@@ -86,12 +36,8 @@ interface LinkedField {
 
 type LinkedFields = Map<LinkedFieldsId | string, LinkedField>;
 
-export class ResidentProspect extends FormArrayItem {
+export class ContactPerson extends FormArrayItem {
   public personalData: FieldGroup;
-  public doctor: FieldGroup;
-  public health: FieldGroup;
-  public primaryRelative: FieldGroup;
-  public secondaryRelative: FieldGroup;
 
   public key: string = `person-${crypto.randomUUID()}`;
   public linkedFields: LinkedFields;
@@ -100,10 +46,6 @@ export class ResidentProspect extends FormArrayItem {
   public static get defaultData(): ResidentProspectData {
     return {
       personalData: new FieldGroup(),
-      doctor: new FieldGroup(),
-      health: new FieldGroup(),
-      primaryRelative: new FieldGroup(),
-      secondaryRelative: new FieldGroup(),
       linkedFields: new Map<LinkedFieldsId | string, LinkedField>(),
       draft: false,
     };
@@ -111,14 +53,9 @@ export class ResidentProspect extends FormArrayItem {
 
   constructor(data?: Partial<ResidentProspectData>) {
     super();
-    const defaults = ResidentProspect.defaultData;
+    const defaults = ContactPerson.defaultData;
     const resolved = data ?? {};
     this.personalData = resolved.personalData ?? defaults.personalData;
-    this.doctor = resolved.doctor ?? defaults.doctor;
-    this.health = resolved.health ?? defaults.health;
-    this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
-    this.secondaryRelative =
-      resolved.secondaryRelative ?? defaults.secondaryRelative;
     this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
     this.draft = resolved.draft ?? defaults.draft;
   }
@@ -209,10 +146,6 @@ export class ResidentProspect extends FormArrayItem {
   public serialize(): SerializedProspect {
     return {
       personalData: this.personalData.serialize(),
-      doctor: this.doctor.serialize(),
-      health: this.health.serialize(),
-      primaryRelative: this.primaryRelative.serialize(),
-      secondaryRelative: this.secondaryRelative.serialize(),
       linkedFields: mapToObject(this.linkedFields),
       draft: this.draft,
     };
@@ -221,26 +154,16 @@ export class ResidentProspect extends FormArrayItem {
   /**
    * Main function to deserialize a `ResidentProspect`
    */
-  public static deserialize(data: SerializedProspect): ResidentProspect {
-    return new ResidentProspect({
+  public static deserialize(data: SerializedProspect): ContactPerson {
+    return new ContactPerson({
       personalData: FieldGroup.deserialize(data.personalData),
-      doctor: FieldGroup.deserialize(data.doctor),
-      health: FieldGroup.deserialize(data.health),
-      primaryRelative: FieldGroup.deserialize(data.primaryRelative),
-      secondaryRelative: FieldGroup.deserialize(data.secondaryRelative),
       linkedFields: objectToMap(data.linkedFields),
       draft: data.draft,
     });
   }
 
-  public static areEqual(a: ResidentProspect, b: ResidentProspect): boolean {
-    const groups: GroupName[] = [
-      "personalData",
-      "doctor",
-      "health",
-      "primaryRelative",
-      "secondaryRelative",
-    ];
+  public static areEqual(a: ContactPerson, b: ContactPerson): boolean {
+    const groups: GroupName[] = ["personalData"];
 
     if (!a || !b) return false;
 
