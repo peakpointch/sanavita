@@ -7,12 +7,7 @@ import {
 } from "peakflow/form";
 import { mapToObject, objectToMap } from "peakflow/utils";
 
-export type GroupName =
-  | "personalData"
-  | "doctor"
-  | "health"
-  | "primaryRelative"
-  | "secondaryRelative";
+export type GroupName = "personalData" | "doctor" | "health";
 
 type LinkedFieldsId = "phone" | "email" | "address";
 
@@ -25,8 +20,6 @@ export interface SerializedResident {
   personalData?: SerializedFieldGroup;
   doctor?: SerializedFieldGroup;
   health?: SerializedFieldGroup;
-  primaryRelative?: SerializedFieldGroup;
-  secondaryRelative?: SerializedFieldGroup;
   linkedFields?: Record<string, LinkedField>;
   draft?: boolean;
 }
@@ -35,8 +28,6 @@ export interface ResidentData {
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
-  primaryRelative: FieldGroup;
-  secondaryRelative: FieldGroup;
   linkedFields: LinkedFields;
   draft: boolean;
 }
@@ -53,8 +44,6 @@ export class Resident extends FormArrayItem {
   public personalData: FieldGroup;
   public doctor: FieldGroup;
   public health: FieldGroup;
-  public primaryRelative: FieldGroup;
-  public secondaryRelative: FieldGroup;
 
   public key: string = `person-${crypto.randomUUID()}`;
   public linkedFields: LinkedFields;
@@ -65,8 +54,6 @@ export class Resident extends FormArrayItem {
       personalData: new FieldGroup(),
       doctor: new FieldGroup(),
       health: new FieldGroup(),
-      primaryRelative: new FieldGroup(),
-      secondaryRelative: new FieldGroup(),
       linkedFields: new Map<LinkedFieldsId | string, LinkedField>(),
       draft: false,
     };
@@ -79,9 +66,6 @@ export class Resident extends FormArrayItem {
     this.personalData = resolved.personalData ?? defaults.personalData;
     this.doctor = resolved.doctor ?? defaults.doctor;
     this.health = resolved.health ?? defaults.health;
-    this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
-    this.secondaryRelative =
-      resolved.secondaryRelative ?? defaults.secondaryRelative;
     this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
     this.draft = resolved.draft ?? defaults.draft;
   }
@@ -174,8 +158,6 @@ export class Resident extends FormArrayItem {
       personalData: this.personalData.serialize(),
       doctor: this.doctor.serialize(),
       health: this.health.serialize(),
-      primaryRelative: this.primaryRelative.serialize(),
-      secondaryRelative: this.secondaryRelative.serialize(),
       linkedFields: mapToObject(this.linkedFields),
       draft: this.draft,
     };
@@ -189,21 +171,13 @@ export class Resident extends FormArrayItem {
       personalData: FieldGroup.deserialize(data.personalData),
       doctor: FieldGroup.deserialize(data.doctor),
       health: FieldGroup.deserialize(data.health),
-      primaryRelative: FieldGroup.deserialize(data.primaryRelative),
-      secondaryRelative: FieldGroup.deserialize(data.secondaryRelative),
       linkedFields: objectToMap(data.linkedFields),
       draft: data.draft,
     });
   }
 
   public static areEqual(a: Resident, b: Resident): boolean {
-    const groups: GroupName[] = [
-      "personalData",
-      "doctor",
-      "health",
-      "primaryRelative",
-      "secondaryRelative",
-    ];
+    const groups: GroupName[] = ["personalData", "doctor", "health"];
 
     if (!a || !b) return false;
 
