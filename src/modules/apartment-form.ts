@@ -10,7 +10,7 @@ import {
 } from "peakflow/form";
 import { createAttribute } from "peakflow/attributeselector";
 import { getElement } from "peakflow/utils";
-import { flattenProspects, ResidentProspect } from "./form/resident-prospect";
+import { flattenPeople, Tenant } from "./form/tenant";
 import { getAlertDialog } from "./form/alert-dialog";
 import { addMonths, format, startOfMonth } from "date-fns";
 
@@ -47,7 +47,7 @@ function initializeFormDecisions(
 type PathId = string & ("show" | "hide");
 
 function initializeProspectDecisions<T extends string = string>(
-  prospectArray: FormArray<ResidentProspect>,
+  prospectArray: FormArray<Tenant>,
   errorMessages: { [id: string]: { [key: string]: string } },
   defaultMessages: { [id: string]: string } = {},
 ): Map<T, FormDecision<PathId>> {
@@ -161,14 +161,15 @@ export function initApartmentRegistrationForm(): void {
   }
 
   const progressManager = new FormProgressManager();
+  progressManager.initForm(formId, "4.0.0");
   const alertDialog = getAlertDialog();
-  const prospectArray = new FormArray<ResidentProspect>({
-    id: "resident-prospect",
+  const prospectArray = new FormArray<Tenant>({
+    id: "tenants",
     formId: formId,
     container: formElement,
     limit: 2,
     manager: progressManager,
-    itemClass: ResidentProspect,
+    itemClass: Tenant,
     alertDialog,
   });
   const FORM = new MultiStepForm(formElement, {
@@ -186,7 +187,7 @@ export function initApartmentRegistrationForm(): void {
     stepIndex: 2,
     instance: prospectArray,
     validator: () => prospectArray.validate(),
-    getData: () => flattenProspects(prospectArray.items),
+    getData: () => flattenPeople(prospectArray.items),
   });
   FORM.component.addEventListener("changeStep", () => {
     if (prospectArray.modal.opened) prospectArray.closeModal();

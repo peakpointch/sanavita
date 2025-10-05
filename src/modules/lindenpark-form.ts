@@ -8,10 +8,10 @@ import {
   formElementSelector,
 } from "peakflow/form";
 import { createAttribute } from "peakflow/attributeselector";
-import { flattenProspects as flattenPerson } from "./form/resident-prospect";
+import { flattenPeople } from "./form/tenant";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getElement } from "peakflow/utils";
-import { ResidentProspect } from "./form/resident-prospect";
+import { Resident } from "./form/resident";
 import { ContactPerson } from "./form/contact-person";
 import { getAlertDialog } from "./form/alert-dialog";
 import { FormProgressComponent } from "peakflow";
@@ -49,7 +49,7 @@ function initializeFormDecisions(
 type PathId = string & ("show" | "hide");
 
 function initializeProspectDecisions<T extends string = string>(
-  prospectArray: FormArray<ResidentProspect>,
+  prospectArray: FormArray<Resident>,
   errorMessages: { [id: string]: { [key: string]: string } },
   defaultMessages: { [id: string]: string } = {},
 ): Map<T, FormDecision<PathId>> {
@@ -163,18 +163,20 @@ export function initRoomRegistrationForm(): void {
   }
 
   const progressManager = new FormProgressManager();
+  progressManager.initForm(formId, "1.0.0");
+
   const alertDialog = getAlertDialog();
-  const prospectArray = new FormArray<ResidentProspect>({
-    id: "resident-prospect",
+  const prospectArray = new FormArray<Resident>({
+    id: "resident",
     formId: formId,
     container: formElement,
     limit: 1,
     manager: progressManager,
-    itemClass: ResidentProspect,
+    itemClass: Resident,
     alertDialog,
   });
   const contactArray = new FormArray<ContactPerson>({
-    id: "contact-person",
+    id: "contacts",
     formId: formId,
     container: formElement,
     limit: 10,
@@ -197,13 +199,13 @@ export function initRoomRegistrationForm(): void {
     stepIndex: 1,
     instance: prospectArray,
     validator: () => prospectArray.validate(),
-    getData: () => flattenPerson(prospectArray.items),
+    getData: () => flattenPeople(prospectArray.items),
   });
   FORM.addCustomComponent({
     stepIndex: 2,
     instance: contactArray,
     validator: () => contactArray.validate(),
-    getData: () => flattenPerson(contactArray.items),
+    getData: () => flattenPeople(contactArray.items),
   });
   FORM.component.addEventListener("changeStep", () => {
     if (prospectArray.modal.opened) prospectArray.closeModal();
