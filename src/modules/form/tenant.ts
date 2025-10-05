@@ -7,6 +7,7 @@ import {
 } from "peakflow/form";
 import { mapToObject, objectToMap } from "peakflow/utils";
 import { ContactPerson } from "./contact-person";
+import { Resident } from "./resident";
 
 export type GroupName =
   | "personalData"
@@ -24,12 +25,12 @@ type LinkedFieldsId =
   | "primaryRelative"
   | "secondaryRelative";
 
-export type ProspectValidation = Record<
+export type TenantValidation = Record<
   GroupName,
   FieldGroupValidation<FormField>
 >;
 
-export interface SerializedProspect {
+export interface SerializedTenant {
   personalData?: SerializedFieldGroup;
   doctor?: SerializedFieldGroup;
   health?: SerializedFieldGroup;
@@ -39,7 +40,7 @@ export interface SerializedProspect {
   draft?: boolean;
 }
 
-export interface ResidentProspectData {
+export interface TenantData {
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
@@ -52,10 +53,10 @@ export interface ResidentProspectData {
 /**
  * Used to save the prospect to local storage.
  */
-export function prospectMapToObject(
-  prospects: Map<string, ResidentProspect>,
+export function personMapToObject(
+  prospects: Map<string, Tenant | Resident | ContactPerson>,
 ): any {
-  // Convert a ResidentProspect's structure, which contains FieldGroups with fields as Maps
+  // Convert a Person's structure, which contains FieldGroups with fields as Maps
   const prospectsObj: any = {};
   for (const [key, prospect] of prospects) {
     prospectsObj[key] = prospect.serialize();
@@ -66,16 +67,16 @@ export function prospectMapToObject(
 /**
  * Used to submit a prospect.
  */
-export function flattenProspects(
-  prospects: Map<string, ContactPerson | ResidentProspect>,
+export function flattenPeople(
+  people: Map<string, Tenant | Resident | ContactPerson>,
 ): any {
-  let prospectsObj: any = {};
-  let prospectArray = [...prospects.values()];
-  for (let i = 0; i < prospectArray.length; i++) {
-    let prospect = prospectArray[i];
-    prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
+  let peopleObj: any = {};
+  let peopleArray = [...people.values()];
+  for (let i = 0; i < peopleArray.length; i++) {
+    let person = peopleArray[i];
+    peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) };
   }
-  return prospectsObj;
+  return peopleObj;
 }
 
 interface LinkedField {
@@ -86,7 +87,7 @@ interface LinkedField {
 
 type LinkedFields = Map<LinkedFieldsId | string, LinkedField>;
 
-export class ResidentProspect extends FormArrayItem {
+export class Tenant extends FormArrayItem {
   public personalData: FieldGroup;
   public doctor: FieldGroup;
   public health: FieldGroup;
@@ -97,7 +98,7 @@ export class ResidentProspect extends FormArrayItem {
   public linkedFields: LinkedFields;
   public draft: boolean;
 
-  public static get defaultData(): ResidentProspectData {
+  public static get defaultData(): TenantData {
     return {
       personalData: new FieldGroup(),
       doctor: new FieldGroup(),
@@ -109,9 +110,9 @@ export class ResidentProspect extends FormArrayItem {
     };
   }
 
-  constructor(data?: Partial<ResidentProspectData>) {
+  constructor(data?: Partial<TenantData>) {
     super();
-    const defaults = ResidentProspect.defaultData;
+    const defaults = Tenant.defaultData;
     const resolved = data ?? {};
     this.personalData = resolved.personalData ?? defaults.personalData;
     this.doctor = resolved.doctor ?? defaults.doctor;
@@ -130,7 +131,7 @@ export class ResidentProspect extends FormArrayItem {
   ): void {
     if (!id)
       throw new Error(
-        `ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`,
+        `Tenant "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`,
       );
 
     let inputIds = fields;
@@ -154,15 +155,15 @@ export class ResidentProspect extends FormArrayItem {
     return this.linkedFields.delete(id);
   }
 
-  public validateGroups(): ProspectValidation;
-  public validateGroups(...groups: GroupName[]): Partial<ProspectValidation>;
+  public validateGroups(): TenantValidation;
+  public validateGroups(...groups: GroupName[]): Partial<TenantValidation>;
   public validateGroups(
     ...groups: GroupName[]
-  ): Partial<ProspectValidation> | ProspectValidation {
+  ): Partial<TenantValidation> | TenantValidation {
     const groupNames = groups.length
       ? groups
       : (Object.keys(this) as GroupName[]);
-    const validatedGroups: Partial<ProspectValidation> = {};
+    const validatedGroups: Partial<TenantValidation> = {};
 
     for (const groupName of groupNames) {
       const group = this[groupName];
@@ -206,7 +207,7 @@ export class ResidentProspect extends FormArrayItem {
     return fields;
   }
 
-  public serialize(): SerializedProspect {
+  public serialize(): SerializedTenant {
     return {
       personalData: this.personalData.serialize(),
       doctor: this.doctor.serialize(),
@@ -219,10 +220,10 @@ export class ResidentProspect extends FormArrayItem {
   }
 
   /**
-   * Main function to deserialize a `ResidentProspect`
+   * Main function to deserialize a `Tenant`
    */
-  public static deserialize(data: SerializedProspect): ResidentProspect {
-    return new ResidentProspect({
+  public static deserialize(data: SerializedTenant): Tenant {
+    return new Tenant({
       personalData: FieldGroup.deserialize(data.personalData),
       doctor: FieldGroup.deserialize(data.doctor),
       health: FieldGroup.deserialize(data.health),
@@ -233,7 +234,7 @@ export class ResidentProspect extends FormArrayItem {
     });
   }
 
-  public static areEqual(a: ResidentProspect, b: ResidentProspect): boolean {
+  public static areEqual(a: Tenant, b: Tenant): boolean {
     const groups: GroupName[] = [
       "personalData",
       "doctor",
