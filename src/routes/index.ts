@@ -102,7 +102,7 @@ export const bistroMenus = () => {
 export const forms = () => {
   const routes: string[] = [
     "/anmeldung-wohnen-mit-service",
-    "/wohnungen/anmeldung",
+    "/wohnen-mit-service/anmeldung",
   ];
 
   for (const currentRoute of routes) {
