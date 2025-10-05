@@ -6,7 +6,7 @@
       "fields": {},
       "components": [
         {
-          "id": "person",
+          "id": "resident",
           "version": "1.0.0",
           "data": {
             "person-70d2db95-383b-456d-95b3-27be5779c809": {
@@ -373,7 +373,7 @@
           }
         },
         {
-          "id": "contact-person",
+          "id": "contacts",
           "version": "1.0.0",
           "data": {}
         }
