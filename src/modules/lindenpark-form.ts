@@ -141,6 +141,23 @@ export function initRoomRegistrationForm(): void {
         pl: "die",
       },
     },
+    dialogs: {
+      delete: {
+        title: ({ item, grammar }) =>
+          `Möchten Sie ${grammar.article.sg} ${grammar.item.sg} "${item?.getFullName()}" wirklich löschen?`,
+        paragraph: ({ item, grammar }) =>
+          `Mit dieser Aktion wird ${grammar.article.sg} ${grammar.item.sg} "${item?.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
+        cancel: "Abbrechen",
+        confirm: "Person löschen",
+      },
+      discard: {
+        title: "Möchten Sie die Änderungen verwerfen?",
+        paragraph: ({ item }) =>
+          `Mit dieser Aktion gehen alle Änderungen für "${item?.getFullName()}" verloren. Diese Aktion kann nicht rückgängig gemacht werden.`,
+        cancel: "Abbrechen",
+        confirm: "Änderungen verwerfen",
+      },
+    },
   });
   const contactArray = new FormArray<ContactPerson>({
     id: "contacts",
@@ -152,12 +169,29 @@ export function initRoomRegistrationForm(): void {
     alertDialog,
     grammar: {
       item: {
-        sg: "Person",
-        pl: "Personen",
+        sg: "Kontaktperson",
+        pl: "Kontaktpersonen",
       },
       article: {
         sg: "die",
         pl: "die",
+      },
+    },
+    dialogs: {
+      delete: {
+        title: ({ item }) =>
+          `Möchten Sie die Kontaktperson "${item.getFullName()}" wirklich löschen?`,
+        paragraph: ({ item }) =>
+          `Mit dieser Aktion wird die Kontaktperson "${item.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
+        cancel: "Abbrechen",
+        confirm: "Kontaktperson löschen",
+      },
+      discard: {
+        title: "Möchten Sie die Änderungen verwerfen?",
+        paragraph: ({ item }) =>
+          `Mit dieser Aktion gehen alle Änderungen für "${item.getFullName()}" verloren. Diese Aktion kann nicht rückgängig gemacht werden.`,
+        cancel: "Abbrechen",
+        confirm: "Änderungen verwerfen",
       },
     },
   });
@@ -234,6 +268,7 @@ export function initRoomRegistrationForm(): void {
   prospectArray.triggerOnSave();
   contactArray.triggerOnSave();
 
+  // Load progress here, otherwise recovering FormArray selects fails
   FORM.loadProgress();
 
   // @ts-ignore
