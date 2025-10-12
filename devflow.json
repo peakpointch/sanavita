@@ -12,5 +12,9 @@
     "admin.js",
     "screen.js"
   ],
-  "scriptAttribute": "xa-script"
+  "scriptAttribute": "xa-script",
+  "watchList": [
+    "./src/",
+    "../../peakflow/src/form/"
+  ]
 }
