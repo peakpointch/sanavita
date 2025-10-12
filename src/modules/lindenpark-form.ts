@@ -131,6 +131,16 @@ export function initRoomRegistrationForm(): void {
     manager: progressManager,
     itemClass: Resident,
     alertDialog,
+    grammar: {
+      item: {
+        sg: "Person",
+        pl: "Personen",
+      },
+      article: {
+        sg: "die",
+        pl: "die",
+      },
+    },
   });
   const contactArray = new FormArray<ContactPerson>({
     id: "contacts",
@@ -140,6 +150,16 @@ export function initRoomRegistrationForm(): void {
     manager: progressManager,
     itemClass: ContactPerson,
     alertDialog,
+    grammar: {
+      item: {
+        sg: "Person",
+        pl: "Personen",
+      },
+      article: {
+        sg: "die",
+        pl: "die",
+      },
+    },
   });
   const FORM = new MultiStepForm(formElement, {
     id: formId,

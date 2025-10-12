@@ -54147,9 +54147,9 @@
   // ../../peakflow/src/pluralize/pluralize.ts
   function pluralize(text2, count) {
     if (count === 1) {
-      return text2.singular;
+      return text2.sg;
     } else {
-      return text2.plural;
+      return text2.pl;
     }
   }
 
@@ -54497,8 +54497,8 @@
      */
     startNewItem() {
       if (this.items.size === this.options.limit) {
-        const itemName = pluralize(this.options.grammar.item, this.options.limit);
-        this.formMessage.error(`Sie k\xF6nnen nur max. ${this.options.limit} ${itemName} hinzuf\xFCgen.`);
+        const msg = this.getMessage("limit");
+        this.formMessage.error(msg);
         this.formMessage.setTimedReset(5e3);
         return;
       }
@@ -54572,11 +54572,8 @@
         this.items.forEach((item) => this.renderItem(item));
         this.formMessage.reset();
       } else {
-        const itemName = pluralize(this.options.grammar.item, this.options.limit);
-        this.formMessage.info(
-          `Bitte f\xFCgen Sie die Mieter (max. ${this.options.limit} ${itemName}) hinzu.`,
-          !this.initialized
-        );
+        const msg = this.getMessage("empty");
+        this.formMessage.info(msg, !this.initialized);
       }
     }
     renderItem(itemOrKey) {
@@ -54716,34 +54713,25 @@
     validate() {
       let valid = true;
       if (this.items.size === 0) {
-        console.warn("Bitte f\xFCgen Sie mindestens eine mietende Person hinzu.");
-        this.formMessage.error(
-          `Bitte f\xFCgen Sie mindestens eine ${this.options.grammar.item.singular} hinzu.`
-        );
-        this.formMessage.setTimedReset(5e3, () => {
-          const itemName = pluralize(this.options.grammar.item, this.options.limit);
-          this.formMessage.info(
-            `Bitte f\xFCgen Sie die Mieter (max. ${this.options.limit} ${itemName}) hinzu.`,
-            true
-          );
-        });
+        const msg = this.getMessage("empty", {});
+        if (msg) {
+          this.formMessage.error(msg);
+          this.formMessage.setTimedReset(5e3);
+          this.formMessage.setTimedReset(5e3, () => {
+            this.formMessage.info(msg, true);
+          });
+        }
         valid = false;
       } else {
         this.items.forEach((item) => {
           if (item.draft) {
-            console.warn(
-              `${capitalize(this.options.grammar.article.singular)} ${this.options.grammar.item.singular} "${item.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder l\xF6schen Sie diese Person.`
-            );
-            this.formMessage.error(
-              `${capitalize(this.options.grammar.article.singular)} ${this.options.grammar.item.singular} "${item.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder l\xF6schen Sie diese Person.`
-            );
+            const msg = this.getMessage("draft", { item });
+            this.formMessage.error(msg);
             this.formMessage.setTimedReset(8e3);
             valid = false;
           } else if (!item.validate()) {
-            console.warn(`Bitte f\xFCllen Sie alle Pflichtfelder f\xFCr "${item.getFullName()}" aus.`);
-            this.formMessage.error(
-              `Bitte f\xFCllen Sie alle Pflichtfelder f\xFCr "${item.getFullName()}" aus.`
-            );
+            const msg = this.getMessage("invalid", { item });
+            this.formMessage.error(msg);
             this.formMessage.setTimedReset(7e3);
             valid = false;
           }
@@ -54994,6 +54982,16 @@
         console.error(`FormArray "${this.id}": Error loading array progress:`, e2);
       }
     }
+    getMessage(key, ctx) {
+      const msg = this.options.messages?.[key];
+      const grammar = this.options.grammar;
+      const options = this.options;
+      if (!msg) return void 0;
+      if (typeof msg === "function") {
+        return msg({ item: ctx?.item, grammar, options });
+      }
+      return msg;
+    }
   };
   _FormArray.attr = {
     id: "data-form-array-id",
@@ -55011,13 +55009,19 @@
     itemClass: void 0,
     grammar: {
       item: {
-        singular: "Eintrag",
-        plural: "Eintr\xE4ge"
+        sg: "Eintrag",
+        pl: "Eintr\xE4ge"
       },
       article: {
-        singular: "der",
-        plural: "die"
+        sg: "der",
+        pl: "die"
       }
+    },
+    messages: {
+      empty: `Bitte f\xFCgen Sie mindestens einen Eintrag hinzu.`,
+      draft: ({ item, grammar }) => `${capitalize(grammar.article.sg)} ${grammar.item.sg} "${item?.getFullName()}" ist als Entwurf gespeichert.`,
+      invalid: ({ item }) => `Bitte f\xFCllen Sie alle Pflichtfelder f\xFCr "${item?.getFullName()}" aus.`,
+      limit: ({ options, grammar }) => `Sie k\xF6nnen max. ${options.limit} ${options.limit === 1 ? grammar.item.sg : grammar.item.pl} hinzuf\xFCgen.`
     }
   };
   _FormArray.attributeSelector = createAttribute(_FormArray.attr.element);
@@ -75340,7 +75344,17 @@ Page:`, page);
       limit: 1,
       manager: progressManager,
       itemClass: Resident,
-      alertDialog
+      alertDialog,
+      grammar: {
+        item: {
+          sg: "Person",
+          pl: "Personen"
+        },
+        article: {
+          sg: "die",
+          pl: "die"
+        }
+      }
     });
     const contactArray = new FormArray({
       id: "contacts",
@@ -75349,7 +75363,17 @@ Page:`, page);
       limit: 4,
       manager: progressManager,
       itemClass: ContactPerson,
-      alertDialog
+      alertDialog,
+      grammar: {
+        item: {
+          sg: "Person",
+          pl: "Personen"
+        },
+        article: {
+          sg: "die",
+          pl: "die"
+        }
+      }
     });
     const FORM = new MultiStepForm(formElement, {
       id: formId,
