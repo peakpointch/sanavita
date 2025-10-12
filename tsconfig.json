@@ -1,23 +1,16 @@
 {
+  "extends": "./tsconfig.prod.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
-      "html2pdf.js": [
-        "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"
-      ],
       "@/*": [
         "src/*"
+      ],
+      "peakflow": [
+        "../../peakflow/src/index.ts"
+      ],
+      "peakflow/*": [
+        "../../peakflow/src/*"
       ]
-    },
-    "target": "ES2020",
-    "lib": [
-      "ES2020",
-      "DOM"
-    ],
-    "esModuleInterop": true,
-    "declaration": true,
-    "noEmit": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true
+    }
   }
 }
