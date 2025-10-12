@@ -106,22 +106,8 @@ function insertSearchParamValues(): void {
   }
 }
 
-function saveComponentProgress(
-  progressManager: FormProgressManager,
-  formId: string,
-  component: FormProgressComponent,
-): void {
-  const form = progressManager.getForm(formId);
-  const foundIndex = form.components.findIndex((c) => c.id === component.id);
-  if (foundIndex === -1) {
-    form.components.push(component);
-  } else {
-    form.components[foundIndex] = component;
-  }
-  progressManager.saveForm(formId, form);
-}
-
 export function initRoomRegistrationForm(): void {
+  const version = "1.0.0";
   const formId = "lindenpark-anmeldung-zimmer";
   const formElement: HTMLElement | null = document.querySelector(
     formElementSelector("component", { exclusions: [] }),
@@ -134,7 +120,7 @@ export function initRoomRegistrationForm(): void {
   }
 
   const progressManager = new FormProgressManager();
-  progressManager.initForm(formId, "1.0.0");
+  progressManager.initForm(formId, version);
 
   const alertDialog = getAlertDialog();
   const prospectArray = new FormArray<Resident>({
@@ -156,10 +142,13 @@ export function initRoomRegistrationForm(): void {
     alertDialog,
   });
   const FORM = new MultiStepForm(formElement, {
+    id: formId,
+    version: version,
     navigation: {
       hideInStep: 0,
     },
     recaptcha: true,
+    manager: progressManager,
     excludeInputSelectors: [
       '[data-decision-path="upload"]',
       "[data-decision-component]",
@@ -170,7 +159,7 @@ export function initRoomRegistrationForm(): void {
     stepIndex: 1,
     instance: prospectArray,
     validator: () => prospectArray.validate(),
-    getData: () => flattenPeople(prospectArray.items),
+    getData: () => prospectArray.serialize(),
   });
   FORM.addCustomComponent({
     stepIndex: 2,
@@ -198,12 +187,17 @@ export function initRoomRegistrationForm(): void {
 
   prospectArray.loadProgress();
   contactArray.loadProgress();
-  FORM.formElement.addEventListener("formSuccess", () => {
-    progressManager.clear();
+  prospectArray.registerSelects("(Ich)");
+  contactArray.registerSelects("(Kontaktperson)");
+
+  FORM.events.on("success", () => {
+    progressManager.clearForm(formId);
   });
 
+  FORM.events.on("input", () => FORM.saveFields());
+
   prospectArray.onSave("save-progress", (component) =>
-    saveComponentProgress(progressManager, formId, component),
+    FORM.saveComponentProgress(component),
   );
   prospectArray.onSave("hide-add", () => {
     const addButtonWrapper = prospectArray.select("add").parentElement;
@@ -213,19 +207,20 @@ export function initRoomRegistrationForm(): void {
       addButtonWrapper.style.removeProperty("display");
     }
   });
-  prospectArray.registerSelects("(Ich)");
-  prospectArray.triggerOnSave();
   contactArray.onSave("save-progress", (component) =>
-    saveComponentProgress(progressManager, formId, component),
+    FORM.saveComponentProgress(component),
   );
-  contactArray.registerSelects("(Kontaktperson)");
+
+  prospectArray.triggerOnSave();
   contactArray.triggerOnSave();
+
+  FORM.loadProgress();
 
   // @ts-ignore
   window.MultiStepForm = FORM;
 
-  FORM.options.validation.validate = true;
-  FORM.changeToStep(2);
+  // FORM.options.validation.validate = false;
+  // FORM.changeToStep(3);
   // await new Promise(resolve => setTimeout(resolve, 600));
   // prospectArray.editProspect(prospectArray.getProspect(0));
 
