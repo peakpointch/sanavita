@@ -17,6 +17,7 @@ export type ResidentValidation = Record<
 >;
 
 export interface SerializedResident {
+  key?: string;
   personalData?: SerializedFieldGroup;
   doctor?: SerializedFieldGroup;
   health?: SerializedFieldGroup;
@@ -25,6 +26,7 @@ export interface SerializedResident {
 }
 
 export interface ResidentData {
+  key?: string;
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
@@ -45,7 +47,7 @@ export class Resident extends FormArrayItem {
   public doctor: FieldGroup;
   public health: FieldGroup;
 
-  public key: string = `person-${crypto.randomUUID()}`;
+  public key: string = `resident-${crypto.randomUUID()}`;
   public linkedFields: LinkedFields;
   public draft: boolean;
 
@@ -63,6 +65,7 @@ export class Resident extends FormArrayItem {
     super();
     const defaults = Resident.defaultData;
     const resolved = data ?? {};
+    this.key = data.key ?? this.key;
     this.personalData = resolved.personalData ?? defaults.personalData;
     this.doctor = resolved.doctor ?? defaults.doctor;
     this.health = resolved.health ?? defaults.health;
@@ -155,6 +158,7 @@ export class Resident extends FormArrayItem {
 
   public serialize(): SerializedResident {
     return {
+      key: this.key,
       personalData: this.personalData.serialize(),
       doctor: this.doctor.serialize(),
       health: this.health.serialize(),
@@ -168,6 +172,7 @@ export class Resident extends FormArrayItem {
    */
   public static deserialize(data: SerializedResident): Resident {
     return new Resident({
+      key: data.key,
       personalData: FieldGroup.deserialize(data.personalData),
       doctor: FieldGroup.deserialize(data.doctor),
       health: FieldGroup.deserialize(data.health),

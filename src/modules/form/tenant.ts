@@ -31,6 +31,7 @@ export type TenantValidation = Record<
 >;
 
 export interface SerializedTenant {
+  key?: string;
   personalData?: SerializedFieldGroup;
   doctor?: SerializedFieldGroup;
   health?: SerializedFieldGroup;
@@ -41,6 +42,7 @@ export interface SerializedTenant {
 }
 
 export interface TenantData {
+  key?: string;
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
@@ -94,7 +96,7 @@ export class Tenant extends FormArrayItem {
   public primaryRelative: FieldGroup;
   public secondaryRelative: FieldGroup;
 
-  public key: string = `person-${crypto.randomUUID()}`;
+  public key: string = `tenant-${crypto.randomUUID()}`;
   public linkedFields: LinkedFields;
   public draft: boolean;
 
@@ -114,6 +116,7 @@ export class Tenant extends FormArrayItem {
     super();
     const defaults = Tenant.defaultData;
     const resolved = data ?? {};
+    this.key = data.key ?? this.key;
     this.personalData = resolved.personalData ?? defaults.personalData;
     this.doctor = resolved.doctor ?? defaults.doctor;
     this.health = resolved.health ?? defaults.health;
@@ -209,6 +212,7 @@ export class Tenant extends FormArrayItem {
 
   public serialize(): SerializedTenant {
     return {
+      key: this.key,
       personalData: this.personalData.serialize(),
       doctor: this.doctor.serialize(),
       health: this.health.serialize(),
@@ -224,6 +228,7 @@ export class Tenant extends FormArrayItem {
    */
   public static deserialize(data: SerializedTenant): Tenant {
     return new Tenant({
+      key: data.key,
       personalData: FieldGroup.deserialize(data.personalData),
       doctor: FieldGroup.deserialize(data.doctor),
       health: FieldGroup.deserialize(data.health),

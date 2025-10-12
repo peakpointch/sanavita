@@ -16,13 +16,15 @@ export type ProspectValidation = Record<
   FieldGroupValidation<FormField>
 >;
 
-export interface SerializedProspect {
+export interface SerializedContact {
+  key?: string;
   personalData?: SerializedFieldGroup;
   linkedFields?: Record<string, LinkedField>;
   draft?: boolean;
 }
 
-export interface ResidentProspectData {
+export interface ContactData {
+  key?: string;
   personalData: FieldGroup;
   linkedFields: LinkedFields;
   draft: boolean;
@@ -39,11 +41,11 @@ type LinkedFields = Map<LinkedFieldsId | string, LinkedField>;
 export class ContactPerson extends FormArrayItem {
   public personalData: FieldGroup;
 
-  public key: string = `person-${crypto.randomUUID()}`;
+  public key: string = `contact-${crypto.randomUUID()}`;
   public linkedFields: LinkedFields;
   public draft: boolean;
 
-  public static get defaultData(): ResidentProspectData {
+  public static get defaultData(): ContactData {
     return {
       personalData: new FieldGroup(),
       linkedFields: new Map<LinkedFieldsId | string, LinkedField>(),
@@ -51,10 +53,11 @@ export class ContactPerson extends FormArrayItem {
     };
   }
 
-  constructor(data?: Partial<ResidentProspectData>) {
+  constructor(data?: Partial<ContactData>) {
     super();
     const defaults = ContactPerson.defaultData;
     const resolved = data ?? {};
+    this.key = data.key ?? this.key;
     this.personalData = resolved.personalData ?? defaults.personalData;
     this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
     this.draft = resolved.draft ?? defaults.draft;
@@ -143,8 +146,9 @@ export class ContactPerson extends FormArrayItem {
     return fields;
   }
 
-  public serialize(): SerializedProspect {
+  public serialize(): SerializedContact {
     return {
+      key: this.key,
       personalData: this.personalData.serialize(),
       linkedFields: mapToObject(this.linkedFields),
       draft: this.draft,
@@ -154,8 +158,9 @@ export class ContactPerson extends FormArrayItem {
   /**
    * Main function to deserialize a `ResidentProspect`
    */
-  public static deserialize(data: SerializedProspect): ContactPerson {
+  public static deserialize(data: SerializedContact): ContactPerson {
     return new ContactPerson({
+      key: data.key,
       personalData: FieldGroup.deserialize(data.personalData),
       linkedFields: objectToMap(data.linkedFields),
       draft: data.draft,
