@@ -8,8 +8,9 @@
         {
           "id": "resident",
           "version": "1.0.0",
-          "data": {
-            "person-70d2db95-383b-456d-95b3-27be5779c809": {
+          "data": [
+            {
+              "key": "resident-70d2db95-383b-456d-95b3-27be5779c809",
               "personalData": {
                 "salutation": {
                   "id": "salutation",
@@ -236,13 +237,14 @@
               "linkedFields": {},
               "draft": false
             }
-          }
+          ]
         },
         {
           "id": "contacts",
           "version": "1.0.0",
-          "data": {
-            "person-f89674fc-8dec-4421-b8fb-ec9fd0410f79": {
+          "data": [
+            {
+              "key": "contact-f89674fc-8dec-4421-b8fb-ec9fd0410f79",
               "personalData": {
                 "firstName": {
                   "id": "firstName",
@@ -304,7 +306,7 @@
               "linkedFields": {},
               "draft": false
             }
-          }
+          ]
         }
       ]
     },
@@ -315,8 +317,9 @@
         {
           "id": "tenants",
           "version": "1.0.0",
-          "data": {
-            "person-70d2db95-383b-456d-95b3-27be5779c809": {
+          "data": [
+            {
+              "key": "tenant-70d2db95-383b-456d-95b3-27be5779c809",
               "personalData": {
                 "salutation": {
                   "id": "salutation",
@@ -677,7 +680,8 @@
               "linkedFields": {},
               "draft": false
             },
-            "person-88920854-6f4a-421b-a02c-67d961a4ebf2": {
+            {
+              "key": "tenant-88920854-6f4a-421b-a02c-67d961a4ebf2",
               "personalData": {
                 "salutation": {
                   "id": "salutation",
@@ -1038,7 +1042,7 @@
               "linkedFields": {},
               "draft": false
             }
-          }
+          ]
         }
       ]
     }
