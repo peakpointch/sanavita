@@ -3,7 +3,99 @@
   "store": {
     "lindenpark-anmeldung-zimmer": {
       "version": "1.0.0",
-      "fields": {},
+      "fields": {
+        "primaryContact": {
+          "id": "primaryContact",
+          "label": "Primäre Kontaktperson",
+          "value": "contact-f89674fc-8dec-4421-b8fb-ec9fd0410f79",
+          "required": true,
+          "type": "select-one"
+        },
+        "phoneLine": {
+          "id": "phoneLine",
+          "label": "Telefonanschluss",
+          "value": "Nein",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "phoneDevice": {
+          "id": "phoneDevice",
+          "label": "Telefonapparat",
+          "value": "Nein",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "laundryRepair": {
+          "id": "laundryRepair",
+          "label": "Wäschereparaturen",
+          "value": "Nein",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "laundryRepairContact": {
+          "id": "laundryRepairContact",
+          "label": "Kontaktperson Wäsche",
+          "value": "contact-f89674fc-8dec-4421-b8fb-ec9fd0410f79",
+          "required": true,
+          "type": "select-one"
+        },
+        "mailboxAds": {
+          "id": "mailboxAds",
+          "label": "Werbung",
+          "value": "Nein",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "legalRepresentative": {
+          "id": "legalRepresentative",
+          "label": "Rechtliche Vertretung",
+          "value": "contact-f89674fc-8dec-4421-b8fb-ec9fd0410f79",
+          "required": true,
+          "type": "select-one"
+        },
+        "invoiceRecipient": {
+          "id": "invoiceRecipient",
+          "label": "Rechnungsempfänger",
+          "value": "contact-f89674fc-8dec-4421-b8fb-ec9fd0410f79",
+          "required": true,
+          "type": "select-one"
+        },
+        "lsv": {
+          "id": "lsv",
+          "label": "Lastschriftverfahren",
+          "value": "Nein",
+          "required": true,
+          "type": "radio",
+          "checked": true
+        },
+        "acceptTerms": {
+          "id": "acceptTerms",
+          "label": "Bedingungen akzeptieren",
+          "value": "Ich akzeptiere die oben genannten Bedingungen und erkläre mich damit einverstanden. Ich habe die Datenschutzerklärung vollständig gelesen und akzeptiert.",
+          "required": true,
+          "type": "checkbox",
+          "checked": true
+        },
+        "acceptObligation": {
+          "id": "acceptObligation",
+          "label": "Akzeptiere Verbindlichkeit",
+          "value": "Ich bestätige, dass meine Angaben wahrheitsgetreu und vollständig sind und dass ich ernsthaftes Interesse an einer der Wohnungen habe.",
+          "required": true,
+          "type": "checkbox",
+          "checked": true
+        },
+        "comment": {
+          "id": "comment",
+          "label": "Bemerkung",
+          "value": "Meine wunderbare Bemerkung.",
+          "required": false,
+          "type": "textarea"
+        }
+      },
       "components": [
         {
           "id": "resident",
