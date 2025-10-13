@@ -19,7 +19,7 @@
     "@xatom/core": "^1.0.12",
     "date-fns": "^4.1.0",
     "devflow": "file:../../devflow",
-    "peakflow": "github:peakpointch/peakflow",
+    "peakflow": "github:peakpointch/peakflow#33a90bb50f4b40a50b6ff86526a1b6df3d67a961",
     "semver": "^7.7.2",
     "swiper": "^11.2.5",
     "type-fest": "^4.41.0"
