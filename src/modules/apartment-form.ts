@@ -173,7 +173,7 @@ export function initApartmentRegistrationForm(): void {
   window.MultiStepForm = TenantArray;
   console.log("Form initialized:", ApartmentForm.initialized, ApartmentForm);
 
-  ApartmentForm.options.recaptcha = false;
+  // ApartmentForm.options.recaptcha = false;
   // ApartmentForm.options.validation.validate = false;
   // ApartmentForm.changeToStep(1);
   // setTimeout(() => {
