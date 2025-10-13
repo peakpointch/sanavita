@@ -1,0 +1,347 @@
+<main class="main-wrapper is-email">
+  <section class="section" section-style="lightest">
+    <div class="padding-global-email">
+      <div class="padding-section-medium">
+        <div class="container-small">
+          <div>
+            <div class="section-title" data-wf--layout-section-title--style-variant="base">
+              <div class="split_content-text display-block">
+                <div class="tagline animated-by-parent margin-bottom margin-xsmall">Formulareingang</div>
+                <div class="animated-by-parent">
+                  <div class="text-rich-text w-richtext"><h3>Wohnungsanmeldung: {{1.data.apartment}}</h3></div>
+                </div>
+                <div>
+                  <div class="spacer-small"></div>
+                  <div class="text-rich-text animated-by-parent w-richtext">
+                    <p>Eine neue Anmeldung mit folgenden Details wurde eingereicht:</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="spacer-large"></div>
+            <h4>Allgemeine Informationen</h4>
+            <div class="spacer-large"></div>
+            <table class="table_component">
+              <thead class="table_head">
+                <tr class="table_row">
+                  <th class="table_header">Feld</th>
+                  <th class="table_header">Wert</th>
+                </tr>
+              </thead>
+              <tbody class="table_body">
+                <tr class="table_row">
+                  <td class="table_cell">Wunschwohnung</td>
+                  <td class="table_cell">{{1.data.apartment}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Alternative Wohnung</td>
+                  <td class="table_cell">{{1.data.alternativeApartment}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Bezug ab</td>
+                  <td class="table_cell">{{1.data.moveInDate}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Einstellhallenplatz</td>
+                  <td class="table_cell">{{1.data.parking}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Autokennzeichen</td>
+                  <td class="table_cell">{{1.data.licensePlateNumber}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Akzeptiere Bedingungen</td>
+                  <td class="table_cell">{{1.data.acceptTerms}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Akzeptiere Verbindlichkeit</td>
+                  <td class="table_cell">{{1.data.acceptObligation}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Bemerkung</td>
+                  <td class="table_cell">{{1.data.comment}}</td>
+                </tr>
+              </tbody>
+              <caption class="table_caption">Allgemeine Informationen</caption>
+            </table>
+            <table class="table_component">
+              <thead class="table_head">
+                <tr class="table_row">
+                  <th class="table_header">Feld</th>
+                  <th class="table_header">Wert</th>
+                </tr>
+              </thead>
+              <tbody class="table_body">
+                <tr class="table_row">
+                  <td class="table_cell">Übermittlung der Beilagen</td>
+                  <td class="table_cell">{{1.data.attachmentSubmission}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Uploadcare Uuid</td>
+                  <td class="table_cell">{{1.data.`uploadcare-uuid`}}</td>
+                </tr>
+                <tr class="table_row">
+                  <td class="table_cell">Beilagen Dateien</td>
+                  <td class="table_cell">{{1.data.`uploadcare-file`}}</td>
+                </tr>
+              </tbody>
+              <caption class="table_caption">Beilagen</caption>
+            </table>
+            <div>
+              <h4>{{41.personalData.firstName.value}} {{space}} {{41.personalData.lastName.value}}</h4>
+              <div class="spacer-xregular"></div>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
+                    <td class="table_cell">Anrede</td>
+                    <td class="table_cell">{{41.personalData.salutation.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Vorname</td>
+                    <td class="table_cell">{{41.personalData.firstName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Name</td>
+                    <td class="table_cell">{{41.personalData.lastName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Geburtsdatum</td>
+                    <td class="table_cell">{{41.personalData.dateOfBirth.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Zivilstand</td>
+                    <td class="table_cell">{{41.personalData.maritalStatus.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Konfession</td>
+                    <td class="table_cell">{{41.personalData.religion.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Ehemaliger Beruf</td>
+                    <td class="table_cell">{{41.personalData.formerOccupation.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Haustiere</td>
+                    <td class="table_cell">{{41.personalData.pets.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Angegebene Haustiere</td>
+                    <td class="table_cell">{{41.personalData.specifiedPets.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Telefonnummer</td>
+                    <td class="table_cell">{{41.personalData.phone.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">E-Mail</td>
+                    <td class="table_cell">{{41.personalData.email.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Strasse</td>
+                    <td class="table_cell">{{41.personalData.street.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">PLZ</td>
+                    <td class="table_cell">{{41.personalData.zip.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Ort</td>
+                    <td class="table_cell">{{41.personalData.city.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Heimatort</td>
+                    <td class="table_cell">{{41.personalData.heimatort.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Bezug zu Trägergemeinden</td>
+                    <td class="table_cell">{{41.personalData.municipalities.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">AHV Nummer</td>
+                    <td class="table_cell">{{41.personalData.ahvNumber.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Krankenkasse</td>
+                    <td class="table_cell">{{41.personalData.healthInsurance.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Anschrift Krankenkasse</td>
+                    <td class="table_cell">{{41.personalData.healthInsuranceAddress.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Mitgliedernummer</td>
+                    <td class="table_cell">{{41.personalData.insuranceNumber.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Versicherungsklasse</td>
+                    <td class="table_cell">{{41.personalData.insuranceCategory.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Haftpflichtversicherung</td>
+                    <td class="table_cell">{{41.personalData.personalLiabilityInsurance.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Policen Nummer</td>
+                    <td class="table_cell">{{41.personalData.policyNumber.value}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Persönliche Angaben</caption>
+              </table>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
+                    <td class="table_cell">Patientenverfügung vorhanden</td>
+                    <td class="table_cell">{{41.health.livingWill.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Pflegebedarf zur Zeit</td>
+                    <td class="table_cell">{{41.health.needForCare.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Beschreibung Pflegebedarf</td>
+                    <td class="table_cell">{{41.health.careNeeds.value}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Gesundheitliche Angaben</caption>
+              </table>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
+                    <td class="table_cell">Hausarzt</td>
+                    <td class="table_cell">{{41.doctor.doctorName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Strasse</td>
+                    <td class="table_cell">{{41.doctor.street.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">PLZ</td>
+                    <td class="table_cell">{{41.doctor.zip.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Ort</td>
+                    <td class="table_cell">{{41.doctor.city.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Telefonnummer</td>
+                    <td class="table_cell">{{41.doctor.phone.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">E-Mail</td>
+                    <td class="table_cell">{{41.doctor.email.value}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Hausarzt</caption>
+              </table>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
+                    <td class="table_cell">Vorname</td>
+                    <td class="table_cell">{{41.primaryRelative.firstName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Name</td>
+                    <td class="table_cell">{{41.primaryRelative.lastName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Strasse</td>
+                    <td class="table_cell">{{41.primaryRelative.street.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">PLZ</td>
+                    <td class="table_cell">{{41.primaryRelative.zip.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Ort</td>
+                    <td class="table_cell">{{41.primaryRelative.city.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Telefonnummer</td>
+                    <td class="table_cell">{{41.primaryRelative.phone.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">E-Mail</td>
+                    <td class="table_cell">{{41.primaryRelative.email.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Bezug</td>
+                    <td class="table_cell">{{41.primaryRelative.degreeOfRelation.value}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Primäre Kontaktperson</caption>
+              </table>
+              <table class="table_component">
+                <thead class="table_head">
+                  <tr class="table_row">
+                    <th class="table_header">Feld</th>
+                    <th class="table_header">Wert</th>
+                  </tr>
+                </thead>
+                <tbody class="table_body">
+                  <tr class="table_row">
+                    <td class="table_cell">Vorname</td>
+                    <td class="table_cell">{{41.secondaryRelative.firstName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Name</td>
+                    <td class="table_cell">{{41.secondaryRelative.lastName.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Strasse</td>
+                    <td class="table_cell">{{41.secondaryRelative.street.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">PLZ</td>
+                    <td class="table_cell">{{41.secondaryRelative.zip.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Ort</td>
+                    <td class="table_cell">{{41.secondaryRelative.city.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Telefonnummer</td>
+                    <td class="table_cell">{{41.secondaryRelative.phone.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">E-Mail</td>
+                    <td class="table_cell">{{41.secondaryRelative.email.value}}</td>
+                  </tr>
+                  <tr class="table_row">
+                    <td class="table_cell">Bezug</td>
+                    <td class="table_cell">{{41.secondaryRelative.degreeOfRelation.value}}</td>
+                  </tr>
+                </tbody>
+                <caption class="table_caption">Weitere Kontaktperson</caption>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
