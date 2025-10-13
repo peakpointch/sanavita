@@ -115,9 +115,9 @@ export function initRoomRegistrationForm(): void {
     instance: ResidentArray,
     validator: () => ResidentArray.validate(),
     getData: () => {
-      const data = {};
-      data[ResidentArray.id] = JSON.stringify(ResidentArray.serialize());
-      return data;
+      return {
+        [ResidentArray.id]: JSON.stringify(ResidentArray.serialize()),
+      };
     },
   });
 
@@ -126,9 +126,9 @@ export function initRoomRegistrationForm(): void {
     instance: ContactArray,
     validator: () => ContactArray.validate(),
     getData: () => {
-      const data = {};
-      data[ContactArray.id] = JSON.stringify(ContactArray.serialize());
-      return data;
+      return {
+        [ContactArray.id]: JSON.stringify(ContactArray.serialize()),
+      };
     },
   });
 
