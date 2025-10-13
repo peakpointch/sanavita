@@ -6,7 +6,7 @@ import {
   formElementSelector,
 } from "peakflow/form";
 import { getElement } from "peakflow/utils";
-import { Tenant } from "./form/tenant";
+import { SerializedTenant, Tenant } from "./form/tenant";
 import { getAlertDialog } from "./form/alert-dialog";
 import { initializeFormDecisions, initializeArrayDecisions } from "./form/decisions";
 import { addMonths, format, startOfMonth } from "date-fns";
@@ -120,6 +120,29 @@ export function initApartmentRegistrationForm(): void {
         [TenantArray.id]: JSON.stringify(TenantArray.serialize()),
       };
     },
+  });
+
+  ApartmentForm.virtualFields.set("recipients", ({ customFields }) => {
+    const people: Array<SerializedTenant> = JSON.parse(customFields.tenants);
+    const emails = people.reduce((acc, person) => {
+      return [...acc, person.personalData.email.value, person.primaryRelative.email.value];
+    }, []);
+
+    return JSON.stringify([...new Set(emails)]);
+  });
+
+  ApartmentForm.virtualFields.set("greetings", ({ customFields }) => {
+    const people: Array<SerializedTenant> = JSON.parse(customFields.tenants);
+    const names = people
+      .map((person) => {
+        const firstName = person.personalData.firstName.value;
+        const lastName = person.personalData.lastName.value;
+        const fullName = [firstName, lastName].join(" ");
+        return `Guten Tag ${fullName}`;
+      })
+      .join(",<br>");
+
+    return names;
   });
 
   ApartmentForm.events.on("input", () => ApartmentForm.saveFields());
