@@ -164,10 +164,10 @@ export function initApartmentRegistrationForm(): void {
   initializeArrayDecisions(TenantArray, errorMessages, defaultMessages);
   initializeMoveInDate(ApartmentForm);
   initializeCMSSelect();
-  insertSearchParamValues();
 
   TenantArray.loadProgress();
   ApartmentForm.loadProgress();
+  insertSearchParamValues();
 
   // @ts-ignore
   window.MultiStepForm = TenantArray;
