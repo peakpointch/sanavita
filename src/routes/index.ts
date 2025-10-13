@@ -26,7 +26,7 @@ export const app = async () => {
     peakflow.execute("copyComponent");
   });
 
-  new WFRoute("/wohnungen").execute(() => {
+  new WFRoute("/wohnen-mit-service").execute(() => {
     peakflow.execute("swiper");
     initVimePlayer({
       customPoster: true,
@@ -91,18 +91,11 @@ export const bistroMenus = () => {
 };
 
 export const forms = () => {
-  const routes: string[] = [
-    "/anmeldung-wohnen-mit-service",
-    "/wohnungen/anmeldung",
-  ];
-
-  for (const currentRoute of routes) {
-    new WFRoute(currentRoute).execute(() => {
-      initApartmentRegistrationForm();
-      peakflow.execute("uploadcare");
-      new Stylesheet({
-        href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
-      }).load();
-    });
-  }
+  new WFRoute("/anmeldung-wohnen-mit-service").execute(() => {
+    initApartmentRegistrationForm();
+    peakflow.execute("uploadcare");
+    new Stylesheet({
+      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
+    }).load();
+  });
 };
