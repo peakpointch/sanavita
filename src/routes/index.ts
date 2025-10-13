@@ -29,7 +29,6 @@ export const app = async () => {
 
   new WFRoute("/lindenpark/anmeldung").execute(() => {
     initRoomRegistrationForm();
-    peakflow.execute("uploadcare");
     new Stylesheet({
       href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
     }).load();
@@ -100,10 +99,7 @@ export const bistroMenus = () => {
 };
 
 export const forms = () => {
-  const routes: string[] = [
-    "/anmeldung-wohnen-mit-service",
-    "/wohnen-mit-service/anmeldung",
-  ];
+  const routes: string[] = ["/anmeldung-wohnen-mit-service", "/wohnen-mit-service/anmeldung"];
 
   for (const currentRoute of routes) {
     new WFRoute(currentRoute).execute(() => {
