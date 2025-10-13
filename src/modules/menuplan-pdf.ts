@@ -23,10 +23,8 @@ import {
   addWeeks,
   getYear,
   WeekOptions,
-  startOfISOWeek,
   StartOfWeekOptions,
   parse,
-  addMinutes,
   getISOWeekYear,
   getISOWeek,
 } from "date-fns";
@@ -374,15 +372,23 @@ export function initMenuplanPdf(): void {
   const downloadBtn = document.querySelector(actionSelector("download"));
   downloadBtn.addEventListener("click", () => {
     const startDate = new Date(filterForm.data.getField("startDate").value);
-    const selectedDesign = filterForm.data.getField("design").value;
+    const selectedDesign: "bistro" | "bewohnende" | "bewohnendeEtage" =
+      filterForm.data.getField("design").value;
     const format: string = filterForm.data.getField("format").value;
     const pdfFormat = format.toLowerCase() as PdfFormat;
 
-    let filename = `Tagesmenus Bistro ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
-    if (selectedDesign === "bewohnende") {
-      filename = `Menuplan Bewohnende ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
+    let filename = `${getISOWeekYear(startDate)} KW${getISOWeek(startDate)} `;
+    switch (selectedDesign) {
+      case "bistro":
+        filename += `Menuplan Bistro`;
+        break;
+      case "bewohnende":
+        filename += `Menuplan Bewohnende`;
+        break;
+      case "bewohnendeEtage":
+        filename += `Menuplan Bewohnende Etage`;
+        break;
     }
-    filename += ` ${format}`;
 
     pdf.save(pdfFormat, filename, 1);
   });
