@@ -98,7 +98,7 @@
       },
       "components": [
         {
-          "id": "resident",
+          "id": "residents",
           "version": "1.0.0",
           "data": [
             {
