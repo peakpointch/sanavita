@@ -7,11 +7,9 @@ import {
   formElementSelector,
 } from "peakflow/form";
 import { createAttribute } from "peakflow/attributeselector";
-import { flattenPeople } from "./form/tenant";
-import { Resident } from "./form/resident";
-import { ContactPerson } from "./form/contact-person";
+import { Resident, SerializedResident } from "./form/resident";
+import { ContactPerson, SerializedContact } from "./form/contact-person";
 import { getAlertDialog } from "./form/alert-dialog";
-import { FormProgressComponent } from "peakflow";
 
 const decisionSelector = createAttribute("data-decision-component");
 
@@ -124,7 +122,7 @@ export function initRoomRegistrationForm(): void {
 
   const alertDialog = getAlertDialog();
   const prospectArray = new FormArray<Resident>({
-    id: "resident",
+    id: "residents",
     formId: formId,
     container: formElement,
     limit: 1,
@@ -207,22 +205,85 @@ export function initRoomRegistrationForm(): void {
       '[data-decision-path="upload"]',
       "[data-decision-component]",
     ],
+    jsonFields: false,
   });
 
   FORM.addCustomComponent({
     stepIndex: 1,
     instance: prospectArray,
     validator: () => prospectArray.validate(),
-    getData: () => prospectArray.serialize(),
+    getData: () => {
+      const data = {};
+      data[prospectArray.id] = JSON.stringify(prospectArray.serialize());
+      return data;
+    },
   });
   FORM.addCustomComponent({
     stepIndex: 2,
     instance: contactArray,
     validator: () => contactArray.validate(),
-    getData: () => flattenPeople(contactArray.items),
+    getData: () => {
+      const data = {};
+      data[contactArray.id] = JSON.stringify(contactArray.serialize());
+      return data;
+    },
   });
   FORM.component.addEventListener("changeStep", () => {
     if (prospectArray.modal.opened) prospectArray.closeModal();
+  });
+
+  FORM.virtualFields.set("recipients", ({ customFields }) => {
+    const people: Array<SerializedResident | SerializedContact> = [
+      ...JSON.parse(customFields.residents),
+      ...JSON.parse(customFields.contacts),
+    ];
+    const emails = people.map((person) => person.personalData.email.value);
+
+    return JSON.stringify(emails);
+  });
+
+  FORM.virtualFields.set("greetings", ({ customFields }) => {
+    const people: Array<SerializedResident | SerializedContact> = [
+      ...JSON.parse(customFields.residents),
+    ];
+    const names = people
+      .map((person) => {
+        const firstName = person.personalData.firstName.value;
+        const lastName = person.personalData.lastName.value;
+        const fullName = [firstName, lastName].join(" ");
+        return `Guten Tag ${fullName}`;
+      })
+      .join(",<br>");
+
+    return names;
+  });
+
+  FORM.virtualFields.set("names", ({ fields, customFields }) => {
+    const people: Array<SerializedResident | SerializedContact> = [
+      ...JSON.parse(customFields.residents),
+      ...JSON.parse(customFields.contacts),
+    ];
+
+    const fieldIds = [
+      "primaryContact",
+      "invoiceRecipient",
+      "laundryRepairContact",
+      "legalRepresentative",
+    ];
+
+    const names = fieldIds.reduce((acc, id) => {
+      const person = people.find((person) => person.key === fields[id]);
+      const firstName = person.personalData.firstName.value;
+      const lastName = person.personalData.lastName.value;
+      const fullName = [firstName, lastName].join(" ");
+
+      return {
+        ...acc,
+        [id]: fullName,
+      };
+    }, {});
+
+    return JSON.stringify(names);
   });
 
   const errorMessages = {
@@ -246,6 +307,7 @@ export function initRoomRegistrationForm(): void {
 
   FORM.events.on("success", () => {
     progressManager.clearForm(formId);
+    FORM.events.emit("save");
   });
 
   FORM.events.on("input", () => FORM.saveFields());
@@ -273,11 +335,11 @@ export function initRoomRegistrationForm(): void {
 
   // @ts-ignore
   window.MultiStepForm = FORM;
+  console.log("Form initialized:", FORM.initialized, FORM);
 
   // FORM.options.validation.validate = false;
-  // FORM.changeToStep(3);
+  // FORM.changeToStep(4);
+  // FORM.submit();
   // await new Promise(resolve => setTimeout(resolve, 600));
   // prospectArray.editProspect(prospectArray.getProspect(0));
-
-  console.log("Form initialized:", FORM.initialized, FORM);
 }
