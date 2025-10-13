@@ -1,0 +1,17 @@
+{
+  "singleQuote": false,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "semi": true,
+  "htmlWhitespaceSensitivity": "ignore",
+  "overrides": [
+    {
+      "files": [
+        "*.html"
+      ],
+      "options": {
+        "printWidth": 120
+      }
+    }
+  ]
+}
