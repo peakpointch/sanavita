@@ -6,7 +6,7 @@ import {
   formElementSelector,
 } from "peakflow/form";
 import { getElement } from "peakflow/utils";
-import { flattenPeople, Tenant } from "./form/tenant";
+import { Tenant } from "./form/tenant";
 import { getAlertDialog } from "./form/alert-dialog";
 import { initializeFormDecisions, initializeArrayDecisions } from "./form/decisions";
 import { addMonths, format, startOfMonth } from "date-fns";
@@ -115,7 +115,11 @@ export function initApartmentRegistrationForm(): void {
     stepIndex: 2,
     instance: TenantArray,
     validator: () => TenantArray.validate(),
-    getData: () => flattenPeople(TenantArray.items),
+    getData: () => {
+      return {
+        [TenantArray.id]: JSON.stringify(TenantArray.serialize()),
+      };
+    },
   });
 
   ApartmentForm.events.on("input", () => ApartmentForm.saveFields());

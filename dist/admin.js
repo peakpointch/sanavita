@@ -45611,7 +45611,7 @@ Component:`,
     cacheDomElements() {
       this.formElement = this.component.querySelector("form");
       if (!this.options.nested && !this.formElement) {
-        throw new Error("Form element not found within the specified component.");
+        throw new Error(`${this.lp}Form element not found within the specified component.`);
       }
       if (this.options.nested) {
         this.formElement = this.component;
@@ -45630,7 +45630,7 @@ Component:`,
     setupForm() {
       if (!this.formSteps.length) {
         console.warn(
-          `Form Steps: The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
+          `${this.lp}The selected list doesn't contain any steps. Skipping initialization. Provided List:`,
           this.component.querySelector(stepsElementSelector("list"))
         );
         return;
@@ -45676,17 +45676,17 @@ Component:`,
     }
     async submit() {
       if (this.options.nested) {
-        throw new Error(`Can't submit a nested MultiStepForm.`);
+        throw new Error(`${this.lp}Can't submit a nested MultiStepForm.`);
       }
       if (this.currentStep !== this.formSteps.length - 1) {
         console.error(
-          "SUBMIT ERROR: the current step is not the last step. Can only submit the MultiStepForm in the last step."
+          `${this.lp}Submission Failed: Can only submit the MultiStepForm in the last step.`
         );
         return;
       }
       const allStepsValid = this.validateAllSteps();
       if (!allStepsValid) {
-        console.warn("Form submission blocked: Not all steps are valid.");
+        console.warn(`${this.lp}Submission Failed: Not all steps are valid.`);
         return;
       }
       this.formElement.dataset.state = "sending";
@@ -45705,7 +45705,7 @@ Component:`,
     }
     buildJsonForWebflow() {
       if (this.options.nested) {
-        throw new Error(`Can't get FormData for a nested MultiStepForm.`);
+        throw new Error(`${this.lp}Can't get FormData for a nested MultiStepForm.`);
       }
       const fields = this.getFormData();
       if (this.options.recaptcha) {
@@ -45713,7 +45713,7 @@ Component:`,
         fields["g-recaptcha-response"] = recaptcha;
         if (!recaptcha) {
           this.emitOnError();
-          throw new Error(`Form "${this.id}": Recaptcha response invalid.`);
+          throw new Error(`${this.lp}Recaptcha response invalid.`);
         }
       }
       return {
@@ -45834,7 +45834,6 @@ Component:`,
       this.updateStepVisibility(index2);
       this.updatePagination(index2);
       this.currentStep = index2;
-      console.log(`Step ${this.currentStep + 1}/${this.formSteps.length}`);
     }
     updateStepVisibility(target) {
       const current = this.formSteps[this.currentStep];
@@ -45888,7 +45887,7 @@ Component:`,
       let allValid = true;
       this.formSteps.forEach((_3, index2) => {
         if (!this.validateCurrentStep(index2)) {
-          console.warn(`Step ${index2 + 1} is invalid.`);
+          console.warn(`${this.lp}: Step ${index2 + 1} is invalid.`);
           allValid = false;
           this.changeToStep(index2);
         }
@@ -45910,13 +45909,13 @@ Component:`,
       });
       let { isValid: isValid3 } = validateFields(filteredInputs, this.options.validation.reportValidity);
       if (!isValid3 && this.options.validation.reportValidity) {
-        console.warn(`${basicError}: Standard validation is not valid`);
+        console.warn(`${this.lp}${basicError}: Standard validation is not valid`);
       }
       if (!isValid3) return false;
       const customValidators = this.customComponents.filter((entry) => entry.stepIndex === stepIndex).map((entry) => () => entry.validator());
       const customValid = customValidators?.every((validator) => validator()) ?? true;
       if (this.options.validation.reportValidity && !customValid) {
-        console.warn(`${basicError}: Custom validation is not valid`);
+        console.warn(`${this.lp}${basicError}: Custom validation is not valid`);
       }
       return isValid3 && customValid;
     }
@@ -45995,7 +45994,6 @@ Component:`,
       otherInputs.forEach((input) => {
         const field = data.getField(input.id);
         if (!field) return;
-        if (input.type === "select-one") console.log(`SELECT FIELD "${field.id}": "${field.value}"`);
         if (!isCheckboxInput(input)) {
           input.value = field.value.trim();
         } else {
