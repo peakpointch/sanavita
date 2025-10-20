@@ -138,6 +138,7 @@ export async function initSozjobsList() {
   );
   const renderer = new Renderer(jobList, {
     attributeName: "job",
+    pathPrefix: "renderer"
   });
 
   let displayedJobs = 3; // Start with the first 3 jobs
