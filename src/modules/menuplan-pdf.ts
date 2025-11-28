@@ -338,11 +338,20 @@ export function initMenuplanPdf(): void {
         },
       ];
 
-      const renderData: RenderData = [
+      let renderData: RenderData = [
         ...staticRenderFields,
         ...filterCollection.filterByDate(startDate, endDate),
         ...renderCollections,
       ];
+
+      let seenWeeklyHit = false;
+      renderData = renderData.filter((node) => {
+        if (node.name === "weekly-hit") {
+          if (seenWeeklyHit) return false; // already had one → remove it
+          seenWeeklyHit = true; // first one → keep it
+        }
+        return true; // keep everything else
+      });
 
       try {
         canvas.showHiddenElements();
