@@ -20,6 +20,7 @@ export const app = async () => {
   });
 
   new WFRoute("/lindenpark").execute(() => {
+    peakflow.execute("swiper");
     initVimePlayer({
       customPoster: true,
     });
