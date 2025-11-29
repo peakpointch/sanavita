@@ -5,7 +5,8 @@
   "private": false,
   "scripts": {
     "dev": "devflow dev",
-    "build": "devflow build"
+    "build": "devflow build",
+    "dev:components": "vite --config src/components/vite.config.ts"
   },
   "libswitch": {
     "name": "peakflow",
@@ -25,6 +26,14 @@
     "type-fest": "^4.41.0"
   },
   "devDependencies": {
-    "libswitch": "github:peakpointch/libswitch"
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "libswitch": "github:peakpointch/libswitch",
+    "path": "^0.12.7",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vite": "^7.2.4"
   }
 }
