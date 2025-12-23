@@ -8,7 +8,7 @@ function App() {
   return (
     <div style={{ padding: 40 }}>
       <h1>Components Playground</h1>
-      <Badge text="Hello Motherfuckers" variant="Light"></Badge>
+      <Badge text="Hello Badge" variant="Light"></Badge>
     </div>
   );
 }
