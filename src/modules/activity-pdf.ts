@@ -2,11 +2,7 @@
 import EditableCanvas from "peakflow/canvas";
 import Pdf, { PdfFormat } from "peakflow/pdf";
 import { FilterCollection } from "peakflow/wfcollection";
-import Renderer, {
-  RenderData,
-  RenderBlock,
-  RenderField,
-} from "peakflow/renderer";
+import Renderer, { RenderData, RenderField } from "peakflow/renderer";
 import {
   FilterForm,
   filterFormSelector,
@@ -358,8 +354,7 @@ export function initActivityPdf(): void {
     const startDate = new Date(filterForm.getFilterInput("startDate").value);
     const format: string = filterForm.data.getField("format").value;
     const pdfFormat = format.toLowerCase() as PdfFormat;
-    let filename = `Wochenprogramm ${getISOWeekYear(startDate)} KW${getISOWeek(startDate)}`;
-    filename += ` ${format}`;
+    let filename = `${getISOWeekYear(startDate)} KW${getISOWeek(startDate)} Wochenprogramm`;
 
     pdf.save(pdfFormat, filename, 1);
   });
