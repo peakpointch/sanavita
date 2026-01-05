@@ -4,13 +4,15 @@
   "source": [
     "./src/app.ts",
     "./src/admin.ts",
-    "./src/screen.ts"
+    "./src/screen.ts",
+    "./src/tv.ts"
   ],
   "dist": "./dist",
   "scriptList": [
     "app.js",
     "admin.js",
-    "screen.js"
+    "screen.js",
+    "tv.js"
   ],
   "scriptAttribute": "xa-script",
   "watchList": [
