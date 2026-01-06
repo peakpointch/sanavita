@@ -92,7 +92,7 @@ export function createVideoComponent(component: HTMLElement) {
   });
 
   // Add event listeners
-  playButton.addEventListener("click", togglePlay);
+  playButton?.addEventListener("click", togglePlay);
   muteButton?.addEventListener("click", toggleMute);
 }
 

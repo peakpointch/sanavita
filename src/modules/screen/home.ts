@@ -1,18 +1,16 @@
-import createAttribute from "peakflow/attributeselector";
+import { Selector } from "peakflow";
 import { FilterCollection } from "peakflow/wfcollection";
 import Renderer, { RenderData, RenderNode } from "peakflow/renderer";
 import Swiper from "swiper";
 import { Autoplay, Navigation, Pagination, Manipulation } from "swiper/modules";
-import { readSwiperOptions } from "peakflow/swiper";
+import { Slider } from "peakflow/swiper";
 import { SwiperOptions } from "swiper/types";
 
 type WfCollection = "screen";
 type SwiperInstance = "news" | "tagesmenu" | "wochenhit" | "activity";
 
-const wfCollectionSelector = createAttribute<WfCollection>("wf-collection");
-const swiperSelector = createAttribute<SwiperInstance>(
-  "custom-swiper-component",
-);
+const wfCollectionSelector = Selector.attr<WfCollection>("wf-collection");
+const swiperSelector = Selector.attr<SwiperInstance>("data-swiper-id");
 
 const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
@@ -289,7 +287,7 @@ export function initDigitalSignage() {
     swiperSelector("news"),
   );
   const swiperOptions: SwiperOptions = {
-    ...readSwiperOptions(newsSwiperEl),
+    ...Slider.readOptions(newsSwiperEl),
     modules: [Autoplay, Navigation, Pagination, Manipulation],
   };
   const swiper = new Swiper(newsSwiperEl, swiperOptions);

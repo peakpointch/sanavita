@@ -7,14 +7,11 @@ import Renderer, {
   RenderBlock,
   RenderField,
 } from "peakflow/renderer";
-import {
-  FilterForm,
-  filterFormSelector,
-  CalendarweekComponent,
-} from "peakflow/form";
+import { FilterForm, filterFormSelector } from "peakflow/form";
+import { CalendarweekComponent } from "peakflow/ui";
 
 // Utility functions
-import createAttribute from "peakflow/attributeselector";
+import Selector from "peakflow/attributeselector";
 import {
   addDays,
   startOfWeek,
@@ -70,8 +67,8 @@ const formatDE = (date: Date, formatStr: string) =>
   format(date, formatStr, { locale: de });
 
 // Selector functions
-const wfCollectionSelector = createAttribute<string>("wf-collection");
-const actionSelector = createAttribute<ActionElement>("data-action");
+const wfCollectionSelector = Selector.attr<string>("wf-collection");
+const actionSelector = Selector.attr<ActionElement>("data-action");
 
 const weekOptions: WeekOptions = {
   weekStartsOn: 1,

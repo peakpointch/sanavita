@@ -1,4 +1,4 @@
-import createAttribute, { exclude, AttributeSelector } from "peakflow/attributeselector";
+import { Selector, exclude } from "peakflow/attributeselector";
 import {
   isCheckboxInput,
   isRadioInput,
@@ -30,17 +30,19 @@ import type { ScrollPosition } from "peakflow/scroll";
 import semver from "semver";
 
 type ProspectElement =
-  'template'
-  | 'add'
-  | 'edit'
-  | 'delete'
-  | 'save'
-  | 'draft'
-  | 'draft-badge'
-  | 'cancel'
-  | 'circle';
+  | "template"
+  | "add"
+  | "edit"
+  | "delete"
+  | "save"
+  | "draft"
+  | "draft-badge"
+  | "cancel"
+  | "circle";
 
-const prospectSelector = createAttribute<ProspectElement>('data-prospect-element')
+const prospectSelector = Selector.attr<ProspectElement>(
+  "data-prospect-element",
+);
 
 const LINK_FIELDS_ATTR = `data-link-fields`;
 const FIELD_GROUP_ATTR = `data-prospect-field-group`;
@@ -61,7 +63,7 @@ type ModalGroup = {
   isValid: boolean;
   element: HTMLElement;
   name: GroupName;
-}
+};
 
 type OnOpenCallback = (prospect?: ResidentProspect) => void;
 type OnCloseCallback = () => void;
@@ -74,7 +76,7 @@ export default class ProspectArray {
   public modalElement: HTMLElement;
   public alertDialog: AlertDialog = getAlertDialog();
   public groups: ModalGroup[] = [];
-  public saveOptions: SaveOptions<'draft' | 'save'>;
+  public saveOptions: SaveOptions<"draft" | "save">;
 
   private container: HTMLElement;
   private list: HTMLElement;
@@ -95,12 +97,12 @@ export default class ProspectArray {
     this.container = container;
     this.prospects = new Map();
     this.list = this.container.querySelector(ARRAY_LIST_SELECTOR)!;
-    this.template = this.list.querySelector(prospectSelector('template'))!;
-    this.addButton = this.container.querySelector(prospectSelector('add'))!;
+    this.template = this.list.querySelector(prospectSelector("template"))!;
+    this.addButton = this.container.querySelector(prospectSelector("add"))!;
     this.formMessage = new FormMessage("FormArray", this.id.toString());
 
     // Form Modal
-    this.modalElement = Modal.select('component', 'resident-prospect');
+    this.modalElement = Modal.select("component", "resident-prospect");
     this.modal = new Modal(this.modalElement, {
       animation: {
         type: "growIn",
@@ -109,18 +111,20 @@ export default class ProspectArray {
       bodyScroll: {
         lock: true,
         smooth: true,
-      }
+      },
     });
-    this.saveOptions = new SaveOptions(SaveOptions.select('component', 'save-prospect'));
+    this.saveOptions = new SaveOptions(
+      SaveOptions.select("component", "save-prospect"),
+    );
     this.cancelButtons = this.modalElement.querySelectorAll(
-      prospectSelector('cancel')
+      prospectSelector("cancel"),
     )!;
     this.modalInputs = this.modalElement.querySelectorAll(wf.select.formInput);
 
     // Get groups
     const groupElements =
       this.modalElement.querySelectorAll<HTMLElement>(FIELD_GROUP_SELECTOR);
-    groupElements.forEach(groupEl => {
+    groupElements.forEach((groupEl) => {
       const groupName = groupEl.dataset.prospectFieldGroup! as GroupName;
       this.groups.push({
         isValid: false,
@@ -146,7 +150,11 @@ export default class ProspectArray {
           this.saveProspectFromModal({ validate: true, report: true });
         }
 
-        if (event.key === "Tab" || event.key === "ArrowDown" || event.key === "ArrowUp") {
+        if (
+          event.key === "Tab" ||
+          event.key === "ArrowDown" ||
+          event.key === "ArrowUp"
+        ) {
           keyboardFocused = true;
         }
       });
@@ -173,20 +181,22 @@ export default class ProspectArray {
       const group = this.getClosestGroup(input);
       input.addEventListener("input", () => {
         // Never report invalid fields on every 'input' event
-        if (input.matches(FormDecision.selector("input"))
-          || input.matches(`[${LINK_FIELDS_ATTR}] *`)
-        ) return;
+        if (
+          input.matches(FormDecision.selector("input")) ||
+          input.matches(`[${LINK_FIELDS_ATTR}] *`)
+        )
+          return;
 
         this.validateModalGroup(group);
-        const valid = this.groups.every(group => group.isValid === true);
-        this.saveOptions.setAction(valid ? 'save' : 'draft');
+        const valid = this.groups.every((group) => group.isValid === true);
+        this.saveOptions.setAction(valid ? "save" : "draft");
       });
     });
 
-    this.saveOptions.setActionHandler('save', () => {
+    this.saveOptions.setActionHandler("save", () => {
       this.saveProspectFromModal({ validate: true, report: true });
     });
-    this.saveOptions.setActionHandler('draft', () => {
+    this.saveOptions.setActionHandler("draft", () => {
       this.saveProspectFromModal({ validate: false, report: false });
     });
     this.addButton.addEventListener("click", () => this.startNewProspect());
@@ -201,88 +211,105 @@ export default class ProspectArray {
   }
 
   private initializeLinkedFields(): void {
-    const links = this.modalElement.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
+    const links = this.modalElement.querySelectorAll<HTMLElement>(
+      `[${LINK_FIELDS_ATTR}]`,
+    );
 
-    links.forEach(link => {
-      const checkbox: HTMLInputElement = link.querySelector(wf.select.checkboxInput);
-      checkbox.addEventListener('change', () => {
+    links.forEach((link) => {
+      const checkbox: HTMLInputElement = link.querySelector(
+        wf.select.checkboxInput,
+      );
+      checkbox.addEventListener("change", () => {
         if (!this.initialized || !this.modal.opened) return;
         if (checkbox.checked) {
           this.linkFields(link);
         } else {
           this.unlinkFields(link);
         }
-      })
+      });
     });
   }
 
   private linkFields(linkElement: HTMLElement): void {
-    const checkbox: HTMLInputElement = linkElement.querySelector(wf.select.checkboxInput);
+    const checkbox: HTMLInputElement = linkElement.querySelector(
+      wf.select.checkboxInput,
+    );
     checkbox.checked = true;
 
     const otherProspect = this.getOtherProspect();
     if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
 
-    const inputIds = linkElement.getAttribute(LINK_FIELDS_ATTR)
-      ?.split(',')
-      .map(id => id.trim());
+    const inputIds = linkElement
+      .getAttribute(LINK_FIELDS_ATTR)
+      ?.split(",")
+      .map((id) => id.trim());
 
-    if (inputIds.length === 0 || inputIds.some(id => id === '')) {
-      throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+    if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+      throw new Error(
+        `Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`,
+      );
     }
 
     const fieldGroupElement = linkElement.closest(FIELD_GROUP_SELECTOR);
-    const fieldGroupName = fieldGroupElement?.getAttribute(FIELD_GROUP_ATTR) as GroupName;
+    const fieldGroupName = fieldGroupElement?.getAttribute(
+      FIELD_GROUP_ATTR,
+    ) as GroupName;
     const sourceFieldGroup = otherProspect[fieldGroupName];
 
-    inputIds.forEach(id => {
+    inputIds.forEach((id) => {
       const input = fieldGroupElement.querySelector(`#${id}`);
       if (!input || !isFormInput(input)) {
         throw new TypeError(
-          `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
+          `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`,
         );
       }
 
       input.value = sourceFieldGroup.getField(id)?.value;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
     });
   }
 
   private unlinkFields(linkElement: HTMLElement): void {
-    const checkbox: HTMLInputElement = linkElement.querySelector(wf.select.checkboxInput);
+    const checkbox: HTMLInputElement = linkElement.querySelector(
+      wf.select.checkboxInput,
+    );
     checkbox.checked = false;
 
-    const inputIds = linkElement.getAttribute(LINK_FIELDS_ATTR)
-      ?.split(',')
-      .map(id => id.trim());
+    const inputIds = linkElement
+      .getAttribute(LINK_FIELDS_ATTR)
+      ?.split(",")
+      .map((id) => id.trim());
 
-    if (inputIds.length === 0 || inputIds.some(id => id === '')) {
-      throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+    if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+      throw new Error(
+        `Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`,
+      );
     }
 
     const fieldGroupElement = linkElement.closest(FIELD_GROUP_SELECTOR);
 
-    inputIds.forEach(id => {
+    inputIds.forEach((id) => {
       const input = fieldGroupElement.querySelector(`#${id}`);
-      if (!input ||
-        !(input instanceof HTMLInputElement) &&
-        !(input instanceof HTMLSelectElement) &&
-        !(input instanceof HTMLTextAreaElement)
+      if (
+        !input ||
+        (!(input instanceof HTMLInputElement) &&
+          !(input instanceof HTMLSelectElement) &&
+          !(input instanceof HTMLTextAreaElement))
       ) {
         throw new TypeError(
-          `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`
+          `FormArray "ResidentProspect": The selected input for field-link is not a "HTMLFormInput"`,
         );
       }
 
       input.value = null;
-      input.dispatchEvent(new Event('input', { bubbles: true }));
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
     });
   }
 
   private unlinkAllProspects(): void {
-    this.prospects.forEach(prospect => prospect.linkedFields.clear());
+    this.prospects.forEach((prospect) => prospect.linkedFields.clear());
   }
 
   /**
@@ -290,8 +317,13 @@ export default class ProspectArray {
    *
    * @param id The id of the group of the linked fields
    */
-  private syncLinkedFields(id: string, source: ResidentProspect, target: ResidentProspect): void {
-    if (!source || !target) throw new Error(`The source or target ResidentProspect is not defined.`);
+  private syncLinkedFields(
+    id: string,
+    source: ResidentProspect,
+    target: ResidentProspect,
+  ): void {
+    if (!source || !target)
+      throw new Error(`The source or target ResidentProspect is not defined.`);
 
     const linkedFields = source.linkedFields.get(id);
     target.linkFields(id, linkedFields.group, linkedFields.fields);
@@ -304,8 +336,12 @@ export default class ProspectArray {
   /**
    * Sync all linked fields of `target` with the ones from `source`.
    */
-  private syncLinkedFieldsAll(source: ResidentProspect, target: ResidentProspect): void {
-    if (!source || !target) throw new Error(`The source or target ResidentProspect is not defined.`);
+  private syncLinkedFieldsAll(
+    source: ResidentProspect,
+    target: ResidentProspect,
+  ): void {
+    if (!source || !target)
+      throw new Error(`The source or target ResidentProspect is not defined.`);
 
     target.linkedFields.clear();
     Array.from(source.linkedFields.keys()).forEach((groupId) => {
@@ -314,39 +350,47 @@ export default class ProspectArray {
   }
 
   private handleLinkedFieldsVisibility(): void {
-    const length: number = this.unsavedProspect === null
-      ? this.prospects.size
-      : this.prospects.size + 1;
+    const length: number =
+      this.unsavedProspect === null
+        ? this.prospects.size
+        : this.prospects.size + 1;
 
-    const links = this.modalElement.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
+    const links = this.modalElement.querySelectorAll<HTMLElement>(
+      `[${LINK_FIELDS_ATTR}]`,
+    );
 
     if (length < 2) {
-      links.forEach(link => {
-        link.style.display = 'none';
+      links.forEach((link) => {
+        link.style.display = "none";
       });
     } else {
       const otherProspect = this.getOtherProspect();
       if (!otherProspect) throw new Error(`Couldn't get otherProspect.`);
-      links.forEach(link => {
-        this.setLiveText('other-prospect-full-name', otherProspect.getFullName());
-        link.style.removeProperty('display');
+      links.forEach((link) => {
+        this.setLiveText(
+          "other-prospect-full-name",
+          otherProspect.getFullName(),
+        );
+        link.style.removeProperty("display");
       });
     }
   }
 
   /**
    * Retrieves a `ResidentProspect` instance from a given key or returns the provided `ResidentProspect` directly.
-   * 
+   *
    * @param prospectOrKeyOrIndex - Either the key of the prospect or the prospect object itself.
    * @returns {ResidentProspect} The corresponding `ResidentProspect` object.
    * @throws Error if the prospect with the given key is not found.
    */
-  public getProspect(prospectOrKeyOrIndex: ResidentProspect | string | number): ResidentProspect {
+  public getProspect(
+    prospectOrKeyOrIndex: ResidentProspect | string | number,
+  ): ResidentProspect {
     let prospect: ResidentProspect;
 
-    if (typeof prospectOrKeyOrIndex === 'string') {
+    if (typeof prospectOrKeyOrIndex === "string") {
       prospect = this.prospects.get(prospectOrKeyOrIndex);
-    } else if (typeof prospectOrKeyOrIndex === 'number') {
+    } else if (typeof prospectOrKeyOrIndex === "number") {
       prospect = Array.from(this.prospects.values())[prospectOrKeyOrIndex];
     } else if (prospectOrKeyOrIndex instanceof ResidentProspect) {
       prospect = prospectOrKeyOrIndex;
@@ -365,7 +409,7 @@ export default class ProspectArray {
   public getEditingProspect(): ResidentProspect | undefined {
     if (this.editingKey === null) {
       return undefined;
-    } else if (this.editingKey.startsWith('unsaved')) {
+    } else if (this.editingKey.startsWith("unsaved")) {
       return this.unsavedProspect;
     } else {
       return this.prospects.get(this.editingKey);
@@ -377,14 +421,15 @@ export default class ProspectArray {
     // Update: is this done now @chatgpt?
 
     if (!this.editingKey) {
-      throw new Error(`Can't get other prospect if no prospect is currently being edited.`);
+      throw new Error(
+        `Can't get other prospect if no prospect is currently being edited.`,
+      );
     }
 
     const editingProspect = this.getEditingProspect();
-    return Array.from(this.prospects.values())
-      .find((prospect) => {
-        return prospect.key !== editingProspect.key;
-      });
+    return Array.from(this.prospects.values()).find((prospect) => {
+      return prospect.key !== editingProspect.key;
+    });
   }
 
   /**
@@ -403,8 +448,8 @@ export default class ProspectArray {
     const confirmed = await this.alertDialog.confirm({
       title: `Möchten Sie die Änderungen verwerfen?`,
       paragraph: `Mit dieser Aktion gehen alle Änderungen für "${this.getEditingProspect().getFullName()}" verworfen. Diese Aktion kann nicht rückgängig gemacht werden.`,
-      cancel: 'abbrechen',
-      confirm: 'Änderungen verwerfen'
+      cancel: "abbrechen",
+      confirm: "Änderungen verwerfen",
     });
 
     if (confirmed) {
@@ -439,7 +484,7 @@ export default class ProspectArray {
       const listValid = this.validateModal(opts.report ?? true);
       if (!listValid) {
         console.warn(
-          `Couldn't save ResidentProspect. Please fill in all the values correctly.`
+          `Couldn't save ResidentProspect. Please fill in all the values correctly.`,
         );
         return;
       }
@@ -464,9 +509,11 @@ export default class ProspectArray {
   }
 
   private saveProspect(prospect: ResidentProspect): boolean {
-    const prospectLimitError = new Error(`Sie können nur max. 2 Personen hinzufügen.`);
+    const prospectLimitError = new Error(
+      `Sie können nur max. 2 Personen hinzufügen.`,
+    );
 
-    if (!this.editingKey.startsWith('unsaved') && this.editingKey !== null) {
+    if (!this.editingKey.startsWith("unsaved") && this.editingKey !== null) {
       if (this.prospects.size > 2) {
         throw prospectLimitError;
       }
@@ -507,7 +554,7 @@ export default class ProspectArray {
     } else {
       this.formMessage.info(
         "Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.",
-        !this.initialized
+        !this.initialized,
       );
     }
   }
@@ -515,17 +562,22 @@ export default class ProspectArray {
   private renderProspect(key: string): void;
   private renderProspect(prospect: ResidentProspect): void;
   private renderProspect(prospectOrKey: ResidentProspect | string): void {
-    const prospect = this.getProspect(prospectOrKey)
-    const newElement: HTMLElement = this.template.cloneNode(true) as HTMLElement;
+    const prospect = this.getProspect(prospectOrKey);
+    const newElement: HTMLElement = this.template.cloneNode(
+      true,
+    ) as HTMLElement;
     const props = ["full-name", "phone", "email", "street", "zip", "city"];
     newElement.style.removeProperty("display");
 
     // Add event listeners for editing and deleting
-    const editButton = newElement.querySelector(prospectSelector('edit'));
-    const deleteButton = newElement.querySelector(prospectSelector('delete'));
+    const editButton = newElement.querySelector(prospectSelector("edit"));
+    const deleteButton = newElement.querySelector(prospectSelector("delete"));
 
     editButton!.addEventListener("click", () => this.editProspect(prospect));
-    deleteButton!.addEventListener("click", async () => await this.onDeleteProspect(prospect));
+    deleteButton!.addEventListener(
+      "click",
+      async () => await this.onDeleteProspect(prospect),
+    );
 
     props.forEach((prop) => {
       const propSelector = `[data-${prop}]`;
@@ -535,15 +587,17 @@ export default class ProspectArray {
       } else if (el) {
         const currentField = prospect.personalData.getField(prop);
         if (!currentField) {
-          console.error(`Render ResidentProspect: A field for "${prop}" doesn't exist.`);
+          console.error(
+            `Render ResidentProspect: A field for "${prop}" doesn't exist.`,
+          );
           return;
         }
         el.innerText = currentField.value || currentField.label;
       }
     });
 
-    const badge = newElement.querySelector(prospectSelector('draft-badge'));
-    badge.classList.toggle('hide', !prospect.draft);
+    const badge = newElement.querySelector(prospectSelector("draft-badge"));
+    badge.classList.toggle("hide", !prospect.draft);
 
     this.list.appendChild(newElement);
   }
@@ -561,13 +615,15 @@ export default class ProspectArray {
 
   private async onDeleteProspect(key: string): Promise<void>;
   private async onDeleteProspect(prospect: ResidentProspect): Promise<void>;
-  private async onDeleteProspect(prospectOrKey: ResidentProspect | string): Promise<void> {
+  private async onDeleteProspect(
+    prospectOrKey: ResidentProspect | string,
+  ): Promise<void> {
     const prospect = this.getProspect(prospectOrKey);
     const confirmed = await this.alertDialog.confirm({
       title: `Möchten Sie die Person "${prospect.getFullName()}" wirklich löschen?`,
       paragraph: `Mit dieser Aktion wird die Person "${prospect.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
-      cancel: 'Abbrechen',
-      confirm: 'Person löschen'
+      cancel: "Abbrechen",
+      confirm: "Person löschen",
     });
 
     if (confirmed) this.deleteProspect(prospect);
@@ -619,27 +675,37 @@ export default class ProspectArray {
 
   private populateModal(prospect: ResidentProspect) {
     for (const [id] of prospect.linkedFields.entries()) {
-      const linkElement = this.modalElement.querySelector<HTMLElement>(`[${LINK_FIELDS_ATTR}][data-id="${id}"]`);
+      const linkElement = this.modalElement.querySelector<HTMLElement>(
+        `[${LINK_FIELDS_ATTR}][data-id="${id}"]`,
+      );
       if (!linkElement) continue;
-      const linkCheckbox = linkElement.querySelector<HTMLInputElement>(wf.select.checkboxInput);
+      const linkCheckbox = linkElement.querySelector<HTMLInputElement>(
+        wf.select.checkboxInput,
+      );
       linkCheckbox.checked = true;
       linkCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
     this.groups.forEach((group) => {
       const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-      const groupInputs =
-        Array.from(group.element.querySelectorAll<HTMLFormInput>(selector));
+      const groupInputs = Array.from(
+        group.element.querySelectorAll<HTMLFormInput>(selector),
+      );
 
       if (!prospect[group.name]) {
         console.error(`The group "${group.name}" doesn't exist.`);
         return;
       }
 
-      const [radioInputs, otherInputs] = groupInputs.reduce(([r, o], input) => {
-        input.type === 'radio' ? r.push(input as HTMLInputElement) : o.push(input);
-        return [r, o];
-      }, [[] as HTMLInputElement[], [] as HTMLFormInput[]]);
+      const [radioInputs, otherInputs] = groupInputs.reduce(
+        ([r, o], input) => {
+          input.type === "radio"
+            ? r.push(input as HTMLInputElement)
+            : o.push(input);
+          return [r, o];
+        },
+        [[] as HTMLInputElement[], [] as HTMLFormInput[]],
+      );
 
       otherInputs.forEach((input) => {
         // Get field
@@ -665,8 +731,11 @@ export default class ProspectArray {
           return;
         }
 
-        radioGroup.inputs.forEach(radio => {
-          setChecked(radio, radio.value === field.value ? field.checked : false);
+        radioGroup.inputs.forEach((radio) => {
+          setChecked(
+            radio,
+            radio.value === field.value ? field.checked : false,
+          );
         });
       });
     });
@@ -678,9 +747,14 @@ export default class ProspectArray {
     // Validate if there are any prospects in the array (check if the `prospects` map has any entries)
     if (this.prospects.size === 0) {
       console.warn("Bitte fügen Sie mindestens eine mietende Person hinzu.");
-      this.formMessage.error(`Bitte fügen Sie mindestens eine mietende Person hinzu.`);
+      this.formMessage.error(
+        `Bitte fügen Sie mindestens eine mietende Person hinzu.`,
+      );
       this.formMessage.setTimedReset(5000, () => {
-        this.formMessage.info("Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.", true)
+        this.formMessage.info(
+          "Bitte fügen Sie die Mieter (max. 2 Personen) hinzu.",
+          true,
+        );
       });
       valid = false;
     } else {
@@ -688,20 +762,20 @@ export default class ProspectArray {
       this.prospects.forEach((prospect) => {
         if (prospect.draft) {
           console.warn(
-            `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
+            `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`,
           );
           this.formMessage.error(
-            `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`
+            `Die Person "${prospect.getFullName()}" ist als Entwurf gespeichert. Bitte finalisieren oder löschen Sie diese Person.`,
           );
 
           this.formMessage.setTimedReset(8000);
           valid = false; // If any ResidentProspect is invalid, set valid to false
         } else if (!prospect.validate()) {
           console.warn(
-            `Bitte füllen Sie alle Pflichtfelder für "${prospect.getFullName()}" aus.`
+            `Bitte füllen Sie alle Pflichtfelder für "${prospect.getFullName()}" aus.`,
           );
           this.formMessage.error(
-            `Bitte füllen Sie alle Pflichtfelder für "${prospect.getFullName()}" aus.`
+            `Bitte füllen Sie alle Pflichtfelder für "${prospect.getFullName()}" aus.`,
           );
 
           this.formMessage.setTimedReset(7000);
@@ -720,15 +794,18 @@ export default class ProspectArray {
   }
 
   public validateModalGroup(group: ModalGroup): FieldGroupValidation {
-    const groupInputs = group.element.querySelectorAll<HTMLFormInput>(wf.select.formInput);
+    const groupInputs = group.element.querySelectorAll<HTMLFormInput>(
+      wf.select.formInput,
+    );
     const validation = validateFields(groupInputs, false);
 
-    const circle = group.element.querySelector(prospectSelector('circle'));
-    if (!circle) console.warn(`Circle element not found inside group "${group.name}"`);
+    const circle = group.element.querySelector(prospectSelector("circle"));
+    if (!circle)
+      console.warn(`Circle element not found inside group "${group.name}"`);
     if (validation.isValid) {
-      circle.classList.add('is-valid');
+      circle.classList.add("is-valid");
     } else {
-      circle.classList.remove('is-valid');
+      circle.classList.remove("is-valid");
     }
 
     group.isValid = validation.isValid;
@@ -741,7 +818,7 @@ export default class ProspectArray {
     let valid = true;
     const invalidFields: HTMLFormInput[] = [];
 
-    this.groups.forEach(group => {
+    this.groups.forEach((group) => {
       const groupValid = this.validateModalGroup(group);
       invalidFields.push(...groupValid.invalidFields);
       if (group.isValid) return;
@@ -755,8 +832,14 @@ export default class ProspectArray {
   }
 
   private async reportInvalidField(field: HTMLFormInput): Promise<void>;
-  private async reportInvalidField(fieldId: string, groupName: GroupName): Promise<void>;
-  private async reportInvalidField(fieldOrId: HTMLFormInput | string, groupName?: GroupName | undefined): Promise<void> {
+  private async reportInvalidField(
+    fieldId: string,
+    groupName: GroupName,
+  ): Promise<void>;
+  private async reportInvalidField(
+    fieldOrId: HTMLFormInput | string,
+    groupName?: GroupName | undefined,
+  ): Promise<void> {
     const input = this.getFormInput(fieldOrId, groupName);
 
     const accordionIndex = this.accordionIndexOf(input);
@@ -772,7 +855,7 @@ export default class ProspectArray {
 
       await this.modal.scrollTo(input, {
         delay: delay,
-        position: "center"
+        position: "center",
       });
 
       reportValidity(input);
@@ -798,22 +881,24 @@ export default class ProspectArray {
   public openModal(): void {
     // Live text for name
     const personalDataGroup = this.modalElement.querySelector(
-      '[data-prospect-field-group="personalData"]'
+      '[data-prospect-field-group="personalData"]',
     )!;
     const nameInputs: NodeListOf<HTMLFormElement> =
       personalDataGroup.querySelectorAll("#first-name, #name");
     nameInputs.forEach((input) => {
       input.addEventListener("input", () => {
-        const editingProspect = this.extractData(this.editingKey.startsWith('unsaved'));
+        const editingProspect = this.extractData(
+          this.editingKey.startsWith("unsaved"),
+        );
         this.setLiveText(
           "full-name",
-          editingProspect.getFullName() || "Neue Person"
+          editingProspect.getFullName() || "Neue Person",
         );
       });
     });
 
     const valid = this.validateModal(false);
-    this.saveOptions.setAction(valid ? 'save' : 'draft');
+    this.saveOptions.setAction(valid ? "save" : "draft");
     this.handleLinkedFieldsVisibility();
     this.openAccordion(0);
     this.triggerOnOpen();
@@ -836,13 +921,15 @@ export default class ProspectArray {
 
   private initAccordions(): void {
     const accordionElements: HTMLElement[] = Array.from(
-      this.container.querySelectorAll(ACCORDION_SELECTOR)
+      this.container.querySelectorAll(ACCORDION_SELECTOR),
     );
 
     const accordionList: Accordion[] = accordionElements.reduce(
       (acc, accordionEl) => {
         return [...acc, new Accordion(accordionEl)];
-      }, []);
+      },
+      [],
+    );
 
     this.accordionList = accordionList;
     this.initAccordionListeners();
@@ -856,7 +943,7 @@ export default class ProspectArray {
         this.toggleAccordion(i);
         if (!accordion.isOpen) return;
         setTimeout(() => {
-          accordion.scrollIntoView(this.modal.select('modal'), 0);
+          accordion.scrollIntoView(this.modal.select("modal"), 0);
         }, 500);
       });
     }
@@ -894,13 +981,13 @@ export default class ProspectArray {
    */
   private accordionIndexOf(field: HTMLFormInput): number {
     let parentElement: HTMLElement | null = field.closest(
-      '[data-animate="accordion"]'
+      '[data-animate="accordion"]',
     );
 
     if (parentElement) {
       // Find the index of the accordion in the accordionList based on the component
       const accordionIndex = this.accordionList.findIndex(
-        (accordion) => accordion.component === parentElement
+        (accordion) => accordion.component === parentElement,
       );
       return accordionIndex !== -1 ? accordionIndex : -1; // Return the index or -1 if not found
     }
@@ -913,33 +1000,31 @@ export default class ProspectArray {
     if (!groupEl) {
       throw new Error(`The given element is not part of a group element.`);
     }
-    return this.groups.find(group => group.element === groupEl);
+    return this.groups.find((group) => group.element === groupEl);
   }
 
   private getGroupsByName(groupName: GroupName): ModalGroup[] {
-    return this.groups.filter(group => group.name === groupName);
+    return this.groups.filter((group) => group.name === groupName);
   }
 
-  private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
-    field: T
-  ): T;
+  private getFormInput<T extends HTMLFormInput = HTMLFormInput>(field: T): T;
   private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
     fieldId: string,
-    groupName: GroupName
+    groupName: GroupName,
   ): T;
   private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
     fieldOrId: T | string,
-    groupName?: GroupName | undefined
+    groupName?: GroupName | undefined,
   ): T;
   private getFormInput<T extends HTMLFormInput = HTMLFormInput>(
     fieldOrId: T | string,
-    groupName?: GroupName | undefined
+    groupName?: GroupName | undefined,
   ): T {
     if (isFormInput(fieldOrId)) {
       return fieldOrId as T;
     }
     const groups = this.getGroupsByName(groupName);
-    const groupElements = groups.map(group => group.element);
+    const groupElements = groups.map((group) => group.element);
     return findFormInput<T>(groupElements, fieldOrId);
   }
 
@@ -948,8 +1033,11 @@ export default class ProspectArray {
 
     this.groups.forEach((group) => {
       const selector = exclude(wf.select.formInput, `[${LINK_FIELDS_ATTR}] *`);
-      const groupInputs = group.element.querySelectorAll<HTMLFormInput>(selector);
-      const linkElements = group.element.querySelectorAll<HTMLElement>(`[${LINK_FIELDS_ATTR}]`);
+      const groupInputs =
+        group.element.querySelectorAll<HTMLFormInput>(selector);
+      const linkElements = group.element.querySelectorAll<HTMLElement>(
+        `[${LINK_FIELDS_ATTR}]`,
+      );
 
       if (!prospectData[group.name]) {
         console.error(`The group "${group.name}" doesn't exist.`);
@@ -964,7 +1052,9 @@ export default class ProspectArray {
       });
 
       linkElements.forEach((linkElement) => {
-        const linkCheckbox = linkElement.querySelector<HTMLInputElement>(wf.select.checkboxInput);
+        const linkCheckbox = linkElement.querySelector<HTMLInputElement>(
+          wf.select.checkboxInput,
+        );
 
         const id = linkCheckbox.dataset.name;
         const fieldsToLink = linkElement.getAttribute(LINK_FIELDS_ATTR);
@@ -984,8 +1074,8 @@ export default class ProspectArray {
     // Serialize the prospect map to an object
     const progress: ProspectArrayProgress = {
       version: PROSPECT_STORAGE_VERSION,
-      prospects: prospectMapToObject(this.prospects)
-    }
+      prospects: prospectMapToObject(this.prospects),
+    };
 
     // Store the serialized data in localStorage
     try {
@@ -1030,7 +1120,9 @@ export default class ProspectArray {
         }
 
         if (!semver.eq(cleanCurrentVersion, cleanSavedVersion)) {
-          throw new Error(`Saved progress version "${progress.version}" is outdated.`);
+          throw new Error(
+            `Saved progress version "${progress.version}" is outdated.`,
+          );
         }
 
         // Loop through the serialized data and create `ResidentProspect` instances

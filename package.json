@@ -1,6 +1,6 @@
 {
   "name": "sanavita",
-  "version": "0.0.19",
+  "version": "0.0.21",
   "type": "module",
   "private": false,
   "scripts": {
@@ -11,7 +11,7 @@
   "libswitch": {
     "name": "peakflow",
     "local": "../../peakflow/",
-    "remote": "github:peakpointch/peakflow#v0.1.4",
+    "remote": "github:peakpointch/peakflow#v0.2.0-alpha.9",
     "tsconfigDev": "tsconfig.dev.json",
     "tsconfigProd": "tsconfig.prod.json"
   },
@@ -20,7 +20,7 @@
     "@xatom/core": "^1.0.12",
     "date-fns": "^4.1.0",
     "devflow": "file:../../tools/devflow/",
-    "peakflow": "github:peakpointch/peakflow#v0.1.4",
+    "peakflow": "github:peakpointch/peakflow#v0.2.0-alpha.9",
     "semver": "^7.7.2",
     "swiper": "^11.2.5",
     "type-fest": "^4.41.0"
