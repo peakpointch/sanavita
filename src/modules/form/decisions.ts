@@ -1,9 +1,9 @@
-import { createAttribute, FormArray, FormDecision, MultiStepForm } from "peakflow";
+import { Selector, FormArray, FormDecision, MultiStepForm } from "peakflow";
 import { Resident } from "./resident";
 import { ContactPerson } from "./contact-person";
 import { Tenant } from "./tenant";
 
-const decisionSelector = createAttribute("data-decision-component");
+const decisionSelector = Selector.attr("data-decision-component");
 
 export function initializeFormDecisions(
   form: MultiStepForm,

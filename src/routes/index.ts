@@ -1,5 +1,5 @@
 import { WFRoute } from "@xatom/core";
-import peakflow, { AnyFn, dateflow, Script, Stylesheet, wf } from "peakflow";
+import peakflow, { Script, Stylesheet } from "peakflow";
 import { initBistroMenus } from "src/modules/menu";
 import { initWfVideo } from "src/modules/wfvideo";
 import { initVimePlayer } from "peakflow/video";
@@ -7,7 +7,6 @@ import { initApartmentRegistrationForm } from "src/modules/apartment-form";
 import { initCircleTabs } from "./jobs/circle-tabs.js";
 import { initSozjobsList } from "@/modules/sozjobs/list";
 import { initJobItemPage } from "@/modules/sozjobs/job";
-import { de } from "date-fns/locale";
 import { initListFilter } from "@/modules/list-filter.js";
 import { initRoomRegistrationForm } from "@/modules/lindenpark-form.js";
 
@@ -56,7 +55,8 @@ export const app = async () => {
   });
 
   new WFRoute("/bistro").execute(() => {
-    peakflow.execute("inlinecms", "swiper", "dateflow");
+    peakflow.execute("inlinecms", "swiper");
+    peakflow.execute("dateflow");
   });
 
   new WFRoute("/bistro/bankette").execute(() => {
@@ -70,6 +70,11 @@ export const app = async () => {
   new WFRoute("/aktuelles").execute(async () => {
     peakflow.execute("dateflow");
     initListFilter();
+  });
+
+  new WFRoute("/aktuelles/(.*)").execute(async () => {
+    peakflow.execute("inlinecms", "swiper");
+    peakflow.execute("dateflow");
   });
 
   new WFRoute("/dokumente").execute(() => {
