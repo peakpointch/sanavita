@@ -1,14 +1,15 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Badge } from "./badge";
+import "@/styles/globals.css";
 
-// Import any component inside your repo:
+/* --- COMPONENT --- */
+import { WeatherWidget } from "./weather-widget/WeatherWidget";
 
 function App() {
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Components Playground</h1>
-      <Badge text="Hello Badge" variant="Light"></Badge>
+    <div className="min-h-screen p-10 flex flex-col items-center justify-center bg-brand-900 text-white">
+      {/* <h1>Components Playground</h1> */}
+      <WeatherWidget days={4} showMinMaxTemp={true} />
     </div>
   );
 }

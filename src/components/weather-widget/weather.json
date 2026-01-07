@@ -1,0 +1,46 @@
+{
+  "coord": {
+    "lon": 8.2184,
+    "lat": 47.479
+  },
+  "weather": [
+    {
+      "id": 803,
+      "main": "Clouds",
+      "description": "broken clouds",
+      "icon": "04d"
+    }
+  ],
+  "base": "stations",
+  "main": {
+    "temp": -4.89,
+    "feels_like": -4.89,
+    "temp_min": -5.24,
+    "temp_max": -2.59,
+    "pressure": 1017,
+    "humidity": 88,
+    "sea_level": 1017,
+    "grnd_level": 963
+  },
+  "visibility": 10000,
+  "wind": {
+    "speed": 0.35,
+    "deg": 285,
+    "gust": 0.74
+  },
+  "clouds": {
+    "all": 84
+  },
+  "dt": 1767706911,
+  "sys": {
+    "type": 2,
+    "id": 2106767,
+    "country": "CH",
+    "sunrise": 1767683652,
+    "sunset": 1767714669
+  },
+  "timezone": 3600,
+  "id": 2657976,
+  "name": "Windisch",
+  "cod": 200
+}

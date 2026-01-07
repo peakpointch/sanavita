@@ -1,0 +1,7 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+@theme {
+  --font-display: "Montserrat", serif;
+  --font-sans: "Montserrat";
+  --default-font-family: "Montserrat", sans-serif;
+}
