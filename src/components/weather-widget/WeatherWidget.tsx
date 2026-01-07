@@ -2,7 +2,8 @@ import React from "react";
 import OpenWeatherMap from "openweathermap-ts";
 import type { WeatherDay, WeatherForecast } from "./types";
 import { getIconColor, weatherIconMap } from "./icons";
-import { de } from "./i18n";
+import { de as omwDe } from "./i18n";
+import { de } from "date-fns/locale";
 import {
   Droplet,
   HelpCircle,
@@ -172,7 +173,7 @@ export function WeatherWidget({
                 {Math.round(weather.main.temp)}°C
               </span>
               <span className="text-tv-medium">
-                {de.main[weather.weather[0].main]}
+                {omwDe.main[weather.weather[0].main]}
               </span>
             </div>
           </div>
@@ -259,7 +260,11 @@ export function WeatherForecastDay({
 }) {
   return (
     <div className="flex flex-col items-center gap-8">
-      <span className="text-tv-regular">{format(day.date, "EEEE")}</span>
+      <span className="text-tv-regular">
+        {format(day.date, "EEEE", {
+          locale: de,
+        })}
+      </span>
       <day.icon.node
         className={cn(day.icon.color)}
         style={{
