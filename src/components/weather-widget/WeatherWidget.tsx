@@ -83,7 +83,13 @@ export function getDaysFromForecast(forecast: WeatherForecast): DayForecast[] {
 }
 
 export interface WeatherWidgetProps {
+  /** Controls the visibility of this component */
   visibility?: boolean;
+  /**
+   * Styled variants of this component
+   * - "horizontal" (default): displays the days next to each other
+   * - "vertical": displays the days below each other
+   */
   variant?: "horizontal" | "vertical";
   /**
    * Number of days to show
@@ -92,6 +98,9 @@ export interface WeatherWidgetProps {
    * - max: 4
    */
   days?: number;
+  /**
+   * Show the minimum and maximum temparature for the forecast instead of the average temperature.
+   */
   showMinMaxTemp?: boolean;
 }
 
