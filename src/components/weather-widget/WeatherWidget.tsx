@@ -140,6 +140,10 @@ export function WeatherWidget({
       setLoading(false);
     };
     fetchData();
+
+    // Refresh every 10 minutes
+    const interval = setInterval(fetchData, 10 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <div className="text-tv-regular">Wird geladen...</div>;
