@@ -5,6 +5,7 @@
       "./src/components/**/*.webflow.@(js|jsx|mjs|ts|tsx)"
     ],
     "description": "",
+    "bundleConfig": "./webpack.webflow.cjs",
     "id": "sanavita-components"
   },
   "telemetry": {

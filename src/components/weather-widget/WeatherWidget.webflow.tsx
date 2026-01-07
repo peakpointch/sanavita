@@ -2,6 +2,8 @@ import { declareComponent } from "@webflow/react";
 import { WeatherWidget } from "./WeatherWidget";
 import { props } from "@webflow/data-types";
 
+import "@/styles/globals.css";
+
 export default declareComponent(WeatherWidget, {
   name: "Weather Widget",
   description:
