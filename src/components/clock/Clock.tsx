@@ -14,7 +14,7 @@ export interface ClockProps {
 export function Clock({
   visibility = true,
   timeFormat = "H:mm",
-  dateFormat = "EEEE, MM. MMM",
+  dateFormat = "EEEE, d. MMM",
   initialDate = new Date(),
   delay = 1000,
 }: ClockProps) {

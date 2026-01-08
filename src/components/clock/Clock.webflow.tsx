@@ -23,7 +23,7 @@ export default declareComponent(Clock, {
     dateFormat: props.String({
       group: "Uhr",
       name: "Datum Format",
-      defaultValue: "EEEE, MM. MMM",
+      defaultValue: "EEEE, d. MMM",
     }),
 
     delay: props.Number({
