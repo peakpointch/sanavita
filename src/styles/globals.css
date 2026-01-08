@@ -26,6 +26,7 @@
   /* --color-neutral-beige-200-old: #e4cfa3; */
 
   --text-tv-display: calc(6 * var(--tv-rem));
+  --text-tv-display--line-height: 1;
   --text-tv-h1: calc(4.25 * var(--tv-rem));
   --text-tv-h1--line-height: 1.1;
   --text-tv-h2: calc(3.5 * var(--tv-rem));
