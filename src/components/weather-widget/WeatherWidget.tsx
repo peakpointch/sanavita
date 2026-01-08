@@ -157,6 +157,10 @@ export function WeatherWidget({
       setLoading(false);
     };
 
+    // Fetch on mount
+    updateWeather();
+    updateForecast();
+
     // Refresh weather & forecast every X minutes
     const weatherInterval = setInterval(
       updateWeather,
