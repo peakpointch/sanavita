@@ -3,6 +3,7 @@ import { de } from "date-fns/locale";
 import React from "react";
 
 export interface ClockProps {
+  visibility?: boolean;
   timeFormat?: string;
   dateFormat?: string;
   initialDate?: Date;
@@ -11,6 +12,7 @@ export interface ClockProps {
 }
 
 export function Clock({
+  visibility = true,
   timeFormat = "H:mm",
   dateFormat = "EEEE, MM. MMM",
   initialDate = new Date(),
@@ -30,12 +32,14 @@ export function Clock({
   const date = format(now, dateFormat, { locale: de });
 
   return (
-    <div className="grid gap-2">
-      <div className="text-tv-display font-extrabold">
-        {time}
-        <span className="ml-4 text-tv-medium opacity-68">Uhr</span>
+    visibility && (
+      <div className="grid gap-2">
+        <div className="text-tv-display font-extrabold">
+          {time}
+          <span className="ml-4 text-tv-medium opacity-68">Uhr</span>
+        </div>
+        <div className="text-tv-regular font-bold">{date}</div>
       </div>
-      <div className="text-tv-regular font-bold">{date}</div>
-    </div>
+    )
   );
 }
