@@ -145,7 +145,6 @@ export function WeatherWidget({
         ...prev,
         weather: weatherRes,
       }));
-      setLoading(false);
     };
 
     const updateForecast = async () => {
@@ -154,12 +153,15 @@ export function WeatherWidget({
         ...prev,
         forecast: forecastRes,
       }));
+    };
+
+    const initData = async () => {
+      await Promise.all([updateWeather(), updateForecast()]);
       setLoading(false);
     };
 
     // Fetch on mount
-    updateWeather();
-    updateForecast();
+    initData();
 
     // Refresh weather & forecast every X minutes
     const weatherInterval = setInterval(
