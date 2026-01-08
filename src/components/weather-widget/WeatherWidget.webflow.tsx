@@ -26,16 +26,34 @@ export default declareComponent(WeatherWidget, {
     days: props.Number({
       group: "Widget",
       name: "Days",
+      tooltip: "Die Anzahl der angezeigten Tage der Wettervorhersage",
       min: 0,
       max: 4,
-      tooltip: "Die Anzahl der angezeigten Tage der Wettervorhersage",
+      defaultValue: 4,
     }),
 
     showMinMaxTemp: props.Boolean({
       group: "Widget",
-      name: "Höchst und Tiefst-Temparatur anzeigen",
+      name: "Min & Max-Temparatur",
       tooltip:
         "Ersetzt die Durchschnittstemparatur mit der Höchst und Tiefst-Temparatur des Tages für die Wettervorhersage",
+      defaultValue: false,
+    }),
+
+    weatherDelay: props.Number({
+      group: "Widget",
+      name: "Intervall Wetter",
+      tooltip: "Anzahl Minuten bevor das aktuelle Wetter aktualisiert wird",
+      min: 0,
+      defaultValue: 10,
+    }),
+
+    forecastDelay: props.Number({
+      group: "Widget",
+      name: "Intervall Vorhersage",
+      tooltip: "Anzahl Minuten bevor die Wettervorhersage wird",
+      min: 0,
+      defaultValue: 60,
     }),
   },
 });

@@ -114,6 +114,14 @@ export interface WeatherWidgetProps {
    * Show the minimum and maximum temparature for the forecast instead of the average temperature.
    */
   showMinMaxTemp?: boolean;
+  /**
+   * Time in minutes to wait before refetching the current weather
+   */
+  weatherDelay?: number;
+  /**
+   * Time in minutes to wait before refetching the weather forecast
+   */
+  forecastDelay?: number;
 }
 
 export function WeatherWidget({
@@ -121,6 +129,8 @@ export function WeatherWidget({
   visibility = true,
   days = 4,
   showMinMaxTemp = false,
+  weatherDelay = 10,
+  forecastDelay = 180,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
     weather: WeatherDay;
@@ -129,22 +139,39 @@ export function WeatherWidget({
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      const [weatherRes, forecastRes] = await Promise.all([
-        fetchCurrentWeather(),
-        fetchForecast(),
-      ]);
-      setData({
+    const updateWeather = async () => {
+      const weatherRes = await fetchCurrentWeather();
+      setData((prev) => ({
+        ...prev,
         weather: weatherRes,
-        forecast: forecastRes,
-      });
+      }));
       setLoading(false);
     };
-    fetchData();
 
-    // Refresh every 10 minutes
-    const interval = setInterval(fetchData, 10 * 60 * 1000);
-    return () => clearInterval(interval);
+    const updateForecast = async () => {
+      const forecastRes = await fetchForecast();
+      setData((prev) => ({
+        ...prev,
+        forecast: forecastRes,
+      }));
+      setLoading(false);
+    };
+
+    // Refresh weather & forecast every X minutes
+    const weatherInterval = setInterval(
+      updateWeather,
+      weatherDelay * 60 * 1000
+    );
+    const forecastInterval = setInterval(
+      updateForecast,
+      forecastDelay * 60 * 1000
+    );
+
+    // Clear intervals on unmount
+    return () => {
+      clearInterval(weatherInterval);
+      clearInterval(forecastInterval);
+    };
   }, []);
 
   if (loading) return <div className="text-tv-regular">Wird geladen...</div>;
