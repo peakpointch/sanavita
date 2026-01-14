@@ -10,7 +10,7 @@ type WfCollection = "screen";
 type SwiperInstance = "news" | "tagesmenu" | "wochenhit" | "activity";
 
 const wfCollectionSelector = Selector.attr<WfCollection>("wf-collection");
-const swiperSelector = Selector.attr<SwiperInstance>("custom-swiper-component");
+const swiperSelector = Selector.attr<SwiperInstance>("data-swiper-id");
 
 const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
