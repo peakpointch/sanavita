@@ -23,7 +23,7 @@
     "devflow": "file:../../tools/devflow/",
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
-    "peakflow": "github:peakpointch/peakflow#v0.2.0-alpha.9",
+    "peakflow": "file:../../peakflow",
     "semver": "^7.7.2",
     "swiper": "^11.2.5",
     "tailwind-merge": "^3.4.0",

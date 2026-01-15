@@ -1,6 +1,6 @@
 // Imports
 import EditableCanvas from "peakflow/canvas";
-import Pdf, { PdfFormat } from "peakflow/pdf";
+import { PdfGenerator as Pdf, PdfFormat } from "peakflow/pdf";
 import { FilterCollection } from "peakflow/wfcollection";
 import Renderer, { RenderData, RenderField } from "peakflow/renderer";
 import { FilterForm, filterFormSelector } from "peakflow/form";
