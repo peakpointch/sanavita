@@ -175,14 +175,6 @@ class ElementManager<F extends OverlayFilterAttrs> {
     this.filteredData = this.sortByDate(this.filteredData, "desc");
     let changed = false;
 
-    // Add new elements that should be shown
-    this.filteredData.forEach((filteredEl) => {
-      if (!this.insertedElements.has(filteredEl.instance)) {
-        this.insertElement(filteredEl);
-        changed = true;
-      }
-    });
-
     // Remove elements that should no longer be shown
     this.insertedElements.forEach((insertedHTML, insertedKey) => {
       const insertedEl = this.data.find(
@@ -190,6 +182,14 @@ class ElementManager<F extends OverlayFilterAttrs> {
       );
       if (!this.filteredData.includes(insertedEl)) {
         this.removeElement(insertedEl);
+        changed = true;
+      }
+    });
+
+    // Add new elements that should be shown
+    this.filteredData.forEach((filteredEl) => {
+      if (!this.insertedElements.has(filteredEl.instance)) {
+        this.insertElement(filteredEl);
         changed = true;
       }
     });
