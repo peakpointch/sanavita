@@ -1,30 +1,49 @@
 {
   "name": "sanavita",
-  "version": "0.0.21",
+  "version": "0.0.23",
   "type": "module",
   "private": false,
   "scripts": {
     "dev": "devflow dev",
-    "build": "devflow build"
+    "build": "devflow build",
+    "dev:components": "vite --config src/components/vite.config.ts"
   },
   "libswitch": {
     "name": "peakflow",
     "local": "../../peakflow/",
-    "remote": "github:peakpointch/peakflow#v0.2.0-alpha.9",
+    "remote": "github:peakpointch/peakflow#v0.2.1",
     "tsconfigDev": "tsconfig.dev.json",
     "tsconfigProd": "tsconfig.prod.json"
   },
   "license": "MIT",
   "dependencies": {
     "@xatom/core": "^1.0.12",
+    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "devflow": "file:../../tools/devflow/",
-    "peakflow": "github:peakpointch/peakflow#v0.2.0-alpha.9",
+    "lucide-react": "^0.562.0",
+    "openweathermap-ts": "^1.2.10",
+    "peakflow": "github:peakpointch/peakflow#v0.2.1",
     "semver": "^7.7.2",
     "swiper": "^11.2.5",
+    "tailwind-merge": "^3.4.0",
     "type-fest": "^4.41.0"
   },
   "devDependencies": {
-    "libswitch": "github:peakpointch/libswitch"
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "@webflow/data-types": "^1.1.0",
+    "@webflow/react": "^1.1.0",
+    "@webflow/webflow-cli": "^1.10.0",
+    "libswitch": "github:peakpointch/libswitch",
+    "path": "^0.12.7",
+    "postcss": "^8.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.1.18",
+    "vite": "^7.3.0"
   }
 }

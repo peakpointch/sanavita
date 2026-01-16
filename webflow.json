@@ -1,0 +1,18 @@
+{
+  "library": {
+    "name": "Sanavita Components",
+    "components": [
+      "./src/components/**/*.webflow.@(js|jsx|mjs|ts|tsx)"
+    ],
+    "description": "",
+    "bundleConfig": "./webpack.webflow.cjs",
+    "id": "sanavita-components"
+  },
+  "telemetry": {
+    "global": {
+      "allowTelemetry": true,
+      "lastPrompted": 1764408273044,
+      "version": "1.8.49"
+    }
+  }
+}
