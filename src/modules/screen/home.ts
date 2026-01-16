@@ -80,10 +80,19 @@ class ElementManager<F extends OverlayFilterAttrs> {
     return this.filteredData;
   }
 
-  private sortByDate(data: RenderData<F>): RenderData<F> {
-    return data.sort(
-      (a, b) => a.props.startDate.getTime() - b.props.startDate.getTime()
-    );
+  private sortByDate(
+    data: RenderData<F>,
+    order: "asc" | "desc" = "asc"
+  ): RenderData<F> {
+    // Helper
+    const getStartTime = (node: RenderNode<F>) =>
+      node.props.startDate.getTime();
+
+    return [...data].sort((a, b) => {
+      return order === "asc"
+        ? getStartTime(a) - getStartTime(b)
+        : getStartTime(b) - getStartTime(a);
+    });
   }
 
   // Finds the original HTMLElement for a given entry in the collectionElement (hidden designs)
@@ -163,7 +172,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
   // Updates the swiper with the current visible elements
   public update(): void {
     this.filterElements();
-    this.filteredData = this.sortByDate(this.filteredData);
+    this.filteredData = this.sortByDate(this.filteredData, "desc");
     let changed = false;
 
     // Add new elements that should be shown
