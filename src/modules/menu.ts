@@ -1,4 +1,4 @@
-import { wf } from "peakflow";
+import { fetchOwnDocument, wf } from "peakflow";
 
 const MENU_CONTENT_SELECTOR = '[data-menu-element="menu-content"]';
 const MENU_NAME = "menu";
@@ -261,7 +261,7 @@ async function fetchDocument(path: string): Promise<Document> {
 }
 
 export async function initBistroMenus(): Promise<void> {
-  const root = await fetchDocument("/cms/menu-data");
+  const root = await fetchOwnDocument("/cms/menu-data");
   const menuListItems = getMenuItems(document);
   const dishListItems = getDishItems(root);
   const drinkListItems = getDrinkItems(root);
