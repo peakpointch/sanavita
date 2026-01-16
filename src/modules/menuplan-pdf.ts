@@ -1,6 +1,6 @@
 // Imports
 import EditableCanvas from "peakflow/canvas";
-import Pdf, { PdfFormat } from "peakflow/pdf";
+import { PdfGenerator as Pdf, PdfFormat } from "peakflow/pdf";
 import { FilterCollection } from "peakflow/wfcollection";
 import Renderer, {
   RenderData,
@@ -81,7 +81,7 @@ const sowOptions: StartOfWeekOptions = {
 
 function setMinMaxDate(
   form: FilterForm<FieldIds>,
-  data: RenderData<TagesmenuAttributes>,
+  data: RenderData<TagesmenuAttributes>
 ): Date[] {
   const dates = data.map((weekday) => weekday.props.date.getTime());
   let minDate = new Date(Math.min(...dates));
@@ -103,7 +103,7 @@ function setMinMaxDate(
 function setDefaultFilters(
   form: FilterForm<FieldIds>,
   minDate: Date,
-  maxDate: Date,
+  maxDate: Date
 ): void {
   let currentMonday: Date = startOfWeek(new Date(), sowOptions);
   let nextMonday: Date = addWeeks(currentMonday, 1);
@@ -114,12 +114,12 @@ function setDefaultFilters(
   form.getFilterInput("calendaryear").value = getYear(nextMonday).toString();
   form.getFilterInput("calendarweek").value = getWeek(
     nextMonday,
-    weekOptions,
+    weekOptions
   ).toString();
   form.getFilterInput("startDate").value = formatDE(nextMonday, "yyyy-MM-dd");
   form.getFilterInput("endDate").value = formatDE(
     addDays(nextMonday, 6),
-    "yyyy-MM-dd",
+    "yyyy-MM-dd"
   );
   form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
 
@@ -138,7 +138,7 @@ function setDefaultFilters(
  */
 function tagWeeklyHit(list: HTMLElement): void {
   const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(
-    `.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`,
+    `.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`
   );
   weeklyHitElements.forEach((hit) => {
     hit.setAttribute("data-pdf-element", "weekly-hit");
@@ -147,7 +147,7 @@ function tagWeeklyHit(list: HTMLElement): void {
 
 function parsePdfLocalStorage(): LocalStoragePdf {
   const parsed: LocalStoragePdf = JSON.parse(
-    localStorage.getItem("pdf") || "{}",
+    localStorage.getItem("pdf") || "{}"
   );
 
   const pdfStorage: LocalStoragePdf = {
@@ -183,7 +183,7 @@ function prepareHideCategories(drinksCollection: FilterCollection): void {
     if (conditional.classList.contains(wf.class.invisible)) return;
 
     const categories = item.querySelectorAll(
-      '[data-pdf-field="category"], [data-pdf-field="categoryOnly"], [data-pdf-field="subCategory"]',
+      '[data-pdf-field="category"], [data-pdf-field="categoryOnly"], [data-pdf-field="subCategory"]'
     );
 
     categories.forEach((element) => element.classList.add(wf.class.invisible));
@@ -192,19 +192,19 @@ function prepareHideCategories(drinksCollection: FilterCollection): void {
 
 export function initMenuplanPdf(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(
-    wfCollectionSelector("daily"),
+    wfCollectionSelector("daily")
   );
   const drinkLists_collectionListElement = document.querySelector<HTMLElement>(
-    wfCollectionSelector("drink-lists"),
+    wfCollectionSelector("drink-lists")
   );
   const pdfContainer = document.querySelector<HTMLElement>(
-    Pdf.select("container"),
+    Pdf.select("container")
   );
   const filterFormElement = document.querySelector<HTMLElement>(
-    filterFormSelector("component"),
+    filterFormSelector("component")
   );
   const calendarweekElement = document.querySelector<HTMLElement>(
-    CalendarweekComponent.select("component"),
+    CalendarweekComponent.select("component")
   );
 
   // Before initialization
@@ -243,7 +243,7 @@ export function initMenuplanPdf(): void {
       rendererOptions: {
         attributeName: "pdf",
       },
-    },
+    }
   );
   prepareHideCategories(drinksCollection);
   drinksCollection.renderer.addFilterAttributes({
@@ -258,7 +258,7 @@ export function initMenuplanPdf(): void {
 
   const [minDate, maxDate] = setMinMaxDate(
     filterForm,
-    filterCollection.getData(),
+    filterCollection.getData()
   );
   setDefaultFilters(filterForm, minDate, maxDate);
 
@@ -301,12 +301,12 @@ export function initMenuplanPdf(): void {
       const startDate = parse(
         filters.getField("startDate").value,
         "yyyy-MM-dd",
-        new Date(),
+        new Date()
       );
       const endDate = parse(
         filters.getField("endDate").value,
         "yyyy-MM-dd",
-        new Date(),
+        new Date()
       );
 
       // Use FilterForm values
@@ -318,14 +318,17 @@ export function initMenuplanPdf(): void {
       const staticRenderFields: RenderField[] = [
         {
           name: "title",
-          value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(endDate, "d. MMMM yyyy")}`,
+          value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(
+            endDate,
+            "d. MMMM yyyy"
+          )}`,
           visibility: true,
         },
       ];
 
       const filteredDrinks = drinksCollection.filterByDateRange(
         startDate,
-        endDate,
+        endDate
       );
       const renderCollections: RenderBlock[] = [
         {
@@ -358,7 +361,7 @@ export function initMenuplanPdf(): void {
       } catch (err) {
         console.error(err);
       }
-    },
+    }
   );
 
   filterForm.addOnChange(["scale"], (filters) => {

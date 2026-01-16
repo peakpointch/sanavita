@@ -1,5 +1,5 @@
 import Selector from "peakflow/attributeselector";
-import { deepMerge } from "peakflow/utils";
+import { mergeOptions } from "peakflow/utils";
 
 type SaveOptionsElement =
   | "component"
@@ -53,10 +53,10 @@ export default class SaveOptions<ActionKey extends string = string> {
 
   constructor(
     component: HTMLElement,
-    settings: Partial<SaveOptionsSettings> = {},
+    settings: Partial<SaveOptionsSettings> = {}
   ) {
     this.component = component;
-    this.settings = deepMerge(SaveOptions.defaultSettings, settings);
+    this.settings = mergeOptions(SaveOptions.defaultSettings, settings);
     this.instance =
       this.settings.id || component.getAttribute(SaveOptions.attr.id);
     component.setAttribute(SaveOptions.attr.id, this.instance);
@@ -93,7 +93,7 @@ export default class SaveOptions<ActionKey extends string = string> {
   }
 
   private static attributeSelector = Selector.attr<SaveOptionsElement>(
-    SaveOptions.attr.element,
+    SaveOptions.attr.element
   );
 
   /**
@@ -101,7 +101,7 @@ export default class SaveOptions<ActionKey extends string = string> {
    */
   public static selector(
     element: SaveOptionsElement,
-    instance?: string,
+    instance?: string
   ): string {
     const base = SaveOptions.attributeSelector(element);
     return instance ? `${base}[${SaveOptions.attr.id}="${instance}"]` : base;
@@ -118,23 +118,23 @@ export default class SaveOptions<ActionKey extends string = string> {
 
   public static select<T extends Element = HTMLElement>(
     element: SaveOptionsElement,
-    instance?: string,
+    instance?: string
   ): T {
     return document.querySelector<T>(SaveOptions.selector(element, instance));
   }
 
   public static selectAll<T extends Element = HTMLElement>(
     element: SaveOptionsElement,
-    instance?: string,
+    instance?: string
   ): NodeListOf<T> {
     return document.querySelectorAll<T>(
-      SaveOptions.selector(element, instance),
+      SaveOptions.selector(element, instance)
     );
   }
 
   public select<T extends Element = HTMLElement>(
     element: SaveOptionsElement,
-    local: boolean = true,
+    local: boolean = true
   ): T {
     return local
       ? this.component.querySelector<T>(SaveOptions.selector(element))
@@ -143,12 +143,12 @@ export default class SaveOptions<ActionKey extends string = string> {
 
   public selectAll<T extends Element = HTMLElement>(
     element: SaveOptionsElement,
-    local: boolean = true,
+    local: boolean = true
   ): NodeListOf<T> {
     return local
       ? this.component.querySelectorAll<T>(SaveOptions.selector(element))
       : document.querySelectorAll<T>(
-          SaveOptions.selector(element, this.instance),
+          SaveOptions.selector(element, this.instance)
         );
   }
 
