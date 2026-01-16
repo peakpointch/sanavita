@@ -105,7 +105,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
 
     if (!elementFound) {
       throw new Error(
-        `The element "selector" doesn't exist inside the webflow collection list it was parsed from.`
+        `The element "${selector}" doesn't exist inside the webflow collection list it was parsed from.`
       );
     }
 
@@ -271,7 +271,7 @@ function setTestItem(
   item.props.endDate = applyOffset(now, config.endTimeOffset);
   item.props.useTimeOfDayRange = config.timeOfDayRange;
 
-  console.log("TestItem:", item.props);
+  console.log("TestItem:", item);
 }
 
 export function initDigitalSignage() {
