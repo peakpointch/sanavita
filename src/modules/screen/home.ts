@@ -16,6 +16,7 @@ const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
   screen: "string",
   "use-time-of-day-range": "boolean",
+  priority: "number",
 });
 
 type OverlayFilterAttrs = typeof filterAttributes;
@@ -127,10 +128,15 @@ class ElementManager<F extends OverlayFilterAttrs> {
     } else {
       if (this.overlaycount >= 1) {
         console.info(
-          `insertElement: One or more overlays are already active. Skipping "${wfElementId}"`
+          `insertElement: One or more overlays are already active. Showing element with the highest priority.`
         );
-        return;
       }
+
+      const priority = element.props.priority ?? 10;
+      const zIndex = 100 - priority;
+      elementToInsert.style.zIndex = zIndex.toString();
+      elementToInsert.style.position = "absolute";
+
       // Insert the cloned element into the visible swiper area for event/memorial elements
       this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
       this.overlaycount++;
@@ -248,6 +254,7 @@ interface TestItemConfig {
   startTimeOffset: TimeOffset;
   endTimeOffset: TimeOffset;
   timeOfDayRange: boolean;
+  priority?: number;
 }
 
 function applyOffset(base: Date, offset: TimeOffset): Date {
@@ -270,6 +277,7 @@ function setTestItem(
   item.props.startDate = applyOffset(now, config.startTimeOffset);
   item.props.endDate = applyOffset(now, config.endTimeOffset);
   item.props.useTimeOfDayRange = config.timeOfDayRange;
+  item.props.priority = config.priority;
 
   console.log("TestItem:", item);
 }
