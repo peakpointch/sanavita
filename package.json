@@ -8,22 +8,32 @@
     "build": "devflow build",
     "dev:components": "vite --config src/components/vite.config.ts"
   },
-  "libswitch": {
-    "name": "peakflow",
-    "local": "../../peakflow/",
-    "remote": "github:peakpointch/peakflow#v0.2.0-alpha.9",
-    "tsconfigDev": "tsconfig.dev.json",
-    "tsconfigProd": "tsconfig.prod.json"
-  },
+  "libswitch": [
+    {
+      "name": "peakflow",
+      "local": "../../peakflow/",
+      "remote": "github:peakpointch/peakflow#v0.2.3",
+      "alias": "src/index.ts"
+    },
+    {
+      "name": "devflow",
+      "local": "../../tools/devflow/",
+      "remote": "github:peakpointch/devflow"
+    },
+    {
+      "name": "libswitch",
+      "local": "../../tools/libswitch/",
+      "remote": "github:peakpointch/libswitch#v0.1.1"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "@xatom/core": "^1.0.12",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "devflow": "file:../../tools/devflow/",
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
-    "peakflow": "file:../../peakflow",
+    "peakflow": "github:peakpointch/peakflow#v0.2.3",
     "semver": "^7.7.2",
     "swiper": "^11.2.5",
     "tailwind-merge": "^3.4.0",
@@ -38,7 +48,8 @@
     "@webflow/data-types": "^1.1.0",
     "@webflow/react": "^1.1.0",
     "@webflow/webflow-cli": "^1.10.0",
-    "libswitch": "github:peakpointch/libswitch",
+    "devflow": "github:peakpointch/devflow",
+    "libswitch": "github:peakpointch/libswitch#v0.1.1",
     "path": "^0.12.7",
     "postcss": "^8.5.6",
     "react": "^19.2.0",
