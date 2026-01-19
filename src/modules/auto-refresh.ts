@@ -293,7 +293,16 @@ async function refreshOwnNodes(
 ): Promise<void> {
   const opts = mergeOptions(defaultAutoRefreshOptions, options);
   const doc = document;
-  const newDoc = await fetchOwnDocument(location.pathname);
+  const newDoc = await fetchOwnDocument(
+    `${location.pathname}?ts=${Date.now()}`,
+    {
+      cache: "no-cache",
+      headers: {
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache",
+      },
+    }
+  );
 
   const ctx: RefreshContext = {
     doc,

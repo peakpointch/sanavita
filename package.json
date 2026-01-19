@@ -12,7 +12,7 @@
     {
       "name": "peakflow",
       "local": "../../peakflow/",
-      "remote": "github:peakpointch/peakflow#v0.2.3",
+      "remote": "github:peakpointch/peakflow#v0.2.4",
       "alias": "src/index.ts"
     },
     {
@@ -33,7 +33,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
-    "peakflow": "github:peakpointch/peakflow#v0.2.3",
+    "peakflow": "github:peakpointch/peakflow#v0.2.4",
     "semver": "^7.7.2",
     "swiper": "^11.2.5",
     "tailwind-merge": "^3.4.0",
