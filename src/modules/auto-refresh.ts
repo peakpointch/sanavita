@@ -363,6 +363,10 @@ interface AutoRefreshOptions {
 
   /** Amount of time in seconds before refreshing again. Default: 60 */
   delay: number;
+  /** Amount of time in seconds before re-trying in case a refresh failed. */
+  retryAfter: number;
+  retry: boolean;
+  maxRetries: number;
 }
 
 const defaultAutoRefreshOptions: AutoRefreshOptions = {
@@ -371,14 +375,46 @@ const defaultAutoRefreshOptions: AutoRefreshOptions = {
   beforeNodeRefresh: (ctx) => ctx,
   afterNodeRefresh: (ctx) => ctx,
   delay: 60,
+  retryAfter: 15,
+  retry: true,
+  maxRetries: 3,
 };
 
 function autoRefresh(options?: Partial<AutoRefreshOptions>): number {
   const opts = mergeOptions(defaultAutoRefreshOptions, options);
 
-  const refresh = () => refreshOwnNodes(opts);
+  /** Count amount of times a*/
+  let failed: number = 0;
 
-  window.tv.refresh = refresh;
+  const refreshCore = () => refreshOwnNodes(opts);
+
+  const refresh = async () => {
+    try {
+      await refreshCore();
+      failed = 0;
+    } catch (error) {
+      failed++;
+
+      if (opts.retry && failed <= opts.maxRetries) {
+        console.error(
+          `Auto refresh failed ${failed}x. Trying again in ${opts.retryAfter}s`
+        );
+        //@ts-ignore
+        setTimeout(refresh, opts.retryAfter * 1000);
+      } else {
+        console.error(`Auto refresh failed ${failed}x.`);
+      }
+    } finally {
+      window.tv.failed = failed;
+    }
+  };
+
+  window.tv = {
+    ...window.tv,
+    refresh,
+    refreshCore,
+    failed,
+  };
 
   //@ts-ignore
   return setInterval(
