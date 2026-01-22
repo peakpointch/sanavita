@@ -13,6 +13,8 @@ type RefreshMode = "default" | "document" | "cms" | "swiper";
 
 type RefreshCallback<T extends BaseContext> = (ctx: T) => T | void;
 
+type NodeMatcher = (ctx: RefreshNodeContext) => boolean;
+
 interface BaseContext {
   [x: string]: unknown;
 }
@@ -223,6 +225,13 @@ function refreshNode<T extends Element>(
 }
 
 interface RefreshNodesOptions {
+  /**
+   * Specify the nodes to refresh.
+   * - An array of strings matching node ids
+   * - A custom function taking a context and returning a boolean.
+   *   True means the node will get refreshed.
+   */
+  nodes?: string[] | NodeMatcher;
   beforeRefresh: RefreshCallback<RefreshNodeContext>;
   afterRefresh: RefreshCallback<RefreshNodeContext>;
 }
@@ -268,6 +277,12 @@ function refreshNodes(
       return;
     }
 
+    if (Array.isArray(opts.nodes)) {
+      if (!opts.nodes.includes(id)) return;
+    } else if (typeof opts.nodes === "function") {
+      if (!opts.nodes(ctx)) return;
+    }
+
     const userCtx = opts.beforeRefresh(ctx);
     const newCtx = validateContext(userCtx) ? userCtx : ctx;
 
@@ -282,6 +297,13 @@ function refreshNodes(
 }
 
 interface RefreshOwnOptions {
+  /**
+   * Specify the nodes to refresh.
+   * - An array of strings matching node ids
+   * - A custom function taking a context and returning a boolean.
+   *   True means the node will get refreshed.
+   */
+  nodes?: string[] | NodeMatcher;
   afterRefresh: RefreshCallback<RefreshContext>;
   afterNodeRefresh: RefreshCallback<RefreshNodeContext>;
   beforeRefresh: RefreshCallback<RefreshContext>;
@@ -313,6 +335,7 @@ async function refreshOwnNodes(
   const newCtx = validateContext(userCtx) ? userCtx : ctx;
 
   refreshNodes(newCtx.doc.body, newCtx.newDoc.body, {
+    nodes: opts.nodes,
     beforeRefresh: opts.beforeNodeRefresh,
     afterRefresh: opts.afterNodeRefresh,
   });
@@ -325,6 +348,13 @@ async function refreshOwnNodes(
 // ==============================
 
 interface AutoRefreshOptions {
+  /**
+   * Specify the nodes to refresh.
+   * - An array of strings matching node ids
+   * - A custom function taking a context and returning a boolean.
+   *   True means the node will get refreshed.
+   */
+  nodes?: string[] | NodeMatcher;
   afterRefresh: RefreshCallback<RefreshContext>;
   afterNodeRefresh: RefreshCallback<RefreshNodeContext>;
   beforeRefresh: RefreshCallback<RefreshContext>;
