@@ -286,13 +286,14 @@ function refreshNodes(
     const userCtx = opts.beforeRefresh(ctx);
     const newCtx = validateContext(userCtx) ? userCtx : ctx;
 
-    // Refresh the current node with the new node
-    const insertedNode = refreshNode(newCtx.node, newCtx.newNode);
+    try {
+      // Refresh the current node with the new node
+      newCtx.newNode = refreshNode(newCtx.node, newCtx.newNode);
+    } catch (error) {
+      console.error(error);
+    }
 
-    opts.afterRefresh({
-      ...newCtx,
-      newNode: insertedNode,
-    });
+    opts.afterRefresh(newCtx);
   });
 }
 
