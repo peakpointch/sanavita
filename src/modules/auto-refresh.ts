@@ -209,7 +209,6 @@ function refreshNode<T extends Element>(
       break;
 
     case "document":
-      debugger;
       result = documentRefresh(node, finalNewNode);
       break;
 
