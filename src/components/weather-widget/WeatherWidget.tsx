@@ -134,7 +134,7 @@ export interface WeatherWidgetProps {
   /**
    * Whether to fetch the weather from the api. Only use `false` in development mode.
    */
-  fetch: boolean;
+  fetch?: boolean;
 }
 
 export function WeatherWidget({
