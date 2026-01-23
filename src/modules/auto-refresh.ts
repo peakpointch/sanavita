@@ -446,6 +446,12 @@ interface AutoRefreshOptions {
   maxRetries: number;
 }
 
+interface AutoRefreshContext extends BaseContext {
+  interval: number;
+  refresh: () => Promise<void>;
+  refreshCore: () => Promise<void>;
+}
+
 const defaultAutoRefreshOptions: AutoRefreshOptions = {
   beforeRefresh: () => undefined,
   afterRefresh: () => undefined,
@@ -457,7 +463,9 @@ const defaultAutoRefreshOptions: AutoRefreshOptions = {
   maxRetries: 3,
 };
 
-function autoRefresh(options?: Partial<AutoRefreshOptions>): number {
+function autoRefresh(
+  options?: Partial<AutoRefreshOptions>
+): AutoRefreshContext {
   const opts = mergeOptions(defaultAutoRefreshOptions, options);
 
   /** Count amount of times a*/
@@ -481,23 +489,16 @@ function autoRefresh(options?: Partial<AutoRefreshOptions>): number {
       } else {
         console.error(`Auto refresh failed ${failed}x.`);
       }
-    } finally {
-      window.tv.failed = failed;
     }
   };
 
-  window.tv = {
-    ...window.tv,
-    refresh,
-    refreshCore,
-    failed,
-  };
-
   //@ts-ignore
-  return setInterval(
+  const interval: number = setInterval(
     refresh,
     opts.delay * 1000 // Refresh delay in seconds
   );
+
+  return { interval, refresh, refreshCore };
 }
 
 export {
