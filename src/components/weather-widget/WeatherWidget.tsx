@@ -14,21 +14,30 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { openWeatherMapApiKey } from "@/secrets";
+import { currentWeather, forecast } from "./constants";
 
 const openWeather = new OpenWeatherMap({
   apiKey: openWeatherMapApiKey,
   units: "metric",
 });
 
-async function fetchCurrentWeather(): Promise<WeatherDay> {
+async function fetchCurrentWeather(fetch: boolean = true): Promise<WeatherDay> {
   return new Promise(async (resolve) => {
+    if (!fetch) {
+      return resolve(currentWeather);
+    }
+
     const data = await openWeather.getCurrentWeatherByZipcode(5210, "CH");
     resolve(data as WeatherDay);
   });
 }
 
-async function fetchForecast(): Promise<WeatherForecast> {
+async function fetchForecast(fetch: boolean = true): Promise<WeatherForecast> {
   return new Promise(async (resolve) => {
+    if (!fetch) {
+      return resolve(forecast);
+    }
+
     const data = await openWeather.getThreeHourForecastByZipcode(5210, "CH");
     resolve(data as WeatherForecast);
   });
@@ -122,6 +131,10 @@ export interface WeatherWidgetProps {
    * Time in minutes to wait before refetching the weather forecast
    */
   forecastDelay?: number;
+  /**
+   * Whether to fetch the weather from the api. Only use `false` in development mode.
+   */
+  fetch: boolean;
 }
 
 export function WeatherWidget({
@@ -131,6 +144,7 @@ export function WeatherWidget({
   showMinMaxTemp = false,
   weatherDelay = 10,
   forecastDelay = 180,
+  fetch = false,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
     weather: WeatherDay;
@@ -140,7 +154,7 @@ export function WeatherWidget({
 
   React.useEffect(() => {
     const updateWeather = async () => {
-      const weatherRes = await fetchCurrentWeather();
+      const weatherRes = await fetchCurrentWeather(fetch);
       setData((prev) => ({
         ...prev,
         weather: weatherRes,
@@ -148,7 +162,7 @@ export function WeatherWidget({
     };
 
     const updateForecast = async () => {
-      const forecastRes = await fetchForecast();
+      const forecastRes = await fetchForecast(fetch);
       setData((prev) => ({
         ...prev,
         forecast: forecastRes,

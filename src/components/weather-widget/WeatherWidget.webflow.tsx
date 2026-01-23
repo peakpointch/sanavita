@@ -55,5 +55,13 @@ export default declareComponent(WeatherWidget, {
       min: 0,
       defaultValue: 60,
     }),
+
+    fetch: props.Boolean({
+      group: "Widget",
+      name: "Fetch",
+      tooltip:
+        "Ob das Wetter von der API geladen werden soll. NUR im Entwicklungsmodus aktivieren.",
+      defaultValue: true,
+    }),
   },
 });
