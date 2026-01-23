@@ -525,4 +525,20 @@ export {
   readMode,
 };
 
-export type { RefreshMode, RefreshNodeOptions };
+export type {
+  // Options
+  AutoRefreshOptions,
+  RefreshNodeOptions,
+  RefreshNodesOptions,
+  RefreshOwnOptions,
+
+  // Context
+  AutoRefreshContext,
+  RefreshNodeContext,
+  RefreshContext,
+
+  // Other
+  NodeMatcher,
+  RefreshCallback,
+  RefreshMode,
+};
