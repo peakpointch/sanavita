@@ -9,7 +9,15 @@ import {
 } from "peakflow";
 import Swiper from "swiper";
 
-type RefreshMode = "default" | "document" | "cms" | "swiper";
+type RefreshMode =
+  | "default"
+  | "children"
+  | "reload"
+  | "document"
+  | "body"
+  | "page"
+  | "cms"
+  | "swiper";
 
 type RefreshCallback<T extends BaseContext> = (ctx: T) => T | void;
 
@@ -48,6 +56,11 @@ const warning = {
 };
 
 const error = {
+  pageWrapperNotFound: new Error(
+    `Refresh: page-wrapper not found. In "page" mode, the page-wrapper must be tagged with the ${selector(
+      "page-wrapper"
+    )} attribute.`
+  ),
   modeNotImplemented: (mode?: string) =>
     new Error(
       `Refresh: mode ${mode ? `"${mode} "` : ""}is not yet implemented`
@@ -61,15 +74,54 @@ const error = {
 // ==============================
 
 function defaultRefresh(node: Element, newNode: Element): Element {
-  const cloned = newNode.cloneNode(true) as Element;
+  node.replaceWith(newNode);
 
-  node.replaceWith(cloned);
-
-  return cloned;
+  return newNode;
 }
 
-function documentRefresh(node: Element, newNode: Element): Element {
-  throw error.modeNotImplemented("document");
+function childrenRefresh(node: Element, newNode: Element): Element {
+  node.replaceChildren(...Array.from(newNode.children));
+
+  return newNode;
+}
+
+function documentRefresh(
+  node: Document | Element,
+  newNode: Document | Element
+): Element {
+  const doc = node.getRootNode() as Document;
+  const newDoc = newNode.getRootNode() as Document;
+
+  doc.documentElement.replaceWith(newDoc.documentElement);
+
+  return newDoc.documentElement;
+}
+
+function bodyRefresh(
+  node: Document | Element,
+  newNode: Document | Element
+): Element {
+  const doc = node.getRootNode() as Document;
+  const newDoc = newNode.getRootNode() as Document;
+
+  return defaultRefresh(doc.body, newDoc.body);
+}
+
+function pageRefresh(
+  node: Document | Element,
+  newNode: Document | Element
+): Element {
+  const doc = node.getRootNode() as Document;
+  const newDoc = newNode.getRootNode() as Document;
+
+  const page = doc.querySelector(selector("page-wrapper"));
+  const newPage = newDoc.querySelector(selector("page-wrapper"));
+
+  if (!page || !newPage) {
+    throw error.pageWrapperNotFound;
+  }
+
+  return childrenRefresh(page, newPage);
 }
 
 function cmsRefresh(node: Element, newNode: Element): HTMLElement {
@@ -119,6 +171,10 @@ function swiperRefresh(node: Element, newNode: Element): HTMLElement {
   swiper.update();
 
   return newNode;
+}
+
+function reloadRefresh(): void {
+  window.location.reload();
 }
 
 // ==============================
@@ -206,6 +262,26 @@ function refreshNode<T extends Element>(
   let result: Element;
 
   switch (mode) {
+    case "default":
+      result = defaultRefresh(node, finalNewNode);
+      break;
+
+    case "children":
+      result = childrenRefresh(node, finalNewNode);
+      break;
+
+    case "document":
+      result = documentRefresh(node, finalNewNode);
+      break;
+
+    case "body":
+      result = bodyRefresh(node, finalNewNode);
+      break;
+
+    case "page":
+      result = pageRefresh(node, finalNewNode);
+      break;
+
     case "cms":
       result = cmsRefresh(node, finalNewNode);
       break;
@@ -214,12 +290,8 @@ function refreshNode<T extends Element>(
       result = swiperRefresh(node, finalNewNode);
       break;
 
-    case "document":
-      result = documentRefresh(node, finalNewNode);
-      break;
-
-    case "default":
-      result = defaultRefresh(node, finalNewNode);
+    case "reload":
+      reloadRefresh();
       break;
 
     default:
@@ -439,8 +511,13 @@ export {
 
   // Core
   defaultRefresh,
+  childrenRefresh,
   documentRefresh,
+  bodyRefresh,
+  pageRefresh,
   cmsRefresh,
+  swiperRefresh,
+  reloadRefresh,
 
   // Helpers
   readId,
