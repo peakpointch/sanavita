@@ -7,6 +7,11 @@ import {
   mergeOptions,
   wf,
 } from "peakflow";
+import {
+  type HTMLCodeIslandElement,
+  codeIslandRefresh,
+  initCodeIsland,
+} from "peakflow/webflow";
 import Swiper from "swiper";
 
 type RefreshMode =
@@ -17,7 +22,8 @@ type RefreshMode =
   | "body"
   | "page"
   | "cms"
-  | "swiper";
+  | "swiper"
+  | "code-component";
 
 type RefreshCallback<T extends BaseContext> = (ctx: T) => T | void;
 
@@ -76,11 +82,15 @@ const error = {
 function defaultRefresh(node: Element, newNode: Element): Element {
   node.replaceWith(newNode);
 
+  refreshAllCodeComponents(newNode);
+
   return newNode;
 }
 
 function childrenRefresh(node: Element, newNode: Element): Element {
   node.replaceChildren(...Array.from(newNode.children));
+
+  refreshAllCodeComponents(node);
 
   return newNode;
 }
@@ -173,6 +183,15 @@ function swiperRefresh(node: Element, newNode: Element): HTMLElement {
   return newNode;
 }
 
+function codeComponentRefresh(node: Element, newNode: Element): HTMLElement {
+  const island = node.firstElementChild;
+  const newIsland = newNode.firstElementChild;
+
+  codeIslandRefresh(island, newIsland);
+
+  return newNode as HTMLElement;
+}
+
 function reloadRefresh(): void {
   window.location.reload();
 }
@@ -233,6 +252,19 @@ function mapNodesById<T extends Element>(nodes: T[]): Map<string, T> {
   return map;
 }
 
+async function refreshAllCodeComponents(node: Element): Promise<void> {
+  const codeIslands = getAllElements<HTMLCodeIslandElement>("code-island", {
+    node,
+  });
+
+  await Promise.all(
+    codeIslands.map(async (island) => {
+      await initCodeIsland(island);
+      island.render(island.props);
+    })
+  );
+}
+
 // ==============================
 //              Main
 // ==============================
@@ -288,6 +320,10 @@ function refreshNode<T extends Element>(
 
     case "swiper":
       result = swiperRefresh(node, finalNewNode);
+      break;
+
+    case "code-component":
+      result = codeComponentRefresh(node, finalNewNode);
       break;
 
     case "reload":
@@ -518,6 +554,7 @@ export {
   pageRefresh,
   cmsRefresh,
   swiperRefresh,
+  codeComponentRefresh,
   reloadRefresh,
 
   // Helpers
