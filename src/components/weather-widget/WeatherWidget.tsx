@@ -1,4 +1,4 @@
-import React from "react";
+import React, { JSX } from "react";
 import OpenWeatherMap from "openweathermap-ts";
 import type { WeatherDay, WeatherForecast } from "./types";
 import { getIconColor, weatherIconMap } from "./icons";
@@ -54,7 +54,10 @@ interface DayForecast {
   };
 }
 
-export function getDaysFromForecast(forecast: WeatherForecast): DayForecast[] {
+export function getDaysFromForecast(
+  forecast: WeatherForecast,
+  prod: boolean = true
+): DayForecast[] {
   const dailyGroups = forecast.list.reduce<Record<string, DayForecast>>(
     (acc, item) => {
       // Parse date
@@ -63,7 +66,7 @@ export function getDaysFromForecast(forecast: WeatherForecast): DayForecast[] {
       const dateStr = format(date, "yyyy-MM-dd");
 
       // Skip today and past days
-      if (date <= new Date()) return acc;
+      if (prod && date <= new Date()) return acc;
 
       if (!acc || !acc[dateStr]) {
         acc[dateStr] = {
@@ -134,7 +137,7 @@ export interface WeatherWidgetProps {
   /**
    * Whether to fetch the weather from the api. Only use `false` in development mode.
    */
-  fetch?: boolean;
+  prod?: boolean;
 }
 
 export function WeatherWidget({
@@ -144,7 +147,7 @@ export function WeatherWidget({
   showMinMaxTemp = false,
   weatherDelay = 10,
   forecastDelay = 180,
-  fetch = false,
+  prod = true,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
     weather: WeatherDay;
@@ -154,7 +157,7 @@ export function WeatherWidget({
 
   React.useEffect(() => {
     const updateWeather = async () => {
-      const weatherRes = await fetchCurrentWeather(fetch);
+      const weatherRes = await fetchCurrentWeather(prod);
       setData((prev) => ({
         ...prev,
         weather: weatherRes,
@@ -162,7 +165,7 @@ export function WeatherWidget({
     };
 
     const updateForecast = async () => {
-      const forecastRes = await fetchForecast(fetch);
+      const forecastRes = await fetchForecast(prod);
       setData((prev) => ({
         ...prev,
         forecast: forecastRes,
@@ -192,12 +195,12 @@ export function WeatherWidget({
       clearInterval(weatherInterval);
       clearInterval(forecastInterval);
     };
-  }, []);
+  }, [prod]);
 
   if (loading) return <div className="text-tv-regular">Wird geladen...</div>;
 
   const { weather, forecast } = data;
-  const forecastDays = getDaysFromForecast(forecast);
+  const forecastDays = getDaysFromForecast(forecast, prod);
   const MainIcon = weatherIconMap[weather.weather[0].icon];
   const iconColor = getIconColor(weather.weather[0].icon);
 

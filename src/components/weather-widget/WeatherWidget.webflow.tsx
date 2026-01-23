@@ -56,9 +56,9 @@ export default declareComponent(WeatherWidget, {
       defaultValue: 60,
     }),
 
-    fetch: props.Boolean({
+    prod: props.Boolean({
       group: "Widget",
-      name: "Fetch",
+      name: "Production",
       tooltip:
         "Ob das Wetter von der API geladen werden soll. NUR im Entwicklungsmodus aktivieren.",
       defaultValue: true,
