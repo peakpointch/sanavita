@@ -166,6 +166,10 @@ function swiperRefresh(node: Element, newNode: Element): HTMLElement {
   const newWrapper = newNode.querySelector(Slider.selector("wrapper"));
   const newSlides = Array.from(newWrapper.children) as HTMLElement[];
 
+  if (!swiper) {
+    throw new Error(`Refresh: Cannot update an uninitialized Swiper instance.`);
+  }
+
   if (typeof swiper.removeAllSlides !== "function") {
     throw new Error(
       `Refresh: Refresheable swiper instances must be instantiated with the module "Manipulation".`
@@ -518,12 +522,13 @@ function autoRefresh(
 
       if (opts.retry && failed <= opts.maxRetries) {
         console.error(
-          `Auto refresh failed ${failed}x. Trying again in ${opts.retryAfter}s`
+          `Auto refresh failed ${failed}x. Trying again in ${opts.retryAfter}s...\n`,
+          error
         );
         //@ts-ignore
         setTimeout(refresh, opts.retryAfter * 1000);
       } else {
-        console.error(`Auto refresh failed ${failed}x.`);
+        console.error(`Auto refresh failed ${failed}x.\n`, error);
       }
     }
   };
