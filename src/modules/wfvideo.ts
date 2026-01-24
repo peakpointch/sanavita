@@ -37,10 +37,10 @@ export function createVideoComponent(component: HTMLElement) {
   // Function to toggle play/pause
   function togglePlay() {
     const pauseState = playButton.querySelector(
-      '[data-player-button-state="pause"]',
+      '[data-player-button-state="pause"]'
     );
     const playState = playButton.querySelector(
-      '[data-player-button-state="play"]',
+      '[data-player-button-state="play"]'
     );
 
     // Toggle video play/pause
@@ -60,10 +60,10 @@ export function createVideoComponent(component: HTMLElement) {
     console.log("MUTE BUTTON PRESSED");
 
     const muteState = muteButton.querySelector(
-      '[data-player-button-state="unmuted"]',
+      '[data-player-button-state="unmuted"]'
     );
     const unmuteState = muteButton.querySelector(
-      '[data-player-button-state="muted"]',
+      '[data-player-button-state="muted"]'
     );
 
     // Toggle video mute/unmute
@@ -96,9 +96,9 @@ export function createVideoComponent(component: HTMLElement) {
   muteButton?.addEventListener("click", toggleMute);
 }
 
-export function initWfVideo() {
-  const components = document.querySelectorAll<HTMLElement>(
-    VIDEO_COMPONENT_SELECTOR,
+export function initWfVideo(doc: Document | Element = document) {
+  const components = doc.querySelectorAll<HTMLElement>(
+    VIDEO_COMPONENT_SELECTOR
   );
 
   components.forEach((component) => {
