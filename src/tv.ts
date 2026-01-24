@@ -1,9 +1,10 @@
 import { onReady, WFRoute } from "@xatom/core";
-import { peakflow, Slider, dateflow, inlineCms } from "peakflow";
+import { Slider, dateflow, inlineCms } from "peakflow";
 import { initWfVideo } from "./modules/wfvideo";
-import { autoRefresh } from "./modules/auto-refresh";
+import { autoRefresh, AutoRefreshContext } from "./modules/auto-refresh";
 import { de } from "date-fns/locale/de";
 import { Autoplay, Manipulation } from "swiper/modules";
+import { format } from "date-fns";
 // import { initAutoScroll } from "./modules/tv/auto-scroll";
 
 declare global {
@@ -13,44 +14,28 @@ declare global {
 }
 
 interface TVGlobal {
-  refresh?: () => void;
-  refreshCore?: () => void;
-  failed: number;
-}
-
-onReady(() => {
-  const homeRoutes = ["/tv/home", "/tv/design"];
-
-  for (const route of homeRoutes) {
-    new WFRoute(route).execute(initTV);
-  }
-});
-
-function initTVGlobals(): void {
-  window.tv = window.tv || {
-    failed: 0,
+  refreshers: {
+    [x: string]: AutoRefreshContext;
   };
 }
 
-function initTV(): void {
-  initTVGlobals();
+function initTVGlobals(): void {
+  window.tv = window.tv || {
+    refreshers: {},
+  };
+}
 
-  peakflow.execute("inlinecms");
-  peakflow.execute("dateflow");
+function logStamp(): string {
+  return format(new Date(), "MMM dd HH:mm:ss.SS");
+}
 
-  Slider.initAll(document.body, {
-    modules: [Autoplay, Manipulation],
-  });
-
-  initWfVideo();
-
-  // initAutoScroll();
-
-  autoRefresh({
+function initCmsRefresh(): void {
+  const ctx = autoRefresh({
     delay: 60 * 60, // Refresh once every hour
-    // nodes: ({ mode }) => mode !== "code-component",
+    nodes: ({ mode }) =>
+      !["code-component", "body", "page", "document"].includes(mode),
     beforeRefresh: ({ newDoc }) => {
-      console.log("Refreshing");
+      console.log(`${logStamp()} Refresh: CMS`);
 
       inlineCms({
         origins: "[data-inlinecms-component]",
@@ -62,7 +47,80 @@ function initTV(): void {
       // populateSwiper({ name: "news", amount: 4, doc: newDoc });
     },
     beforeNodeRefresh: ({ id, mode }) => {
-      console.log(`${mode}:${id}`);
+      // console.log(`${mode}:${id}`);
     },
   });
+
+  window.tv.refreshers.cms = ctx;
 }
+
+function initComponentsRefresh(): void {
+  const ctx = autoRefresh({
+    delay: 60 * 60 * 12, // Hard refresh every 12 hours
+    nodes: ["weather", "watch"],
+    beforeRefresh: () => {
+      console.log(`${logStamp()} Refresh: components`);
+    },
+    afterRefresh: ({ doc }) => {
+      initTVDOM(doc);
+    },
+  });
+
+  window.tv.refreshers.components = ctx;
+}
+
+function initPageRefresh(): void {
+  const ctx = autoRefresh({
+    delay: 60 * 60 * 12, // Hard refresh every 12 hours
+    nodes: ["page-wrapper"],
+    beforeRefresh: () => {
+      console.log(`${logStamp()} Refresh: page`);
+    },
+    afterRefresh: ({ doc }) => {
+      initTVDOM(doc);
+    },
+  });
+
+  window.tv.refreshers.page = ctx;
+}
+
+function initTVDOM(doc: Document): Document {
+  try {
+    inlineCms({
+      origins: "[data-inlinecms-component]",
+      doc: doc,
+    });
+  } catch (e) {
+    console.warn(e);
+  }
+
+  dateflow(de, doc.body);
+
+  Slider.initAll(doc.body, {
+    modules: [Autoplay, Manipulation],
+  });
+
+  initWfVideo(doc);
+
+  // initAutoScroll();
+
+  return doc;
+}
+
+function initTV(): void {
+  initTVGlobals();
+
+  initTVDOM(document);
+
+  initCmsRefresh();
+  initComponentsRefresh();
+  initPageRefresh();
+}
+
+onReady(() => {
+  const homeRoutes = ["/tv/home", "/tv/design"];
+
+  for (const route of homeRoutes) {
+    new WFRoute(route).execute(initTV);
+  }
+});
