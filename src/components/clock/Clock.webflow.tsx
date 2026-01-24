@@ -6,6 +6,9 @@ import "@/styles/globals.css";
 
 export default declareComponent(Clock, {
   name: "TV / Uhr",
+  options: {
+    ssr: false,
+  },
 
   props: {
     visibility: props.Visibility({
