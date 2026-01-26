@@ -11,7 +11,7 @@ import { FilterForm, filterFormSelector } from "peakflow/form";
 import { CalendarweekComponent } from "peakflow/ui";
 
 // Utility functions
-import Selector from "peakflow/attributeselector";
+import Selector from "peakflow/selector";
 import {
   addDays,
   startOfWeek,

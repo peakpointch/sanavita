@@ -1,4 +1,4 @@
-import Selector from "peakflow/attributeselector";
+import Selector from "peakflow/selector";
 import { mergeOptions } from "peakflow/utils";
 
 type SaveOptionsElement =

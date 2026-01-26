@@ -6,7 +6,7 @@ import {
   CMSSelect,
 } from "peakflow/form";
 import ProspectArray from "./form/prospect-array";
-import Selector from "peakflow/attributeselector";
+import Selector from "peakflow/selector";
 import { flattenProspects } from "./form/resident-prospect";
 import { addMonths, format, startOfMonth } from "date-fns";
 import { getElement } from "peakflow/utils";
@@ -16,11 +16,12 @@ const decisionSelector = Selector.attr("data-decision-component");
 function initializeFormDecisions(
   form: MultiStepForm,
   errorMessages: { [id: string]: { [key: string]: string } },
-  defaultMessages: { [id: string]: string } = {},
+  defaultMessages: { [id: string]: string } = {}
 ): void {
   form.formSteps.forEach((step, stepIndex) => {
-    const formDecisions =
-      step.querySelectorAll<HTMLElement>(decisionSelector());
+    const formDecisions = step.querySelectorAll<HTMLElement>(
+      decisionSelector()
+    );
 
     formDecisions.forEach((element) => {
       const id = element.dataset.decisionComponent;
@@ -46,11 +47,11 @@ type PathId = string & ("show" | "hide");
 function initializeProspectDecisions<T extends string = string>(
   prospectArray: ProspectArray,
   errorMessages: { [id: string]: { [key: string]: string } },
-  defaultMessages: { [id: string]: string } = {},
+  defaultMessages: { [id: string]: string } = {}
 ): Map<T, FormDecision<PathId>> {
   const decisionElements =
     prospectArray.modalElement.querySelectorAll<HTMLElement>(
-      decisionSelector(),
+      decisionSelector()
     );
   const formDecisions: Map<T, FormDecision<PathId>> = new Map();
 
@@ -67,7 +68,7 @@ function initializeProspectDecisions<T extends string = string>(
     decision.onChange(() => {
       prospectArray.validateModalGroup(group);
       const valid = prospectArray.groups.every(
-        (group) => group.isValid === true,
+        (group) => group.isValid === true
       );
       prospectArray.saveOptions.setAction(valid ? "save" : "draft");
     });
@@ -88,12 +89,12 @@ function insertSearchParamValues(): void {
   if (window.location.search) {
     const params = new URLSearchParams(window.location.search);
     const selectElement = document.querySelector(
-      "#wohnung",
+      "#wohnung"
     ) as HTMLInputElement;
 
     const wohnungValue = params.get("wohnung");
     const option = selectElement.querySelector(
-      `option[value="${wohnungValue}"]`,
+      `option[value="${wohnungValue}"]`
     );
     if (wohnungValue && option) {
       // If you want to handle cases where the value doesn't exist
@@ -122,7 +123,7 @@ function initCMSSelect(): void {
   apartmentSelect.onChange("syncAlternatives", () => {
     const values = Array.from(apartmentSelect.values);
     const filtered = values.filter(
-      (val) => val !== apartmentSelect.targets[0].value,
+      (val) => val !== apartmentSelect.targets[0].value
     );
     CMSSelect.clearOptions(alternativeSelect, true);
     CMSSelect.insertOptions(alternativeSelect, filtered);
@@ -132,7 +133,7 @@ function initCMSSelect(): void {
 
 export function initApartmentRegistrationForm(): void {
   const formElement: HTMLElement | null = document.querySelector(
-    formElementSelector("component", { exclusions: [] }),
+    formElementSelector("component", { exclusions: [] })
   );
   formElement?.classList.remove("w-form");
 

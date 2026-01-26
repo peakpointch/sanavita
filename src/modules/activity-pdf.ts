@@ -7,7 +7,7 @@ import { FilterForm, filterFormSelector } from "peakflow/form";
 import { CalendarweekComponent } from "peakflow/ui";
 
 // Utility functions
-import Selector from "peakflow/attributeselector";
+import Selector from "peakflow/selector";
 import {
   addDays,
   startOfWeek,
@@ -86,7 +86,7 @@ function getMinMaxDate(data: RenderData<ActivityAttributes>): Date[] {
 
 function setMinMaxDate(
   form: FilterForm<FieldIds>,
-  data: RenderData<ActivityAttributes>,
+  data: RenderData<ActivityAttributes>
 ): Date[] {
   const [minDate, maxDate] = getMinMaxDate(data);
   const minDateStr = formatDE(minDate, "yyyy-MM-dd");
@@ -103,7 +103,7 @@ function setMinMaxDate(
 function setDefaultFilters(
   form: FilterForm<FieldIds>,
   minDate: Date,
-  maxDate: Date,
+  maxDate: Date
 ): void {
   let currentMonday: Date = startOfWeek(new Date(), sowOptions);
   let nextMonday: Date = addWeeks(currentMonday, 1);
@@ -114,12 +114,12 @@ function setDefaultFilters(
   form.getFilterInput("calendaryear").value = getYear(nextMonday).toString();
   form.getFilterInput("calendarweek").value = getWeek(
     nextMonday,
-    weekOptions,
+    weekOptions
   ).toString();
   form.getFilterInput("startDate").value = formatDE(nextMonday, "yyyy-MM-dd");
   form.getFilterInput("endDate").value = formatDE(
     addDays(nextMonday, 6),
-    "yyyy-MM-dd",
+    "yyyy-MM-dd"
   );
   form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
 
@@ -160,7 +160,7 @@ function tagActivitySpecial(list: HTMLElement): void {
 
 function parsePdfLocalStorage(): LocalStoragePdf {
   const parsed: LocalStoragePdf = JSON.parse(
-    localStorage.getItem("pdf") || "{}",
+    localStorage.getItem("pdf") || "{}"
   );
 
   const pdfStorage: LocalStoragePdf = {
@@ -191,16 +191,16 @@ function getStartDateFormat(startDate: Date, endDate: Date): string {
 
 export function initActivityPdf(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(
-    wfCollectionSelector("activity"),
+    wfCollectionSelector("activity")
   );
   const pdfContainer = document.querySelector<HTMLElement>(
-    Pdf.select("container"),
+    Pdf.select("container")
   );
   const filterFormElement = document.querySelector<HTMLElement>(
-    filterFormSelector("component"),
+    filterFormSelector("component")
   );
   const calendarweekElement = document.querySelector<HTMLElement>(
-    CalendarweekComponent.select("component"),
+    CalendarweekComponent.select("component")
   );
 
   // Before initialization
@@ -235,7 +235,7 @@ export function initActivityPdf(): void {
 
   const [minDate, maxDate] = setMinMaxDate(
     filterForm,
-    filterCollection.getData(),
+    filterCollection.getData()
   );
   setDefaultFilters(filterForm, minDate, maxDate);
 
@@ -248,7 +248,7 @@ export function initActivityPdf(): void {
 
   //filterCollection.debug = true;
   filterForm.addBeforeChange(() =>
-    filterForm.validateDateRange("startDate", "endDate", 7),
+    filterForm.validateDateRange("startDate", "endDate", 7)
   );
 
   filterForm.addOnChange(["design"], (filters) => {
@@ -277,12 +277,12 @@ export function initActivityPdf(): void {
       const startDate = parse(
         filters.getField("startDate").value,
         "yyyy-MM-dd",
-        new Date(),
+        new Date()
       );
       const endDate = parse(
         filters.getField("endDate").value,
         "yyyy-MM-dd",
-        new Date(),
+        new Date()
       );
 
       // Use FilterForm values
@@ -296,7 +296,10 @@ export function initActivityPdf(): void {
       const staticRenderFields: RenderField[] = [
         {
           name: "title",
-          value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(maxDate, "d. MMMM yyyy")}`,
+          value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(
+            maxDate,
+            "d. MMMM yyyy"
+          )}`,
           visibility: true,
         },
       ];
@@ -313,14 +316,14 @@ export function initActivityPdf(): void {
         canvas.showHiddenElements();
         pdf.render(
           [...staticRenderFields, ...filtered],
-          filters.getField("design").value,
+          filters.getField("design").value
         );
         pdf.hyphenizePages();
         canvas.update();
       } catch (err) {
         console.error(err);
       }
-    },
+    }
   );
 
   filterForm.addOnChange(["scale"], (filters) => {
@@ -351,7 +354,9 @@ export function initActivityPdf(): void {
     const startDate = new Date(filterForm.getFilterInput("startDate").value);
     const format: string = filterForm.data.getField("format").value;
     const pdfFormat = format.toLowerCase() as PdfFormat;
-    let filename = `${getISOWeekYear(startDate)} KW${getISOWeek(startDate)} Wochenprogramm`;
+    let filename = `${getISOWeekYear(startDate)} KW${getISOWeek(
+      startDate
+    )} Wochenprogramm`;
 
     pdf.save(pdfFormat, filename, 1);
   });
