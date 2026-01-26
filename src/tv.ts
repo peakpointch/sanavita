@@ -5,7 +5,7 @@ import { autoRefresh, AutoRefreshContext } from "./modules/auto-refresh";
 import { de } from "date-fns/locale/de";
 import { Autoplay, Manipulation } from "swiper/modules";
 import { format } from "date-fns";
-// import { initAutoScroll } from "./modules/tv/auto-scroll";
+import { initAutoScroll } from "./modules/tv/auto-scroll";
 
 declare global {
   interface Window {
@@ -29,6 +29,19 @@ function logStamp(): string {
   return format(new Date(), "MMM dd HH:mm:ss.SS");
 }
 
+function initTVAutoScroll({ doc }: { doc: Document | Element }): void {
+  initAutoScroll({
+    doc,
+    speed: 3,
+    pauseFor: 5_000,
+    mode: "smooth",
+    tolerance: 10,
+    scrollbar: {
+      hide: true,
+    },
+  });
+}
+
 function initCmsRefresh(): void {
   const ctx = autoRefresh({
     delay: 60 * 60, // Refresh once every hour
@@ -48,6 +61,9 @@ function initCmsRefresh(): void {
     },
     beforeNodeRefresh: ({ id, mode }) => {
       // console.log(`${mode}:${id}`);
+    },
+    afterRefresh: ({ doc }) => {
+      initTVAutoScroll({ doc });
     },
   });
 
@@ -102,7 +118,7 @@ function initTVDOM(doc: Document): Document {
 
   initWfVideo(doc);
 
-  // initAutoScroll();
+  initTVAutoScroll({ doc });
 
   return doc;
 }
