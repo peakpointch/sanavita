@@ -5,10 +5,11 @@ import {
   autoRefresh,
   AutoRefreshContext,
   onRefreshScript,
+  refreshOwnNodes,
 } from "./modules/auto-refresh";
 import { de } from "date-fns/locale/de";
 import { Autoplay, Manipulation } from "swiper/modules";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 import { initAutoScroll } from "./modules/tv/auto-scroll";
 
 declare global {
@@ -113,6 +114,46 @@ function initPageRefresh(opts?: { enabled: boolean }): void {
   window.tv.refreshers.page = ctx;
 }
 
+function initMidnightRefresh(opts?: { enabled: boolean }): void {
+  opts.enabled = opts.enabled === undefined ? true : opts.enabled;
+
+  if (!opts.enabled) return;
+
+  const now = new Date();
+
+  let midnight = new Date();
+  midnight.setHours(0, 0, 0, 0);
+  midnight = addDays(midnight, 1);
+
+  const timeUntilMidnight = midnight.getTime() - now.getTime();
+
+  const diff = new Date(timeUntilMidnight);
+
+  console.log(
+    `Time left: ${diff.getHours()}:${diff.getMinutes()}:${diff.getSeconds()}`
+  );
+
+  setTimeout(() => {
+    try {
+      window.location.reload();
+      // refreshOwnNodes({
+      //   nodes: ["midnight"],
+      //   beforeNodeRefresh: ({ mode }) => {
+      //     console.log(`${logStamp()} Refresh "${mode}": midnight`);
+      //   },
+      //   afterRefresh: ({ doc }) => {
+      //     initTVDOM(doc);
+      //   },
+      // });
+    } catch (error) {
+      console.error(
+        logStamp(),
+        `Refresh: Something went wrong during the midnight "document" refresh.`
+      );
+    }
+  }, timeUntilMidnight);
+}
+
 function initTVDOM(doc: Document): Document {
   try {
     inlineCms({
@@ -144,6 +185,7 @@ function initTV(): void {
   initCmsRefresh({ enabled: true });
   initComponentsRefresh({ enabled: false });
   initPageRefresh({ enabled: false });
+  initMidnightRefresh({ enabled: true });
 }
 
 onReady(() => {
