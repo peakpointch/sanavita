@@ -48,6 +48,7 @@ function initTVAutoScroll({ doc }: { doc: Document | Element }): void {
 }
 
 function initCmsRefresh(opts?: { enabled: boolean }): void {
+  opts = opts ?? { enabled: true };
   opts.enabled = opts.enabled === undefined ? true : opts.enabled;
 
   const ctx = autoRefresh({
@@ -79,6 +80,7 @@ function initCmsRefresh(opts?: { enabled: boolean }): void {
 }
 
 function initComponentsRefresh(opts?: { enabled: boolean }): void {
+  opts = opts ?? { enabled: true };
   opts.enabled = opts.enabled === undefined ? true : opts.enabled;
 
   const ctx = autoRefresh({
@@ -97,6 +99,7 @@ function initComponentsRefresh(opts?: { enabled: boolean }): void {
 }
 
 function initPageRefresh(opts?: { enabled: boolean }): void {
+  opts = opts ?? { enabled: true };
   opts.enabled = opts.enabled === undefined ? true : opts.enabled;
 
   const ctx = autoRefresh({
@@ -115,6 +118,7 @@ function initPageRefresh(opts?: { enabled: boolean }): void {
 }
 
 function initMidnightRefresh(opts?: { enabled: boolean }): void {
+  opts = opts ?? { enabled: true };
   opts.enabled = opts.enabled === undefined ? true : opts.enabled;
 
   if (!opts.enabled) return;
