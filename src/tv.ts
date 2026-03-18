@@ -37,7 +37,7 @@ function logStamp(): string {
 function initTVAutoScroll({ doc }: { doc: Document | Element }): void {
   initAutoScroll({
     doc,
-    speed: 3,
+    speed: 0.04,
     pauseFor: 5_000,
     mode: "smooth",
     tolerance: 10,

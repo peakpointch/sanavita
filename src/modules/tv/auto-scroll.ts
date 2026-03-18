@@ -23,6 +23,11 @@ export interface AutoScrollOptions {
     hide?: boolean;
   };
   container: HTMLElement | null;
+
+  /**
+   * Percentage of the container's height scrolled per second
+   * @example 0.1 // Scrolls 10% of the visible height every second
+   */
   speed: number;
   pauseFor: number;
   /** Amount of overflow in px to allow */
@@ -144,6 +149,8 @@ function autoScrollDefault(
   let pauseUntil = 0; // timestamp until which we pause
   let rafId: number;
 
+  const relativeSpeed = el.clientHeight * opts.speed;
+
   function tick(now: number) {
     const delta = (now - lastTime) / 1000;
     lastTime = now;
@@ -153,7 +160,7 @@ function autoScrollDefault(
       return;
     }
 
-    scrollPos += opts.speed * delta * direction;
+    scrollPos += relativeSpeed * delta * direction;
 
     if (scrollPos >= maxScroll) {
       scrollPos = maxScroll;
@@ -208,6 +215,8 @@ function autoScrollSmooth(
   let pauseUntil = 0; // timestamp until which we pause
   let rafId: number;
 
+  const relativeSpeed = el.clientHeight * opts.speed;
+
   function tick(now: number) {
     const delta = (now - lastTime) / 1000;
     lastTime = now;
@@ -217,7 +226,7 @@ function autoScrollSmooth(
       return;
     }
 
-    scrollPos += opts.speed * delta * direction;
+    scrollPos += relativeSpeed * delta * direction;
 
     if (scrollPos >= maxScroll) {
       scrollPos = maxScroll;
