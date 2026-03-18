@@ -484,6 +484,7 @@ interface AutoRefreshOptions {
   retryAfter: number;
   retry: boolean;
   maxRetries: number;
+  onError?: () => any;
 }
 
 interface AutoRefreshContext extends BaseContext {
@@ -501,6 +502,7 @@ const defaultAutoRefreshOptions: AutoRefreshOptions = {
   retryAfter: 15,
   retry: true,
   maxRetries: 3,
+  onError: () => undefined,
 };
 
 function autoRefresh(
@@ -529,6 +531,7 @@ function autoRefresh(
         setTimeout(refresh, opts.retryAfter * 1000);
       } else {
         console.error(`Auto refresh failed ${failed}x.\n`, error);
+        if (opts.onError) opts.onError();
       }
     }
   };
