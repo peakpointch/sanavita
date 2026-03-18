@@ -42,9 +42,12 @@ function initTVAutoScroll({ doc }: { doc: Document | Element }): void {
   });
 }
 
-function initCmsRefresh(): void {
+function initCmsRefresh(opts?: { enabled: boolean }): void {
+  opts.enabled = opts.enabled === undefined ? true : opts.enabled;
+
   const ctx = autoRefresh({
-    delay: 60 * 60, // Refresh once every hour
+    enabled: opts.enabled,
+    delay: 60 * 60 * 1, // Refresh every 1 hour
     nodes: ({ mode }) =>
       !["code-component", "body", "page", "document"].includes(mode),
     beforeRefresh: ({ newDoc }) => {
@@ -70,9 +73,12 @@ function initCmsRefresh(): void {
   window.tv.refreshers.cms = ctx;
 }
 
-function initComponentsRefresh(): void {
+function initComponentsRefresh(opts?: { enabled: boolean }): void {
+  opts.enabled = opts.enabled === undefined ? true : opts.enabled;
+
   const ctx = autoRefresh({
-    delay: 60 * 60 * 12, // Hard refresh every 12 hours
+    enabled: opts.enabled,
+    delay: 60 * 60 * 12, // 12 hours
     nodes: ["weather", "watch"],
     beforeRefresh: () => {
       console.log(`${logStamp()} Refresh: components`);
@@ -85,9 +91,12 @@ function initComponentsRefresh(): void {
   window.tv.refreshers.components = ctx;
 }
 
-function initPageRefresh(): void {
+function initPageRefresh(opts?: { enabled: boolean }): void {
+  opts.enabled = opts.enabled === undefined ? true : opts.enabled;
+
   const ctx = autoRefresh({
-    delay: 60 * 60 * 12, // Hard refresh every 12 hours
+    enabled: opts.enabled,
+    delay: 60 * 60 * 24, // 24 hours
     nodes: ["page-wrapper"],
     beforeRefresh: () => {
       console.log(`${logStamp()} Refresh: page`);
@@ -128,9 +137,9 @@ function initTV(): void {
 
   initTVDOM(document);
 
-  initCmsRefresh();
-  initComponentsRefresh();
-  initPageRefresh();
+  initCmsRefresh({ enabled: true });
+  initComponentsRefresh({ enabled: false });
+  initPageRefresh({ enabled: false });
 }
 
 onReady(() => {
