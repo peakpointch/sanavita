@@ -41,6 +41,13 @@ type FieldIds =
   | "calendaryear"
   | ActionElement;
 
+type EntryType =
+  | "dailyMenu"
+  | "dailyMenuBistro"
+  | "dailyMenuResidents"
+  | "dailyMenuSpecial"
+  | "weeklyHit";
+
 /**
  * Metadata representing a `Pdf` instance.
  */
@@ -59,6 +66,7 @@ interface LocalStoragePdf {
 const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
   "weekly-hit-boolean": "boolean",
+  "entry-type": "string",
 });
 
 type TagesmenuAttributes = typeof filterAttributes;
@@ -130,21 +138,6 @@ function setDefaultFilters(
   }
 }
 
-/**
- * Tag the weekly hit elements in the cms list with
- * a different attribute value, so that the render engine
- * can effectively differentiate them as two different
- * render elements.
- */
-function tagWeeklyHit(list: HTMLElement): void {
-  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(
-    `.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`
-  );
-  weeklyHitElements.forEach((hit) => {
-    hit.setAttribute("data-pdf-element", "weekly-hit");
-  });
-}
-
 function parsePdfLocalStorage(): LocalStoragePdf {
   const parsed: LocalStoragePdf = JSON.parse(
     localStorage.getItem("pdf") || "{}"
@@ -207,9 +200,6 @@ export function initMenuplanPdf(): void {
     CalendarweekComponent.select("component")
   );
 
-  // Before initialization
-  tagWeeklyHit(filterCollectionListElement);
-
   /**
    * The `localStorage` object for `Pdf`.
    */
@@ -223,9 +213,6 @@ export function initMenuplanPdf(): void {
       filterAttributes: filterAttributes,
       timezone: "Europe/Zurich",
     },
-  });
-  filterCollection.renderer.addFilterAttributes({
-    "weekly-hit-boolean": "boolean",
   });
 
   try {
@@ -309,6 +296,13 @@ export function initMenuplanPdf(): void {
         "yyyy-MM-dd",
         new Date()
       );
+      const design = filters.getField("design").value;
+      let allowedMenus: EntryType[];
+      if (design === "bistro") {
+        allowedMenus = ["dailyMenu", "dailyMenuBistro", "dailyMenuSpecial"];
+      } else {
+        allowedMenus = ["dailyMenu", "dailyMenuResidents", "dailyMenuSpecial"];
+      }
 
       // Use FilterForm values
       cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
@@ -339,9 +333,19 @@ export function initMenuplanPdf(): void {
         },
       ];
 
+      let menus = filterCollection.filterByDate(startDate, endDate);
+      menus = menus.filter((node) => {
+        const type = node.props.entryType as EntryType;
+        if (allowedMenus.includes(type)) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+
       let renderData: RenderData = [
         ...staticRenderFields,
-        ...filterCollection.filterByDate(startDate, endDate),
+        ...menus,
         ...renderCollections,
       ];
 
