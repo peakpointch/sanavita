@@ -478,6 +478,9 @@ interface AutoRefreshOptions {
   beforeRefresh: RefreshCallback<RefreshContext>;
   beforeNodeRefresh: RefreshCallback<RefreshNodeContext>;
 
+  /** Enable the refresh interval */
+  enabled?: boolean;
+
   /** Amount of time in seconds before refreshing again. Default: 60 */
   delay: number;
   /** Amount of time in seconds before re-trying in case a refresh failed. */
@@ -488,6 +491,7 @@ interface AutoRefreshOptions {
 }
 
 interface AutoRefreshContext extends BaseContext {
+  enabled: boolean;
   interval: number;
   refresh: () => Promise<void>;
   refreshCore: () => Promise<void>;
@@ -498,6 +502,7 @@ const defaultAutoRefreshOptions: AutoRefreshOptions = {
   afterRefresh: () => undefined,
   beforeNodeRefresh: (ctx) => ctx,
   afterNodeRefresh: (ctx) => ctx,
+  enabled: true,
   delay: 60,
   retryAfter: 15,
   retry: true,
@@ -536,13 +541,17 @@ function autoRefresh(
     }
   };
 
-  //@ts-ignore
-  const interval: number = setInterval(
-    refresh,
-    opts.delay * 1000 // Refresh delay in seconds
-  );
+  let interval: number;
 
-  return { interval, refresh, refreshCore };
+  if (opts.enabled) {
+    //@ts-ignore
+    interval = setInterval(
+      refresh,
+      opts.delay * 1000 // Refresh delay in seconds
+    );
+  }
+
+  return { enabled: opts.enabled, interval, refresh, refreshCore };
 }
 
 export {
