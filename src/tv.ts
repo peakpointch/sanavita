@@ -127,14 +127,16 @@ function initMidnightRefresh(opts?: { enabled: boolean }): void {
 
   let midnight = new Date();
   midnight.setHours(0, 0, 0, 0);
-  midnight = addDays(midnight, 1);
+  if (midnight < now) {
+    midnight = addDays(midnight, 1);
+  }
 
   const timeUntilMidnight = midnight.getTime() - now.getTime();
 
   const diff = new Date(timeUntilMidnight);
 
   console.log(
-    `Time left: ${diff.getHours()}:${diff.getMinutes()}:${diff.getSeconds()}`
+    `Time left: ${diff.getHours()}:${diff.getMinutes()}:${diff.getSeconds()}, refreshing in ${timeUntilMidnight}ms`
   );
 
   setTimeout(() => {
