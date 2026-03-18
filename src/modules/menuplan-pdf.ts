@@ -333,19 +333,9 @@ export function initMenuplanPdf(): void {
         },
       ];
 
-      let menus = filterCollection.filterByDate(startDate, endDate);
-      menus = menus.filter((node) => {
-        const type = node.props.entryType as EntryType;
-        if (allowedMenus.includes(type)) {
-          return true;
-        } else {
-          return false;
-        }
-      });
-
       let renderData: RenderData = [
         ...staticRenderFields,
-        ...menus,
+        ...filterCollection.filterByDate(startDate, endDate),
         ...renderCollections,
       ];
 
@@ -354,6 +344,13 @@ export function initMenuplanPdf(): void {
         if (node.name === "weekly-hit") {
           if (seenWeeklyHit) return false; // already had one → remove it
           seenWeeklyHit = true; // first one → keep it
+        } else if (node.name == "weekday") {
+          const type = (node.props as any).entryType as EntryType;
+          if (allowedMenus.includes(type)) {
+            return true;
+          } else {
+            return false;
+          }
         }
         return true; // keep everything else
       });
