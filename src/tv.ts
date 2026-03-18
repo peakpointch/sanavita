@@ -1,7 +1,11 @@
 import { onReady, WFRoute } from "@xatom/core";
 import { Slider, dateflow, inlineCms } from "peakflow";
 import { initWfVideo } from "./modules/wfvideo";
-import { autoRefresh, AutoRefreshContext } from "./modules/auto-refresh";
+import {
+  autoRefresh,
+  AutoRefreshContext,
+  onRefreshScript,
+} from "./modules/auto-refresh";
 import { de } from "date-fns/locale/de";
 import { Autoplay, Manipulation } from "swiper/modules";
 import { format } from "date-fns";
@@ -147,5 +151,13 @@ onReady(() => {
 
   for (const route of homeRoutes) {
     new WFRoute(route).execute(initTV);
+  }
+});
+
+onRefreshScript(() => {
+  // Runs before this file gets reloaded
+  const refreshers = Object.values(window.tv.refreshers);
+  for (const ctx of refreshers) {
+    clearInterval(ctx.interval);
   }
 });
