@@ -1,7 +1,7 @@
 {
   "webflowSubdomain": "sanavita-ag",
   "port": 3000,
-  "livereload": false,
+  "livereload": true,
   "source": [
     "./src/app.ts",
     "./src/admin.ts",
