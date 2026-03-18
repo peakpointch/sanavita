@@ -23,7 +23,8 @@ type RefreshMode =
   | "page"
   | "cms"
   | "swiper"
-  | "code-component";
+  | "code-component"
+  | "script";
 
 type RefreshCallback<T extends BaseContext> = (ctx: T) => T | void;
 
@@ -49,6 +50,22 @@ interface SwiperHTMLElement extends HTMLElement {
   swiper: Swiper;
 }
 
+interface RefreshScriptDetail {
+  refreshId: string;
+  root: Element;
+}
+
+interface RefreshScriptDestroyDetail {
+  refreshId: string;
+}
+
+declare global {
+  interface WindowEventMap {
+    "refresh:script": CustomEvent<RefreshScriptDetail>;
+    "refresh:script:destroyed": CustomEvent<RefreshScriptDestroyDetail>;
+  }
+}
+
 const attr = {
   id: "data-refresh-id",
   mode: "data-refresh-mode",
@@ -56,6 +73,7 @@ const attr = {
 };
 
 const selector = Selector.attr(attr.id);
+const modeSelector = Selector.attr<RefreshMode>(attr.mode);
 
 const warning = {
   idNotDefined: "Refresh: A node must specify a valid id. Skipping node...",
@@ -74,6 +92,23 @@ const error = {
   modeNotDefined: (mode?: string) =>
     new Error(`Refresh: mode ${mode ? `"${mode} "` : ""}does not exist`),
 };
+
+export function onRefreshScript(
+  callback: (e: CustomEvent<RefreshScriptDetail>) => Promise<void> | void
+): void {
+  const onEvent = async (e: CustomEvent<RefreshScriptDetail>) => {
+    await callback(e);
+
+    window.removeEventListener("refresh:script", onEvent);
+    window.dispatchEvent(
+      new CustomEvent<RefreshScriptDestroyDetail>("refresh:script:destroyed", {
+        detail: { refreshId: e.detail.refreshId },
+      })
+    );
+  };
+
+  window.addEventListener("refresh:script", onEvent);
+}
 
 // ==============================
 //      Mode Implementations
@@ -104,7 +139,10 @@ function documentRefresh(
 
   doc.documentElement.replaceWith(newDoc.documentElement);
 
-  return newDoc.documentElement;
+  refreshAllScripts(doc.documentElement);
+  refreshAllCodeComponents(doc.documentElement);
+
+  return doc.documentElement;
 }
 
 function bodyRefresh(
@@ -196,6 +234,26 @@ function codeComponentRefresh(node: Element, newNode: Element): HTMLElement {
   return newNode as HTMLElement;
 }
 
+function scriptRefresh(node: Element, newNode: Element): void {
+  if (!isHTMLScriptElement(node) || !isHTMLScriptElement(newNode)) {
+    throw new Error(
+      `Refresh: Both 'node' and 'newNode' have to be of type HTMLScriptElement in "script" mode.`
+    );
+  }
+
+  const newScript = document.createElement("script");
+
+  for (const attr of Array.from(newNode.attributes)) {
+    newScript.setAttribute(attr.name, attr.value);
+  }
+
+  if (!newNode.src) {
+    newScript.textContent = newNode.textContent;
+  }
+
+  node.replaceWith(newScript);
+}
+
 function reloadRefresh(): void {
   window.location.reload();
 }
@@ -219,6 +277,10 @@ function readCloneNode(element: Element): boolean | null {
 }
 
 function isHTMLElement(element: Node): element is HTMLElement {
+  return element instanceof HTMLElement;
+}
+
+function isHTMLScriptElement(element: Node): element is HTMLScriptElement {
   return element instanceof HTMLElement;
 }
 
@@ -267,6 +329,43 @@ async function refreshAllCodeComponents(node: Element): Promise<void> {
       island.render(island.props);
     })
   );
+}
+
+function refreshAllScripts(node: Element) {
+  const scripts = node.querySelectorAll(selector() + modeSelector("script"));
+  if (!scripts.length) return;
+
+  const refreshId = crypto.randomUUID();
+  let destroyedCount = 0;
+
+  const finish = () => {
+    window.removeEventListener("refresh:script:destroyed", onDestroyed);
+    clearInterval(escapeHatchInterval);
+    scripts.forEach((script) => scriptRefresh(script, script));
+  };
+
+  const onDestroyed = (e: Event) => {
+    const { refreshId: id } = (e as CustomEvent).detail ?? {};
+    if (id !== refreshId) return;
+
+    destroyedCount++;
+    if (destroyedCount >= scripts.length) finish();
+  };
+
+  window.addEventListener("refresh:script:destroyed", onDestroyed);
+
+  window.dispatchEvent(
+    new CustomEvent("refresh:script", {
+      detail: { refreshId, root: node },
+    })
+  );
+
+  const escapeHatchInterval = setTimeout(() => {
+    console.warn(
+      "Refresh 'refreshAllScripts': The scripts being refreshed did not destroy themselves on time. This might result in memory leaks or unintended side effects. Refreshing scripts now..."
+    );
+    finish();
+  }, 10000);
 }
 
 // ==============================
@@ -332,6 +431,10 @@ function refreshNode<T extends Element>(
 
     case "reload":
       reloadRefresh();
+      break;
+
+    case "script":
+      // TODO: implement this
       break;
 
     default:
