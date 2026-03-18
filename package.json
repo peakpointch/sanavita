@@ -18,7 +18,7 @@
     {
       "name": "devflow",
       "local": "../../tools/devflow/",
-      "remote": "github:peakpointch/devflow"
+      "remote": "github:peakpointch/devflow#v1.0.7"
     },
     {
       "name": "libswitch",
@@ -48,7 +48,7 @@
     "@webflow/data-types": "^1.2.0",
     "@webflow/react": "^1.2.0",
     "@webflow/webflow-cli": "^1.11.0",
-    "devflow": "github:peakpointch/devflow",
+    "devflow": "github:peakpointch/devflow#v1.0.7",
     "libswitch": "github:peakpointch/libswitch#v0.1.1",
     "path": "^0.12.7",
     "postcss": "^8.5.6",
