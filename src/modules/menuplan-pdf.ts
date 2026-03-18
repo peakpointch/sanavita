@@ -243,6 +243,7 @@ export function initMenuplanPdf(): void {
       rendererOptions: {
         attributeName: "pdf",
       },
+      hasNestedList: true,
     }
   );
   prepareHideCategories(drinksCollection);
