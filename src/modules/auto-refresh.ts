@@ -555,7 +555,7 @@ async function refreshOwnNodes(
   const userCtx = opts.beforeRefresh(ctx);
   const newCtx = validateContext(userCtx) ? userCtx : ctx;
 
-  refreshNodes(newCtx.doc.body, newCtx.newDoc.body, {
+  refreshNodes(newCtx.doc, newCtx.newDoc, {
     nodes: opts.nodes,
     beforeRefresh: opts.beforeNodeRefresh,
     afterRefresh: opts.afterNodeRefresh,
