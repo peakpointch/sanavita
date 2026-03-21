@@ -267,8 +267,8 @@ function autoScrollDefault(
     }
   };
 
-  const destroyAnimation = (opts: AutoScrollModeOptions) => {
-    unwrapSmooth(opts.container);
+  const destroyAnimation = (/*opts: AutoScrollModeOptions*/) => {
+    // No setup needed
   };
 
   const hooks: AutoScrollHooks = {
