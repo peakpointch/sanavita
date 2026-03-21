@@ -31,11 +31,21 @@ export interface AutoScrollOptions {
   tolerance: number;
   /** Mode: 'scroll' uses scrollTop, 'transform' uses CSS transform for smooth motion */
   mode?: AutoScrollMode;
+  syncId?: string;
 }
 
 interface AutoScrollController {
   destroy(): void;
 }
+
+export interface SyncGroup {
+  total: number;
+  readyCount: number;
+  // direction: 1 | -1;
+  pauseUntil: number;
+}
+
+export type SyncGroupMap = Record<string, SyncGroup>;
 
 interface ScrollAttributes extends BaseAttributes {
   element: Attribute<string, ScrollElement>;
@@ -45,6 +55,7 @@ interface AutoScrollAttributes extends Attributes {
   mode: Attribute<string, AutoScrollMode>;
   speed: Attribute<string, number>;
   tolerance: Attribute<string, number>;
+  syncId: Attribute<string, string>;
 }
 
 const scrollDataset = Dataset.define<ScrollAttributes>({
@@ -56,6 +67,7 @@ const autoScrollDataset = Dataset.define<AutoScrollAttributes>({
   mode: Dataset.String("data-auto-scroll"),
   speed: Dataset.Number("data-speed"),
   tolerance: Dataset.Number("data-tolerance"),
+  syncId: Dataset.String("data-auto-scroll-sync-id"),
 });
 
 const selector = Selector.attr<ScrollElement>(scrollDataset.attr.element);
@@ -82,6 +94,8 @@ const defaultOptions: AutoScrollOptions = {
 const defaultController: AutoScrollController = {
   destroy() {},
 };
+
+const syncRegistry: SyncGroupMap = {};
 
 const logPrefix = `AutoScroll: `;
 function msg(message: string) {
@@ -117,6 +131,20 @@ function unwrapSmooth(el: HTMLElement): void {
   wrapper.replaceWith(el);
 }
 
+function getSyncGroup(id: string | null): SyncGroup | null {
+  if (!id) return null;
+  if (!syncRegistry[id]) {
+    syncRegistry[id] = { total: 0, readyCount: 0, pauseUntil: 0 };
+  }
+  return syncRegistry[id];
+}
+
+function registerContainer(id: string) {
+  if (id && syncRegistry[id]) {
+    syncRegistry[id].total++;
+  }
+}
+
 // =========================
 // ========= Modes =========
 // =========================
@@ -140,10 +168,14 @@ function autoScrollDefault(
     return;
   }
 
+  const group = getSyncGroup(opts.syncId);
+  if (group) registerContainer(opts.syncId);
+
   let scrollPos = el.scrollTop;
   let direction: 1 | -1 = 1;
   let lastTime = performance.now();
-  let pauseUntil = 0; // timestamp until which we pause
+  let localPauseUntil = 0;
+  let isWaiting = false;
   let rafId: number;
 
   const relativeSpeed = el.clientHeight * opts.speed;
@@ -152,23 +184,47 @@ function autoScrollDefault(
     const delta = (now - lastTime) / 1000;
     lastTime = now;
 
-    if (now < pauseUntil) {
+    if (now < localPauseUntil || (group && now < group.pauseUntil)) {
       rafId = requestAnimationFrame(tick);
       return;
     }
 
+    if (isWaiting && group) {
+      if (group.readyCount < group.total && group.readyCount !== 0) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
+      isWaiting = false;
+    }
+
     scrollPos += relativeSpeed * delta * direction;
 
+    let hit = false;
     if (scrollPos >= maxScroll) {
       scrollPos = maxScroll;
       direction = -1;
-      pauseUntil = now + opts.pauseFor; // pause at bottom
-    }
-
-    if (scrollPos <= 0) {
+      hit = true; // Bottom boundary
+    } else if (scrollPos <= 0) {
       scrollPos = 0;
       direction = 1;
-      pauseUntil = now + opts.pauseFor; // pause at top
+      hit = true; // Top boundary
+    }
+
+    if (hit) {
+      const finishTime = now + opts.pauseFor;
+
+      if (group) {
+        isWaiting = true;
+        group.readyCount++;
+        if (group.readyCount === group.total) {
+          group.pauseUntil = finishTime;
+          group.readyCount = 0;
+          isWaiting = false;
+        }
+      } else {
+        localPauseUntil = finishTime;
+      }
     }
 
     if (opts.scrollbar.hide) {
@@ -184,6 +240,7 @@ function autoScrollDefault(
   return {
     destroy() {
       cancelAnimationFrame(rafId);
+      if (group) group.total--;
     },
   };
 }
@@ -206,10 +263,14 @@ function autoScrollSmooth(
     return;
   }
 
+  const group = getSyncGroup(opts.syncId);
+  if (group) registerContainer(opts.syncId);
+
   let scrollPos = 0;
   let direction: 1 | -1 = 1;
   let lastTime = performance.now();
-  let pauseUntil = 0; // timestamp until which we pause
+  let localPauseUntil = 0;
+  let isWaiting = false;
   let rafId: number;
 
   const relativeSpeed = el.clientHeight * opts.speed;
@@ -218,26 +279,50 @@ function autoScrollSmooth(
     const delta = (now - lastTime) / 1000;
     lastTime = now;
 
-    if (now < pauseUntil) {
+    if (now < localPauseUntil || (group && now < group.pauseUntil)) {
       rafId = requestAnimationFrame(tick);
       return;
     }
 
+    if (isWaiting && group) {
+      if (group.readyCount < group.total && group.readyCount !== 0) {
+        rafId = requestAnimationFrame(tick);
+        return;
+      }
+
+      isWaiting = false;
+    }
+
     scrollPos += relativeSpeed * delta * direction;
 
+    let hit = false;
     if (scrollPos >= maxScroll) {
       scrollPos = maxScroll;
       direction = -1;
-      pauseUntil = now + opts.pauseFor; // pause at bottom
-    }
-
-    if (scrollPos <= 0) {
+      hit = true; // Bottom boundary
+    } else if (scrollPos <= 0) {
       scrollPos = 0;
       direction = 1;
-      pauseUntil = now + opts.pauseFor; // pause at top
+      hit = true; // Top boundary
     }
 
     wrapper.style.transform = `translateY(${-scrollPos}px)`;
+
+    if (hit) {
+      const finishTime = now + opts.pauseFor;
+
+      if (group) {
+        isWaiting = true;
+        group.readyCount++;
+        if (group.readyCount === group.total) {
+          group.pauseUntil = finishTime;
+          group.readyCount = 0;
+          isWaiting = false;
+        }
+      } else {
+        localPauseUntil = finishTime;
+      }
+    }
 
     if (opts.scrollbar.hide) {
       el.style.overflow = "hidden";
@@ -254,6 +339,7 @@ function autoScrollSmooth(
     destroy() {
       cancelAnimationFrame(rafId);
       unwrapSmooth(el);
+      if (group) group.total--;
     },
   };
 }
