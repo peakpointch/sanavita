@@ -3,12 +3,9 @@ import {
   Attribute,
   BaseAttributes,
   Dataset,
-  DatasetAttributes,
   Selector,
-  exclude,
   getAllElements,
   mergeOptions,
-  ScrollHandler,
 } from "peakflow";
 
 export type ScrollElement = "container" | "smooth-wrapper";
