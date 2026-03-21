@@ -149,11 +149,15 @@ function registerContainer(id: string) {
 // ========= Modes =========
 // =========================
 
-/**
- * Default mode: uses scrollTop (pixel-based, may jump at low speed)
- */
-function autoScrollDefault(
-  options: Partial<AutoScrollModeOptions>
+interface AutoScrollHooks {
+  beforeAnimation: (opts: AutoScrollModeOptions) => void;
+  scrollAnimation: (opts: AutoScrollModeOptions, scrollPos: number) => void;
+  destroyAnimation: (opts: AutoScrollModeOptions) => void;
+}
+
+function initAutoScrollContainer(
+  options: Partial<AutoScrollModeOptions>,
+  hooks: AutoScrollHooks
 ): AutoScrollController {
   const opts = mergeOptions(
     defaultModeOptions,
@@ -180,6 +184,8 @@ function autoScrollDefault(
 
   const relativeSpeed = el.clientHeight * opts.speed;
 
+  hooks.beforeAnimation(opts);
+
   function tick(now: number) {
     const delta = (now - lastTime) / 1000;
     lastTime = now;
@@ -199,6 +205,8 @@ function autoScrollDefault(
     }
 
     scrollPos += relativeSpeed * delta * direction;
+
+    hooks.scrollAnimation(opts, scrollPos);
 
     let hit = false;
     if (scrollPos >= maxScroll) {
@@ -227,11 +235,6 @@ function autoScrollDefault(
       }
     }
 
-    if (opts.scrollbar.hide) {
-      el.style.overflow = "hidden";
-    }
-
-    el.scrollTop = scrollPos;
     rafId = requestAnimationFrame(tick);
   }
 
@@ -241,107 +244,73 @@ function autoScrollDefault(
     destroy() {
       cancelAnimationFrame(rafId);
       if (group) group.total--;
+      hooks.destroyAnimation(opts);
     },
   };
+}
+
+/**
+ * Default mode: uses scrollTop (pixel-based, may jump at low speed)
+ */
+function autoScrollDefault(
+  options: Partial<AutoScrollModeOptions>
+): AutoScrollController {
+  const beforeAnimation = (/*opts: AutoScrollModeOptions*/) => {
+    // No setup needed
+  };
+
+  const scrollAnimation = (opts: AutoScrollModeOptions, scrollPos: number) => {
+    opts.container.scrollTop = scrollPos;
+
+    if (opts.scrollbar.hide) {
+      opts.container.style.overflow = "hidden";
+    }
+  };
+
+  const destroyAnimation = (opts: AutoScrollModeOptions) => {
+    unwrapSmooth(opts.container);
+  };
+
+  const hooks: AutoScrollHooks = {
+    beforeAnimation,
+    scrollAnimation,
+    destroyAnimation,
+  };
+
+  return initAutoScrollContainer(options, hooks);
 }
 
 /** Smooth mode: wraps content and moves with CSS transform (smooth sub-pixel) */
 function autoScrollSmooth(
   options: Partial<AutoScrollModeOptions>
 ): AutoScrollController {
-  const opts = mergeOptions(
-    defaultModeOptions,
-    options
-  ) as AutoScrollModeOptions;
+  let wrapper: HTMLElement;
 
-  const el = opts.container;
-  const wrapper = wrapSmooth(el);
+  const beforeAnimation = (opts: AutoScrollModeOptions) => {
+    wrapper = wrapSmooth(opts.container);
+  };
 
-  const maxScroll = el.scrollHeight - el.clientHeight;
-  if (maxScroll <= Math.abs(opts.tolerance)) {
-    el.style.overflow = "hidden";
-    return;
-  }
-
-  const group = getSyncGroup(opts.syncId);
-  if (group) registerContainer(opts.syncId);
-
-  let scrollPos = 0;
-  let direction: 1 | -1 = 1;
-  let lastTime = performance.now();
-  let localPauseUntil = 0;
-  let isWaiting = false;
-  let rafId: number;
-
-  const relativeSpeed = el.clientHeight * opts.speed;
-
-  function tick(now: number) {
-    const delta = (now - lastTime) / 1000;
-    lastTime = now;
-
-    if (now < localPauseUntil || (group && now < group.pauseUntil)) {
-      rafId = requestAnimationFrame(tick);
-      return;
-    }
-
-    if (isWaiting && group) {
-      if (group.readyCount < group.total && group.readyCount !== 0) {
-        rafId = requestAnimationFrame(tick);
-        return;
-      }
-
-      isWaiting = false;
-    }
-
-    scrollPos += relativeSpeed * delta * direction;
-
-    let hit = false;
-    if (scrollPos >= maxScroll) {
-      scrollPos = maxScroll;
-      direction = -1;
-      hit = true; // Bottom boundary
-    } else if (scrollPos <= 0) {
-      scrollPos = 0;
-      direction = 1;
-      hit = true; // Top boundary
-    }
-
+  const scrollAnimation = (opts: AutoScrollModeOptions, scrollPos: number) => {
     wrapper.style.transform = `translateY(${-scrollPos}px)`;
 
-    if (hit) {
-      const finishTime = now + opts.pauseFor;
-
-      if (group) {
-        isWaiting = true;
-        group.readyCount++;
-        if (group.readyCount === group.total) {
-          group.pauseUntil = finishTime;
-          group.readyCount = 0;
-          isWaiting = false;
-        }
-      } else {
-        localPauseUntil = finishTime;
-      }
-    }
-
     if (opts.scrollbar.hide) {
-      el.style.overflow = "hidden";
+      opts.container.style.overflow = "hidden";
     } else if (opts.scrollbar.animate) {
-      el.scrollTop = scrollPos; // sync scrollbar
+      opts.container.scrollTop = scrollPos; // sync scrollbar
     }
-
-    rafId = requestAnimationFrame(tick);
-  }
-
-  rafId = requestAnimationFrame(tick);
-
-  return {
-    destroy() {
-      cancelAnimationFrame(rafId);
-      unwrapSmooth(el);
-      if (group) group.total--;
-    },
   };
+
+  const destroyAnimation = (opts: AutoScrollModeOptions) => {
+    unwrapSmooth(opts.container);
+  };
+
+  const hooks: AutoScrollHooks = {
+    beforeAnimation,
+    scrollAnimation,
+    destroyAnimation,
+  };
+
+  return initAutoScrollContainer(options, hooks);
 }
 
 /** Main autoScroll dispatcher */
