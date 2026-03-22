@@ -37,14 +37,37 @@ export interface AutoScrollOptions {
   syncId?: string;
 }
 
-interface AutoScrollController {
-  destroy(): void;
+export interface AutoScrollController {
+  // /** True if the container has enough overflow to scroll, false otherwise */
+  // enabled: boolean;
+
+  get state(): ContainerState | null;
+
+  /**
+   * Starts the auto scroll animation and calls all initializers.
+   */
+  start(): void;
+
+  /**
+   * Stops the auto scroll animation and cleans up its side effects.
+   */
+  stop(): void;
+
+  /**
+   * Resumes the animation loop from the current position.
+   */
+  play(): void;
+
+  /**
+   * Suspends the animation loop without cleanup.
+   */
+  pause(): void;
 }
 
 export interface SyncGroup {
   total: number;
   readyCount: number;
-  // direction: 1 | -1;
+  releasedCount: number;
   pauseUntil: number;
 }
 
@@ -94,8 +117,17 @@ const defaultAutoScrollOptions: AutoScrollOptions = {
   mode: "default",
 };
 
+const warnNotImplemented = () => console.warn("Not implemented");
+
 const defaultController: AutoScrollController = {
-  destroy() {},
+  // enabled: false,
+  get state() {
+    return null;
+  },
+  start: warnNotImplemented,
+  stop: warnNotImplemented,
+  play: warnNotImplemented,
+  pause: warnNotImplemented,
 };
 
 const syncRegistry: SyncGroupMap = {};
@@ -148,7 +180,12 @@ function unwrapSmooth(el: HTMLElement): void {
 function getSyncGroup(id: string | null): SyncGroup | null {
   if (!id) return null;
   if (!syncRegistry[id]) {
-    syncRegistry[id] = { total: 0, readyCount: 0, pauseUntil: 0 };
+    syncRegistry[id] = {
+      total: 0,
+      readyCount: 0,
+      pauseUntil: 0,
+      releasedCount: 0,
+    };
   }
   return syncRegistry[id];
 }
@@ -159,14 +196,48 @@ function registerContainer(id: string) {
   }
 }
 
+export function resetSyncRegistry(): void {
+  for (const id in syncRegistry) {
+    delete syncRegistry[id];
+  }
+}
+
+function isWaiting(now: number, state: ContainerState): boolean {
+  return now < state.pauseUntil;
+}
+
+function isWaitingForGroup(now: number, state: ContainerState): boolean {
+  if (!state.group) return false;
+
+  const groupIsPaused = now < state.group.pauseUntil;
+  const waitingForOthers =
+    state.isWaiting && state.group.readyCount < state.group.total;
+
+  return groupIsPaused || waitingForOthers;
+}
+
 // =========================
 // ========= Modes =========
 // =========================
 
 interface AutoScrollHooks {
-  beforeAnimation: (opts: AutoScrollModeOptions) => void;
+  beforeAnimation?: (opts: AutoScrollModeOptions) => void;
   scrollAnimation: (opts: AutoScrollModeOptions, scrollPos: number) => void;
-  destroyAnimation: (opts: AutoScrollModeOptions) => void;
+  destroyAnimation?: (opts: AutoScrollModeOptions) => void;
+  onVisibilityChange?: (opts: AutoScrollModeOptions) => void;
+}
+
+interface ContainerState {
+  direction: 1 | -1;
+  group: SyncGroup | null;
+  isEnabled: boolean;
+  isWaiting: boolean;
+  lastTime: DOMHighResTimeStamp;
+  pauseUntil: number;
+  rafId: number | null;
+  relativeSpeed: number;
+  scrollMax: number;
+  scrollPos: number;
 }
 
 function initAutoScrollContainer(
@@ -178,88 +249,137 @@ function initAutoScrollContainer(
     options
   ) as AutoScrollModeOptions;
 
-  const el = opts.container;
-
-  const maxScroll = el.scrollHeight - el.clientHeight;
-  if (maxScroll <= Math.abs(opts.tolerance)) {
-    el.style.overflow = "hidden";
-    return;
-  }
-
-  const group = getSyncGroup(opts.syncId);
-  if (group) registerContainer(opts.syncId);
-
-  let scrollPos = el.scrollTop;
-  let direction: 1 | -1 = 1;
-  let lastTime = performance.now();
-  let localPauseUntil = 0;
-  let isWaiting = false;
-  let rafId: number;
-
-  const relativeSpeed = el.clientHeight * opts.speed;
-
-  hooks.beforeAnimation(opts);
+  //@ts-expect-error state is fully initialized in start()
+  let state: ContainerState = {};
 
   function tick(now: number) {
-    const delta = (now - lastTime) / 1000;
-    lastTime = now;
+    // Math.min with 0.1s prevents visual jumps after a hardware freeze
+    const delta = Math.min((now - state.lastTime) / 1000, 0.1);
+    state.lastTime = now;
 
-    if (now < localPauseUntil || (group && now < group.pauseUntil)) {
-      rafId = requestAnimationFrame(tick);
+    if (isWaiting(now, state) || isWaitingForGroup(now, state)) {
+      state.rafId = requestAnimationFrame(tick);
       return;
-    }
-
-    if (isWaiting && group) {
-      if (group.readyCount < group.total && group.readyCount !== 0) {
-        rafId = requestAnimationFrame(tick);
-        return;
+    } else {
+      state.isWaiting = false;
+      if (state.group && state.group.readyCount >= state.group.total) {
+        state.group.releasedCount++;
+        if (state.group.releasedCount >= state.group.total) {
+          state.group.readyCount = 0;
+          state.group.releasedCount = 0;
+        }
       }
-
-      isWaiting = false;
     }
 
-    scrollPos += relativeSpeed * delta * direction;
-
-    hooks.scrollAnimation(opts, scrollPos);
+    state.scrollPos += state.relativeSpeed * delta * state.direction;
+    hooks.scrollAnimation(opts, state.scrollPos);
 
     let hit = false;
-    if (scrollPos >= maxScroll) {
-      scrollPos = maxScroll;
-      direction = -1;
-      hit = true; // Bottom boundary
-    } else if (scrollPos <= 0) {
-      scrollPos = 0;
-      direction = 1;
+    if (state.direction === -1 && state.scrollPos <= 0) {
       hit = true; // Top boundary
+      state.scrollPos = 0;
+      state.direction = 1;
+    } else if (state.direction === 1 && state.scrollPos >= state.scrollMax) {
+      hit = true; // Bottom boundary
+      state.scrollPos = state.scrollMax;
+      state.direction = -1;
     }
 
     if (hit) {
       const finishTime = now + opts.pauseFor;
+      state.isWaiting = true;
 
-      if (group) {
-        isWaiting = true;
-        group.readyCount++;
-        if (group.readyCount === group.total) {
-          group.pauseUntil = finishTime;
-          group.readyCount = 0;
-          isWaiting = false;
+      if (state.group) {
+        state.group.readyCount++;
+        if (state.group.readyCount >= state.group.total) {
+          state.group.pauseUntil = finishTime;
         }
       } else {
-        localPauseUntil = finishTime;
+        state.pauseUntil = finishTime;
       }
     }
 
-    rafId = requestAnimationFrame(tick);
+    state.rafId = requestAnimationFrame(tick);
   }
 
-  rafId = requestAnimationFrame(tick);
+  function play() {
+    if (state.rafId === null) {
+      state.lastTime = performance.now();
+      state.rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  function pause() {
+    if (state.rafId !== null) {
+      cancelAnimationFrame(state.rafId);
+      state.rafId = null;
+    }
+  }
+
+  function handleVisibility(): void {
+    if (document.hidden) {
+      pause();
+    } else {
+      play();
+    }
+    hooks.onVisibilityChange?.(opts);
+  }
+
+  function start() {
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    state = {
+      ...state,
+      direction: 1,
+      group: getSyncGroup(opts.syncId),
+      isWaiting: false,
+      lastTime: performance.now(),
+      pauseUntil: 0,
+      rafId: null,
+      relativeSpeed: opts.container.clientHeight * opts.speed,
+      scrollMax: opts.container.scrollHeight - opts.container.clientHeight,
+      scrollPos: opts.container.scrollTop,
+    };
+
+    state.isEnabled = state.scrollMax > Math.abs(opts.tolerance);
+
+    if (!state.isEnabled) {
+      opts.container.style.overflow = "hidden";
+      return;
+    }
+
+    if (state.group) registerContainer(opts.syncId);
+
+    opts.container.style.removeProperty("overflow");
+    hooks.beforeAnimation?.(opts);
+    play();
+  }
+
+  function stop() {
+    pause();
+    document.removeEventListener("visibilitychange", handleVisibility);
+    if (state.group) state.group.total--;
+    hooks.destroyAnimation?.(opts);
+  }
+
+  state.scrollMax = opts.container.scrollHeight - opts.container.clientHeight;
+  state.isEnabled = state.scrollMax > Math.abs(opts.tolerance);
+
+  // Set up initial state
+  if (!state.isEnabled) {
+    opts.container.style.overflow = "hidden";
+  } else {
+    opts.container.style.removeProperty("overflow");
+  }
 
   return {
-    destroy() {
-      cancelAnimationFrame(rafId);
-      if (group) group.total--;
-      hooks.destroyAnimation(opts);
+    get state() {
+      return state;
     },
+    play,
+    pause,
+    start,
+    stop,
   };
 }
 
