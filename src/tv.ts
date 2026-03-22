@@ -10,7 +10,11 @@ import {
 import { de } from "date-fns/locale/de";
 import { Autoplay, Manipulation } from "swiper/modules";
 import { format, addDays } from "date-fns";
-import { initAutoScroll } from "./modules/tv/auto-scroll";
+import {
+  AutoScrollController,
+  initAutoScroll,
+  resetSyncRegistry,
+} from "./modules/tv/auto-scroll";
 
 declare global {
   interface Window {
@@ -22,11 +26,13 @@ interface TVGlobal {
   refreshers: {
     [x: string]: AutoRefreshContext;
   };
+  autoScrollControllers: AutoScrollController[];
 }
 
 function initTVGlobals(): void {
   window.tv = window.tv || {
     refreshers: {},
+    autoScrollControllers: [],
   };
 }
 
@@ -35,7 +41,10 @@ function logStamp(): string {
 }
 
 function initTVAutoScroll({ doc }: { doc: Document | Element }): void {
-  initAutoScroll({
+  resetSyncRegistry();
+
+  const controllers = initAutoScroll({
+    autoStart: true,
     doc,
     speed: 0.04,
     pauseFor: 5_000,
@@ -45,6 +54,8 @@ function initTVAutoScroll({ doc }: { doc: Document | Element }): void {
       hide: true,
     },
   });
+
+  window.tv.autoScrollControllers = controllers;
 }
 
 function initCmsRefresh(opts?: { enabled: boolean }): void {
