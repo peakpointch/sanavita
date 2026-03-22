@@ -16,6 +16,8 @@ export type AutoScrollMode = "default" | "smooth" | "none";
 export type AutoScrollModeOptions = Omit<AutoScrollOptions, "mode">;
 
 export interface AutoScrollOptions {
+  /** Unique identifier of this scroll container */
+  id?: string;
   scrollbar: {
     animate?: boolean;
     hide?: boolean;
@@ -326,11 +328,10 @@ export function autoScroll(
     throw new Error(msg("Container cannot be undefined"));
   }
 
-  const dataset = autoScrollDataset.parse(options.container);
-
   const opts = mergeOptions(
     defaultAutoScrollOptions,
-    dataset,
+    scrollDataset.parse(options.container),
+    autoScrollDataset.parse(options.container),
     options
   ) as AutoScrollOptions;
 
