@@ -128,14 +128,21 @@ function wrapSmooth(el: HTMLElement): HTMLElement {
 }
 
 function unwrapSmooth(el: HTMLElement): void {
-  const wrapper = el.parentElement;
+  const wrapper = el.querySelector<HTMLElement>(selector("smooth-wrapper"));
+  if (!wrapper) return;
+
   const type = wrapper.getAttribute(
     scrollDataset.attr.element
   ) as ScrollElement;
 
   if (type !== "smooth-wrapper") return;
 
-  wrapper.replaceWith(el);
+  // Move all children back into the container
+  while (wrapper.firstChild) {
+    el.appendChild(wrapper.firstChild);
+  }
+
+  wrapper.remove();
 }
 
 function getSyncGroup(id: string | null): SyncGroup | null {
