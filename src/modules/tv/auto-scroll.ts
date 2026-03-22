@@ -366,7 +366,8 @@ export function autoScroll(
   return controller;
 }
 
-export interface InitAutoScrollOptions extends Partial<AutoScrollOptions> {
+export interface InitAutoScrollOptions
+  extends Partial<Omit<AutoScrollOptions, "id" | "container">> {
   doc: Document | Element;
 }
 
