@@ -7,6 +7,7 @@ import {
   getAllElements,
   mergeOptions,
 } from "peakflow";
+import { format } from "date-fns";
 
 export type ScrollElement = "container" | "smooth-wrapper";
 
@@ -96,6 +97,10 @@ const defaultController: AutoScrollController = {
 };
 
 const syncRegistry: SyncGroupMap = {};
+
+function logStamp(ms: boolean = true): string {
+  return format(new Date(), ms ? "MMM dd HH:mm:ss.SS" : "MMM dd HH:mm:ss");
+}
 
 const logPrefix = `AutoScroll: `;
 function msg(message: string) {
