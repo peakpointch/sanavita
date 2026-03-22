@@ -30,6 +30,7 @@ export interface AutoScrollOptions {
    */
   speed: number;
   pauseFor: number;
+  initialPause: boolean | number;
   /** Amount of overflow in px to allow */
   tolerance: number;
   /** Mode: 'scroll' uses scrollTop, 'transform' uses CSS transform for smooth motion */
@@ -111,6 +112,7 @@ const defaultModeOptions: AutoScrollModeOptions = {
   container: null,
   speed: 5,
   pauseFor: 0,
+  initialPause: true,
   tolerance: 0,
   autoStart: true,
 };
@@ -351,6 +353,26 @@ function initAutoScrollContainer(
       return;
     }
 
+    if (typeof opts.initialPause === "number" && opts.initialPause > 0) {
+      if (state.group) {
+        if (state.group.total === 0)
+          state.group.pauseUntil = state.lastTime + opts.initialPause;
+        state.group.readyCount++;
+      } else {
+        state.pauseUntil = state.lastTime + opts.initialPause;
+      }
+      state.isWaiting = true;
+    } else if (opts.initialPause) {
+      if (state.group) {
+        if (state.group.total === 0)
+          state.group.pauseUntil = state.lastTime + opts.pauseFor;
+        state.group.readyCount++;
+      } else {
+        state.pauseUntil = state.lastTime + opts.pauseFor;
+      }
+      state.isWaiting = true;
+    }
+
     if (state.group) registerContainer(opts.syncId);
 
     opts.container.style.removeProperty("overflow");
@@ -415,6 +437,9 @@ function autoScrollSmooth(
 
   const beforeAnimation = (opts: AutoScrollModeOptions) => {
     wrapper = wrapSmooth(opts.container);
+    if (opts.scrollbar.hide) {
+      opts.container.style.overflow = "hidden";
+    }
   };
 
   const scrollAnimation = (opts: AutoScrollModeOptions, scrollPos: number) => {
@@ -423,6 +448,7 @@ function autoScrollSmooth(
     if (opts.scrollbar.hide) {
       opts.container.style.overflow = "hidden";
     } else if (opts.scrollbar.animate) {
+      opts.container.style.removeProperty("overflow");
       opts.container.scrollTop = scrollPos; // sync scrollbar
     }
   };
