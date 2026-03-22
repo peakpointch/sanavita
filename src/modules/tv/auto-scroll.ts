@@ -87,7 +87,7 @@ const defaultModeOptions: AutoScrollModeOptions = {
   tolerance: 0,
 };
 
-const defaultOptions: AutoScrollOptions = {
+const defaultAutoScrollOptions: AutoScrollOptions = {
   ...defaultModeOptions,
   mode: "default",
 };
@@ -329,7 +329,7 @@ export function autoScroll(
   const dataset = autoScrollDataset.parse(options.container);
 
   const opts = mergeOptions(
-    defaultOptions,
+    defaultAutoScrollOptions,
     dataset,
     options
   ) as AutoScrollOptions;
@@ -364,18 +364,16 @@ export interface InitAutoScrollOptions extends Partial<AutoScrollOptions> {
 
 /** Initialize auto-scroll on all matching elements in doc */
 export function initAutoScroll(options: InitAutoScrollOptions): void {
-  const opts = mergeOptions(defaultOptions, options) as InitAutoScrollOptions;
-
-  if (!opts.doc) {
+  if (!options.doc) {
     throw new Error(msg(`"doc" cannot be undefined.`));
   }
 
   const sel = selector("container") + autoScrollAttr();
   const containers = getAllElements(sel, {
-    node: opts.doc,
+    node: options.doc,
   });
 
   for (const container of containers) {
-    autoScroll({ ...opts, container });
+    autoScroll({ ...options, container });
   }
 }
