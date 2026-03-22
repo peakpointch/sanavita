@@ -482,7 +482,9 @@ export interface InitAutoScrollOptions
 }
 
 /** Initialize auto-scroll on all matching elements in doc */
-export function initAutoScroll(options: InitAutoScrollOptions): void {
+export function initAutoScroll(
+  options: InitAutoScrollOptions
+): AutoScrollController[] {
   if (!options.doc) {
     throw new Error(msg(`"doc" cannot be undefined.`));
   }
@@ -492,7 +494,12 @@ export function initAutoScroll(options: InitAutoScrollOptions): void {
     node: options.doc,
   });
 
+  const controllers: AutoScrollController[] = [];
+
   for (const container of containers) {
-    autoScroll({ ...options, container });
+    const controller = autoScroll({ ...options, container });
+    controllers.push(controller);
   }
+
+  return controllers;
 }
