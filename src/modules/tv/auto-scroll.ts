@@ -389,10 +389,6 @@ function initAutoScrollContainer(
 function autoScrollDefault(
   options: Partial<AutoScrollModeOptions>
 ): AutoScrollController {
-  const beforeAnimation = (/*opts: AutoScrollModeOptions*/) => {
-    // No setup needed
-  };
-
   const scrollAnimation = (opts: AutoScrollModeOptions, scrollPos: number) => {
     opts.container.scrollTop = scrollPos;
 
@@ -401,14 +397,8 @@ function autoScrollDefault(
     }
   };
 
-  const destroyAnimation = (/*opts: AutoScrollModeOptions*/) => {
-    // No setup needed
-  };
-
   const hooks: AutoScrollHooks = {
-    beforeAnimation,
     scrollAnimation,
-    destroyAnimation,
   };
 
   return initAutoScrollContainer(options, hooks);
