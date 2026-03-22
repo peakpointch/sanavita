@@ -35,6 +35,8 @@ export interface AutoScrollOptions {
   /** Mode: 'scroll' uses scrollTop, 'transform' uses CSS transform for smooth motion */
   mode?: AutoScrollMode;
   syncId?: string;
+  /** Start scrolling automatically */
+  autoStart: boolean;
 }
 
 export interface AutoScrollController {
@@ -110,6 +112,7 @@ const defaultModeOptions: AutoScrollModeOptions = {
   speed: 5,
   pauseFor: 0,
   tolerance: 0,
+  autoStart: true,
 };
 
 const defaultAutoScrollOptions: AutoScrollOptions = {
@@ -457,12 +460,14 @@ export function autoScroll(
   switch (opts.mode) {
     case "smooth":
       controller = autoScrollSmooth(opts);
+      if (opts.autoStart) controller.start();
       break;
 
     //@ts-ignore
     case "":
     case "default":
       controller = autoScrollDefault(opts);
+      if (opts.autoStart) controller.start();
       break;
 
     case "none":
