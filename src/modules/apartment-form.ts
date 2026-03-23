@@ -90,6 +90,16 @@ export function initApartmentRegistrationForm(): void {
     manager: progressManager,
     itemClass: Tenant,
     alertDialog: getAlertDialog(),
+    grammar: {
+      item: {
+        sg: "Person",
+        pl: "Personen",
+      },
+      article: {
+        sg: "die",
+        pl: "die",
+      },
+    },
     messages: {
       empty: "Bitte tragen Sie die mietenden Personen ein.",
       limit: ({ options }) => `Sie können max. ${options.limit} Mieter hinzufügen.`,
