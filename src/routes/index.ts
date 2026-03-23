@@ -13,7 +13,7 @@ import { initRoomRegistrationForm } from "@/modules/lindenpark-form.js";
 /**
  * WFRoute "/"
  */
-export const app = async () => {
+export const routes = async () => {
   new WFRoute("/").execute(() => {
     initWfVideo();
     peakflow.execute("inlinecms", "swiper", "dateflow");
