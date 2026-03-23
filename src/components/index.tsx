@@ -11,7 +11,7 @@ function App() {
     <div className="min-h-screen p-10 flex flex-col gap-32 items-center justify-center bg-brand-900 text-white">
       {/* <h1>Components Playground</h1> */}
       {/* <Clock /> */}
-      <WeatherWidget days={4} showMinMaxTemp={true} />
+      <WeatherWidget days={4} showMinMaxTemp={true} prod={false} />
     </div>
   );
 }

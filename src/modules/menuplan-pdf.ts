@@ -7,7 +7,7 @@ import { FilterForm, filterFormSelector } from "peakflow/form";
 import { CalendarweekComponent } from "peakflow/ui";
 
 // Utility functions
-import Selector from "peakflow/attributeselector";
+import Selector from "peakflow/selector";
 import {
   addDays,
   startOfWeek,
@@ -37,6 +37,13 @@ type FieldIds =
   | "calendaryear"
   | ActionElement;
 
+type EntryType =
+  | "dailyMenu"
+  | "dailyMenuBistro"
+  | "dailyMenuResidents"
+  | "dailyMenuSpecial"
+  | "weeklyHit";
+
 /**
  * Metadata representing a `Pdf` instance.
  */
@@ -55,6 +62,7 @@ interface LocalStoragePdf {
 const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
   "weekly-hit-boolean": "boolean",
+  "entry-type": "string",
 });
 
 type TagesmenuAttributes = typeof filterAttributes;
@@ -110,21 +118,6 @@ function setDefaultFilters(form: FilterForm<FieldIds>, minDate: Date, maxDate: D
   if (design) {
     form.getFilterInput("design").value = design;
   }
-}
-
-/**
- * Tag the weekly hit elements in the cms list with
- * a different attribute value, so that the render engine
- * can effectively differentiate them as two different
- * render elements.
- */
-function tagWeeklyHit(list: HTMLElement): void {
-  const weeklyHitElements: NodeListOf<HTMLElement> = list.querySelectorAll(
-    `.w-dyn-item:has([weekly-hit-boolean]:not(.w-condition-invisible[weekly-hit-boolean]))`,
-  );
-  weeklyHitElements.forEach((hit) => {
-    hit.setAttribute("data-pdf-element", "weekly-hit");
-  });
 }
 
 function parsePdfLocalStorage(): LocalStoragePdf {
@@ -183,9 +176,6 @@ export function initMenuplanPdf(): void {
     CalendarweekComponent.select("component"),
   );
 
-  // Before initialization
-  tagWeeklyHit(filterCollectionListElement);
-
   /**
    * The `localStorage` object for `Pdf`.
    */
@@ -199,9 +189,6 @@ export function initMenuplanPdf(): void {
       filterAttributes: filterAttributes,
       timezone: "Europe/Zurich",
     },
-  });
-  filterCollection.renderer.addFilterAttributes({
-    "weekly-hit-boolean": "boolean",
   });
 
   try {
@@ -217,6 +204,7 @@ export function initMenuplanPdf(): void {
     rendererOptions: {
       attributeName: "pdf",
     },
+    hasNestedList: true,
   });
   prepareHideCategories(drinksCollection);
   drinksCollection.renderer.addFilterAttributes({
@@ -268,6 +256,13 @@ export function initMenuplanPdf(): void {
     // Get FilterForm values
     const startDate = parse(filters.getField("startDate").value, "yyyy-MM-dd", new Date());
     const endDate = parse(filters.getField("endDate").value, "yyyy-MM-dd", new Date());
+    const design = filters.getField("design").value;
+    let allowedMenus: EntryType[];
+    if (design === "bistro") {
+      allowedMenus = ["dailyMenu", "dailyMenuBistro", "dailyMenuSpecial"];
+    } else {
+      allowedMenus = ["dailyMenu", "dailyMenuResidents", "dailyMenuSpecial"];
+    }
 
     // Use FilterForm values
     cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
@@ -278,7 +273,10 @@ export function initMenuplanPdf(): void {
     const staticRenderFields: RenderField[] = [
       {
         name: "title",
-        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(endDate, "d. MMMM yyyy")}`,
+        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(
+          endDate,
+          "d. MMMM yyyy",
+        )}`,
         visibility: true,
       },
     ];
@@ -303,6 +301,13 @@ export function initMenuplanPdf(): void {
       if (node.name === "weekly-hit") {
         if (seenWeeklyHit) return false; // already had one → remove it
         seenWeeklyHit = true; // first one → keep it
+      } else if (node.name == "weekday") {
+        const type = (node.props as any).entryType as EntryType;
+        if (allowedMenus.includes(type)) {
+          return true;
+        } else {
+          return false;
+        }
       }
       return true; // keep everything else
     });

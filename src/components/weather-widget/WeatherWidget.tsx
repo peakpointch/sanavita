@@ -1,98 +1,17 @@
 import React from "react";
-import OpenWeatherMap from "openweathermap-ts";
 import type { WeatherDay, WeatherForecast } from "./types";
 import { getIconColor, weatherIconMap } from "./icons";
 import { de as omwDe } from "./i18n";
 import { de } from "date-fns/locale";
-import {
-  Droplet,
-  HelpCircle,
-  LucideIcon,
-  Thermometer,
-  Wind,
-} from "lucide-react";
+import { Droplet, Thermometer, Wind } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { openWeatherMapApiKey } from "@/secrets";
-
-const openWeather = new OpenWeatherMap({
-  apiKey: openWeatherMapApiKey,
-  units: "metric",
-});
-
-async function fetchCurrentWeather(): Promise<WeatherDay> {
-  return new Promise(async (resolve) => {
-    const data = await openWeather.getCurrentWeatherByZipcode(5210, "CH");
-    resolve(data as WeatherDay);
-  });
-}
-
-async function fetchForecast(): Promise<WeatherForecast> {
-  return new Promise(async (resolve) => {
-    const data = await openWeather.getThreeHourForecastByZipcode(5210, "CH");
-    resolve(data as WeatherForecast);
-  });
-}
-
-interface DayForecast {
-  date: Date;
-  temp: number;
-  minTemp: number;
-  maxTemp: number;
-  icon: {
-    node: LucideIcon;
-    color: string;
-  };
-}
-
-export function getDaysFromForecast(forecast: WeatherForecast): DayForecast[] {
-  const dailyGroups = forecast.list.reduce<Record<string, DayForecast>>(
-    (acc, item) => {
-      // Parse date
-      const date = new Date(item.dt * 1000);
-      date.setHours(0, 0, 0, 0);
-      const dateStr = format(date, "yyyy-MM-dd");
-
-      // Skip today and past days
-      if (date <= new Date()) return acc;
-
-      if (!acc || !acc[dateStr]) {
-        acc[dateStr] = {
-          date: date,
-          temp: item.main.temp,
-          minTemp: item.main.temp_min,
-          maxTemp: item.main.temp_max,
-          icon: {
-            node: weatherIconMap[item.weather[0].icon] || HelpCircle,
-            color: getIconColor(item.weather[0].icon),
-          },
-        };
-      } else {
-        // Skip forecasts from the same day
-        acc[dateStr].minTemp = Math.min(
-          acc[dateStr].minTemp,
-          item.main.temp_min
-        );
-        acc[dateStr].maxTemp = Math.max(
-          acc[dateStr].maxTemp,
-          item.main.temp_max
-        );
-      }
-
-      return acc;
-    },
-    {}
-  );
-
-  return Object.entries(dailyGroups).map<DayForecast>(([_, item]) => {
-    return {
-      ...item,
-      temp: Math.round(item.temp),
-      minTemp: Math.round(item.minTemp),
-      maxTemp: Math.round(item.maxTemp),
-    };
-  });
-}
+import {
+  type DayForecast,
+  fetchCurrentWeather,
+  fetchForecast,
+  getDaysFromForecast,
+} from "./utils";
 
 export interface WeatherWidgetProps {
   /** Controls the visibility of this component */
@@ -122,6 +41,10 @@ export interface WeatherWidgetProps {
    * Time in minutes to wait before refetching the weather forecast
    */
   forecastDelay?: number;
+  /**
+   * Whether to fetch the weather from the api. Only use `false` in development mode.
+   */
+  prod?: boolean;
 }
 
 export function WeatherWidget({
@@ -131,6 +54,7 @@ export function WeatherWidget({
   showMinMaxTemp = false,
   weatherDelay = 10,
   forecastDelay = 180,
+  prod = true,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
     weather: WeatherDay;
@@ -140,7 +64,7 @@ export function WeatherWidget({
 
   React.useEffect(() => {
     const updateWeather = async () => {
-      const weatherRes = await fetchCurrentWeather();
+      const weatherRes = await fetchCurrentWeather(prod);
       setData((prev) => ({
         ...prev,
         weather: weatherRes,
@@ -148,7 +72,7 @@ export function WeatherWidget({
     };
 
     const updateForecast = async () => {
-      const forecastRes = await fetchForecast();
+      const forecastRes = await fetchForecast(prod);
       setData((prev) => ({
         ...prev,
         forecast: forecastRes,
@@ -178,12 +102,12 @@ export function WeatherWidget({
       clearInterval(weatherInterval);
       clearInterval(forecastInterval);
     };
-  }, []);
+  }, [prod]);
 
   if (loading) return <div className="text-tv-regular">Wird geladen...</div>;
 
   const { weather, forecast } = data;
-  const forecastDays = getDaysFromForecast(forecast);
+  const forecastDays = getDaysFromForecast(forecast, prod);
   const MainIcon = weatherIconMap[weather.weather[0].icon];
   const iconColor = getIconColor(weather.weather[0].icon);
 

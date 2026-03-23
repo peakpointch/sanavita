@@ -16,6 +16,7 @@ const filterAttributes = Renderer.defineAttributes({
   ...FilterCollection.defaultAttributes,
   screen: "string",
   "use-time-of-day-range": "boolean",
+  priority: "number",
 });
 
 type OverlayFilterAttrs = typeof filterAttributes;
@@ -25,8 +26,8 @@ function getScreen(): string {
   return params.get("id") || "";
 }
 
-class ElementManager {
-  public data: RenderData<OverlayFilterAttrs>; // All available elements
+class ElementManager<F extends OverlayFilterAttrs> {
+  public data: RenderData<F>; // All available elements
   public screen: string;
   private filteredData: typeof this.data; // Elements currently visible in the swiper
   private swiper: Swiper; // Assuming swiper is a valid instance.
@@ -39,9 +40,9 @@ class ElementManager {
   private overlaycount: number = 0;
 
   constructor(
-    allElements: RenderData<OverlayFilterAttrs>,
+    allElements: RenderData<F>,
     swiper: Swiper,
-    collectionElement: HTMLElement,
+    collectionElement: HTMLElement
   ) {
     this.data = allElements;
     this.screen = getScreen();
@@ -52,7 +53,7 @@ class ElementManager {
   }
 
   // Filters the RenderData and returns the elements that should be shown
-  private filterElements(): RenderData {
+  private filterElements(): RenderData<OverlayFilterAttrs> {
     this.filteredData = [...this.data].filter((entry) => {
       if (!entry.props.screen) entry.props.screen = "";
       entry.props.screen = entry.props.screen.toLowerCase();
@@ -81,24 +82,31 @@ class ElementManager {
   }
 
   private sortByDate(
-    data: RenderData<OverlayFilterAttrs>,
-  ): RenderData<OverlayFilterAttrs> {
-    return data.sort(
-      (a, b) => a.props.startDate.getTime() - b.props.startDate.getTime(),
-    );
+    data: RenderData<F>,
+    order: "asc" | "desc" = "asc"
+  ): RenderData<F> {
+    // Helper
+    const getStartTime = (node: RenderNode<F>) =>
+      node.props.startDate.getTime();
+
+    return [...data].sort((a, b) => {
+      return order === "asc"
+        ? getStartTime(a) - getStartTime(b)
+        : getStartTime(b) - getStartTime(a);
+    });
   }
 
   // Finds the original HTMLElement for a given entry in the collectionElement (hidden designs)
-  private findElement(entry: RenderNode): HTMLElement | null {
+  private findElement(entry: RenderNode<F>): HTMLElement | null {
     const selector = `[slug="${entry.instance}"]`;
     const elementFound =
       this.collectionElement.querySelector<HTMLElement>(
-        selector,
+        selector
       ).firstElementChild;
 
     if (!elementFound) {
       throw new Error(
-        `The element "selector" doesn't exist inside the webflow collection list it was parsed from.`,
+        `The element "${selector}" doesn't exist inside the webflow collection list it was parsed from.`
       );
     }
 
@@ -106,7 +114,7 @@ class ElementManager {
   }
 
   // Inserts elements into the swiper (the visible area)
-  private insertElement(element: RenderNode): void {
+  private insertElement(element: RenderNode<F>): void {
     const designToInsert = this.findElement(element);
     const elementToInsert = designToInsert.cloneNode(true) as HTMLElement;
     const wfElementId = elementToInsert.getAttribute("data-wf-element");
@@ -120,10 +128,15 @@ class ElementManager {
     } else {
       if (this.overlaycount >= 1) {
         console.info(
-          `insertElement: One or more overlays are already active. Skipping "${wfElementId}"`,
+          `insertElement: One or more overlays are already active. Showing element with the highest priority.`
         );
-        return;
       }
+
+      const priority = element.props.priority ?? 10;
+      const zIndex = 100 - priority;
+      elementToInsert.style.zIndex = zIndex.toString();
+      elementToInsert.style.position = "absolute";
+
       // Insert the cloned element into the visible swiper area for event/memorial elements
       this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
       this.overlaycount++;
@@ -136,7 +149,7 @@ class ElementManager {
   }
 
   // Removes elements from the swiper (the visible area)
-  private removeElement(element: RenderNode): void {
+  private removeElement(element: RenderNode<F>): void {
     const clonedElementToRemove = this.insertedElements.get(element.instance);
     const wfElementId = clonedElementToRemove.getAttribute("data-wf-element");
 
@@ -157,7 +170,7 @@ class ElementManager {
       }
     } else {
       console.warn(
-        `Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`,
+        `Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`
       );
     }
   }
@@ -165,24 +178,24 @@ class ElementManager {
   // Updates the swiper with the current visible elements
   public update(): void {
     this.filterElements();
-    this.filteredData = this.sortByDate(this.filteredData);
+    this.filteredData = this.sortByDate(this.filteredData, "desc");
     let changed = false;
+
+    // Remove elements that should no longer be shown
+    this.insertedElements.forEach((insertedHTML, insertedKey) => {
+      const insertedEl = this.data.find(
+        (entry) => entry.instance === insertedKey
+      );
+      if (!this.filteredData.includes(insertedEl)) {
+        this.removeElement(insertedEl);
+        changed = true;
+      }
+    });
 
     // Add new elements that should be shown
     this.filteredData.forEach((filteredEl) => {
       if (!this.insertedElements.has(filteredEl.instance)) {
         this.insertElement(filteredEl);
-        changed = true;
-      }
-    });
-
-    // Remove elements that should no longer be shown
-    this.insertedElements.forEach((insertedHTML, insertedKey) => {
-      const insertedEl = this.data.find(
-        (entry) => entry.instance === insertedKey,
-      );
-      if (!this.filteredData.includes(insertedEl)) {
-        this.removeElement(insertedEl);
         changed = true;
       }
     });
@@ -209,7 +222,7 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
     startDate.getHours(),
     startDate.getMinutes(),
     startDate.getSeconds(),
-    startDate.getMilliseconds(),
+    startDate.getMilliseconds()
   );
 
   const todayEnd = new Date();
@@ -217,7 +230,7 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
     endDate.getHours(),
     endDate.getMinutes(),
     endDate.getSeconds(),
-    endDate.getMilliseconds(),
+    endDate.getMilliseconds()
   );
 
   if (todayEnd >= todayStart) {
@@ -241,6 +254,7 @@ interface TestItemConfig {
   startTimeOffset: TimeOffset;
   endTimeOffset: TimeOffset;
   timeOfDayRange: boolean;
+  priority?: number;
 }
 
 function applyOffset(base: Date, offset: TimeOffset): Date {
@@ -255,7 +269,7 @@ function applyOffset(base: Date, offset: TimeOffset): Date {
 
 function setTestItem(
   data: RenderData<OverlayFilterAttrs>,
-  config: TestItemConfig,
+  config: TestItemConfig
 ): void {
   const item = data[config.index];
   const now = new Date();
@@ -263,13 +277,14 @@ function setTestItem(
   item.props.startDate = applyOffset(now, config.startTimeOffset);
   item.props.endDate = applyOffset(now, config.endTimeOffset);
   item.props.useTimeOfDayRange = config.timeOfDayRange;
+  item.props.priority = config.priority;
 
-  console.log("TestItem:", item.props);
+  console.log("TestItem:", item);
 }
 
 export function initDigitalSignage() {
   const collectionElement = document.body.querySelector<HTMLElement>(
-    wfCollectionSelector("screen"),
+    wfCollectionSelector("screen")
   );
 
   const collection = new FilterCollection(collectionElement, {
@@ -284,7 +299,7 @@ export function initDigitalSignage() {
   collection.readData();
 
   const newsSwiperEl = document.body.querySelector<HTMLElement>(
-    swiperSelector("news"),
+    swiperSelector("news")
   );
   const swiperOptions: SwiperOptions = {
     ...Slider.readOptions(newsSwiperEl),
@@ -306,7 +321,7 @@ export function initDigitalSignage() {
       },
       {
         threshold: 0.2,
-      },
+      }
     );
 
     observer.observe(swiper.el);
@@ -315,7 +330,7 @@ export function initDigitalSignage() {
   const manager = new ElementManager(
     collection.getData(),
     swiper,
-    collectionElement,
+    collectionElement
   );
   setInterval(() => {
     manager.update();

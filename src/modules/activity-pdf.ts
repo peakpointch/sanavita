@@ -7,7 +7,7 @@ import { FilterForm, filterFormSelector } from "peakflow/form";
 import { CalendarweekComponent } from "peakflow/ui";
 
 // Utility functions
-import Selector from "peakflow/attributeselector";
+import Selector from "peakflow/selector";
 import {
   addDays,
   startOfWeek,
@@ -258,7 +258,10 @@ export function initActivityPdf(): void {
     const staticRenderFields: RenderField[] = [
       {
         name: "title",
-        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(maxDate, "d. MMMM yyyy")}`,
+        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(
+          maxDate,
+          "d. MMMM yyyy",
+        )}`,
         visibility: true,
       },
     ];

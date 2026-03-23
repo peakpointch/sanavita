@@ -1,4 +1,4 @@
-import { Selector, exclude } from "peakflow/attributeselector";
+import { Selector, exclude } from "peakflow/selector";
 import {
   isCheckboxInput,
   isRadioInput,
