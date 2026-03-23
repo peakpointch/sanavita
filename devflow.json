@@ -9,12 +9,6 @@
     "./src/tv.ts"
   ],
   "dist": "./dist",
-  "scriptList": [
-    "app.js",
-    "admin.js",
-    "screen.js",
-    "tv.js"
-  ],
   "scriptAttribute": "xa-script",
   "watchList": [
     "./src/",
