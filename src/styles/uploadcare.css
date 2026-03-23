@@ -1,0 +1,124 @@
+/**************************/
+/***** General Styles *****/
+/**************************/
+
+uc-file-uploader-minimal {
+  --uc-padding: 0.75rem;
+
+  /* Light Mode */
+  --uc-background-light: var(--white);
+  --uc-foreground-light: var(--brand-950);
+  --uc-primary-light: var(--brand-400);
+  --uc-primary-hover-light: var(--neutral-lightest);
+  --uc-primary-transparent-light: var(--beige-100);
+  --uc-primary-foreground-light: var(--brand-950);
+  --uc-secondary-light: var(--beige-100);
+  --uc-secondary-hover-light: var(--beige-200);
+  --uc-secondary-foreground-light: var(--brand-950);
+  --uc-muted-light: var(--brand-50);
+  --uc-muted-foreground-light: var(--brand-950);
+  --uc-destructive-light: oklch(59% 0.235 28.5 / 0.05);
+  --uc-destructive-foreground-light: oklch(59% 0.235 28.5);
+  --uc-border-light: var(--beige-200);
+  --uc-dialog-shadow-light: 0px 6px 20px oklch(0% 0 0 / 0.1);
+  --uc-simple-btn-light: oklch(94% 0 0);
+  --uc-simple-btn-hover-light: oklch(92% 0 0);
+  --uc-simple-btn-foreground-light: oklch(20% 0 0);
+
+  /* Dark Mode */
+  --uc-background-dark: var(--brand-950);
+  --uc-foreground-dark: var(--white);
+  --uc-primary-dark: var(--brand-400);
+  --uc-primary-hover-dark: var(--neutral-lightest);
+  --uc-primary-transparent-dark: var(--brand-900);
+  --uc-primary-foreground-dark: var(--brand-800);
+  --uc-secondary-dark: var(--brand-900);
+  --uc-secondary-hover-dark: var(--brand-800);
+  --uc-secondary-foreground-dark: var(--white);
+  --uc-muted-dark: var(--brand-900);
+  --uc-muted-foreground-dark: var(--white);
+  --uc-destructive-dark: oklch(59% 0.235 28.5 / 0.05);
+  --uc-destructive-foreground-dark: oklch(59% 0.235 28.5);
+  --uc-border-dark: var(--beige-100);
+  --uc-dialog-shadow-dark: 0px 6px 20px oklch(0% 0 0 / 0.1);
+  --uc-simple-btn-dark: oklch(94% 0 0);
+  --uc-simple-btn-hover-dark: oklch(92% 0 0);
+  --uc-simple-btn-foreground-dark: oklch(20% 0 0);
+}
+
+/**************************/
+/***** General Styles *****/
+/**************************/
+
+uc-file-uploader-minimal *:not(.uc-icon-container, uc-spinner .uc-spinner, .uc-shot-btn) {
+  border-radius: 0px !important;
+  font-family: Montserrat, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+/*********************/
+/***** Drop Area *****/
+/*********************/
+
+uc-drop-area:not(#\#) {
+  font-weight: 500;
+  font-size: 0.95rem;
+  display: inline-block;
+  width: 100%;
+  height: auto;
+  /* padding: 1.75rem; */
+}
+
+uc-drop-area:hover,
+uc-drop-area[drag-state="over"] {
+  background-color: var(--neutral-color--beige-100) !important;
+}
+
+/* Initial Drop Area */
+uc-drop-area[initflow]:not(#\#) {
+  border-style: solid;
+  color: var(--brand-950);
+  --uc-muted: var(--neutral-lightest);
+  --uc-border: var(--beige-200);
+  transition: background-color 0.1s ease-in-out;
+}
+
+[data-name="Online-Bewerbung"] uc-file-uploader-minimal uc-drop-area {
+  --uc-muted-light: var(--white);
+  --uc-muted-dark: var(--brand-950);
+}
+
+[data-name="Online-Bewerbung"] uc-file-uploader-minimal uc-drop-area:hover:not(#\#) {
+  border-color: var(--uc-border);
+}
+
+/***********************/
+/***** Upload List *****/
+/***********************/
+
+uc-upload-list.active[active] {
+  border-style: solid !important;
+}
+
+/*******************/
+/***** Buttons *****/
+/*******************/
+
+:where([uc-wgt-common]) button {
+  padding: 1.25rem 1.75rem;
+}
+
+/* Hover color on icon buttons */
+:where([uc-wgt-common]) button.uc-mini-btn:hover {
+  background-color: var(--uc-primary-transparent);
+}
+
+/****************/
+/***** More *****/
+/****************/
+
+/* Hide Uploadcare branding */
+uc-copyright {
+  display: none !important;
+}

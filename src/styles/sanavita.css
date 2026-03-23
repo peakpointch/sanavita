@@ -1,7 +1,8 @@
 :root {
   /* RENAMING CSS VARIABLES */
-  --brand-400: var(--brand-color--brand-400);
   --brand-50: var(--brand-color--brand-50);
+  --brand-400: var(--brand-color--brand-400);
+  --brand-800: var(--brand-color--brand-800);
   --brand-900: var(--brand-color--brand-900);
   --brand-950: var(--brand-color--brand-950);
   --white: var(--neutral-color--white);
@@ -95,7 +96,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 [data-max-width-label-container="true"],
 .dish {
   container-type: inline-size;
-  container-name: dish
+  container-name: dish;
 }
 
 .team-abteilung:has(.team-grid):has(.w-dyn-item:nth-child(3)) {
@@ -104,7 +105,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 }
 
 @container dish (max-width: 35rem) {
-  [data-label="true"]>[data-label-text="true"] {
+  [data-label="true"] > [data-label-text="true"] {
     display: none;
   }
 }
@@ -114,8 +115,8 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   color: var(--neutral-lightest);
 } */
 
-.bento-trailing>*:not(.bento-card-show_content),
-.bento-card-show_content>*:not(.bento-image_gradient) {
+.bento-trailing > *:not(.bento-card-show_content),
+.bento-card-show_content > *:not(.bento-image_gradient) {
   z-index: 1;
   position: relative;
 }
@@ -124,11 +125,11 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   position: relative;
 }
 
-.relative-children>*:not([already-relative]) {
+.relative-children > *:not([already-relative]) {
   position: relative;
 }
 
-.inline-children>* {
+.inline-children > * {
   display: inline;
 }
 
@@ -185,7 +186,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
     padding: 0rem 1.25rem;
   }
 
-  #download>:nth-child(2) {
+  #download > :nth-child(2) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -193,8 +194,8 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   }
 }
 
-@media screen and (max-width: 478px) {}
-
+@media screen and (max-width: 478px) {
+}
 
 @keyframes spin {
   from {

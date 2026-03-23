@@ -1,5 +1,6 @@
 import { WFRoute } from "@xatom/core";
 import peakflow, { Script, Stylesheet } from "peakflow";
+import app from "@/manifest.js";
 import { initBistroMenus } from "src/modules/menu";
 import { initWfVideo } from "src/modules/wfvideo";
 import { initVimePlayer } from "peakflow/video";
@@ -29,9 +30,7 @@ export const routes = async () => {
 
   new WFRoute("/lindenpark/anmeldung").execute(() => {
     initRoomRegistrationForm();
-    new Stylesheet({
-      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
-    }).load();
+    loadUploadcareStylesheet();
   });
 
   new WFRoute("/wohnen-mit-service").execute(() => {
@@ -45,9 +44,7 @@ export const routes = async () => {
     initCircleTabs();
     initSozjobsList();
     peakflow.execute("uploadcare");
-    new Stylesheet({
-      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
-    }).load();
+    loadUploadcareStylesheet();
   });
 
   new WFRoute("/jobs/job").execute(() => {
@@ -108,8 +105,16 @@ export const forms = () => {
   new WFRoute("/wohnen-mit-service/anmeldung").execute(() => {
     initApartmentRegistrationForm();
     peakflow.execute("uploadcare");
-    new Stylesheet({
-      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
-    }).load();
+    loadUploadcareStylesheet();
   });
+};
+
+export const loadUploadcareStylesheet = (): void => {
+  const ucStyles = new Stylesheet({
+    href: `https://cdn.jsdelivr.net/gh/peakpointch/${app.name}@v${app.version}/dist/uploadcare.css`,
+    // href: "http://localhost:3000/__app/src/styles/uploadcare.css",
+  });
+
+  ucStyles.setAttribute("data-dyn-css", "true");
+  ucStyles.load();
 };
