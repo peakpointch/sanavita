@@ -2,11 +2,7 @@
 import EditableCanvas from "peakflow/canvas";
 import { PdfGenerator as Pdf, PdfFormat } from "peakflow/pdf";
 import { FilterCollection } from "peakflow/wfcollection";
-import Renderer, {
-  RenderData,
-  RenderBlock,
-  RenderField,
-} from "peakflow/renderer";
+import Renderer, { RenderData, RenderBlock, RenderField } from "peakflow/renderer";
 import { FilterForm, filterFormSelector } from "peakflow/form";
 import { CalendarweekComponent } from "peakflow/ui";
 
@@ -71,8 +67,7 @@ const filterAttributes = Renderer.defineAttributes({
 
 type TagesmenuAttributes = typeof filterAttributes;
 
-const formatDE = (date: Date, formatStr: string) =>
-  format(date, formatStr, { locale: de });
+const formatDE = (date: Date, formatStr: string) => format(date, formatStr, { locale: de });
 
 // Selector functions
 const wfCollectionSelector = Selector.attr<string>("wf-collection");
@@ -87,10 +82,7 @@ const sowOptions: StartOfWeekOptions = {
   locale: de,
 };
 
-function setMinMaxDate(
-  form: FilterForm<FieldIds>,
-  data: RenderData<TagesmenuAttributes>
-): Date[] {
+function setMinMaxDate(form: FilterForm<FieldIds>, data: RenderData<TagesmenuAttributes>): Date[] {
   const dates = data.map((weekday) => weekday.props.date.getTime());
   let minDate = new Date(Math.min(...dates));
   let maxDate = new Date(Math.max(...dates));
@@ -108,11 +100,7 @@ function setMinMaxDate(
   return [minDate, maxDate];
 }
 
-function setDefaultFilters(
-  form: FilterForm<FieldIds>,
-  minDate: Date,
-  maxDate: Date
-): void {
+function setDefaultFilters(form: FilterForm<FieldIds>, minDate: Date, maxDate: Date): void {
   let currentMonday: Date = startOfWeek(new Date(), sowOptions);
   let nextMonday: Date = addWeeks(currentMonday, 1);
   if (nextMonday >= maxDate) {
@@ -120,15 +108,9 @@ function setDefaultFilters(
   }
 
   form.getFilterInput("calendaryear").value = getYear(nextMonday).toString();
-  form.getFilterInput("calendarweek").value = getWeek(
-    nextMonday,
-    weekOptions
-  ).toString();
+  form.getFilterInput("calendarweek").value = getWeek(nextMonday, weekOptions).toString();
   form.getFilterInput("startDate").value = formatDE(nextMonday, "yyyy-MM-dd");
-  form.getFilterInput("endDate").value = formatDE(
-    addDays(nextMonday, 6),
-    "yyyy-MM-dd"
-  );
+  form.getFilterInput("endDate").value = formatDE(addDays(nextMonday, 6), "yyyy-MM-dd");
   form.getFilterInput("dayRange").value = form.setDayRange(7).toString();
 
   const pdfStorage = parsePdfLocalStorage();
@@ -139,9 +121,7 @@ function setDefaultFilters(
 }
 
 function parsePdfLocalStorage(): LocalStoragePdf {
-  const parsed: LocalStoragePdf = JSON.parse(
-    localStorage.getItem("pdf") || "{}"
-  );
+  const parsed: LocalStoragePdf = JSON.parse(localStorage.getItem("pdf") || "{}");
 
   const pdfStorage: LocalStoragePdf = {
     menuplan: {
@@ -176,7 +156,7 @@ function prepareHideCategories(drinksCollection: FilterCollection): void {
     if (conditional.classList.contains(wf.class.invisible)) return;
 
     const categories = item.querySelectorAll(
-      '[data-pdf-field="category"], [data-pdf-field="categoryOnly"], [data-pdf-field="subCategory"]'
+      '[data-pdf-field="category"], [data-pdf-field="categoryOnly"], [data-pdf-field="subCategory"]',
     );
 
     categories.forEach((element) => element.classList.add(wf.class.invisible));
@@ -185,19 +165,15 @@ function prepareHideCategories(drinksCollection: FilterCollection): void {
 
 export function initMenuplanPdf(): void {
   const filterCollectionListElement = document.querySelector<HTMLElement>(
-    wfCollectionSelector("daily")
+    wfCollectionSelector("daily"),
   );
   const drinkLists_collectionListElement = document.querySelector<HTMLElement>(
-    wfCollectionSelector("drink-lists")
+    wfCollectionSelector("drink-lists"),
   );
-  const pdfContainer = document.querySelector<HTMLElement>(
-    Pdf.select("container")
-  );
-  const filterFormElement = document.querySelector<HTMLElement>(
-    filterFormSelector("component")
-  );
+  const pdfContainer = document.querySelector<HTMLElement>(Pdf.select("container"));
+  const filterFormElement = document.querySelector<HTMLElement>(filterFormSelector("component"));
   const calendarweekElement = document.querySelector<HTMLElement>(
-    CalendarweekComponent.select("component")
+    CalendarweekComponent.select("component"),
   );
 
   /**
@@ -223,16 +199,13 @@ export function initMenuplanPdf(): void {
   }
 
   // Initialize drink-lists collection list
-  const drinksCollection = new FilterCollection(
-    drinkLists_collectionListElement,
-    {
-      name: "Getränke",
-      rendererOptions: {
-        attributeName: "pdf",
-      },
-      hasNestedList: true,
-    }
-  );
+  const drinksCollection = new FilterCollection(drinkLists_collectionListElement, {
+    name: "Getränke",
+    rendererOptions: {
+      attributeName: "pdf",
+    },
+    hasNestedList: true,
+  });
   prepareHideCategories(drinksCollection);
   drinksCollection.renderer.addFilterAttributes({
     "start-date": "date",
@@ -244,10 +217,7 @@ export function initMenuplanPdf(): void {
   const filterForm = new FilterForm<FieldIds>(filterFormElement);
   const canvas = new EditableCanvas(pdfContainer, ".pdf-h3");
 
-  const [minDate, maxDate] = setMinMaxDate(
-    filterForm,
-    filterCollection.getData()
-  );
+  const [minDate, maxDate] = setMinMaxDate(filterForm, filterCollection.getData());
   setDefaultFilters(filterForm, minDate, maxDate);
 
   const cweek = new CalendarweekComponent(calendarweekElement);
@@ -282,89 +252,75 @@ export function initMenuplanPdf(): void {
     });
   });
 
-  filterForm.addOnChange(
-    ["startDate", "endDate", "save"],
-    (filters, invokedBy) => {
-      // Get FilterForm values
-      const startDate = parse(
-        filters.getField("startDate").value,
-        "yyyy-MM-dd",
-        new Date()
-      );
-      const endDate = parse(
-        filters.getField("endDate").value,
-        "yyyy-MM-dd",
-        new Date()
-      );
-      const design = filters.getField("design").value;
-      let allowedMenus: EntryType[];
-      if (design === "bistro") {
-        allowedMenus = ["dailyMenu", "dailyMenuBistro", "dailyMenuSpecial"];
-      } else {
-        allowedMenus = ["dailyMenu", "dailyMenuResidents", "dailyMenuSpecial"];
-      }
-
-      // Use FilterForm values
-      cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
-
-      const startDateTitleFormat = getStartDateFormat(startDate, endDate);
-
-      // Static render fields
-      const staticRenderFields: RenderField[] = [
-        {
-          name: "title",
-          value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(
-            endDate,
-            "d. MMMM yyyy"
-          )}`,
-          visibility: true,
-        },
-      ];
-
-      const filteredDrinks = drinksCollection.filterByDateRange(
-        startDate,
-        endDate
-      );
-      const renderCollections: RenderBlock[] = [
-        {
-          name: "drink-list-collection",
-          children: filteredDrinks,
-          visibility: filteredDrinks.length === 0 ? false : true,
-        },
-      ];
-
-      let renderData: RenderData = [
-        ...staticRenderFields,
-        ...filterCollection.filterByDate(startDate, endDate),
-        ...renderCollections,
-      ];
-
-      let seenWeeklyHit = false;
-      renderData = renderData.filter((node) => {
-        if (node.name === "weekly-hit") {
-          if (seenWeeklyHit) return false; // already had one → remove it
-          seenWeeklyHit = true; // first one → keep it
-        } else if (node.name == "weekday") {
-          const type = (node.props as any).entryType as EntryType;
-          if (allowedMenus.includes(type)) {
-            return true;
-          } else {
-            return false;
-          }
-        }
-        return true; // keep everything else
-      });
-
-      try {
-        canvas.showHiddenElements();
-        pdf.render(renderData, filters.getField("design").value);
-        pdf.hyphenizePages();
-        canvas.update();
-      } catch (err) {
-        console.error(err);
-      }
+  filterForm.addOnChange(["startDate", "endDate", "save"], (filters, invokedBy) => {
+    // Get FilterForm values
+    const startDate = parse(filters.getField("startDate").value, "yyyy-MM-dd", new Date());
+    const endDate = parse(filters.getField("endDate").value, "yyyy-MM-dd", new Date());
+    const design = filters.getField("design").value;
+    let allowedMenus: EntryType[];
+    if (design === "bistro") {
+      allowedMenus = ["dailyMenu", "dailyMenuBistro", "dailyMenuSpecial"];
+    } else {
+      allowedMenus = ["dailyMenu", "dailyMenuResidents", "dailyMenuSpecial"];
     }
-  );
+
+    // Use FilterForm values
+    cweek.setDate(invokedBy === "endDate" ? endDate : startDate, true);
+
+    const startDateTitleFormat = getStartDateFormat(startDate, endDate);
+
+    // Static render fields
+    const staticRenderFields: RenderField[] = [
+      {
+        name: "title",
+        value: `${formatDE(startDate, startDateTitleFormat)} – ${formatDE(
+          endDate,
+          "d. MMMM yyyy",
+        )}`,
+        visibility: true,
+      },
+    ];
+
+    const filteredDrinks = drinksCollection.filterByDateRange(startDate, endDate);
+    const renderCollections: RenderBlock[] = [
+      {
+        name: "drink-list-collection",
+        children: filteredDrinks,
+        visibility: filteredDrinks.length === 0 ? false : true,
+      },
+    ];
+
+    let renderData: RenderData = [
+      ...staticRenderFields,
+      ...filterCollection.filterByDate(startDate, endDate),
+      ...renderCollections,
+    ];
+
+    let seenWeeklyHit = false;
+    renderData = renderData.filter((node) => {
+      if (node.name === "weekly-hit") {
+        if (seenWeeklyHit) return false; // already had one → remove it
+        seenWeeklyHit = true; // first one → keep it
+      } else if (node.name == "weekday") {
+        const type = (node.props as any).entryType as EntryType;
+        if (allowedMenus.includes(type)) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+      return true; // keep everything else
+    });
+
+    try {
+      canvas.showHiddenElements();
+      pdf.render(renderData, filters.getField("design").value);
+      pdf.hyphenizePages();
+      canvas.update();
+    } catch (err) {
+      console.error(err);
+    }
+  });
 
   filterForm.addOnChange(["scale"], (filters) => {
     const scale = parseFloat(filters.getField("scale").value);

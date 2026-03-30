@@ -1,0 +1,74 @@
+.w-select {
+  /* resetting default form style*/
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.custom-checkbox ~ .checkbox-icon,
+.tab_link-wohnungen .checkbox-icon {
+  opacity: 0%;
+}
+
+.checkbox-dropdown:has(.tab_link-wohnungen.fs-cmsfilter_active) {
+  background-color: var(--neutral-color--beige-100);
+}
+
+.checkbox-dropdown:has(.tab_link-wohnungen.fs-cmsfilter_active) svg[data-filled="false"] {
+  display: none;
+}
+
+.checkbox-dropdown:has(.tab_link-wohnungen.fs-cmsfilter_active) svg[data-filled="true"] {
+  display: block;
+}
+
+.checkbox-dropdown > .select-header {
+  background-color: transparent;
+}
+
+.checkbox-dropdown > .select-header:hover {
+  background-color: var(--neutral-color--beige-100);
+}
+
+label:has(~ input[required]):not(.custom-checkbox-field)::after,
+label:has(~ select[required]):not(.custom-checkbox-field)::after,
+label:has(~ textarea[required]):not(.custom-checkbox-field)::after,
+label:not(.w-radio, .w-checkbox):has(~ [data-required="required"])::after,
+label:not(.w-radio, .w-checkbox):has(~ * input[required])::after,
+.form_label-wrapper:has(~ input[required]) label:not(.custom-checkbox-field)::after,
+.form_label-wrapper:has(~ select[required]) label:not(.custom-checkbox-field)::after,
+.form_label-wrapper:has(~ textarea[required]) label:not(.custom-checkbox-field)::after,
+.form_label-wrapper:not(.w-radio, .w-checkbox):has(~ [data-required="required"]) label::after,
+.form_label-wrapper:not(.w-radio, .w-checkbox):has(~ * input[required]) label::after {
+  content: " *";
+  color: var(--brand-color--brand-400);
+}
+
+.relative:has(~ .form-modal) {
+  opacity: 0;
+}
+
+.relative:has(~ .form-modal.is-closed) {
+  opacity: 1;
+  transition: opacity 250ms ease-in-out;
+}
+
+.aform-person [parent-hover="true"] {
+  transition: color 200ms ease-in-out;
+}
+
+.aform-person:hover [parent-hover="true"] {
+  color: var(--brand-400);
+}
+
+@media screen and (max-width: 479px) {
+  .form-modal .form_input {
+    padding: 0.25rem 0.5rem;
+    min-height: auto;
+  }
+
+  .form-modal .form-fields,
+  .form-modal .form_field-group {
+    gap: 0.625rem;
+  }
+}

@@ -1,5 +1,6 @@
 import { WFRoute } from "@xatom/core";
 import peakflow, { Script, Stylesheet } from "peakflow";
+import app from "@/manifest.js";
 import { initBistroMenus } from "src/modules/menu";
 import { initWfVideo } from "src/modules/wfvideo";
 import { initVimePlayer } from "peakflow/video";
@@ -8,11 +9,12 @@ import { initCircleTabs } from "./jobs/circle-tabs.js";
 import { initSozjobsList } from "@/modules/sozjobs/list";
 import { initJobItemPage } from "@/modules/sozjobs/job";
 import { initListFilter } from "@/modules/list-filter.js";
+import { initRoomRegistrationForm } from "@/modules/lindenpark-form.js";
 
 /**
  * WFRoute "/"
  */
-export const app = async () => {
+export const routes = async () => {
   new WFRoute("/").execute(() => {
     initWfVideo();
     peakflow.execute("inlinecms", "swiper", "dateflow");
@@ -26,6 +28,11 @@ export const app = async () => {
     peakflow.execute("copyComponent");
   });
 
+  new WFRoute("/lindenpark/anmeldung").execute(() => {
+    initRoomRegistrationForm();
+    loadUploadcareStylesheet();
+  });
+
   new WFRoute("/wohnen-mit-service").execute(() => {
     peakflow.execute("swiper");
     initVimePlayer({
@@ -37,9 +44,7 @@ export const app = async () => {
     initCircleTabs();
     initSozjobsList();
     peakflow.execute("uploadcare");
-    new Stylesheet({
-      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
-    }).load();
+    loadUploadcareStylesheet();
   });
 
   new WFRoute("/jobs/job").execute(() => {
@@ -97,11 +102,19 @@ export const bistroMenus = () => {
 };
 
 export const forms = () => {
-  new WFRoute("/anmeldung-wohnen-mit-service").execute(() => {
+  new WFRoute("/wohnen-mit-service/anmeldung").execute(() => {
     initApartmentRegistrationForm();
     peakflow.execute("uploadcare");
-    new Stylesheet({
-      href: "https://cdn.jsdelivr.net/gh/lukas-peakpoint/peakpoint@v0.2.46/assets/css/uploadcare-sanavita.css",
-    }).load();
+    loadUploadcareStylesheet();
   });
+};
+
+export const loadUploadcareStylesheet = (): void => {
+  const ucStyles = new Stylesheet({
+    href: `https://cdn.jsdelivr.net/gh/peakpointch/${app.name}@v${app.version}/src/styles/uploadcare.css`,
+  });
+
+  ucStyles.setAttribute("data-devflow-local", "src/styles/uploadcare.css");
+  ucStyles.setAttribute("data-devflow-hmr", "true");
+  ucStyles.load();
 };

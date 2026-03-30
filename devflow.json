@@ -6,18 +6,12 @@
     "./src/app.ts",
     "./src/admin.ts",
     "./src/screen.ts",
-    "./src/tv.ts"
+    "./src/tv.ts",
+    "./src/styles/app.css"
   ],
   "dist": "./dist",
-  "scriptList": [
-    "app.js",
-    "admin.js",
-    "screen.js",
-    "tv.js"
-  ],
-  "scriptAttribute": "xa-script",
   "watchList": [
     "./src/",
-    "../../peakflow/src/"
+    "../../peakflow/src/form/"
   ]
 }

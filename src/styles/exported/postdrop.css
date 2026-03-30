@@ -37,7 +37,7 @@ table {
 /* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
 .container {
   display: block;
-  Margin: 0 auto !important;
+  margin: 0 auto !important;
   /* makes it centered */
   max-width: 580px;
   padding: 10px;
@@ -108,7 +108,7 @@ table {
 hr {
   border: 0;
   border-bottom: 1px solid #f6f6f6;
-  Margin: 20px 0;
+  margin: 20px 0;
 }
 
 /* Make text look crisper and more legible in all browsers */
@@ -120,19 +120,19 @@ body {
 }
 
 /* Get rid of top margin on first element in any rich text element */
-.w-richtext> :not(div):first-child,
-.w-richtext>div:first-child> :first-child,
-.text-rich-text> :not(div):first-child,
-.text-rich-text>div:first-child> :first-child {
+.w-richtext > :not(div):first-child,
+.w-richtext > div:first-child > :first-child,
+.text-rich-text > :not(div):first-child,
+.text-rich-text > div:first-child > :first-child {
   margin-top: 0 !important;
 }
 
 /* Get rid of bottom margin on last element in any rich text element */
-.w-richtext> :last-child,
+.w-richtext > :last-child,
 .w-richtext ol li:last-child,
 .w-richtext ul li:last-child,
 .w-richtext ul:last-child,
-.text-rich-text> :last-child,
+.text-rich-text > :last-child,
 .text-rich-text ol li:last-child,
 .text-rich-text ul li:last-child,
 .text-rich-text ul:last-child {
@@ -151,7 +151,7 @@ body {
 
 .w-richtext ul li::before,
 .text-rich-text ul li::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 1px;
   left: -1.9rem;
@@ -162,7 +162,7 @@ body {
   background-size: contain;
   background-repeat: no-repeat;
   margin-right: 1rem;
-  margin-bottom: .125rem;
+  margin-bottom: 0.125rem;
 }
 
 [section-style="brand"] .text-rich-text i,
@@ -178,7 +178,6 @@ body {
 [section-style="dark"] .card .w-richtext {
   color: var(--text-color--text-primary);
   /* Or reset to whatever style you want */
-  ;
 }
 
 [section-style="sonnenweg-200"] .heading-topic {
@@ -215,19 +214,19 @@ html {
   font-size: calc(0.625rem + 0.41666666666666663vw);
 }
 
-@media screen and (max-width:1920px) {
+@media screen and (max-width: 1920px) {
   html {
     font-size: calc(0.625rem + 0.41666666666666674vw);
   }
 }
 
-@media screen and (max-width:1440px) {
+@media screen and (max-width: 1440px) {
   html {
     font-size: 1rem;
   }
 }
 
-@media screen and (max-width:479px) {
+@media screen and (max-width: 479px) {
   html {
     font-size: 1rem;
   }
@@ -239,20 +238,24 @@ html {
 
 /* latin */
 @font-face {
-  font-family: 'Montserrat';
+  font-family: "Montserrat";
   font-style: normal;
   font-weight: 100 900;
   font-display: swap;
-  src: url(https://fonts.gstatic.com/s/montserrat/v29/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url(https://fonts.gstatic.com/s/montserrat/v29/JTUSjIg1_i6t8kCHKm459Wlhyw.woff2)
+    format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-body, .main-wrapper {
-  font-family: 'Montserrat', sans-serif;
+body,
+.main-wrapper {
+  font-family: "Montserrat", sans-serif;
   /* Default font */
 }
 
-td:last-child, th:last-child {
+td:last-child,
+th:last-child {
   min-width: 50%;
 }
 
@@ -261,4 +264,3 @@ th:first-child {
   width: 32vw;
   max-width: 20ch;
 }
-

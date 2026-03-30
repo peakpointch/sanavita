@@ -1,0 +1,67 @@
+/*
+[data-swiper-space="8"] .swiper-slide:not(.placeholder-slide) {
+  margin-right: 0.5rem;
+}
+
+[data-swiper-space="16"] .swiper-slide:not(.placeholder-slide) {
+  margin-right: 1rem;
+}
+
+[data-swiper-space="20"] .swiper-slide:not(.placeholder-slide) {
+  margin-right: 1.25rem;
+}
+
+[data-swiper-space="24"] .swiper-slide:not(.placeholder-slide) {
+  margin-right: 1.5rem;
+}
+
+[data-swiper-space="32"] .swiper-slide:not(.placeholder-slide) {
+  margin-right: 2rem;
+}
+
+[data-swiper-space="48"] .swiper-slide:not(.placeholder-slide) {
+  margin-right: 2rem;
+}
+*/
+html.wf-design-mode [data-swiper-slides-per-view="2"] .swiper-slide:not(.placeholder-slide) {
+  width: 50%;
+}
+
+html.wf-design-mode [data-swiper-slides-per-view="3"] .swiper-slide:not(.placeholder-slide) {
+  width: 33.333%;
+}
+
+@media screen and (max-width: 991px) {
+  html.wf-design-mode
+    [data-swiper-slides-per-view]:not([data-swiper-slides-per-view="1"])
+    .swiper-slide:not(.placeholder-slide) {
+    width: 100% !important;
+  }
+}
+
+.swiper {
+  --swiper-pagination-color: var(--brand-50);
+  --swiper-pagination-bullet-inactive-color: var(--brand-50);
+  --swiper-pagination-bullet-inactive-opacity: 0.6;
+}
+
+/* THIS BREAKS THE ELFSIGHT WIDGET!!!
+.swiper-slide {
+  height: 100% !important;
+}
+*/
+
+.swiper-button-prev::after,
+.swiper-button-next::after {
+  content: none !important;
+  /* display: none; */
+}
+
+.swiper .swiper-button {
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.swiper:hover .swiper-button {
+  opacity: 1;
+}

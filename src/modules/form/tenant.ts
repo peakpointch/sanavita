@@ -2,9 +2,12 @@ import {
   FormField,
   FieldGroup,
   FieldGroupValidation,
-  SerializedFieldGroup
+  SerializedFieldGroup,
+  FormArrayItem,
 } from "peakflow/form";
 import { mapToObject, objectToMap } from "peakflow/utils";
+import { ContactPerson } from "./contact-person";
+import { Resident } from "./resident";
 
 export type GroupName =
   | "personalData"
@@ -22,9 +25,13 @@ type LinkedFieldsId =
   | "primaryRelative"
   | "secondaryRelative";
 
-export type ProspectValidation = Record<GroupName, FieldGroupValidation<FormField>>;
+export type TenantValidation = Record<
+  GroupName,
+  FieldGroupValidation<FormField>
+>;
 
-export interface SerializedProspect {
+export interface SerializedTenant {
+  key?: string;
   personalData?: SerializedFieldGroup;
   doctor?: SerializedFieldGroup;
   health?: SerializedFieldGroup;
@@ -34,7 +41,8 @@ export interface SerializedProspect {
   draft?: boolean;
 }
 
-export interface ResidentProspectData {
+export interface TenantData {
+  key?: string;
   personalData: FieldGroup;
   doctor: FieldGroup;
   health: FieldGroup;
@@ -47,8 +55,10 @@ export interface ResidentProspectData {
 /**
  * Used to save the prospect to local storage.
  */
-export function prospectMapToObject(prospects: Map<string, ResidentProspect>): any {
-  // Convert a ResidentProspect's structure, which contains FieldGroups with fields as Maps
+export function personMapToObject(
+  prospects: Map<string, Tenant | Resident | ContactPerson>,
+): any {
+  // Convert a Person's structure, which contains FieldGroups with fields as Maps
   const prospectsObj: any = {};
   for (const [key, prospect] of prospects) {
     prospectsObj[key] = prospect.serialize();
@@ -59,14 +69,16 @@ export function prospectMapToObject(prospects: Map<string, ResidentProspect>): a
 /**
  * Used to submit a prospect.
  */
-export function flattenProspects(prospects: Map<string, ResidentProspect>): any {
-  let prospectsObj: any = {};
-  let prospectArray = [...prospects.values()];
-  for (let i = 0; i < prospectArray.length; i++) {
-    let prospect = prospectArray[i];
-    prospectsObj = { ...prospectsObj, ...prospect.flatten(`person${i + 1}`) };
+export function flattenPeople(
+  people: Map<string, Tenant | Resident | ContactPerson>,
+): any {
+  let peopleObj: any = {};
+  let peopleArray = [...people.values()];
+  for (let i = 0; i < peopleArray.length; i++) {
+    let person = peopleArray[i];
+    peopleObj = { ...peopleObj, ...person.flatten(`person${i + 1}`) };
   }
-  return prospectsObj;
+  return peopleObj;
 }
 
 interface LinkedField {
@@ -77,18 +89,18 @@ interface LinkedField {
 
 type LinkedFields = Map<LinkedFieldsId | string, LinkedField>;
 
-export class ResidentProspect {
+export class Tenant extends FormArrayItem {
   public personalData: FieldGroup;
   public doctor: FieldGroup;
   public health: FieldGroup;
   public primaryRelative: FieldGroup;
   public secondaryRelative: FieldGroup;
 
-  public key: string = `person-${crypto.randomUUID()}`;
+  public key: string = `tenant-${crypto.randomUUID()}`;
   public linkedFields: LinkedFields;
   public draft: boolean;
 
-  public static get defaultData(): ResidentProspectData {
+  public static get defaultData(): TenantData {
     return {
       personalData: new FieldGroup(),
       doctor: new FieldGroup(),
@@ -96,34 +108,44 @@ export class ResidentProspect {
       primaryRelative: new FieldGroup(),
       secondaryRelative: new FieldGroup(),
       linkedFields: new Map<LinkedFieldsId | string, LinkedField>(),
-      draft: false
-    }
+      draft: false,
+    };
   }
 
-  constructor(data?: Partial<ResidentProspectData>) {
-    const defaults = ResidentProspect.defaultData;
+  constructor(data?: Partial<TenantData>) {
+    super();
+    const defaults = Tenant.defaultData;
     const resolved = data ?? {};
+    this.key = data.key ?? this.key;
     this.personalData = resolved.personalData ?? defaults.personalData;
     this.doctor = resolved.doctor ?? defaults.doctor;
     this.health = resolved.health ?? defaults.health;
     this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
-    this.secondaryRelative = resolved.secondaryRelative ?? defaults.secondaryRelative;
+    this.secondaryRelative =
+      resolved.secondaryRelative ?? defaults.secondaryRelative;
     this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
     this.draft = resolved.draft ?? defaults.draft;
   }
 
-  public linkFields(id: LinkedFieldsId | string, groupName: GroupName, fields: string | string[]): void {
-    if (!id) throw new Error(`ResidentProspect "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`);
+  public linkFields(
+    id: LinkedFieldsId | string,
+    groupName: GroupName,
+    fields: string | string[],
+  ): void {
+    if (!id)
+      throw new Error(
+        `Tenant "${this.getFullName()}": The group id "${id}" for linking fields is not valid.`,
+      );
 
     let inputIds = fields;
     if (typeof inputIds === "string") {
-      inputIds = inputIds
-        ?.split(',')
-        .map(id => id.trim());
+      inputIds = inputIds?.split(",").map((id) => id.trim());
     }
 
-    if (inputIds.length === 0 || inputIds.some(id => id === '')) {
-      throw new Error(`Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`);
+    if (inputIds.length === 0 || inputIds.some((id) => id === "")) {
+      throw new Error(
+        `Please specify the ids of the fields you want to link. Ensure no ids are an empty string.`,
+      );
     }
 
     this.linkedFields.set(id, { group: groupName, fields: inputIds });
@@ -136,11 +158,15 @@ export class ResidentProspect {
     return this.linkedFields.delete(id);
   }
 
-  public validateGroups(): ProspectValidation;
-  public validateGroups(...groups: GroupName[]): Partial<ProspectValidation>;
-  public validateGroups(...groups: GroupName[]): Partial<ProspectValidation> | ProspectValidation {
-    const groupNames = groups.length ? groups : Object.keys(this) as GroupName[];
-    const validatedGroups: Partial<ProspectValidation> = {};
+  public validateGroups(): TenantValidation;
+  public validateGroups(...groups: GroupName[]): Partial<TenantValidation>;
+  public validateGroups(
+    ...groups: GroupName[]
+  ): Partial<TenantValidation> | TenantValidation {
+    const groupNames = groups.length
+      ? groups
+      : (Object.keys(this) as GroupName[]);
+    const validatedGroups: Partial<TenantValidation> = {};
 
     for (const groupName of groupNames) {
       const group = this[groupName];
@@ -155,13 +181,14 @@ export class ResidentProspect {
 
   public validate(): boolean {
     const validated = this.validateGroups();
-    return !Object.values(validated).some(group => group.isValid === false);
+    return !Object.values(validated).some((group) => group.isValid === false);
   }
 
   public getFullName(): string {
     return (
-      `${this.personalData.getField("firstName")!.value} ${this.personalData.getField("lastName")!.value
-        }`.trim() || "Neue Person"
+      `${this.personalData.getField("firstName")!.value} ${
+        this.personalData.getField("lastName")!.value
+      }`.trim() || "Neue Person"
     );
   }
 
@@ -183,8 +210,9 @@ export class ResidentProspect {
     return fields;
   }
 
-  public serialize(): SerializedProspect {
+  public serialize(): SerializedTenant {
     return {
+      key: this.key,
       personalData: this.personalData.serialize(),
       doctor: this.doctor.serialize(),
       health: this.health.serialize(),
@@ -196,10 +224,11 @@ export class ResidentProspect {
   }
 
   /**
-   * Main function to deserialize a `ResidentProspect`
+   * Main function to deserialize a `Tenant`
    */
-  public static deserialize(data: SerializedProspect): ResidentProspect {
-    return new ResidentProspect({
+  public static deserialize(data: SerializedTenant): Tenant {
+    return new Tenant({
+      key: data.key,
       personalData: FieldGroup.deserialize(data.personalData),
       doctor: FieldGroup.deserialize(data.doctor),
       health: FieldGroup.deserialize(data.health),
@@ -210,7 +239,7 @@ export class ResidentProspect {
     });
   }
 
-  public static areEqual(a: ResidentProspect, b: ResidentProspect): boolean {
+  public static areEqual(a: Tenant, b: Tenant): boolean {
     const groups: GroupName[] = [
       "personalData",
       "doctor",

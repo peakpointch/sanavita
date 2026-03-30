@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "rootDir": "./src",
     "paths": {
       "html2pdf.js": [
         "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"

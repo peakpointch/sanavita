@@ -1,0 +1,33 @@
+html.wf-design-mode .padding-global {
+  pointer-events: none;
+}
+
+html.wf-design-mode .padding-global *:not(.text-rich-text *, .w-richtext *) {
+  pointer-events: auto;
+}
+
+html.wf-design-mode [wf-empty="false"] {
+  /* Overwrite the .wf-empty styles */
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none;
+  padding-bottom: 0;
+  padding-right: 0;
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+html.wf-design-mode [data-visibility="visible"] {
+  visibility: visible;
+  display: block;
+}
+
+html.wf-design-mode [data-visibility="hidden"] {
+  visibility: hidden;
+  display: none;
+}
+
+html.wf-design-mode .w-dyn-item.swiper-slide {
+  margin-right: 1rem;
+}

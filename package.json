@@ -1,6 +1,6 @@
 {
   "name": "sanavita",
-  "version": "0.0.33",
+  "version": "0.2.0-beta.0",
   "type": "module",
   "private": false,
   "scripts": {
@@ -12,13 +12,13 @@
     {
       "name": "peakflow",
       "local": "../../peakflow/",
-      "remote": "github:peakpointch/peakflow#v0.3.0-alpha.3",
+      "remote": "github:peakpointch/peakflow#v0.3.0-alpha.5",
       "alias": "src/index.ts"
     },
     {
       "name": "devflow",
       "local": "../../tools/devflow/",
-      "remote": "github:peakpointch/devflow#v1.0.7"
+      "remote": "github:peakpointch/devflow#v1.2.0"
     },
     {
       "name": "libswitch",
@@ -31,9 +31,10 @@
     "@xatom/core": "^1.0.12",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "devflow": "github:peakpointch/devflow#v1.2.0",
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
-    "peakflow": "github:peakpointch/peakflow#v0.3.0-alpha.3",
+    "peakflow": "github:peakpointch/peakflow#v0.3.0-alpha.5",
     "semver": "^7.7.2",
     "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0",
@@ -48,7 +49,6 @@
     "@webflow/data-types": "^1.2.2",
     "@webflow/react": "^1.2.2",
     "@webflow/webflow-cli": "^1.11.0",
-    "devflow": "github:peakpointch/devflow#v1.0.7",
     "libswitch": "github:peakpointch/libswitch#v0.1.1",
     "path": "^0.12.7",
     "postcss": "^8.5.6",

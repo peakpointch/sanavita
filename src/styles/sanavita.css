@@ -1,7 +1,8 @@
 :root {
   /* RENAMING CSS VARIABLES */
-  --brand-400: var(--brand-color--brand-400);
   --brand-50: var(--brand-color--brand-50);
+  --brand-400: var(--brand-color--brand-400);
+  --brand-800: var(--brand-color--brand-800);
   --brand-900: var(--brand-color--brand-900);
   --brand-950: var(--brand-color--brand-950);
   --white: var(--neutral-color--white);
@@ -21,6 +22,66 @@
   --error-red-dark: var(--system-color--error-red-dark);
   --focus-state: var(--system-color--focus-state);
   --beige-dark: var(--beige-dark);
+}
+
+[section-style="lightest"] {
+  background-color: var(--neutral-color--neutral-lightest);
+}
+
+[section-style="branded"],
+[section-style="light"] {
+  background-color: var(--brand-color--brand-50);
+}
+
+[section-style="brand"] {
+  background-color: var(--brand-color--brand-400);
+}
+
+[section-style="brand"] .text-rich-text i,
+[section-style="brand"] .text-rich-text em {
+  color: var(--neutral-color--beige-100);
+}
+
+[section-style="beige"] {
+  background-color: var(--neutral-color--beige-100);
+}
+
+[section-style="dark"] {
+  background-color: var(--neutral-color--neutral-darker);
+  color: var(--neutral-color--neutral-lightest);
+}
+
+[section-style="dark"] .w-richtext:not(.card .w-richtext, .daily_card .w-richtext) {
+  color: var(--neutral-color--neutral-lightest);
+}
+
+[section-style="dark"] .accordion-item:not(.is-simple) .w-richtext,
+[section-style="dark"] .card .w-richtext {
+  color: var(--text-color--text-primary); /* Or reset to whatever style you want */
+}
+
+[section-style="sonnenweg-100"] {
+  background-color: var(--brand-color--sonnenweg-100);
+}
+
+[section-style="sonnenweg-200"] {
+  background-color: var(--brand-color--sonnenweg-200);
+}
+
+[section-style="sonnenweg-200"] .heading-topic {
+  color: var(--brand-color--brand-900);
+}
+
+[section-style="branded"] .circle-background {
+  background-color: var(--beige-100);
+}
+
+[background-color="dark"] {
+  background-color: var(--brand-900);
+}
+
+[background-color="light"] {
+  background-color: var(--brand-50);
 }
 
 [possibly-empty="true"]:empty,
@@ -79,13 +140,33 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 [background-color="dark"] {
   background-color: var(--brand-900);
 }
-
-[background-color="light"] {
-  background-color: var(--brand-50);
+* {
+  scroll-margin-top: 5.5rem;
 }
 
-.split-slot:has(.swiper) {
-  padding-right: 1px;
+.w-richtext ul li,
+.text-rich-text ul li {
+  list-style-type: none;
+}
+
+.w-richtext ul li::before,
+.text-rich-text ul li::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: -1.9rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  /*background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgb(250 187 33)'%3E%3Cpath d='M5 13L9 17L19 7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");*/
+  background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 6L9 17L4 12' stroke='rgb(250 187 33)' stroke-width='1.5' stroke-linecap='square' stroke-linejoin='square'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-right: 1rem;
+  margin-bottom: 0.125rem;
+}
+
+.text-rich-text.is-activity p {
+  margin-bottom: 0px;
 }
 
 .w-richtext ol li::marker {
@@ -95,7 +176,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 [data-max-width-label-container="true"],
 .dish {
   container-type: inline-size;
-  container-name: dish
+  container-name: dish;
 }
 
 .team-abteilung:has(.team-grid):has(.w-dyn-item:nth-child(3)) {
@@ -104,7 +185,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 }
 
 @container dish (max-width: 35rem) {
-  [data-label="true"]>[data-label-text="true"] {
+  [data-label="true"] > [data-label-text="true"] {
     display: none;
   }
 }
@@ -114,8 +195,8 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   color: var(--neutral-lightest);
 } */
 
-.bento-trailing>*:not(.bento-card-show_content),
-.bento-card-show_content>*:not(.bento-image_gradient) {
+.bento-trailing > *:not(.bento-card-show_content),
+.bento-card-show_content > *:not(.bento-image_gradient) {
   z-index: 1;
   position: relative;
 }
@@ -124,11 +205,11 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   position: relative;
 }
 
-.relative-children>*:not([already-relative]) {
+.relative-children > *:not([already-relative]) {
   position: relative;
 }
 
-.inline-children>* {
+.inline-children > * {
   display: inline;
 }
 
@@ -165,7 +246,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 /*}*/
 
 [padding-global] {
-  padding: 0rem 3rem;
+  padding: 0rem var(--spacing--padding-global);
 }
 
 @media screen and (min-height: 64rem) {
@@ -182,10 +263,10 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 
 @media screen and (max-width: 767px) {
   [padding-global] {
-    padding: 0rem 1.25rem;
+    padding: 0rem var(--spacing--padding-global-mobile);
   }
 
-  #download>:nth-child(2) {
+  #download > :nth-child(2) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -193,8 +274,8 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   }
 }
 
-@media screen and (max-width: 478px) {}
-
+@media screen and (max-width: 478px) {
+}
 
 @keyframes spin {
   from {
@@ -206,10 +287,247 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   }
 }
 
+::-webkit-scrollbar {
+  background-color: var(--brand-color--brand-50);
+  width: 8px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 8px;
+}
+
+.tv-container ::-webkit-scrollbar {
+  width: calc(12 * var(--_tv---tv-px));
+}
+
+.tv-container ::-webkit-scrollbar:horizontal {
+  height: calc(12 * var(--_tv---tv-px));
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--brand-color--brand-50);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--brand-color--brand-400) !important;
+}
+
+.w-dyn-list:has(.w-dyn-empty.hide):not(:has(.w-dyn-item)) {
+  display: none;
+}
+
+.tab-link-div:hover .icon-wrap,
+.tab-link-div.w--current .icon-wrap {
+  background-color: var(--brand-color--brand-50);
+}
+
+[decision="decision-one"]:has([decision-value="Nein"] > .w--redirected-checked)
+  ~ [decision="extra-field-one"] {
+  display: none;
+}
+
+[data-price-small]:has(:first-child:empty) {
+  display: none;
+}
+
+.dish-group:last-child {
+  margin-bottom: 0rem;
+}
+
+.dish-group .spacer-medium:last-child {
+  display: none;
+}
+
+.apartment-row-wrap:hover .apartment-props-start {
+  background-color: #fcf9f0;
+}
+
 .status-component.is-top .status {
   border-radius: 0px;
 }
 
 .aform-pagination_item:last-child {
   width: auto;
+}
+
+.split-slot:has(.swiper) {
+  padding-right: 1px;
+}
+
+.w-slider-dot {
+  width: 2em;
+  min-width: 2em;
+  max-width: 2em;
+  height: 2em;
+  min-height: 2em;
+  max-width: 2em;
+  aspect-ratio: 1 / 1 !important;
+}
+
+.cms-slider .w-slide:empty {
+  height: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+[swiper-navigation-for]:has(.swiper-button-lock) {
+  display: none;
+}
+
+div:has(> .background-image) {
+  position: relative;
+}
+
+div:has(> .background-image)::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--background-color--background-overlay);
+  z-index: 1;
+}
+
+@media screen and (min-width: 1458px) {
+  .image-round.absolute {
+    width: 100%;
+  }
+}
+
+@media screen and (min-width: 1188px) {
+  .max-width_hero-special {
+    width: 55vw;
+    max-width: 45rem;
+  }
+  .image-round.absolute {
+    /*width: 100%;*/
+  }
+}
+
+/*
+@media screen and (max-width: 1300px) {
+	.bistro_slider {
+  	padding-top: 5rem;
+  }
+}
+*/
+
+@media screen and (max-width: 1200px) {
+  .section_bereiche a.card_trailing {
+    padding-right: 3.2rem;
+  }
+  .bridge-split_right {
+    order: -999;
+    width: 100%;
+    max-width: none;
+    padding-bottom: 3rem;
+  }
+  .bridge-split_section {
+    flex-direction: column;
+  }
+  .bridge-split_left {
+    max-width: none;
+  }
+}
+
+@media screen and (max-width: 1120px) {
+  .bistro_wochenhit {
+    /*padding-bottom: 5.5rem;*/
+  }
+  .wochenhit-price {
+    top: auto;
+    bottom: 1rem;
+    position: static;
+    text-align: left;
+  }
+}
+
+@media screen and (max-width: 813px) {
+  .section_bereiche a.card_trailing {
+    padding-right: 3.2rem;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .section_bereiche a.card_trailing {
+    padding-right: 2rem;
+  }
+  .w-nav-overlay [data-nav-menu-open] {
+    top: 4.5rem;
+  }
+  * {
+    scroll-margin-top: 4.5rem;
+  }
+  /*
+    #sanavita-claim {
+      	display: none;
+    }*/
+}
+
+@media screen and (max-width: 550px) {
+  .wochenhit-price {
+    top: 1rem;
+    position: static;
+    text-align: left;
+  }
+}
+
+.nav_menu-wrap::-webkit-scrollbar {
+  width: 0.5rem;
+  background-color: var(--base-color-neutral--neutral-dark);
+}
+
+.nav_menu-wrap::-webkit-scrollbar-thumb {
+  background-color: var(--base-color-brand--brand-400);
+}
+
+.w-nav-overlay [data-nav-menu-open] {
+  top: 5.5rem;
+}
+
+.tab_link-wohnungen.fs-cmsfilter_active .checkbox-icon,
+.custom-checkbox.w--redirected-checked ~ .checkbox-icon {
+  opacity: 100% !important;
+}
+
+@media screen and (min-width: 1300px) {
+  .split_content[data-wf--layout-standard--style-bild-position="links"]:has(
+      [data-wf--element-image--style-aspect-ratio="round"]
+    ),
+  .split_content:not([data-wf--layout-standard--style-bild-position]):has(
+      [data-wf--element-image--style-aspect-ratio="round"]:nth-child(1)
+    ) {
+    grid-template-columns: minmax(max-content, min-content) minmax(0px, 1fr);
+  }
+
+  .split_content[data-wf--layout-standard--style-bild-position="rechts"]:has(
+      [data-wf--element-image--style-aspect-ratio="round"]
+    ),
+  .split_content:not([data-wf--layout-standard--style-bild-position]):has(
+      [data-wf--element-image--style-aspect-ratio="round"]:nth-child(2)
+    ) {
+    grid-template-columns: minmax(0px, 1fr) minmax(max-content, min-content);
+  }
+
+  .split_content:has([data-wf--element-image--style-aspect-ratio="round"]) .split_content-image {
+    width: 100vw;
+    max-width: calc(30vw + 10rem);
+  }
+}
+
+.services-split-content .services_tag-group {
+  display: none;
+}
+
+@media screen and (max-width: 991px) {
+  .wochenhit-price {
+    top: 1rem;
+    position: absolute;
+    text-align: right;
+  }
+
+  .section_bereiche a.card_trailing {
+    padding-right: 2rem;
+  }
 }

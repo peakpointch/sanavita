@@ -2,7 +2,7 @@ import { declareComponent } from "@webflow/react";
 import { Clock } from "./Clock";
 import { props } from "@webflow/data-types";
 
-import "@/styles/globals.css";
+import "@/styles/components/globals.css";
 
 export default declareComponent(Clock, {
   name: "TV / Uhr",
