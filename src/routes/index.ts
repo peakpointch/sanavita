@@ -112,9 +112,9 @@ export const forms = () => {
 export const loadUploadcareStylesheet = (): void => {
   const ucStyles = new Stylesheet({
     href: `https://cdn.jsdelivr.net/gh/peakpointch/${app.name}@v${app.version}/src/styles/uploadcare.css`,
-    // href: "http://localhost:3000/__app/src/styles/uploadcare.css",
   });
 
-  ucStyles.setAttribute("data-dyn-css", "true");
+  ucStyles.setAttribute("data-devflow-local", "src/styles/uploadcare.css");
+  ucStyles.setAttribute("data-devflow-hmr", "true");
   ucStyles.load();
 };

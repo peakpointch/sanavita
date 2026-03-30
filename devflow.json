@@ -9,7 +9,6 @@
     "./src/tv.ts"
   ],
   "dist": "./dist",
-  "scriptAttribute": "xa-script",
   "watchList": [
     "./src/",
     "../../peakflow/src/form/"
