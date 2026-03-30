@@ -1,0 +1,7 @@
+.canvas-editable[contenteditable] {
+  cursor: default;
+}
+
+.canvas-editable[contenteditable="true"] {
+  cursor: text;
+}

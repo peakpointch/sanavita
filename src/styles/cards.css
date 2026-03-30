@@ -1,0 +1,68 @@
+.card h1,
+.card h2,
+.card h3:not(.card-title),
+.card:not([section-style="sonnenweg-200"]) h4,
+.card:not([section-style="sonnenweg-200"]) h5,
+.card:not([section-style="sonnenweg-200"]) h6,
+.card .job-card_category-name,
+.card .job-card_icon {
+  color: var(--brand-color--brand-400);
+}
+/*
+.card[card-type="pflege"] h1,
+.card[card-type="pflege"] h2,
+.card[card-type="pflege"] h3,
+.card[card-type="pflege"] h4,
+.card[card-type="pflege"] h5,
+.card[card-type="pflege"] h6,
+.card[card-type="pflege"] .job-card_category-name,
+.card[card-type="pflege"] .job-card_icon {
+	color: var(--brand-color--green-400);
+}*/
+/*
+.card[card-type="bistro"] h1,
+.card[card-type="bistro"] h2,
+.card[card-type="bistro"] h3,
+.card[card-type="bistro"] h4,
+.card[card-type="bistro"] h5,
+.card[card-type="bistro"] h6,
+.card[card-type="bistro"] .job-card_category-name,
+.card[card-type="bistro"] .job-card_icon {
+	color: var(--brand-color--rust-400);
+}*/
+/*
+.card[card-type="pflege"] .card_trailing,
+.card[card-type="pflege"] .card_small-link {
+	/*background-color: var(--brand-color--green-300);*/ /* HERE
+  background-color: var(--neutral-color--beige-100);
+}
+
+.card[card-type="bistro"] .card_trailing,
+.card[card-type="bistro"] .card_small-link {
+	/*background-color: var(--brand-color--rust-400);*/ /* HERE
+  background-color: var(--neutral-color--beige-100);
+}
+*/
+.card .card_trailing {
+  /*background-color: var(--neutral-color--beige-100);*/
+}
+
+.card_trailing:hover .icon-1x1-small {
+  left: 0.3rem;
+}
+
+.card_trailing-group > :first-child {
+  padding-right: 1rem;
+}
+/*
+.card_trailing-group > :nth-child(2) {
+    padding-left: 1rem;
+}*/
+
+.third-layout-column .bereiche-heading {
+  color: var(--neutral-color--white);
+}
+
+.third-layout-column:hover .bereiche-heading {
+  color: inherit;
+}

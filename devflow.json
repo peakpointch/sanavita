@@ -6,7 +6,8 @@
     "./src/app.ts",
     "./src/admin.ts",
     "./src/screen.ts",
-    "./src/tv.ts"
+    "./src/tv.ts",
+    "./src/styles/app.css"
   ],
   "dist": "./dist",
   "watchList": [
