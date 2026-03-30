@@ -7,12 +7,6 @@
       ],
       "@/*": [
         "src/*"
-      ],
-      "peakflow": [
-        "../../peakflow/src/index.ts"
-      ],
-      "peakflow/*": [
-        "../../peakflow/src/*"
       ]
     },
     "target": "ES2020",
