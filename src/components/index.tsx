@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@/styles/globals.css";
+import "@/styles/components/globals.css";
 
 /* --- COMPONENT --- */
 import { WeatherWidget } from "./weather-widget/WeatherWidget";
@@ -19,5 +19,5 @@ function App() {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>
+  </React.StrictMode>,
 );
