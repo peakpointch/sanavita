@@ -519,3 +519,15 @@ div:has(> .background-image)::before {
 .services-split-content .services_tag-group {
   display: none;
 }
+
+@media screen and (max-width: 991px) {
+  .wochenhit-price {
+    top: 1rem;
+    position: absolute;
+    text-align: right;
+  }
+
+  .section_bereiche a.card_trailing {
+    padding-right: 2rem;
+  }
+}

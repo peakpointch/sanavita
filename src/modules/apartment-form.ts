@@ -10,6 +10,7 @@ import { SerializedTenant, Tenant } from "./form/tenant";
 import { getAlertDialog } from "./form/alert-dialog";
 import { initializeFormDecisions, initializeArrayDecisions } from "./form/decisions";
 import { addMonths, format, startOfMonth } from "date-fns";
+import { disableAdd } from "./form/utils";
 
 const errorMessages = {
   attachmentSubmission: {
@@ -169,6 +170,7 @@ export function initApartmentRegistrationForm(): void {
   TenantArray.onSave("save-progress", (component) =>
     ApartmentForm.saveComponentProgress(component),
   );
+  TenantArray.onSave("disable-add", () => disableAdd(TenantArray));
 
   initializeFormDecisions(ApartmentForm, errorMessages, defaultMessages);
   initializeArrayDecisions(TenantArray, errorMessages, defaultMessages);
@@ -177,11 +179,19 @@ export function initApartmentRegistrationForm(): void {
 
   TenantArray.loadProgress();
   ApartmentForm.loadProgress();
+
   insertSearchParamValues();
+  disableAdd(TenantArray);
 
   // @ts-ignore
   window.MultiStepForm = TenantArray;
   console.log("Form initialized:", ApartmentForm.initialized, ApartmentForm);
+
+  // const apartmentSelect = document.querySelector<HTMLSelectElement>("#apartment");
+  // const firstOption = apartmentSelect.firstElementChild as HTMLOptionElement;
+  // firstOption.value = "Testwohnung";
+  // firstOption.innerText = "Testwohnung";
+  // apartmentSelect.value = "Testwohnung";
 
   // ApartmentForm.options.recaptcha = false;
   // ApartmentForm.options.validation.validate = false;

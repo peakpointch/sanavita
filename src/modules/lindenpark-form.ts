@@ -3,6 +3,7 @@ import { Resident, SerializedResident } from "./form/resident";
 import { ContactPerson, SerializedContact } from "./form/contact-person";
 import { initializeFormDecisions, initializeArrayDecisions } from "./form/decisions";
 import { getAlertDialog } from "./form/alert-dialog";
+import { disableAdd } from "./form/utils";
 
 export function initRoomRegistrationForm(): void {
   const version = "1.0.0";
@@ -45,9 +46,13 @@ export function initRoomRegistrationForm(): void {
     dialogs: {
       delete: {
         title: ({ item, grammar }) =>
-          `Möchten Sie ${grammar.article.sg} ${grammar.item.sg} "${item?.getFullName()}" wirklich löschen?`,
+          `Möchten Sie ${grammar.article.sg} ${
+            grammar.item.sg
+          } "${item?.getFullName()}" wirklich löschen?`,
         paragraph: ({ item, grammar }) =>
-          `Mit dieser Aktion wird ${grammar.article.sg} ${grammar.item.sg} "${item?.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
+          `Mit dieser Aktion wird ${grammar.article.sg} ${
+            grammar.item.sg
+          } "${item?.getFullName()}" gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`,
         cancel: "Abbrechen",
         confirm: "Person löschen",
       },
@@ -200,17 +205,11 @@ export function initRoomRegistrationForm(): void {
   ResidentArray.onSave("save-progress", (component) =>
     LindenparkForm.saveComponentProgress(component),
   );
-  ResidentArray.onSave("hide-add", () => {
-    const addButtonWrapper = ResidentArray.select("add").parentElement;
-    if (ResidentArray.items.size === ResidentArray.options.limit) {
-      addButtonWrapper.style.display = "none";
-    } else {
-      addButtonWrapper.style.removeProperty("display");
-    }
-  });
+  ResidentArray.onSave("disable-add", () => disableAdd(ResidentArray));
   ContactArray.onSave("save-progress", (component) =>
     LindenparkForm.saveComponentProgress(component),
   );
+  ContactArray.onSave("disable-add", () => disableAdd(ContactArray));
 
   ResidentArray.loadProgress();
   ContactArray.loadProgress();
@@ -218,6 +217,9 @@ export function initRoomRegistrationForm(): void {
   ContactArray.registerSelects("(Kontaktperson)");
   ResidentArray.triggerOnSave();
   ContactArray.triggerOnSave();
+
+  disableAdd(ResidentArray);
+  disableAdd(ContactArray);
 
   initializeFormDecisions(LindenparkForm, {});
   initializeArrayDecisions(ResidentArray, {});
@@ -228,8 +230,9 @@ export function initRoomRegistrationForm(): void {
   window.MultiStepForm = LindenparkForm;
   console.log("Form initialized:", LindenparkForm.initialized, LindenparkForm);
 
-  // LindenparkForm.options.validation.validate = false;
-  // LindenparkForm.changeToStep(4);
+  // LindenparkForm.options.recaptcha = false;
+  // LindenparkForm.settings.validation.validate = false;
+  // LindenparkForm.changeToStep(1);
   // setTimeout(() => {
   //   ResidentArray.editItem(ResidentArray.getItem(0))
   // }, 600);
