@@ -5,8 +5,8 @@ import peakflow from "peakflow";
 
 onReady(() => {
   const homeRoutes = [
-    "/screen/home",
     "/screen/home-lindenpark",
+    "/screen/home-rzl",
     "/screen/home-sonnenweg",
   ];
   for (const route of homeRoutes) {
