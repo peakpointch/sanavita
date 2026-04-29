@@ -10,11 +10,7 @@ import {
 import { de } from "date-fns/locale/de";
 import { Autoplay, Manipulation } from "swiper/modules";
 import { format, addDays } from "date-fns";
-import {
-  AutoScrollController,
-  initAutoScroll,
-  resetSyncRegistry,
-} from "./modules/tv/auto-scroll";
+import { AutoScrollController, initAutoScroll, resetSyncRegistry } from "./modules/tv/auto-scroll";
 
 declare global {
   interface Window {
@@ -65,8 +61,7 @@ function initCmsRefresh(opts?: { enabled: boolean }): void {
   const ctx = autoRefresh({
     enabled: opts.enabled,
     delay: 60 * 60 * 1, // Refresh every 1 hour
-    nodes: ({ mode }) =>
-      !["code-component", "body", "page", "document"].includes(mode),
+    nodes: ({ mode }) => !["code-component", "body", "page", "document"].includes(mode),
     beforeRefresh: ({ newDoc }) => {
       console.log(`${logStamp()} Refresh: CMS`);
 
@@ -84,6 +79,7 @@ function initCmsRefresh(opts?: { enabled: boolean }): void {
     },
     afterRefresh: ({ doc }) => {
       initTVAutoScroll({ doc });
+      initWfVideo(doc);
     },
   });
 
@@ -147,7 +143,7 @@ function initMidnightRefresh(opts?: { enabled: boolean }): void {
   const diff = new Date(timeUntilMidnight);
 
   console.log(
-    `Time left: ${diff.getHours()}:${diff.getMinutes()}:${diff.getSeconds()}, refreshing in ${timeUntilMidnight}ms`
+    `Time left: ${diff.getHours()}:${diff.getMinutes()}:${diff.getSeconds()}, refreshing in ${timeUntilMidnight}ms`,
   );
 
   setTimeout(() => {
@@ -165,7 +161,7 @@ function initMidnightRefresh(opts?: { enabled: boolean }): void {
     } catch (error) {
       console.error(
         logStamp(),
-        `Refresh: Something went wrong during the midnight "document" refresh.`
+        `Refresh: Something went wrong during the midnight "document" refresh.`,
       );
     }
   }, timeUntilMidnight);
