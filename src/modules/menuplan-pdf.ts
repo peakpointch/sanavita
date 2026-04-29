@@ -376,7 +376,7 @@ export function initMenuplanPdf(): void {
   filterForm.invokeOnChange("*"); // Initialize the filter with it's default values
 
   const downloadBtn = document.querySelector(actionSelector("download"));
-  downloadBtn.addEventListener("click", () => {
+  downloadBtn.addEventListener("click", async () => {
     const startDate = new Date(filterForm.data.getField("startDate").value);
     const selectedDesign: "bistro" | "bewohnende" | "bewohnendeEtage" =
       filterForm.data.getField("design").value;
@@ -396,6 +396,30 @@ export function initMenuplanPdf(): void {
         break;
     }
 
-    pdf.save(pdfFormat, filename, 1);
+    showLoading();
+    await pdf.save(pdfFormat, filename, 1);
+    hideLoading();
   });
+}
+
+const loadingSelector = createAttribute<"area">("data-loading-element");
+
+function getArea(): HTMLElement {
+  const selector = loadingSelector("area");
+  return document.querySelector<HTMLElement>(selector);
+}
+
+function showLoading(): void {
+  console.log("SHOW LOADING");
+  const area = getArea();
+  if (!area) return;
+  area.style.removeProperty("display");
+  area.classList.remove("hide");
+}
+
+function hideLoading(): void {
+  console.log("HIDE LOADING");
+  const area = getArea();
+  if (!area) return;
+  area.style.display = "none";
 }
