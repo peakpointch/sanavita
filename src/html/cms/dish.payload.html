@@ -1,0 +1,24 @@
+<script type="application/json" data-payload-element="embed" data-payload-id="{{slug}}" data-cms-id="dishes">
+  {
+    "slug": "{{slug}}",
+    "id": "{{name}}",
+    "name": "{{dish}}",
+    "details": "${details}",
+    "price": "{{preis}}",
+    "priceSmall": "{{preis-kleine-portion}}",
+    "course": "{{typ}}",
+    "order": "{{reihenfolge}}",
+    "vegetarian": "{{vegetarian}}",
+    "category": {
+      "name": "{{kategorie-single:name}}",
+      "slug": "{{kategorie-single:slug}}",
+      "description": "${category.description}",
+      "categoryName": "{{kategorie-single:kategorie-name}}",
+      "sectionOrCategory": "{{kategorie-single:menu-sektion-oder-kategorie}}",
+      "order": "{{kategorie-single:reihenfolge}}"
+    }
+  }
+</script>
+
+<div data-payload-element="var" data-payload-var="details">{{details-ingredients}}</div>
+<div data-payload-element="var" data-payload-var="category.description">{{kategorie-single:beilage}}</div>
