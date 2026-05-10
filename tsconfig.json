@@ -21,6 +21,14 @@
     "noEmit": true,
     "module": "ES2020",
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true
-  }
+    "allowImportingTsExtensions": true,
+    "strict": false
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }
