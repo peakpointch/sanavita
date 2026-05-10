@@ -12,7 +12,7 @@
     {
       "name": "peakflow",
       "local": "../../peakflow/",
-      "remote": "github:peakpointch/peakflow#v0.3.0-alpha.5",
+      "remote": "github:peakpointch/peakflow#v0.3.0-alpha.7",
       "alias": "src/index.ts"
     },
     {
@@ -34,7 +34,7 @@
     "devflow": "github:peakpointch/devflow#v1.2.0",
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
-    "peakflow": "github:peakpointch/peakflow#v0.3.0-alpha.5",
+    "peakflow": "github:peakpointch/peakflow#v0.3.0-alpha.7",
     "semver": "^7.7.2",
     "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0",
@@ -48,13 +48,14 @@
     "@vitejs/plugin-react": "^5.1.2",
     "@webflow/data-types": "^1.2.2",
     "@webflow/react": "^1.2.2",
-    "@webflow/webflow-cli": "^1.11.0",
+    "@webflow/webflow-cli": "^1.21.0",
     "libswitch": "github:peakpointch/libswitch#v0.1.1",
     "path": "^0.12.7",
     "postcss": "^8.5.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.18",
+    "typescript": "^6.0.3",
     "vite": "^7.3.0"
   }
 }
