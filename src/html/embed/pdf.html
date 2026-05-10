@@ -1,0 +1,39 @@
+<div class="menu_embed-code" id="pdf-embed"></div>
+
+<!-- Adobe PDF -->
+<script src="https://acrobatservices.adobe.com/view-sdk/viewer.js"></script>
+<script type="text/javascript">
+  const url = window.location.href;
+  const fileType = "{{wf {&quot;path&quot;:&quot;typ-der-datei&quot;,&quot;type&quot;:&quot;Option&quot;\} }}";
+  const fileExternal = JSON.parse(
+    "{{wf {&quot;path&quot;:&quot;dokument-extern&quot;,&quot;type&quot;:&quot;Bool&quot;\} }}",
+  );
+  let clientId;
+
+  if (fileType.toString() === "(PDF)" && !fileExternal) {
+    if (url.includes("sanavita-ag.webflow.io") || url.includes("localhost")) {
+      clientId = "e224587c20e14348b402d87d050ec2df";
+    } else if (url.includes("sanavita-ag.ch")) {
+      clientId = "744f4f1acac04b4ea39d95a5bba33ceb";
+    }
+
+    document.addEventListener("adobe_dc_view_sdk.ready", function () {
+      var adobeDCView = new AdobeDC.View({ clientId: clientId, divId: "pdf-embed" });
+      adobeDCView.previewFile(
+        {
+          content: {
+            location: { url: "{{wf {&quot;path&quot;:&quot;dokument&quot;,&quot;type&quot;:&quot;FileRef&quot;\} }}" },
+          },
+          metaData: { fileName: "{{wf {&quot;path&quot;:&quot;name&quot;,&quot;type&quot;:&quot;PlainText&quot;\} }}" },
+        },
+        {},
+      );
+    });
+  } else if (fileExternal) {
+    window.location = "{{wf {&quot;path&quot;:&quot;externer-link&quot;,&quot;type&quot;:&quot;Link&quot;\} }}";
+  } else {
+    const download = document.getElementById("download");
+    download.click();
+  }
+</script>
+<!-- END Adobe PDF -->
