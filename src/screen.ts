@@ -1,14 +1,11 @@
 import { onReady, WFRoute } from "@xatom/core";
 import { initBistroMenus } from "./modules/menu";
 import { initDigitalSignage } from "./modules/screen/home";
+import { initWfVideo } from "./modules/wfvideo";
 import peakflow from "peakflow";
 
 onReady(() => {
-  const homeRoutes = [
-    "/screen/home-lindenpark",
-    "/screen/home-rzl",
-    "/screen/home-sonnenweg",
-  ];
+  const homeRoutes = ["/screen/home-lindenpark", "/screen/home-rzl", "/screen/home-sonnenweg"];
   for (const route of homeRoutes) {
     new WFRoute(route).execute(() => {
       peakflow.execute("inlinecms", "swiper");
@@ -21,5 +18,9 @@ onReady(() => {
     initBistroMenus();
     peakflow.execute("inlinecms", "swiper");
     peakflow.execute("dateflow");
+  });
+
+  new WFRoute("/screen/video-home").execute(() => {
+    initWfVideo(document);
   });
 });
