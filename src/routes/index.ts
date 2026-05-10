@@ -1,11 +1,11 @@
 import { WFRoute } from "@xatom/core";
-import peakflow, { Script, Stylesheet } from "peakflow";
-import app from "@/manifest.js";
-import { initBistroMenus } from "src/modules/menu";
-import { initWfVideo } from "src/modules/wfvideo";
+import peakflow, { PdfEmbed, PdfEmbedFile, Script, Stylesheet, payload } from "peakflow";
 import { initVimePlayer } from "peakflow/video";
-import { initApartmentRegistrationForm } from "src/modules/apartment-form";
-import { initCircleTabs } from "./jobs/circle-tabs.js";
+import app from "@/manifest.js";
+import { initCircleTabs } from "@/routes/jobs/circle-tabs.js";
+import { initBistroMenus } from "@/modules/menu";
+import { initWfVideo } from "@/modules/wfvideo";
+import { initApartmentRegistrationForm } from "@/modules/apartment-form";
 import { initSozjobsList } from "@/modules/sozjobs/list";
 import { initJobItemPage } from "@/modules/sozjobs/job";
 import { initListFilter } from "@/modules/list-filter.js";
@@ -85,6 +85,19 @@ export const routes = async () => {
         "fs-list-highlightclass": "is-hightlight",
       },
     }).load();
+  });
+
+  new WFRoute("/dokumente/(.*)").execute(async () => {
+    const embed = new PdfEmbed(document.body, {
+      clientIds: {
+        localhost: "e224587c20e14348b402d87d050ec2df",
+        "sanavita-ag.webflow.io": "e224587c20e14348b402d87d050ec2df",
+        "sanavita-ag.ch": "744f4f1acac04b4ea39d95a5bba33ceb",
+      },
+    });
+
+    const file = payload.get<PdfEmbedFile>("file");
+    await embed.preview(file);
   });
 };
 
