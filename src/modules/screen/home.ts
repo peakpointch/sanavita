@@ -39,11 +39,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
    */
   private overlaycount: number = 0;
 
-  constructor(
-    allElements: RenderData<F>,
-    swiper: Swiper,
-    collectionElement: HTMLElement
-  ) {
+  constructor(allElements: RenderData<F>, swiper: Swiper, collectionElement: HTMLElement) {
     this.data = allElements;
     this.screen = getScreen();
     this.filteredData = []; // Track currently visible elements
@@ -81,13 +77,9 @@ class ElementManager<F extends OverlayFilterAttrs> {
     return this.filteredData;
   }
 
-  private sortByDate(
-    data: RenderData<F>,
-    order: "asc" | "desc" = "asc"
-  ): RenderData<F> {
+  private sortByDate(data: RenderData<F>, order: "asc" | "desc" = "asc"): RenderData<F> {
     // Helper
-    const getStartTime = (node: RenderNode<F>) =>
-      node.props.startDate.getTime();
+    const getStartTime = (node: RenderNode<F>) => node.props.startDate.getTime();
 
     return [...data].sort((a, b) => {
       return order === "asc"
@@ -100,13 +92,11 @@ class ElementManager<F extends OverlayFilterAttrs> {
   private findElement(entry: RenderNode<F>): HTMLElement | null {
     const selector = `[slug="${entry.instance}"]`;
     const elementFound =
-      this.collectionElement.querySelector<HTMLElement>(
-        selector
-      ).firstElementChild;
+      this.collectionElement.querySelector<HTMLElement>(selector).firstElementChild;
 
     if (!elementFound) {
       throw new Error(
-        `The element "${selector}" doesn't exist inside the webflow collection list it was parsed from.`
+        `The element "${selector}" doesn't exist inside the webflow collection list it was parsed from.`,
       );
     }
 
@@ -128,7 +118,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
     } else {
       if (this.overlaycount >= 1) {
         console.info(
-          `insertElement: One or more overlays are already active. Showing element with the highest priority.`
+          `insertElement: One or more overlays are already active. Showing element with the highest priority.`,
         );
       }
 
@@ -136,6 +126,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
       const zIndex = 100 - priority;
       elementToInsert.style.zIndex = zIndex.toString();
       elementToInsert.style.position = "absolute";
+      elementToInsert.style.inset = "0%";
 
       // Insert the cloned element into the visible swiper area for event/memorial elements
       this.swiper.el.parentNode.insertBefore(elementToInsert, this.swiper.el);
@@ -170,7 +161,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
       }
     } else {
       console.warn(
-        `Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`
+        `Element to remove with key "${element.instance}" was not found inside "this.insertedElements". Check for unnecessary calls of this method.`,
       );
     }
   }
@@ -183,9 +174,7 @@ class ElementManager<F extends OverlayFilterAttrs> {
 
     // Remove elements that should no longer be shown
     this.insertedElements.forEach((insertedHTML, insertedKey) => {
-      const insertedEl = this.data.find(
-        (entry) => entry.instance === insertedKey
-      );
+      const insertedEl = this.data.find((entry) => entry.instance === insertedKey);
       if (!this.filteredData.includes(insertedEl)) {
         this.removeElement(insertedEl);
         changed = true;
@@ -222,7 +211,7 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
     startDate.getHours(),
     startDate.getMinutes(),
     startDate.getSeconds(),
-    startDate.getMilliseconds()
+    startDate.getMilliseconds(),
   );
 
   const todayEnd = new Date();
@@ -230,7 +219,7 @@ function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
     endDate.getHours(),
     endDate.getMinutes(),
     endDate.getSeconds(),
-    endDate.getMilliseconds()
+    endDate.getMilliseconds(),
   );
 
   if (todayEnd >= todayStart) {
@@ -267,10 +256,7 @@ function applyOffset(base: Date, offset: TimeOffset): Date {
   return d;
 }
 
-function setTestItem(
-  data: RenderData<OverlayFilterAttrs>,
-  config: TestItemConfig
-): void {
+function setTestItem(data: RenderData<OverlayFilterAttrs>, config: TestItemConfig): void {
   const item = data[config.index];
   const now = new Date();
 
@@ -284,7 +270,7 @@ function setTestItem(
 
 export function initDigitalSignage() {
   const collectionElement = document.body.querySelector<HTMLElement>(
-    wfCollectionSelector("screen")
+    wfCollectionSelector("screen"),
   );
 
   const collection = new FilterCollection(collectionElement, {
@@ -298,9 +284,7 @@ export function initDigitalSignage() {
   collection.removeInvisibleElements();
   collection.readData();
 
-  const newsSwiperEl = document.body.querySelector<HTMLElement>(
-    swiperSelector("news")
-  );
+  const newsSwiperEl = document.body.querySelector<HTMLElement>(swiperSelector("news"));
   const swiperOptions: SwiperOptions = {
     ...Slider.readOptions(newsSwiperEl),
     modules: [Autoplay, Navigation, Pagination, Manipulation],
@@ -321,17 +305,13 @@ export function initDigitalSignage() {
       },
       {
         threshold: 0.2,
-      }
+      },
     );
 
     observer.observe(swiper.el);
   }
 
-  const manager = new ElementManager(
-    collection.getData(),
-    swiper,
-    collectionElement
-  );
+  const manager = new ElementManager(collection.getData(), swiper, collectionElement);
   setInterval(() => {
     manager.update();
   }, 3000);
