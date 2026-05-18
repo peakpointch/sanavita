@@ -8,6 +8,12 @@
       ],
       "@/*": [
         "src/*"
+      ],
+      "peakflow": [
+        "../../peakflow/src/index.ts"
+      ],
+      "peakflow/*": [
+        "../../peakflow/src/*"
       ]
     },
     "target": "ES2020",
@@ -25,7 +31,8 @@
     "strict": false
   },
   "include": [
-    "src"
+    "src",
+    "./*.config.ts"
   ],
   "exclude": [
     "dist",
