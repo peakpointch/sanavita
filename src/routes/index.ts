@@ -54,6 +54,9 @@ export const routes = async () => {
   new WFRoute("/bistro").execute(() => {
     peakflow.execute("inlinecms", "swiper");
     peakflow.execute("dateflow");
+
+    const dateInput = document.querySelector<HTMLInputElement>("#wf-form-Tischreservation #date");
+    dateInput.min = new Date().toISOString().split("T")[0];
   });
 
   new WFRoute("/bistro/bankette").execute(() => {
