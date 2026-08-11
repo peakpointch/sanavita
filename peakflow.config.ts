@@ -59,42 +59,4 @@ export default defineConfig({
       pages: ["tv/*"],
     },
   ],
-  // modules: [
-  //   {
-  //     name: "website-js",
-  //     file: "app.js",
-  //     version: "0.2.0-beta.4",
-  //     pages: ["index", "lindenpark", "wohnen-mit-service", "bistro/*", "dokumente"],
-  //   },
-  //   {
-  //     name: "website-css",
-  //     file: "styles/app.css",
-  //     version: "0.2.0-beta.4",
-  //     pages: ["index", "lindenpark", "wohnen-mit-service", "bistro/*", "dokumente"],
-  //   },
-  //   {
-  //     name: "forms",
-  //     file: "app.js",
-  //     version: "0.2.0-beta.4",
-  //     pages: ["screen/**/*"],
-  //   },
-  //   {
-  //     name: "admin",
-  //     file: "admin.js",
-  //     version: "0.2.0-beta.4",
-  //     pages: ["screen/*"],
-  //   },
-  //   {
-  //     name: "screen",
-  //     file: "screen.js",
-  //     version: "0.2.0-beta.4",
-  //     pages: ["screen/*"],
-  //   },
-  //   {
-  //     name: "tv",
-  //     file: "tv.js",
-  //     version: "0.2.0-beta.4",
-  //     pages: ["tv/*"],
-  //   },
-  // ],
 });
