@@ -179,18 +179,18 @@ function cmsRefresh(node: Element, newNode: Element): HTMLElement {
     );
   }
 
-  const list = new CollectionList(node, { name: readId(node) });
-  const refreshList = new CollectionList(newNode, { name: readId(newNode) });
+  const list = new CollectionList(node, { id: readId(node) });
+  const refreshList = new CollectionList(newNode, { id: readId(newNode) });
 
-  if (list.empty || refreshList.empty) {
+  if (list.isEmpty() || refreshList.isEmpty()) {
     // If either list is empty, refresh the whole list wrapper
     return defaultRefresh(node, newNode) as HTMLElement;
   }
 
   // Default case: only refresh the list items
-  list.listElement.replaceChildren(...refreshList.getItems());
+  list.listElement.replaceChildren(...refreshList.listElement.children);
 
-  return list.container;
+  return list.component;
 }
 
 function swiperRefresh(node: Element, newNode: Element): HTMLElement {
