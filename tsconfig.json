@@ -1,13 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "rootDir": "./src",
+    "rootDir": ".",
     "paths": {
-      "html2pdf.js": [
-        "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"
-      ],
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
       "peakflow": [
         "../../peakflow/src/index.ts"
@@ -28,14 +24,15 @@
     "module": "ES2020",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "strict": false
+    "strict": false,
+    "skipLibCheck": true
   },
   "include": [
-    "src",
+    "./src",
     "./*.config.ts"
   ],
   "exclude": [
-    "dist",
-    "node_modules"
+    "./dist",
+    "./node_modules"
   ]
 }
