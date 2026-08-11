@@ -4,21 +4,21 @@
   "type": "module",
   "private": false,
   "scripts": {
-    "dev": "devflow dev",
-    "build": "devflow build",
+    "dev": "peakflow dev",
+    "build": "peakflow build",
     "dev:components": "vite --config src/components/vite.config.ts"
   },
   "libswitch": [
     {
       "name": "peakflow",
       "local": "../../peakflow/",
-      "remote": "github:peakpointch/peakflow#v0.3.0-alpha.8",
+      "remote": "github:peakpointch/peakflow#v0.3.0-alpha.10",
       "alias": "src/index.ts"
     },
     {
-      "name": "devflow",
-      "local": "../../tools/devflow/",
-      "remote": "github:peakpointch/devflow#v1.2.0"
+      "name": "peakflow-cli",
+      "local": "../../tools/peakflow-cli/",
+      "remote": "github:peakpointch/peakflow-cli#feat/cli-refactor"
     },
     {
       "name": "libswitch",
@@ -31,11 +31,10 @@
     "@xatom/core": "^1.0.12",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "devflow": "file:../../tools/devflow",
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
     "peakflow": "file:../../peakflow",
-    "peakflow-cli": "file:../../tools/devflow",
+    "peakflow-cli": "github:peakpointch/peakflow-cli#feat/cli-refactor",
     "semver": "^7.7.2",
     "swiper": "^12.0.3",
     "tailwind-merge": "^3.4.0",
@@ -58,5 +57,6 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^6.0.3",
     "vite": "^7.3.0"
-  }
+  },
+  "allowScripts": {}
 }
