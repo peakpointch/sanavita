@@ -2,12 +2,11 @@ import { declareComponent } from "@webflow/react";
 import { WeatherWidget } from "./WeatherWidget";
 import { props } from "@webflow/data-types";
 
-import "@/styles/globals.css";
+import "@/styles/components/globals.css";
 
 export default declareComponent(WeatherWidget, {
   name: "Weather Widget",
-  description:
-    "A weather widget showing the local weather of a specific location",
+  description: "A weather widget showing the local weather of a specific location",
 
   props: {
     variant: props.Variant({

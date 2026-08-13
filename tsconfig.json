@@ -1,20 +1,11 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "rootDir": "./src",
+    "rootDir": ".",
     "paths": {
-      "html2pdf.js": [
-        "node_modules/html2pdf.js/dist/html2pdf.bundle.min.js"
-      ],
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "target": "ES2020",
-    "lib": [
-      "ES2020",
-      "DOM"
-    ],
+    "lib": ["ES2020", "DOM"],
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "declaration": true,
@@ -22,13 +13,9 @@
     "module": "ES2020",
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
-    "strict": false
+    "strict": false,
+    "skipLibCheck": true
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "include": ["./src", "./*.config.ts"],
+  "exclude": ["./dist", "./node_modules"]
 }
