@@ -42,7 +42,6 @@ export default defineConfig({
           path: "./dist/app.js",
           version: "0.0.17",
         },
-        "./dist/styles/app.css",
       ],
       version: "0.2.0-beta.6",
       pages: ["/anmeldung-wohnen-mit-service"],
@@ -61,7 +60,7 @@ export default defineConfig({
     },
     {
       name: "tv",
-      skip: true,
+      skip: false,
       modules: ["./dist/tv.js"],
       version: "0.2.0-beta.2",
       pages: ["/tv/**/*"],
