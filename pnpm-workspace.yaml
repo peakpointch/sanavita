@@ -1,0 +1,15 @@
+allowBuilds:
+  core-js: true
+  esbuild: true
+auditConfig: {}
+minimumReleaseAgeExclude:
+  - elliptic@6.6.2
+  - koa@3.0.3
+  - koa@3.1.2
+  - ws@8.20.1
+  - uuid@11.1.1
+  - form-data@4.0.6
+  - ws@8.21.0
+  - adm-zip@0.6.0
+overrides:
+  peakflow-cli: link:../../tools/peakflow-cli
