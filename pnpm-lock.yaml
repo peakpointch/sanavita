@@ -30,7 +30,7 @@ importers:
         specifier: github:peakpointch/peakflow#main
         version: https://codeload.github.com/peakpointch/peakflow/tar.gz/d91266bf699cac1885e793a2474aa7814e5e84fb
       peakflow-cli:
-        specifier: link:..\..\tools\peakflow-cli
+        specifier: link:../../tools/peakflow-cli
         version: link:../../tools/peakflow-cli
       semver:
         specifier: ^7.8.5
