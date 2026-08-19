@@ -14,7 +14,7 @@ function getOrder(value: unknown): number {
   return typeof value.order === "number" ? value.order : 0;
 }
 
-export const byOrder = <T,>(a: T, b: T) => getOrder(a) - getOrder(b);
+export const byOrder = <T>(a: T, b: T) => getOrder(a) - getOrder(b);
 
 export function byPageThenOrder(a: Menu, b: Menu): number {
   return pageCollator.compare(a.onPage, b.onPage) || byOrder(a, b);

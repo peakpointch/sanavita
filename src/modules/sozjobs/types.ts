@@ -36,18 +36,10 @@ interface SozjobsEndpointDefinition {
 
 type SozjobsGender = "male" | "female" | "" | string;
 type SozjobsProtocol = "https" | "http";
-type SozjobsContractTypeKey =
-  | string
-  | "temporary"
-  | "permanent"
-  | "voluntary"
-  | "mandate";
+type SozjobsContractTypeKey = string | "temporary" | "permanent" | "voluntary" | "mandate";
 export type SozjobsEndpointName = keyof SozjobsEndpointDefinition;
 
-interface SozjobsEndpoint<
-  P extends string = string,
-  T extends boolean = boolean,
-> {
+interface SozjobsEndpoint<P extends string = string, T extends boolean = boolean> {
   path: P;
   single: T;
 }

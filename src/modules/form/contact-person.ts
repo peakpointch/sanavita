@@ -11,10 +11,7 @@ export type GroupName = "personalData";
 
 type LinkedFieldsId = "phone" | "email" | "address";
 
-export type ProspectValidation = Record<
-  GroupName,
-  FieldGroupValidation<FormField>
->;
+export type ProspectValidation = Record<GroupName, FieldGroupValidation<FormField>>;
 
 export interface SerializedContact {
   key?: string;
@@ -96,12 +93,8 @@ export class ContactPerson extends FormArrayItem {
 
   public validateGroups(): ProspectValidation;
   public validateGroups(...groups: GroupName[]): Partial<ProspectValidation>;
-  public validateGroups(
-    ...groups: GroupName[]
-  ): Partial<ProspectValidation> | ProspectValidation {
-    const groupNames = groups.length
-      ? groups
-      : (Object.keys(this) as GroupName[]);
+  public validateGroups(...groups: GroupName[]): Partial<ProspectValidation> | ProspectValidation {
+    const groupNames = groups.length ? groups : (Object.keys(this) as GroupName[]);
     const validatedGroups: Partial<ProspectValidation> = {};
 
     for (const groupName of groupNames) {

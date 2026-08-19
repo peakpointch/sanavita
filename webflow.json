@@ -1,9 +1,7 @@
 {
   "library": {
     "name": "Sanavita Components",
-    "components": [
-      "./src/components/**/*.webflow.@(js|jsx|mjs|ts|tsx)"
-    ],
+    "components": ["./src/components/**/*.webflow.@(js|jsx|mjs|ts|tsx)"],
     "description": "",
     "bundleConfig": "./webpack.webflow.cjs",
     "id": "sanavita-components"

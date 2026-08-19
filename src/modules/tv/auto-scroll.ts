@@ -100,9 +100,7 @@ const autoScrollDataset = Dataset.define<AutoScrollAttributes>({
 });
 
 const selector = Selector.attr<ScrollElement>(scrollDataset.attr.element);
-const autoScrollAttr = Selector.attr<AutoScrollMode>(
-  autoScrollDataset.attr.mode
-);
+const autoScrollAttr = Selector.attr<AutoScrollMode>(autoScrollDataset.attr.mode);
 
 const defaultModeOptions: AutoScrollModeOptions = {
   scrollbar: {
@@ -168,9 +166,7 @@ function unwrapSmooth(el: HTMLElement): void {
   const wrapper = el.querySelector<HTMLElement>(selector("smooth-wrapper"));
   if (!wrapper) return;
 
-  const type = wrapper.getAttribute(
-    scrollDataset.attr.element
-  ) as ScrollElement;
+  const type = wrapper.getAttribute(scrollDataset.attr.element) as ScrollElement;
 
   if (type !== "smooth-wrapper") return;
 
@@ -215,8 +211,7 @@ function isWaitingForGroup(now: number, state: ContainerState): boolean {
   if (!state.group) return false;
 
   const groupIsPaused = now < state.group.pauseUntil;
-  const waitingForOthers =
-    state.isWaiting && state.group.readyCount < state.group.total;
+  const waitingForOthers = state.isWaiting && state.group.readyCount < state.group.total;
 
   return groupIsPaused || waitingForOthers;
 }
@@ -247,12 +242,9 @@ interface ContainerState {
 
 function initAutoScrollContainer(
   options: Partial<AutoScrollModeOptions>,
-  hooks: AutoScrollHooks
+  hooks: AutoScrollHooks,
 ): AutoScrollController {
-  const opts = mergeOptions(
-    defaultModeOptions,
-    options
-  ) as AutoScrollModeOptions;
+  const opts = mergeOptions(defaultModeOptions, options) as AutoScrollModeOptions;
 
   //@ts-expect-error state is fully initialized in start()
   let state: ContainerState = {};
@@ -355,8 +347,7 @@ function initAutoScrollContainer(
 
     if (typeof opts.initialPause === "number" && opts.initialPause > 0) {
       if (state.group) {
-        if (state.group.total === 0)
-          state.group.pauseUntil = state.lastTime + opts.initialPause;
+        if (state.group.total === 0) state.group.pauseUntil = state.lastTime + opts.initialPause;
         state.group.readyCount++;
       } else {
         state.pauseUntil = state.lastTime + opts.initialPause;
@@ -364,8 +355,7 @@ function initAutoScrollContainer(
       state.isWaiting = true;
     } else if (opts.initialPause) {
       if (state.group) {
-        if (state.group.total === 0)
-          state.group.pauseUntil = state.lastTime + opts.pauseFor;
+        if (state.group.total === 0) state.group.pauseUntil = state.lastTime + opts.pauseFor;
         state.group.readyCount++;
       } else {
         state.pauseUntil = state.lastTime + opts.pauseFor;
@@ -411,9 +401,7 @@ function initAutoScrollContainer(
 /**
  * Default mode: uses scrollTop (pixel-based, may jump at low speed)
  */
-function autoScrollDefault(
-  options: Partial<AutoScrollModeOptions>
-): AutoScrollController {
+function autoScrollDefault(options: Partial<AutoScrollModeOptions>): AutoScrollController {
   const scrollAnimation = (opts: AutoScrollModeOptions, scrollPos: number) => {
     opts.container.scrollTop = scrollPos;
 
@@ -430,9 +418,7 @@ function autoScrollDefault(
 }
 
 /** Smooth mode: wraps content and moves with CSS transform (smooth sub-pixel) */
-function autoScrollSmooth(
-  options: Partial<AutoScrollModeOptions>
-): AutoScrollController {
+function autoScrollSmooth(options: Partial<AutoScrollModeOptions>): AutoScrollController {
   let wrapper: HTMLElement;
 
   const beforeAnimation = (opts: AutoScrollModeOptions) => {
@@ -467,9 +453,7 @@ function autoScrollSmooth(
 }
 
 /** Main autoScroll dispatcher */
-export function autoScroll(
-  options: Partial<AutoScrollOptions>
-): AutoScrollController {
+export function autoScroll(options: Partial<AutoScrollOptions>): AutoScrollController {
   if (!options?.container) {
     throw new Error(msg("Container cannot be undefined"));
   }
@@ -478,7 +462,7 @@ export function autoScroll(
     defaultAutoScrollOptions,
     scrollDataset.parse(options.container),
     autoScrollDataset.parse(options.container),
-    options
+    options,
   ) as AutoScrollOptions;
 
   let controller: AutoScrollController;
@@ -507,15 +491,14 @@ export function autoScroll(
   return controller;
 }
 
-export interface InitAutoScrollOptions
-  extends Partial<Omit<AutoScrollOptions, "id" | "container">> {
+export interface InitAutoScrollOptions extends Partial<
+  Omit<AutoScrollOptions, "id" | "container">
+> {
   doc: Document | Element;
 }
 
 /** Initialize auto-scroll on all matching elements in doc */
-export function initAutoScroll(
-  options: InitAutoScrollOptions
-): AutoScrollController[] {
+export function initAutoScroll(options: InitAutoScrollOptions): AutoScrollController[] {
   if (!options.doc) {
     throw new Error(msg(`"doc" cannot be undefined.`));
   }

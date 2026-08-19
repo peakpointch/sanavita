@@ -93,9 +93,7 @@ export async function getSozjobsItem<T extends SozjobsEndpointName>(
   idOrIds: string | number | (string | number)[],
 ): Promise<SozjobsResponse[T] | SozjobsResponse[T][]> {
   if (Array.isArray(idOrIds)) {
-    return Promise.all(
-      idOrIds.map((idOrIds) => getSozjobsBase(endpoint, idOrIds)),
-    );
+    return Promise.all(idOrIds.map((idOrIds) => getSozjobsBase(endpoint, idOrIds)));
   } else {
     return getSozjobsBase(endpoint, idOrIds);
   }

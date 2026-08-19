@@ -19,7 +19,7 @@ export default defineConfig({
       usePolling: false,
       ignored: ["**/node_modules/**", "**/.git/**", "**/.cache/**"],
     },
-     proxy: {
+    proxy: {
       "/webflow-proxy": {
         target: "https://sanavita-ag.webflow.io",
         changeOrigin: true,

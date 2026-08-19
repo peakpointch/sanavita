@@ -131,13 +131,7 @@ export interface MenuCardProps {
   collapsible?: boolean;
 }
 
-export function MenuCard({
-  menu,
-  categories,
-  dishes,
-  drinks,
-  collapsible = true,
-}: MenuCardProps) {
+export function MenuCard({ menu, categories, dishes, drinks, collapsible = true }: MenuCardProps) {
   const layout = useCompactMenuLayout();
   const collapse = useMenuCardCollapse(collapsible);
   const data = getMenuCardData(menu, categories, dishes, drinks);

@@ -38,11 +38,7 @@ type FieldIds =
   | ActionElement;
 
 type EntryType =
-  | "dailyMenu"
-  | "dailyMenuBistro"
-  | "dailyMenuResidents"
-  | "dailyMenuSpecial"
-  | "weeklyHit";
+  "dailyMenu" | "dailyMenuBistro" | "dailyMenuResidents" | "dailyMenuSpecial" | "weeklyHit";
 
 /**
  * Metadata representing a `Pdf` instance.

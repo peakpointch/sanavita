@@ -99,15 +99,18 @@ export const routes = async () => {
       },
     });
 
-    const payload = Payload.define({
-      type: Payload.String(),
-      name: Payload.String(),
-      url: Payload.String(),
-      externalUrl: Payload.String(),
-      isExternal: Payload.Boolean(),
-    }, {
-      primitivesFromString: true
-    });
+    const payload = Payload.define(
+      {
+        type: Payload.String(),
+        name: Payload.String(),
+        url: Payload.String(),
+        externalUrl: Payload.String(),
+        isExternal: Payload.Boolean(),
+      },
+      {
+        primitivesFromString: true,
+      },
+    );
 
     const file = payload.get("file");
     await embed.preview(file);

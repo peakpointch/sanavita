@@ -11,10 +11,7 @@ export type GroupName = "personalData" | "doctor" | "health";
 
 type LinkedFieldsId = "phone" | "email" | "address";
 
-export type ResidentValidation = Record<
-  GroupName,
-  FieldGroupValidation<FormField>
->;
+export type ResidentValidation = Record<GroupName, FieldGroupValidation<FormField>>;
 
 export interface SerializedResident {
   key?: string;
@@ -106,12 +103,8 @@ export class Resident extends FormArrayItem {
 
   public validateGroups(): ResidentValidation;
   public validateGroups(...groups: GroupName[]): Partial<ResidentValidation>;
-  public validateGroups(
-    ...groups: GroupName[]
-  ): Partial<ResidentValidation> | ResidentValidation {
-    const groupNames = groups.length
-      ? groups
-      : (Object.keys(this) as GroupName[]);
+  public validateGroups(...groups: GroupName[]): Partial<ResidentValidation> | ResidentValidation {
+    const groupNames = groups.length ? groups : (Object.keys(this) as GroupName[]);
     const validatedGroups: Partial<ResidentValidation> = {};
 
     for (const groupName of groupNames) {

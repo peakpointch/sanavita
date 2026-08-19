@@ -31,14 +31,10 @@ const property_to_custom_prop = () => ({
             // Convert complex Tailwind shadow variables to direct values
             if (
               decl.prop === "box-shadow" &&
-              (decl.value.includes("var(--tw-") ||
-                decl.value.includes("oklab("))
+              (decl.value.includes("var(--tw-") || decl.value.includes("oklab("))
             ) {
               // Handle direct oklab values in box-shadow (when not using variables)
-              if (
-                decl.value.includes("oklab(") &&
-                !decl.value.includes("var(--tw-")
-              ) {
+              if (decl.value.includes("oklab(") && !decl.value.includes("var(--tw-")) {
                 let shadowValue = decl.value;
 
                 // Convert NEW oklab(from rgb()) patterns directly in box-shadow
@@ -47,7 +43,7 @@ const property_to_custom_prop = () => ({
                   (match, r, g, b, baseAlpha, percentAlpha) => {
                     const alpha = parseFloat(percentAlpha) / 100;
                     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                  }
+                  },
                 );
 
                 shadowValue = shadowValue.replace(
@@ -55,14 +51,14 @@ const property_to_custom_prop = () => ({
                   (match, r, g, b, baseAlpha, percentAlpha) => {
                     const alpha = parseFloat(percentAlpha) / 100;
                     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                  }
+                  },
                 );
 
                 shadowValue = shadowValue.replace(
                   /oklab\(from\s+rgb\((\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\)\s+l\s+a\s+b\)/g,
                   (match, r, g, b, alpha) => {
                     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                  }
+                  },
                 );
 
                 shadowValue = shadowValue.replace(
@@ -70,7 +66,7 @@ const property_to_custom_prop = () => ({
                   (match, r, g, b, percentAlpha) => {
                     const alpha = parseFloat(percentAlpha) / 100;
                     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                  }
+                  },
                 );
 
                 decl.value = shadowValue;
@@ -98,7 +94,7 @@ const property_to_custom_prop = () => ({
                     (match, r, g, b, baseAlpha, percentAlpha) => {
                       const alpha = parseFloat(percentAlpha) / 100;
                       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    }
+                    },
                   );
 
                   // Handle: oklab(from rgb(0 0 0 / 0.1) l a b / 30%)
@@ -107,7 +103,7 @@ const property_to_custom_prop = () => ({
                     (match, r, g, b, baseAlpha, percentAlpha) => {
                       const alpha = parseFloat(percentAlpha) / 100;
                       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    }
+                    },
                   );
 
                   // Handle: oklab(from rgb(0 0 0 / 0.1) l a b)
@@ -115,7 +111,7 @@ const property_to_custom_prop = () => ({
                     /oklab\(from\s+rgb\((\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\)\s+l\s+a\s+b\)/g,
                     (match, r, g, b, alpha) => {
                       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    }
+                    },
                   );
 
                   // Handle: oklab(from rgb(0 0 0) l a b / 30%)
@@ -124,32 +120,23 @@ const property_to_custom_prop = () => ({
                     (match, r, g, b, percentAlpha) => {
                       const alpha = parseFloat(percentAlpha) / 100;
                       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                    }
+                    },
                   );
 
                   // Convert oklab patterns - extract alpha from oklab(0% 0 0/ALPHA)
-                  shadowValue = shadowValue.replace(
-                    /oklab\(0% 0 0\/\.(\d+)\)/g,
-                    (match, alpha) => {
-                      const alphaValue = parseFloat("0." + alpha);
-                      return `rgba(0, 0, 0, ${alphaValue})`;
-                    }
-                  );
+                  shadowValue = shadowValue.replace(/oklab\(0% 0 0\/\.(\d+)\)/g, (match, alpha) => {
+                    const alphaValue = parseFloat("0." + alpha);
+                    return `rgba(0, 0, 0, ${alphaValue})`;
+                  });
 
                   // Convert oklab patterns with decimal alpha - oklab(0% 0 0/.05)
-                  shadowValue = shadowValue.replace(
-                    /oklab\(0% 0 0\/(\.\d+)\)/g,
-                    (match, alpha) => {
-                      const alphaValue = parseFloat(alpha);
-                      return `rgba(0, 0, 0, ${alphaValue})`;
-                    }
-                  );
+                  shadowValue = shadowValue.replace(/oklab\(0% 0 0\/(\.\d+)\)/g, (match, alpha) => {
+                    const alphaValue = parseFloat(alpha);
+                    return `rgba(0, 0, 0, ${alphaValue})`;
+                  });
 
                   // Convert var(--tw-shadow-color,xxx) patterns
-                  shadowValue = shadowValue.replace(
-                    /var\(--tw-shadow-color,([^)]+)\)/g,
-                    "$1"
-                  );
+                  shadowValue = shadowValue.replace(/var\(--tw-shadow-color,([^)]+)\)/g, "$1");
 
                   // Convert hex colors with alpha to rgba - dynamically parse hex values
                   shadowValue = shadowValue.replace(
@@ -160,7 +147,7 @@ const property_to_custom_prop = () => ({
                       const b = parseInt(rgb.substr(4, 2), 16);
                       const a = parseInt(alpha, 16) / 255;
                       return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
-                    }
+                    },
                   );
 
                   // Set the box-shadow directly to the converted value
@@ -199,7 +186,7 @@ const property_to_custom_prop = () => ({
                 (match, r, g, b, baseAlpha, percentAlpha) => {
                   const alpha = parseFloat(percentAlpha) / 100;
                   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                }
+                },
               );
 
               colorValue = colorValue.replace(
@@ -207,14 +194,14 @@ const property_to_custom_prop = () => ({
                 (match, r, g, b, baseAlpha, percentAlpha) => {
                   const alpha = parseFloat(percentAlpha) / 100;
                   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                }
+                },
               );
 
               colorValue = colorValue.replace(
                 /oklab\(from\s+rgb\((\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\)\s+l\s+a\s+b\)/g,
                 (match, r, g, b, alpha) => {
                   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                }
+                },
               );
 
               colorValue = colorValue.replace(
@@ -222,7 +209,7 @@ const property_to_custom_prop = () => ({
                 (match, r, g, b, percentAlpha) => {
                   const alpha = parseFloat(percentAlpha) / 100;
                   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-                }
+                },
               );
 
               // Convert hex with alpha
@@ -234,7 +221,7 @@ const property_to_custom_prop = () => ({
                   const b = parseInt(rgb.substr(4, 2), 16);
                   const a = parseInt(alpha, 16) / 255;
                   return `rgba(${r}, ${g}, ${b}, ${a.toFixed(3)})`;
-                }
+                },
               );
 
               // Convert color-mix patterns
@@ -248,7 +235,7 @@ const property_to_custom_prop = () => ({
                     return `rgba(0, 0, 0, ${percent})`;
                   }
                   return match;
-                }
+                },
               );
 
               decl.value = colorValue;
@@ -265,7 +252,7 @@ const property_to_custom_prop = () => ({
               new Declaration({
                 prop: prop.name,
                 value: prop.value,
-              })
+              }),
             );
           }
 

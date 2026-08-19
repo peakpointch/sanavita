@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import React from "react";
 
-import "@/styles/components/tv.css"
+import "@/styles/components/tv.css";
 
 export interface ClockProps {
   visibility?: boolean;

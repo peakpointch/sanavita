@@ -14,19 +14,12 @@ const defaultPopulateSwiperOptions: PopulateSwiperOptions = {
 };
 
 export function populateSwiper(options: Partial<PopulateSwiperOptions>) {
-  const opts = mergeOptions(
-    defaultPopulateSwiperOptions,
-    options
-  ) as PopulateSwiperOptions;
+  const opts = mergeOptions(defaultPopulateSwiperOptions, options) as PopulateSwiperOptions;
 
-  const swiperElements = opts.doc.body.querySelectorAll(
-    Slider.selector("component", opts.name)
-  );
+  const swiperElements = opts.doc.body.querySelectorAll(Slider.selector("component", opts.name));
 
   swiperElements.forEach((swiperEl) => {
-    const wrappers = Array.from(
-      swiperEl.querySelectorAll(Slider.selector("wrapper"))
-    );
+    const wrappers = Array.from(swiperEl.querySelectorAll(Slider.selector("wrapper")));
     const wrapperEl = wrappers[wrappers.length - 1];
     const template = opts.template ?? wrapperEl.firstElementChild;
 

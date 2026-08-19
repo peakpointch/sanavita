@@ -10,25 +10,12 @@ import { ContactPerson } from "./contact-person";
 import { Resident } from "./resident";
 
 export type GroupName =
-  | "personalData"
-  | "doctor"
-  | "health"
-  | "primaryRelative"
-  | "secondaryRelative";
+  "personalData" | "doctor" | "health" | "primaryRelative" | "secondaryRelative";
 
 type LinkedFieldsId =
-  | "heimatort"
-  | "phone"
-  | "email"
-  | "address"
-  | "doctor"
-  | "primaryRelative"
-  | "secondaryRelative";
+  "heimatort" | "phone" | "email" | "address" | "doctor" | "primaryRelative" | "secondaryRelative";
 
-export type TenantValidation = Record<
-  GroupName,
-  FieldGroupValidation<FormField>
->;
+export type TenantValidation = Record<GroupName, FieldGroupValidation<FormField>>;
 
 export interface SerializedTenant {
   key?: string;
@@ -55,9 +42,7 @@ export interface TenantData {
 /**
  * Used to save the prospect to local storage.
  */
-export function personMapToObject(
-  prospects: Map<string, Tenant | Resident | ContactPerson>,
-): any {
+export function personMapToObject(prospects: Map<string, Tenant | Resident | ContactPerson>): any {
   // Convert a Person's structure, which contains FieldGroups with fields as Maps
   const prospectsObj: any = {};
   for (const [key, prospect] of prospects) {
@@ -69,9 +54,7 @@ export function personMapToObject(
 /**
  * Used to submit a prospect.
  */
-export function flattenPeople(
-  people: Map<string, Tenant | Resident | ContactPerson>,
-): any {
+export function flattenPeople(people: Map<string, Tenant | Resident | ContactPerson>): any {
   let peopleObj: any = {};
   let peopleArray = [...people.values()];
   for (let i = 0; i < peopleArray.length; i++) {
@@ -121,8 +104,7 @@ export class Tenant extends FormArrayItem {
     this.doctor = resolved.doctor ?? defaults.doctor;
     this.health = resolved.health ?? defaults.health;
     this.primaryRelative = resolved.primaryRelative ?? defaults.primaryRelative;
-    this.secondaryRelative =
-      resolved.secondaryRelative ?? defaults.secondaryRelative;
+    this.secondaryRelative = resolved.secondaryRelative ?? defaults.secondaryRelative;
     this.linkedFields = resolved.linkedFields ?? defaults.linkedFields;
     this.draft = resolved.draft ?? defaults.draft;
   }
@@ -160,12 +142,8 @@ export class Tenant extends FormArrayItem {
 
   public validateGroups(): TenantValidation;
   public validateGroups(...groups: GroupName[]): Partial<TenantValidation>;
-  public validateGroups(
-    ...groups: GroupName[]
-  ): Partial<TenantValidation> | TenantValidation {
-    const groupNames = groups.length
-      ? groups
-      : (Object.keys(this) as GroupName[]);
+  public validateGroups(...groups: GroupName[]): Partial<TenantValidation> | TenantValidation {
+    const groupNames = groups.length ? groups : (Object.keys(this) as GroupName[]);
     const validatedGroups: Partial<TenantValidation> = {};
 
     for (const groupName of groupNames) {

@@ -73,9 +73,7 @@ function parseDishes(nodeList: HTMLElement[]): Dish[] {
 }
 
 function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
-  const filteredSubcategories = category.subcategories.filter(
-    (sub) => sub.dishes.length > 0,
-  );
+  const filteredSubcategories = category.subcategories.filter((sub) => sub.dishes.length > 0);
 
   return `
       <div class="dish-group">
@@ -107,17 +105,13 @@ function DISH_GROUP_TEMPLATE(menu: Menu, category: Category) {
 
 function getDishItems(root: HTMLElement | Document): HTMLElement[] {
   const dishListElement = root.querySelector<HTMLElement>(DISH_LIST_SELECTOR);
-  const dishListItems = dishListElement.querySelectorAll<HTMLElement>(
-    wf.select.cmsItem,
-  );
+  const dishListItems = dishListElement.querySelectorAll<HTMLElement>(wf.select.cmsItem);
   return Array.from(dishListItems);
 }
 
 function getDrinkItems(root: HTMLElement | Document): HTMLElement[] {
   const drinkListElement = root.querySelector<HTMLElement>(DRINK_LIST_SELECTOR);
-  const drinkListItems = drinkListElement.querySelectorAll<HTMLElement>(
-    wf.select.cmsItem,
-  );
+  const drinkListItems = drinkListElement.querySelectorAll<HTMLElement>(wf.select.cmsItem);
   return Array.from(drinkListItems);
 }
 
@@ -130,21 +124,14 @@ function getMenuItems(root: HTMLElement | Document): HTMLElement[] {
 }
 
 function getMenuSectionItems(menuElement: HTMLElement): HTMLElement[] {
-  const menuSectionListElement = menuElement.querySelector<HTMLElement>(
-    MENU_SECTION_LIST_SELECTOR,
-  );
-  const menuSectionListItems =
-    menuSectionListElement.querySelectorAll<HTMLElement>(".w-dyn-item");
+  const menuSectionListElement = menuElement.querySelector<HTMLElement>(MENU_SECTION_LIST_SELECTOR);
+  const menuSectionListItems = menuSectionListElement.querySelectorAll<HTMLElement>(".w-dyn-item");
   return Array.from(menuSectionListItems);
 }
 
 function getCategoryItems(root: HTMLElement | Document): HTMLElement[] {
-  const categoryListElement = root.querySelector<HTMLElement>(
-    CATEGORY_LIST_SELECTOR,
-  );
-  const categoryListItems = categoryListElement.querySelectorAll<HTMLElement>(
-    wf.select.cmsItem,
-  );
+  const categoryListElement = root.querySelector<HTMLElement>(CATEGORY_LIST_SELECTOR);
+  const categoryListItems = categoryListElement.querySelectorAll<HTMLElement>(wf.select.cmsItem);
   return Array.from(categoryListItems);
 }
 
@@ -152,21 +139,14 @@ function parseCategories(categoryListItems: HTMLElement[]): CategoryList {
   let categories: CategoryList = {};
   // Iterate through each category item
   categoryListItems.forEach((item) => {
-    const subcategoryElement = item.querySelector<HTMLElement>(
-      "[data-is-subcategory]",
-    );
+    const subcategoryElement = item.querySelector<HTMLElement>("[data-is-subcategory]");
     const category = item.dataset.category;
     const categoryName = item.dataset.categoryName;
     const parentCategory = item.dataset.categoryGroup;
     const categoryType = item.dataset.categoryType;
-    const isSubcategory =
-      subcategoryElement?.dataset.isSubcategory === "true" ? true : false;
-    const descriptionElement = item.querySelector(
-      '[data-category-element="description"]',
-    );
-    const description = descriptionElement
-      ? descriptionElement.outerHTML
-      : false;
+    const isSubcategory = subcategoryElement?.dataset.isSubcategory === "true" ? true : false;
+    const descriptionElement = item.querySelector('[data-category-element="description"]');
+    const description = descriptionElement ? descriptionElement.outerHTML : false;
 
     // If it's a top-level category (no parent), create a new entry for it
     if (!isSubcategory) {
@@ -204,21 +184,13 @@ function parseMenu(menuElement: HTMLElement): Menu {
     type: menuElement.dataset.menuType,
     domElement: menuElement,
     menuContentElement: menuElement.querySelector(MENU_CONTENT_SELECTOR),
-    sections: menuSections.map<string>(
-      (section) => section.dataset.menuSection,
-    ),
+    sections: menuSections.map<string>((section) => section.dataset.menuSection),
     className:
-      menuElement.dataset.menuType === "Gerichte"
-        ? "gerichte-cms_list"
-        : "drinks-cms_list",
+      menuElement.dataset.menuType === "Gerichte" ? "gerichte-cms_list" : "drinks-cms_list",
   };
 }
 
-function renderMenu(
-  menu: Menu,
-  categories: CategoryList,
-  dishes: Dish[],
-): void {
+function renderMenu(menu: Menu, categories: CategoryList, dishes: Dish[]): void {
   let menuDishes = dishes.filter((dish) => dish.menu === menu.id);
 
   menu.sections.forEach((section) => {
@@ -230,9 +202,7 @@ function renderMenu(
     }
 
     // Find dishes that belong to the current section
-    sectionCategory.dishes = menuDishes.filter(
-      (dish) => dish.category === sectionCategory.id,
-    );
+    sectionCategory.dishes = menuDishes.filter((dish) => dish.category === sectionCategory.id);
 
     // Find dishes that belong to each subcategory
     sectionCategory.subcategories.forEach((subcat) => {
@@ -254,10 +224,7 @@ export async function initBistroMenus(): Promise<void> {
   const drinkListItems = getDrinkItems(root);
   const categoryListItems = getCategoryItems(root);
 
-  const dishes = [
-    ...parseDishes(drinkListItems),
-    ...parseDishes(dishListItems),
-  ];
+  const dishes = [...parseDishes(drinkListItems), ...parseDishes(dishListItems)];
   const categories = parseCategories(categoryListItems);
 
   const menus = menuListItems.map((menuElement) => {

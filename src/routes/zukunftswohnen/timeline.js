@@ -1,8 +1,6 @@
 function updateTimelineProgress() {
   // Get all elements that represent a timeline component
-  const timelineComponents = document.querySelectorAll(
-    '[data-timeline-element="component"]',
-  );
+  const timelineComponents = document.querySelectorAll('[data-timeline-element="component"]');
 
   // Get the current screen width
   const screenWidth = window.innerWidth;
@@ -24,9 +22,7 @@ function updateTimelineProgress() {
     toDate.setHours(0, 0, 0, 0);
 
     // Get timeline sub-elements by attribute
-    const progressElement = timeline.querySelector(
-      '[data-timeline-element="progres"]',
-    );
+    const progressElement = timeline.querySelector('[data-timeline-element="progres"]');
     const dotElement = timeline.querySelector('[data-timeline-element="dot"]');
 
     let progressPercentage = 0;

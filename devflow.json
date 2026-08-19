@@ -10,8 +10,5 @@
     "./src/styles/app.css"
   ],
   "dist": "./dist",
-  "watchList": [
-    "./src/",
-    "../../peakflow/src/form/"
-  ]
+  "watchList": ["./src/", "../../peakflow/src/form/"]
 }

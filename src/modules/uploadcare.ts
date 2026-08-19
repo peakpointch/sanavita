@@ -66,14 +66,10 @@ export function initUploadcare(component: HTMLElement): void {
       return file.cdnUrl;
     });
 
-    const uuidField = component.querySelector<HTMLFormInput>(
-      `#${UUID_FIELD_ID}`,
-    );
+    const uuidField = component.querySelector<HTMLFormInput>(`#${UUID_FIELD_ID}`);
     uuidField.value = uuidArray.join(", ");
     uuidField.dispatchEvent(new Event("change", { bubbles: true }));
-    const urlField = component.querySelector<HTMLFormInput>(
-      `#${URLCDN_FIELD_ID}`,
-    );
+    const urlField = component.querySelector<HTMLFormInput>(`#${URLCDN_FIELD_ID}`);
     urlField.value = cdnUrlArray.join(", ");
     urlField.dispatchEvent(new Event("change", { bubbles: true }));
   });
