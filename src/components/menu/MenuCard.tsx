@@ -78,11 +78,11 @@ function useCompactMenuLayout() {
     if (!article || !scaleProbe) return;
 
     const updateCompactLayout = () => {
-      const scaledPixel = scaleProbe.getBoundingClientRect().width;
-      if (scaledPixel <= 0) return;
+      const componentPixel = scaleProbe.getBoundingClientRect().width;
+      if (componentPixel <= 0) return;
 
-      const widthInDesignPixels = article.getBoundingClientRect().width / scaledPixel;
-      const nextCompact = widthInDesignPixels < COMPACT_MENU_WIDTH;
+      const widthInComponentPixels = article.getBoundingClientRect().width / componentPixel;
+      const nextCompact = widthInComponentPixels < COMPACT_MENU_WIDTH;
       setCompact((currentCompact) =>
         currentCompact === nextCompact ? currentCompact : nextCompact,
       );
@@ -145,7 +145,7 @@ export function MenuCard({ menu, categories, dishes, drinks, collapsible = true 
         ref={layout.scaleProbeRef}
         aria-hidden="true"
         className="pointer-events-none absolute invisible"
-        style={{ width: "var(--scaled-px)", height: "var(--scaled-px)" }}
+        style={{ width: "var(--wf-px)", height: "var(--wf-px)" }}
       />
       <header
         role={collapsible ? "button" : undefined}
@@ -166,7 +166,7 @@ export function MenuCard({ menu, categories, dishes, drinks, collapsible = true 
           {menu.showTime && data.timeLabel && (
             <p className="text-sm font-medium uppercase text-brand-400">{data.timeLabel} Uhr</p>
           )}
-          <h2 className="text-h5 font-extrabold">{menu.displayName}</h2>
+          <h2 className="text-3xl font-extrabold">{menu.displayName}</h2>
         </div>
         {collapsible && (
           <svg

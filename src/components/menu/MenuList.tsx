@@ -6,14 +6,17 @@ import type { Menu, MenuCategory, MenuDish, MenuDrink } from "@/modules/cms";
 import { MenuCard } from "./MenuCard";
 import { byOrder } from "./menu-utils";
 
-import "@/styles/components/screen.css";
-
 export interface MenuListProps {
   collapsible?: boolean;
   skipEmptyMenus?: boolean;
+  scaled?: boolean;
 }
 
-export function MenuList({ collapsible = true, skipEmptyMenus = true }: MenuListProps) {
+export function MenuList({
+  collapsible = true,
+  skipEmptyMenus = true,
+  scaled = false,
+}: MenuListProps) {
   const [menus, setMenus] = React.useState<Menu[]>([]);
   const [categories, setCategories] = React.useState<MenuCategory[]>([]);
   const [dishes, setDishes] = React.useState<MenuDish[]>([]);
@@ -38,7 +41,7 @@ export function MenuList({ collapsible = true, skipEmptyMenus = true }: MenuList
   }, []);
 
   return (
-    <div className="screen-container-bistro grid w-full gap-8">
+    <div className={`wf grid w-full gap-8 text-base font-sans ${scaled ? "is-scaled" : ""}`}>
       {menus
         .filter(
           (menu) =>

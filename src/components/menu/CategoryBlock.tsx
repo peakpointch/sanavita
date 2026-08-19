@@ -23,7 +23,7 @@ export function CategoryBlock({
       {subcategory ? (
         <h4 className="text-sm font-medium uppercase text-brand-400">{category.displayName}</h4>
       ) : (
-        <h3 className="text-h6 font-bold">{category.displayName}</h3>
+        <h3 className="text-2xl font-bold">{category.displayName}</h3>
       )}
       {category.showDescription && category.description && (
         <div className="[&_p]:m-0" dangerouslySetInnerHTML={{ __html: category.description }} />

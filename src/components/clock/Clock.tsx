@@ -4,8 +4,6 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import React from "react";
 
-import "@/styles/components/tv.css";
-
 export interface ClockProps {
   visibility?: boolean;
   timeFormat?: string;
@@ -13,6 +11,7 @@ export interface ClockProps {
   initialDate?: Date;
   /** The number of milliseconds to wait before re-rendering the component */
   delay?: number;
+  scaled?: boolean;
 }
 
 export function Clock({
@@ -21,6 +20,7 @@ export function Clock({
   dateFormat = "EEEE, d. MMM",
   initialDate = new Date(),
   delay = 1000,
+  scaled = true,
 }: ClockProps) {
   const [now, setNow] = React.useState<Date>(initialDate);
 
@@ -37,12 +37,12 @@ export function Clock({
 
   return (
     visibility && (
-      <div className="grid gap-2">
-        <div className="text-display font-extrabold">
+      <div className={`wf grid gap-2 ${scaled ? "is-scaled" : ""}`}>
+        <div className="text-7xl font-extrabold">
           {time}
-          <span className="ml-4 text-medium opacity-68">Uhr</span>
+          <span className="ml-4 text-lg opacity-68">Uhr</span>
         </div>
-        <div className="text-regular font-bold">{date}</div>
+        <div className="text-base font-bold">{date}</div>
       </div>
     )
   );

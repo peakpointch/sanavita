@@ -26,6 +26,86 @@
   /* --color-neutral-beige-200-old: #e4cfa3; */
 }
 
+@theme inline {
+  --text-xs: var(--wf-font-size-tiny);
+  --text-xs--line-height: var(--wf-line-height-tiny);
+  --text-sm: var(--wf-font-size-small);
+  --text-sm--line-height: var(--wf-line-height-small);
+  --text-base: var(--wf-font-size-regular);
+  --text-base--line-height: var(--wf-line-height-regular);
+  --text-lg: var(--wf-font-size-medium);
+  --text-lg--line-height: var(--wf-line-height-medium);
+  --text-xl: var(--wf-font-size-large);
+  --text-xl--line-height: var(--wf-line-height-large);
+  --text-2xl: var(--wf-font-size-h6);
+  --text-2xl--line-height: var(--wf-line-height-h6);
+  --text-3xl: var(--wf-font-size-h5);
+  --text-3xl--line-height: var(--wf-line-height-h5);
+  --text-4xl: var(--wf-font-size-h4);
+  --text-4xl--line-height: var(--wf-line-height-h4);
+  --text-5xl: var(--wf-font-size-h3);
+  --text-5xl--line-height: var(--wf-line-height-h3);
+  --text-6xl: var(--wf-font-size-h2);
+  --text-6xl--line-height: var(--wf-line-height-h2);
+  --text-7xl: var(--wf-font-size-h1);
+  --text-7xl--line-height: var(--wf-line-height-h1);
+
+  --spacing: calc(4 * var(--wf-px));
+  --border-width: var(--wf-px);
+}
+
+.wf {
+  font-family: var(--font-sans);
+
+  --wf-px: 1px;
+  --wf-rem: 1rem;
+
+  --wf-font-size-h1: var(--_typography---font--size--h1);
+  --wf-font-size-h2: var(--_typography---font--size--h2);
+  --wf-font-size-h3: var(--_typography---font--size--h3);
+  --wf-font-size-h4: var(--_typography---font--size--h4);
+  --wf-font-size-h5: var(--_typography---font--size--h5);
+  --wf-font-size-h6: var(--_typography---font--size--h6);
+  --wf-font-size-large: var(--_typography---font--size--large);
+  --wf-font-size-medium: var(--_typography---font--size--medium);
+  --wf-font-size-regular: var(--_typography---font--size--regular);
+  --wf-font-size-small: var(--_typography---font--size--small);
+  --wf-font-size-tiny: var(--_typography---font--size--tiny);
+
+  --wf-line-height-h1: 1.1;
+  --wf-line-height-h2: 1.1;
+  --wf-line-height-h3: 1.2;
+  --wf-line-height-h4: 1.2;
+  --wf-line-height-h5: 1.2;
+  --wf-line-height-h6: 1.2;
+  --wf-line-height-large: 1.3;
+  --wf-line-height-medium: 1.3;
+  --wf-line-height-regular: 1.3;
+  --wf-line-height-small: 1.5;
+  --wf-line-height-tiny: 1.5;
+}
+
+.wf.is-scaled {
+  --wf-design-width: var(--_scalable-design-system---design-width);
+  --wf-design-height: var(--_scalable-design-system---design-height);
+  --wf-px: var(--_scalable-design-system---scaled-px);
+  --wf-rem: var(--_scalable-design-system---scaled-rem);
+  --wf-scaled-width: var(--_scalable-design-system---scaled-width);
+  --wf-scaled-height: var(--_scalable-design-system---scaled-height);
+
+  --wf-font-size-h1: var(--_scalable-design-system---text--h1);
+  --wf-font-size-h2: var(--_scalable-design-system---text--h2);
+  --wf-font-size-h3: var(--_scalable-design-system---text--h3);
+  --wf-font-size-h4: var(--_scalable-design-system---text--h4);
+  --wf-font-size-h5: var(--_scalable-design-system---text--h5);
+  --wf-font-size-h6: var(--_scalable-design-system---text--h6);
+  --wf-font-size-large: var(--_scalable-design-system---text--large);
+  --wf-font-size-medium: var(--_scalable-design-system---text--medium);
+  --wf-font-size-regular: var(--_scalable-design-system---text--regular);
+  --wf-font-size-small: var(--_scalable-design-system---text--small);
+  --wf-font-size-tiny: var(--_scalable-design-system---text--tiny);
+}
+
 :root {
   --transparent: transparent;
   --disabled-darker: #b9b9b9;
@@ -59,38 +139,4 @@
   --error-red-dark: var(--system-color--error-red-dark);
   --focus-state: var(--system-color--focus-state);
   --beige-dark: var(--beige-dark);
-}
-
-.text-h1 {
-  height: var(--text--h1);
-}
-.text-h2 {
-  height: var(--text--h2);
-}
-.text-h3 {
-  height: var(--text--h3);
-}
-.text-h4 {
-  height: var(--text--h4);
-}
-.text-h5 {
-  height: var(--text--h5);
-}
-.text-h6 {
-  height: var(--text--h6);
-}
-.text-large {
-  height: var(--text--large);
-}
-.text-medium {
-  height: var(--text--medium);
-}
-.text-regular {
-  height: var(--text--regular);
-}
-.text-small {
-  height: var(--text--small);
-}
-.text-tiny {
-  height: var(--text--tiny);
 }

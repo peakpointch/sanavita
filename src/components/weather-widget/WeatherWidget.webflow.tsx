@@ -22,6 +22,12 @@ export default declareComponent(WeatherWidget, {
       defaultValue: true,
     }),
 
+    scaled: props.Boolean({
+      group: "Style",
+      name: "Scaled",
+      defaultValue: true,
+    }),
+
     days: props.Number({
       group: "Widget",
       name: "Days",

@@ -1,6 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
+import componentStyles from "@/styles/components/globals.css?inline";
+import developmentStyles from "@/styles/components/dev.css?inline";
+
 /* ====================== */
 /* ---- ENVIRONMENTS ---- */
 /* ====================== */
@@ -18,7 +21,24 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+const shadowHost = document.getElementById("root")!;
+const shadowRoot = shadowHost.shadowRoot ?? shadowHost.attachShadow({ mode: "open" });
+const styleElement = document.createElement("style");
+const appRoot = document.createElement("div");
+
+styleElement.textContent = `
+  ${componentStyles}
+  ${developmentStyles}
+
+  #app {
+    all: initial;
+    display: block;
+  }
+`;
+appRoot.id = "app";
+shadowRoot.replaceChildren(styleElement, appRoot);
+
+ReactDOM.createRoot(appRoot).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,

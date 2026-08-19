@@ -8,8 +8,6 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { type DayForecast, fetchCurrentWeather, fetchForecast, getDaysFromForecast } from "./utils";
 
-import "@/styles/components/tv.css";
-
 export interface WeatherWidgetProps {
   /** Controls the visibility of this component */
   visibility?: boolean;
@@ -42,6 +40,7 @@ export interface WeatherWidgetProps {
    * Whether to fetch the weather from the api. Only use `false` in development mode.
    */
   prod?: boolean;
+  scaled?: boolean;
 }
 
 export function WeatherWidget({
@@ -52,6 +51,7 @@ export function WeatherWidget({
   weatherDelay = 10,
   forecastDelay = 180,
   prod = true,
+  scaled = true,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
     weather: WeatherDay;
@@ -95,7 +95,9 @@ export function WeatherWidget({
     };
   }, [prod]);
 
-  if (loading) return <div className="text-regular">Wird geladen...</div>;
+  if (loading) {
+    return <div className={`wf text-base ${scaled ? "is-scaled" : ""}`}>Wird geladen...</div>;
+  }
 
   const { weather, forecast } = data;
   const forecastDays = getDaysFromForecast(forecast, prod);
@@ -104,7 +106,7 @@ export function WeatherWidget({
 
   return (
     visibility && (
-      <div className="grid gap-16">
+      <div className={`wf grid gap-16 ${scaled ? "is-scaled" : ""}`}>
         {/* CURRENT WEATHER */}
         <div className="flex items-center gap-16">
           {/* ICON & TEMP */}
@@ -112,13 +114,13 @@ export function WeatherWidget({
             <MainIcon
               className={cn(iconColor)}
               style={{
-                height: `calc(6 * var(--scaled-rem))`,
-                width: `calc(6 * var(--scaled-rem))`,
+                height: `calc(6 * var(--wf-rem))`,
+                width: `calc(6 * var(--wf-rem))`,
               }}
             />
             <div className="grid gap-2">
-              <span className="text-h2 font-semibold">{Math.round(weather.main.temp)}°C</span>
-              <span className="text-medium">{omwDe.main[weather.weather[0].main]}</span>
+              <span className="text-6xl font-semibold">{Math.round(weather.main.temp)}°C</span>
+              <span className="text-lg">{omwDe.main[weather.weather[0].main]}</span>
             </div>
           </div>
 
@@ -129,11 +131,11 @@ export function WeatherWidget({
               <Thermometer
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--scaled-rem))`,
-                  width: `calc(3.25 * var(--scaled-rem))`,
+                  height: `calc(3.25 * var(--wf-rem))`,
+                  width: `calc(3.25 * var(--wf-rem))`,
                 }}
               />
-              <span className="text-regular">
+              <span className="text-base">
                 Gefühlt wie: {Math.round(weather.main.feels_like)}°C
               </span>
             </div>
@@ -143,11 +145,11 @@ export function WeatherWidget({
               <Wind
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--scaled-rem))`,
-                  width: `calc(3.25 * var(--scaled-rem))`,
+                  height: `calc(3.25 * var(--wf-rem))`,
+                  width: `calc(3.25 * var(--wf-rem))`,
                 }}
               />
-              <span className="text-regular">
+              <span className="text-base">
                 Windgeschwindikeit: {Math.round(weather.wind.speed)} km/h
               </span>
             </div>
@@ -157,11 +159,11 @@ export function WeatherWidget({
               <Droplet
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--scaled-rem))`,
-                  width: `calc(3.25 * var(--scaled-rem))`,
+                  height: `calc(3.25 * var(--wf-rem))`,
+                  width: `calc(3.25 * var(--wf-rem))`,
                 }}
               />
-              <span className="text-regular">
+              <span className="text-base">
                 Luftfeuchtigkeit: {Math.round(weather.main.humidity)}%
               </span>
             </div>
@@ -173,7 +175,7 @@ export function WeatherWidget({
 
         {/* FORECAST */}
         <div className="grid gap-8">
-          <span className="text-medium font-medium">{days}-Tages-Vorhersage</span>
+          <span className="text-lg font-medium">{days}-Tages-Vorhersage</span>
           <div className={cn(variant === "horizontal" ? "flex gap-24" : "flex flex-col gap-16")}>
             {forecastDays.slice(0, days).map((data) => (
               <WeatherForecastDay
@@ -198,7 +200,7 @@ export function WeatherForecastDay({
 }) {
   return (
     <div className="flex flex-col items-center gap-8">
-      <span className="text-regular">
+      <span className="text-base">
         {format(day.date, "EEEE", {
           locale: de,
         })}
@@ -206,15 +208,15 @@ export function WeatherForecastDay({
       <day.icon.node
         className={cn(day.icon.color)}
         style={{
-          height: `calc(3.25 * var(--scaled-rem))`,
-          width: `calc(3.25 * var(--scaled-rem))`,
+          height: `calc(3.25 * var(--wf-rem))`,
+          width: `calc(3.25 * var(--wf-rem))`,
         }}
       />
-      {!showMinMaxTemp && <span className="text-regular">{day.temp}°C</span>}
+      {!showMinMaxTemp && <span className="text-base">{day.temp}°C</span>}
       {showMinMaxTemp && (
         <>
-          <span className="text-regular">{day.maxTemp}°C</span>
-          <span className="text-regular">{day.minTemp}°C</span>
+          <span className="text-base">{day.maxTemp}°C</span>
+          <span className="text-base">{day.minTemp}°C</span>
         </>
       )}
     </div>
