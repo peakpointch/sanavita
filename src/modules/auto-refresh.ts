@@ -173,7 +173,7 @@ function cmsRefresh(node: Element, newNode: Element): HTMLElement {
   }
 
   // Default case: only refresh the list items
-  list.listElement.replaceChildren(...refreshList.listElement.children);
+  list.listElement.replaceChildren(...refreshList.elements);
 
   return list.component;
 }
