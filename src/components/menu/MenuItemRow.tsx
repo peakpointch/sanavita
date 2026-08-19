@@ -5,13 +5,18 @@ import type { MenuItem } from "./types";
 export interface MenuItemRowProps {
   item: MenuItem;
   compact: boolean;
+  scaled?: boolean;
 }
 
-export function MenuItemRow({ item, compact }: MenuItemRowProps) {
+export function MenuItemRow({ item, compact, scaled = false }: MenuItemRowProps) {
   const prices = getPriceLabels(item);
 
   return (
-    <article className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4">
+    <article
+      className={`wf grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 ${
+        scaled ? "is-scaled" : ""
+      }`}
+    >
       <div className="grid min-w-0 gap-1">
         <div className="flex min-w-0 items-start gap-4">
           <div className="flex min-w-0 items-start gap-2 font-semibold">

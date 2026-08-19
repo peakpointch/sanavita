@@ -129,9 +129,17 @@ export interface MenuCardProps {
   dishes: MenuDish[];
   drinks: MenuDrink[];
   collapsible?: boolean;
+  scaled?: boolean;
 }
 
-export function MenuCard({ menu, categories, dishes, drinks, collapsible = true }: MenuCardProps) {
+export function MenuCard({
+  menu,
+  categories,
+  dishes,
+  drinks,
+  collapsible = true,
+  scaled = false,
+}: MenuCardProps) {
   const layout = useCompactMenuLayout();
   const collapse = useMenuCardCollapse(collapsible);
   const data = getMenuCardData(menu, categories, dishes, drinks);
@@ -139,7 +147,9 @@ export function MenuCard({ menu, categories, dishes, drinks, collapsible = true 
   return (
     <article
       ref={layout.articleRef}
-      className="relative w-full overflow-hidden border border-beige-200 bg-neutral-lightest text-black"
+      className={`wf relative w-full overflow-hidden border border-beige-200 bg-neutral-lightest text-black ${
+        scaled ? "is-scaled" : ""
+      }`}
     >
       <span
         ref={layout.scaleProbeRef}
@@ -201,6 +211,7 @@ export function MenuCard({ menu, categories, dishes, drinks, collapsible = true 
                 category={section.category}
                 items={section.items}
                 compact={layout.compact}
+                scaled={scaled}
               />
               {section.subcategories.map((subcategory) => (
                 <CategoryBlock
@@ -209,6 +220,7 @@ export function MenuCard({ menu, categories, dishes, drinks, collapsible = true 
                   items={subcategory.items}
                   compact={layout.compact}
                   subcategory
+                  scaled={scaled}
                 />
               ))}
             </section>

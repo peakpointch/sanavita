@@ -8,6 +8,7 @@ export interface CategoryBlockProps {
   items: MenuItem[];
   compact: boolean;
   subcategory?: boolean;
+  scaled?: boolean;
 }
 
 export function CategoryBlock({
@@ -15,11 +16,14 @@ export function CategoryBlock({
   items,
   compact,
   subcategory = false,
+  scaled = false,
 }: CategoryBlockProps) {
   if (subcategory && items.length === 0) return null;
 
   return (
-    <section className={subcategory ? "grid gap-4" : "grid gap-6"}>
+    <section
+      className={`wf ${subcategory ? "grid gap-4" : "grid gap-6"} ${scaled ? "is-scaled" : ""}`}
+    >
       {subcategory ? (
         <h4 className="text-sm font-medium uppercase text-brand-400">{category.displayName}</h4>
       ) : (
@@ -31,7 +35,7 @@ export function CategoryBlock({
       {items.length ? (
         <div className="grid gap-5">
           {items.map((item) => (
-            <MenuItemRow key={item.slug} item={item} compact={compact} />
+            <MenuItemRow key={item.slug} item={item} compact={compact} scaled={scaled} />
           ))}
         </div>
       ) : null}

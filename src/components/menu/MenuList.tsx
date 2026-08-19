@@ -57,6 +57,7 @@ export function MenuList({
             dishes={dishes}
             drinks={drinks}
             collapsible={collapsible}
+            scaled={scaled}
           />
         ))}
     </div>
