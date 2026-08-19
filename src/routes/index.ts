@@ -143,7 +143,7 @@ export const loadUploadcareStylesheet = (): void => {
     href: `https://cdn.jsdelivr.net/gh/peakpointch/${app.name}@v${app.version}/src/styles/uploadcare.css`,
   });
 
-  ucStyles.setAttribute("data-devflow-local", "src/styles/uploadcare.css");
-  ucStyles.setAttribute("data-devflow-hmr", "true");
+  ucStyles.setAttribute("data-peakflow-local", "src/styles/uploadcare.css");
+  ucStyles.setAttribute("data-peakflow-hmr", "true");
   ucStyles.load();
 };
