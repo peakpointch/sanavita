@@ -1,10 +1,12 @@
-<script type="application/json" data-payload-element="embed" data-payload-id="{{slug}}" data-cms-id="dokumente">
+<script type="application/json" data-payload-element="embed" data-payload-id="file">
   {
-    "slug": "{{slug}}"
-    "type": "{{typ-der-datei}}",
-    "name": "{{name}}",
-    "url": "{{dokument}}",
-    "externalUrl": "{{externer-link}}",
-    "isExternal": {{dokument-extern}}
+    "slug": "{{wf:Slug|Dynamo}}"
+    "type": "{{wf:Typ der datei|Dynamo}}",
+    "name": "{{wf:Name des dokuments|Dynamo}}",
+    "url": "{{wf:Dokument|Dynamo}}",
+    "externalUrl": "{{wf:Externer Link|Dynamo}}",
+    "isExternal": "{{wf:Dokument Extern?|Dynamo}}",
+    "endDate": "{{wf:Enddatum Dokument|Dynamo}}",
+    "keywords": "{{wf:Schlagworte (NEU)|Dynamo}}",
   }
 </script>
