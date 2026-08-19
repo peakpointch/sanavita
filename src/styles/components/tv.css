@@ -1,0 +1,31 @@
+@import "./globals.css";
+
+@theme inline {
+  --text-scaled-display: calc(6 * var(--scaled-rem));
+  --text-scaled-display--line-height: 1;
+  --text-scaled-h1: calc(4.25 * var(--scaled-rem));
+  --text-scaled-h1--line-height: 1.1;
+  --text-scaled-h2: calc(3.5 * var(--scaled-rem));
+  --text-scaled-h2--line-height: 1.1;
+  --text-scaled-h3: calc(3 * var(--scaled-rem));
+  --text-scaled-h3--line-height: 1.2;
+  --text-scaled-h4: calc(3 * var(--scaled-rem));
+  --text-scaled-h4--line-height: 1.2;
+  --text-scaled-h5: calc(3 * var(--scaled-rem));
+  --text-scaled-h5--line-height: 1.2;
+  --text-scaled-h6: calc(3 * var(--scaled-rem));
+  --text-scaled-h6--line-height: 1.2;
+  --text-scaled-large: calc(3 * var(--scaled-rem));
+  --text-scaled-large--line-height: 1.3;
+  --text-scaled-medium: calc(2.5 * var(--scaled-rem));
+  --text-scaled-medium--line-height: 1.3;
+  --text-scaled-regular: calc(2.25 * var(--scaled-rem));
+  --text-scaled-regular--line-height: 1.3;
+  --text-scaled-small: calc(2 * var(--scaled-rem));
+  --text-scaled-small--line-height: 1.5;
+  --text-scaled-tiny: calc(1.75 * var(--scaled-rem));
+  --text-scaled-tiny--line-height: 1.5;
+
+  --spacing: calc(4 * var(--scaled-px));
+  --border-width: calc(1 * var(--scaled-px));
+}

@@ -1,0 +1,49 @@
+.dev-scaled {
+  --scaled-px: min(calc(1 / var(--design-width) * 100vw), calc(1 / var(--design-height) * 100vh));
+  --scaled-rem: min(
+    calc(16 / var(--design-width) * 100vw),
+    calc(16 / var(--design-height) * 100vh)
+  );
+  --scaled-width: min(100vw, calc(100vh * var(--design-width) / var(--design-height)));
+  --scaled-height: min(100vh, calc(100vw * var(--design-height) / var(--design-width)));
+
+  --spacing--xs: calc(0.25 * var(--scaled-rem));
+  --spacing--sm: calc(0.5 * var(--scaled-rem));
+  --spacing--rg: calc(1 * var(--scaled-rem));
+  --spacing--xr: calc(1.25 * var(--scaled-rem));
+  --spacing--md: calc(1.5 * var(--scaled-rem));
+  --spacing--xm: calc(1.5 * var(--scaled-rem));
+  --spacing--lg: calc(2 * var(--scaled-rem));
+  --spacing--xl: calc(2.5 * var(--scaled-rem));
+  --spacing--2xl: calc(3 * var(--scaled-rem));
+  --spacing--3xl: calc(4 * var(--scaled-rem));
+  --spacing--4xl: calc(5 * var(--scaled-rem));
+  --spacing--5xl: calc(6 * var(--scaled-rem));
+  --spacing--6xl: calc(7 * var(--scaled-rem));
+  --spacing--hg: calc(10 * var(--scaled-rem));
+}
+
+.dev-scaled.tv {
+  --design-width: 3840;
+  --design-height: 2160;
+}
+
+.dev-scaled.screen-home {
+  --design-width: 1968;
+  --design-height: 2150;
+}
+
+.dev-scaled.screen-bistro {
+  --design-width: 1968;
+  --design-height: 3084;
+}
+
+.dev-scaled.screen-services {
+  --design-width: 1968;
+  --design-height: 3024;
+}
+
+.scaled-container {
+  width: var(--scaled-width);
+  height: var(--scaled-height);
+}

@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import React from "react";
 
+import "@/styles/components/tv.css"
+
 export interface ClockProps {
   visibility?: boolean;
   timeFormat?: string;
@@ -36,11 +38,11 @@ export function Clock({
   return (
     visibility && (
       <div className="grid gap-2">
-        <div className="text-tv-display font-extrabold">
+        <div className="text-display font-extrabold">
           {time}
-          <span className="ml-4 text-tv-medium opacity-68">Uhr</span>
+          <span className="ml-4 text-medium opacity-68">Uhr</span>
         </div>
-        <div className="text-tv-regular font-bold">{date}</div>
+        <div className="text-regular font-bold">{date}</div>
       </div>
     )
   );

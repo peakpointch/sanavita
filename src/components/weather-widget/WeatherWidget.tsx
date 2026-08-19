@@ -6,12 +6,9 @@ import { de } from "date-fns/locale";
 import { Droplet, Thermometer, Wind } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import {
-  type DayForecast,
-  fetchCurrentWeather,
-  fetchForecast,
-  getDaysFromForecast,
-} from "./utils";
+import { type DayForecast, fetchCurrentWeather, fetchForecast, getDaysFromForecast } from "./utils";
+
+import "@/styles/components/tv.css";
 
 export interface WeatherWidgetProps {
   /** Controls the visibility of this component */
@@ -88,14 +85,8 @@ export function WeatherWidget({
     initData();
 
     // Refresh weather & forecast every X minutes
-    const weatherInterval = setInterval(
-      updateWeather,
-      weatherDelay * 60 * 1000
-    );
-    const forecastInterval = setInterval(
-      updateForecast,
-      forecastDelay * 60 * 1000
-    );
+    const weatherInterval = setInterval(updateWeather, weatherDelay * 60 * 1000);
+    const forecastInterval = setInterval(updateForecast, forecastDelay * 60 * 1000);
 
     // Clear intervals on unmount
     return () => {
@@ -104,7 +95,7 @@ export function WeatherWidget({
     };
   }, [prod]);
 
-  if (loading) return <div className="text-tv-regular">Wird geladen...</div>;
+  if (loading) return <div className="text-regular">Wird geladen...</div>;
 
   const { weather, forecast } = data;
   const forecastDays = getDaysFromForecast(forecast, prod);
@@ -121,17 +112,13 @@ export function WeatherWidget({
             <MainIcon
               className={cn(iconColor)}
               style={{
-                height: `calc(6 * var(--tv-rem))`,
-                width: `calc(6 * var(--tv-rem))`,
+                height: `calc(6 * var(--scaled-rem))`,
+                width: `calc(6 * var(--scaled-rem))`,
               }}
             />
             <div className="grid gap-2">
-              <span className="text-tv-h2 font-semibold">
-                {Math.round(weather.main.temp)}°C
-              </span>
-              <span className="text-tv-medium">
-                {omwDe.main[weather.weather[0].main]}
-              </span>
+              <span className="text-h2 font-semibold">{Math.round(weather.main.temp)}°C</span>
+              <span className="text-medium">{omwDe.main[weather.weather[0].main]}</span>
             </div>
           </div>
 
@@ -142,11 +129,11 @@ export function WeatherWidget({
               <Thermometer
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--tv-rem))`,
-                  width: `calc(3.25 * var(--tv-rem))`,
+                  height: `calc(3.25 * var(--scaled-rem))`,
+                  width: `calc(3.25 * var(--scaled-rem))`,
                 }}
               />
-              <span className="text-tv-regular">
+              <span className="text-regular">
                 Gefühlt wie: {Math.round(weather.main.feels_like)}°C
               </span>
             </div>
@@ -156,11 +143,11 @@ export function WeatherWidget({
               <Wind
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--tv-rem))`,
-                  width: `calc(3.25 * var(--tv-rem))`,
+                  height: `calc(3.25 * var(--scaled-rem))`,
+                  width: `calc(3.25 * var(--scaled-rem))`,
                 }}
               />
-              <span className="text-tv-regular">
+              <span className="text-regular">
                 Windgeschwindikeit: {Math.round(weather.wind.speed)} km/h
               </span>
             </div>
@@ -170,11 +157,11 @@ export function WeatherWidget({
               <Droplet
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--tv-rem))`,
-                  width: `calc(3.25 * var(--tv-rem))`,
+                  height: `calc(3.25 * var(--scaled-rem))`,
+                  width: `calc(3.25 * var(--scaled-rem))`,
                 }}
               />
-              <span className="text-tv-regular">
+              <span className="text-regular">
                 Luftfeuchtigkeit: {Math.round(weather.main.humidity)}%
               </span>
             </div>
@@ -182,18 +169,12 @@ export function WeatherWidget({
         </div>
 
         {/* DIVIDER */}
-        <div className="w-full h-0 border-white border-t-tv"></div>
+        <div className="w-full h-0 border-white border-t"></div>
 
         {/* FORECAST */}
         <div className="grid gap-8">
-          <span className="text-tv-medium font-medium">
-            {days}-Tages-Vorhersage
-          </span>
-          <div
-            className={cn(
-              variant === "horizontal" ? "flex gap-24" : "flex flex-col gap-16"
-            )}
-          >
+          <span className="text-medium font-medium">{days}-Tages-Vorhersage</span>
+          <div className={cn(variant === "horizontal" ? "flex gap-24" : "flex flex-col gap-16")}>
             {forecastDays.slice(0, days).map((data) => (
               <WeatherForecastDay
                 key={data.date.toISOString()}
@@ -217,7 +198,7 @@ export function WeatherForecastDay({
 }) {
   return (
     <div className="flex flex-col items-center gap-8">
-      <span className="text-tv-regular">
+      <span className="text-regular">
         {format(day.date, "EEEE", {
           locale: de,
         })}
@@ -225,15 +206,15 @@ export function WeatherForecastDay({
       <day.icon.node
         className={cn(day.icon.color)}
         style={{
-          height: `calc(3.25 * var(--tv-rem))`,
-          width: `calc(3.25 * var(--tv-rem))`,
+          height: `calc(3.25 * var(--scaled-rem))`,
+          width: `calc(3.25 * var(--scaled-rem))`,
         }}
       />
-      {!showMinMaxTemp && <span className="text-tv-regular">{day.temp}°C</span>}
+      {!showMinMaxTemp && <span className="text-regular">{day.temp}°C</span>}
       {showMinMaxTemp && (
         <>
-          <span className="text-tv-regular">{day.maxTemp}°C</span>
-          <span className="text-tv-regular">{day.minTemp}°C</span>
+          <span className="text-regular">{day.maxTemp}°C</span>
+          <span className="text-regular">{day.minTemp}°C</span>
         </>
       )}
     </div>
