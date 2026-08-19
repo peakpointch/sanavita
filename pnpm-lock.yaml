@@ -28,7 +28,7 @@ importers:
         version: 1.2.10
       peakflow:
         specifier: github:peakpointch/peakflow#main
-        version: https://codeload.github.com/peakpointch/peakflow/tar.gz/d91266bf699cac1885e793a2474aa7814e5e84fb
+        version: https://codeload.github.com/peakpointch/peakflow/tar.gz/ba0d058ee92a63ec13309bec5f3b348e7798906c
       peakflow-cli:
         specifier: link:../../tools/peakflow-cli
         version: link:../../tools/peakflow-cli
@@ -1922,20 +1922,21 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@uploadcare/cname-prefix@6.19.0':
-    resolution: {integrity: sha512-SnEDV8mKaQ8Gb3BwwaL0xNfE7z5dcEdKx6MUBiIbwttBqQsySTFgsNzMEW0v8sc9PDMW7RFf7hMTNaVzPjeYcg==}
+  '@uploadcare/cname-prefix@6.21.0':
+    resolution: {integrity: sha512-DSFjfu3RZR3iX+tKYbqezEP0nMExIJy+xm76gH3D+mk2NomaAOCKxVo89nU1OQNp9TSUyiTs0EweWimUoLNAhg==}
+    engines: {node: '>=16'}
 
   '@uploadcare/file-uploader@1.33.1':
     resolution: {integrity: sha512-16hythZxBIOmbf24T+581ngKk7ocXOr0giZxyoMHxFD8yg/Jodb09go/VbVBRgHxU932sBy1gJMqiFKLyK9F0w==}
 
-  '@uploadcare/image-shrink@6.19.0':
-    resolution: {integrity: sha512-cWGzzG8Fr88rTHwHI/nORHDvL8AIxxuZy/UN9ppmidV14IMiWz1nj5x0ctwvxESzN2tjjPE3b5aIBk8gr+myEw==}
+  '@uploadcare/image-shrink@6.21.0':
+    resolution: {integrity: sha512-jdB4k9/cgyyOs/MTrCmez6lZNjk7db/5z6RON71SQhMklhkSBsFjPyx5xtdkOi8RjtKstS/fV/zy43sMfGK8fw==}
 
-  '@uploadcare/quality-insights@6.19.0':
-    resolution: {integrity: sha512-teyC+7fWbZxRnMcukrCertHaTJ/6faLsR3ofTwxTU28CyRY+8pmvaKOi5yYzdmG9zUGvyAWYHJxVgOfl3Lu3tw==}
+  '@uploadcare/quality-insights@6.21.0':
+    resolution: {integrity: sha512-vrmNKkXc2lHYEbQzEL/CNNbDxPcxapwySqllG3cZf0LgHzi0hnUmGFSDPVXqJkeojLsNpX8jteDwb78mlmiTug==}
 
-  '@uploadcare/upload-client@6.19.0':
-    resolution: {integrity: sha512-Av9TQYdyPdU0tuhW8/JA0tMclrRlWJ6i2fxHDHmudAixivVqzkwIuPq7KXNVZeHjs6B7lWZZlMxW0MAOXC5SxQ==}
+  '@uploadcare/upload-client@6.21.0':
+    resolution: {integrity: sha512-W4w3SDKIKR1NW8GkL2S8YWBi7BuYqEBl5LxiboUCj8pfM9T1vovnelm4A9oD7mfqbzOilaYDxsaoT9Np2qIjwg==}
     engines: {node: '>=16'}
 
   '@vime/core@5.4.1':
@@ -3480,8 +3481,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanostores@1.4.2:
-    resolution: {integrity: sha512-Wxv8Roefr2nqtiRG0bnaFlpYqpIVtOEeJZHaH+4nGgOK1/7n6OHOuHCb/bhqrNQgZM8fyd0s1PqhdrJc9Ib44g==}
+  nanostores@1.5.1:
+    resolution: {integrity: sha512-DNIX+HyFpo14fKGe0NsX9/aPzdKGiSZwX5xEMpDwQrDdo2iTiUYunOCCQLYwJrziKVe8ZOtVvcv0dEVI8lMx2g==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
   negotiator@0.6.3:
@@ -3646,8 +3647,8 @@ packages:
     resolution: {integrity: sha512-BT6eelPB1EyGHo8pC0o9Bl6k6SYVhKO1jEbd3lcTrtr7XHdjP8BW1YpfCV3G9Kwkxgattk+S5q2/RvuttCsS1g==}
     engines: {node: '>= 0.10'}
 
-  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/d91266bf699cac1885e793a2474aa7814e5e84fb:
-    resolution: {gitHosted: true, integrity: sha512-qzYR71hGusUzZ9VlvrLT55qnymFTsSelXg0ukLEOBVYByDp9KBMbU9SB7B8Ox3AeD6xOxG8VWN7wVoRqNX/DhA==, tarball: https://codeload.github.com/peakpointch/peakflow/tar.gz/d91266bf699cac1885e793a2474aa7814e5e84fb}
+  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/ba0d058ee92a63ec13309bec5f3b348e7798906c:
+    resolution: {gitHosted: true, integrity: sha512-/vvhVDoHJq54pedPMhB354JLQQv0MHEQV6Ns8F2LmD3FcOOOADn6SL7f0gqooJyrl6DDzyfm/F7ACt1iT+D18g==, tarball: https://codeload.github.com/peakpointch/peakflow/tar.gz/ba0d058ee92a63ec13309bec5f3b348e7798906c}
     version: 0.3.0-alpha.11
 
   performance-now@2.1.0:
@@ -6275,27 +6276,27 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@uploadcare/cname-prefix@6.19.0': {}
+  '@uploadcare/cname-prefix@6.21.0': {}
 
   '@uploadcare/file-uploader@1.33.1':
     dependencies:
       '@lit/context': 1.1.6
-      '@uploadcare/cname-prefix': 6.19.0
-      '@uploadcare/image-shrink': 6.19.0
-      '@uploadcare/quality-insights': 6.19.0
-      '@uploadcare/upload-client': 6.19.0
+      '@uploadcare/cname-prefix': 6.21.0
+      '@uploadcare/image-shrink': 6.21.0
+      '@uploadcare/quality-insights': 6.21.0
+      '@uploadcare/upload-client': 6.21.0
       keyux: 0.11.6
       lit: 3.3.3
-      nanostores: 1.4.2
+      nanostores: 1.5.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@uploadcare/image-shrink@6.19.0': {}
+  '@uploadcare/image-shrink@6.21.0': {}
 
-  '@uploadcare/quality-insights@6.19.0': {}
+  '@uploadcare/quality-insights@6.21.0': {}
 
-  '@uploadcare/upload-client@6.19.0':
+  '@uploadcare/upload-client@6.21.0':
     dependencies:
       form-data: 4.0.6
       ws: 8.21.3
@@ -8040,7 +8041,7 @@ snapshots:
 
   nanoid@3.3.18: {}
 
-  nanostores@1.4.2: {}
+  nanostores@1.5.1: {}
 
   negotiator@0.6.3: {}
 
@@ -8197,7 +8198,7 @@ snapshots:
       sha.js: 2.4.12
       to-buffer: 1.2.2
 
-  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/d91266bf699cac1885e793a2474aa7814e5e84fb:
+  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/ba0d058ee92a63ec13309bec5f3b348e7798906c:
     dependencies:
       '@calcom/embed-core': 1.5.3
       '@uploadcare/file-uploader': 1.33.1
