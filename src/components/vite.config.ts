@@ -1,13 +1,9 @@
-import { fileURLToPath, URL } from "url";
+import { URL } from "url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// Convert import.meta.url to __dirname
-// const __filename = fileURLToPath(import.meta.url);
-const __dirname = new URL(".", import.meta.url).pathname;
-
 export default defineConfig({
-  root: __dirname,
+  root: import.meta.dirname,
   plugins: [react()],
   build: {
     rollupOptions: {
@@ -23,11 +19,17 @@ export default defineConfig({
       usePolling: false,
       ignored: ["**/node_modules/**", "**/.git/**", "**/.cache/**"],
     },
+     proxy: {
+      "/webflow-proxy": {
+        target: "https://sanavita-ag.webflow.io",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/webflow-proxy/, ""),
+      },
+    },
   },
   resolve: {
     alias: {
-      "@": new URL("..", import.meta.url).pathname, // src/components/..
-      "@root": new URL("../..", import.meta.url).pathname, // repo root
+      "@": new URL("../", import.meta.url).pathname, // repo root
     },
   },
 });
