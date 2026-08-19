@@ -1,24 +1,16 @@
-<script type="application/json" data-payload-element="embed" data-payload-id="{{slug}}" data-cms-id="dishes">
+<script type="application/json" data-payload-element="embed" data-payload-id="{{wf:Slug|Dynamo}}" data-cms-id="dishes">
   {
-    "slug": "{{slug}}",
-    "id": "{{name}}",
-    "name": "{{dish}}",
-    "details": "${details}",
-    "price": "{{preis}}",
-    "priceSmall": "{{preis-kleine-portion}}",
-    "course": "{{typ}}",
-    "order": "{{reihenfolge}}",
-    "vegetarian": "{{vegetarian}}",
-    "category": {
-      "name": "{{kategorie-single:name}}",
-      "slug": "{{kategorie-single:slug}}",
-      "description": "${category.description}",
-      "categoryName": "{{kategorie-single:kategorie-name}}",
-      "sectionOrCategory": "{{kategorie-single:menu-sektion-oder-kategorie}}",
-      "order": "{{kategorie-single:reihenfolge}}"
-    }
+    "slug": "{{wf:Slug|Dynamo}}",
+    "displayName": "{{wf:Name des Gerichts|Dynamo}}",
+    "description": "{{dom:description}}",
+    "order": "{{wf:Reihenfolge|Dynamo}}",
+    "course": "{{wf:Gang|Dynamo}}",
+    "isVegetarian": "{{wf:Vegetarisch?|Dynamo}}",
+    "price": "{{wf:Preis|Dynamo}}",
+    "priceSmall": "{{wf:Preis kleine Portion|Dynamo}}",
+    "menuId": "{{wf:Menukarte/Slug|Dynamo}}",
+    "categoryId": "{{wf:Kategorie wählen/Slug|Dynamo}}"
   }
 </script>
 
-<div data-payload-element="var" data-payload-var="details">{{details-ingredients}}</div>
-<div data-payload-element="var" data-payload-var="category.description">{{kategorie-single:beilage}}</div>
+<div data-payload-element="var" data-payload-var="description">{{wf:Beschreibung|Dynamo}}</div>
