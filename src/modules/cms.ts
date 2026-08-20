@@ -1,5 +1,7 @@
 import { CollectionList, Payload, fetchOwnDocument } from "peakflow";
 
+declare const __USE_WEBFLOW_PROXY__: boolean;
+
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1"]);
 const PUBLISHED_HOSTNAMES = new Set([
   "sanavita-ag.webflow.io",
@@ -16,9 +18,9 @@ export function canFetchCmsDocuments(): boolean {
 
 function fetchCmsDocument(path: string): Promise<Document> {
   const pathname = `/cms/${path}`;
-  const hostname = window.location.hostname;
+  const useWebflowProxy = typeof __USE_WEBFLOW_PROXY__ !== "undefined" && __USE_WEBFLOW_PROXY__;
 
-  if (LOCAL_HOSTNAMES.has(hostname)) {
+  if (useWebflowProxy) {
     return fetchOwnDocument(`/webflow-proxy${pathname}`);
   }
 

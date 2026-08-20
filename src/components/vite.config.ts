@@ -2,9 +2,12 @@ import { URL } from "url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   root: import.meta.dirname,
   plugins: [react()],
+  define: {
+    __USE_WEBFLOW_PROXY__: JSON.stringify(command === "serve"),
+  },
   build: {
     rollupOptions: {
       input: "src/components/index.html",
@@ -32,4 +35,4 @@ export default defineConfig({
       "@": new URL("../", import.meta.url).pathname, // repo root
     },
   },
-});
+}));
