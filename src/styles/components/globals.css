@@ -73,7 +73,7 @@
   --text-7xl: var(--wf-font-size-h1);
   --text-7xl--line-height: var(--wf-line-height-h1);
 
-  --spacing: calc(4 * var(--wf-px));
+  --spacing: var(--tw-spacing);
   --border-width: var(--wf-px);
 }
 
@@ -82,6 +82,7 @@
 
   --wf-px: 1px;
   --wf-rem: 1rem;
+  --tw-spacing: calc(4 * var(--wf-px));
 
   --wf-font-size-h1: var(--_typography---font--size--h1);
   --wf-font-size-h2: var(--_typography---font--size--h2);
@@ -115,6 +116,8 @@
   --wf-rem: var(--_scalable-design-system---scaled-rem);
   --wf-scaled-width: var(--_scalable-design-system---scaled-width);
   --wf-scaled-height: var(--_scalable-design-system---scaled-height);
+
+  --tw-spacing: calc(6 * var(--wf-px));
 
   --wf-font-size-h1: var(--_scalable-design-system---text--h1);
   --wf-font-size-h2: var(--_scalable-design-system---text--h2);
