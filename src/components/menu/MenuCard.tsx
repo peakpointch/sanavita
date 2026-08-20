@@ -1,12 +1,29 @@
 import React from "react";
+import { gsap } from "gsap";
+import { Plus } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import type { Menu, MenuCategory, MenuDish, MenuDrink } from "@/modules/cms";
 
 import { CategoryBlock } from "./CategoryBlock";
-import { byOrder, formatTime } from "./menu-utils";
+import { byOrder, formatDate, formatTime } from "./menu-utils";
 import type { MenuItem } from "./types";
 
 const COMPACT_MENU_WIDTH = 720;
+
+export type MenuCardMenu = Pick<
+  Menu,
+  | "slug"
+  | "displayName"
+  | "description"
+  | "showDescription"
+  | "isSeasonal"
+  | "showTime"
+  | "startTime"
+  | "endTime"
+  | "categoryIds"
+> &
+  Partial<Pick<Menu, "startDate" | "endDate">>;
 
 interface MenuSubcategoryData {
   category: MenuCategory;
@@ -17,7 +34,7 @@ interface MenuSectionData extends MenuSubcategoryData {
   subcategories: MenuSubcategoryData[];
 }
 
-function getMenuSections(menu: Menu, categories: MenuCategory[]): MenuCategory[] {
+function getMenuSections(menu: MenuCardMenu, categories: MenuCategory[]): MenuCategory[] {
   const categoriesById = new Map(categories.map((category) => [category.slug, category]));
   const selectedSections = (menu.categoryIds as string[])
     .map((categoryId) => categoriesById.get(categoryId))
@@ -49,22 +66,28 @@ function getSubcategories(
 }
 
 function getMenuCardData(
-  menu: Menu,
+  menu: MenuCardMenu,
   categories: MenuCategory[],
   dishes: MenuDish[],
   drinks: MenuDrink[],
-): { timeLabel: string; sections: MenuSectionData[] } {
+): { metaLabel: string; sections: MenuSectionData[] } {
   const items: MenuItem[] = [...dishes, ...drinks].filter((item) => item.menuId === menu.slug);
   const timeLabel = [formatTime(menu.startTime), formatTime(menu.endTime)]
     .filter(Boolean)
-    .join("–");
+    .join(" - ");
+  const dateLabel = menu.isSeasonal
+    ? [formatDate(menu.startDate), formatDate(menu.endDate)].filter(Boolean).join(" - ")
+    : "";
+  const metaLabel = [dateLabel, menu.showTime && timeLabel ? `${timeLabel} Uhr` : ""]
+    .filter(Boolean)
+    .join(" | ");
   const sections = getMenuSections(menu, categories).map((category) => ({
     category,
     items: getItemsForCategory(items, category.slug),
     subcategories: getSubcategories(category, categories, items),
   }));
 
-  return { timeLabel, sections };
+  return { metaLabel, sections };
 }
 
 function useCompactMenuLayout() {
@@ -99,8 +122,8 @@ function useCompactMenuLayout() {
   return { articleRef, scaleProbeRef, compact };
 }
 
-function useMenuCardCollapse(collapsible: boolean) {
-  const [expanded, setExpanded] = React.useState(true);
+function useMenuCardCollapse(collapsible: boolean, startCollapsed: boolean) {
+  const [expanded, setExpanded] = React.useState(!startCollapsed);
   const contentId = `menu-card-content-${React.useId()}`;
   const contentVisible = !collapsible || expanded;
 
@@ -123,110 +146,204 @@ function useMenuCardCollapse(collapsible: boolean) {
   };
 }
 
+function useMenuCardAnimation(collapsible: boolean, expanded: boolean, visible: boolean) {
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const iconRef = React.useRef<SVGSVGElement>(null);
+  const initialized = React.useRef(false);
+  const [borderVisible, setBorderVisible] = React.useState(!collapsible || expanded);
+
+  React.useLayoutEffect(() => {
+    const content = contentRef.current;
+    const icon = iconRef.current;
+    if (!content) return;
+
+    if (!initialized.current) {
+      gsap.set(content, {
+        height: collapsible && !expanded ? 0 : "auto",
+        opacity: collapsible && !expanded ? 0 : 1,
+      });
+      if (icon) gsap.set(icon, { rotation: expanded ? 45 : 0 });
+      initialized.current = true;
+      return;
+    }
+
+    if (!collapsible) {
+      gsap.set(content, { clearProps: "height,opacity" });
+      setBorderVisible(true);
+      return;
+    }
+
+    if (expanded) setBorderVisible(true);
+
+    gsap.to(content, {
+      height: expanded ? "auto" : 0,
+      opacity: expanded ? 1 : 0,
+      duration: 0.5,
+      ease: "power1.inOut",
+      overwrite: true,
+      onComplete: () => {
+        if (!expanded) setBorderVisible(false);
+      },
+    });
+
+    if (icon) {
+      gsap.to(icon, {
+        rotation: expanded ? 45 : 0,
+        duration: 0.5,
+        ease: "power1.inOut",
+        overwrite: true,
+      });
+    }
+
+    return () => {
+      gsap.killTweensOf(content);
+      if (icon) gsap.killTweensOf(icon);
+    };
+  }, [collapsible, expanded, visible]);
+
+  return { contentRef, iconRef, borderVisible };
+}
+
 export interface MenuCardProps {
-  menu: Menu;
+  visibility?: boolean;
+  menu: MenuCardMenu;
+  descriptionContent?: React.ReactNode;
   categories: MenuCategory[];
   dishes: MenuDish[];
   drinks: MenuDrink[];
   collapsible?: boolean;
+  startCollapsed?: boolean;
   scaled?: boolean;
 }
 
 export function MenuCard({
+  visibility = true,
   menu,
+  descriptionContent,
   categories,
   dishes,
   drinks,
   collapsible = true,
+  startCollapsed = true,
   scaled = false,
 }: MenuCardProps) {
   const layout = useCompactMenuLayout();
-  const collapse = useMenuCardCollapse(collapsible);
+  const collapse = useMenuCardCollapse(collapsible, startCollapsed);
+  const animation = useMenuCardAnimation(collapsible, collapse.expanded, visibility);
   const data = getMenuCardData(menu, categories, dishes, drinks);
 
   return (
-    <article
-      ref={layout.articleRef}
-      className={`wf relative w-full overflow-hidden border border-beige-200 bg-neutral-lightest text-black ${
-        scaled ? "is-scaled" : ""
-      }`}
-    >
-      <span
-        ref={layout.scaleProbeRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute invisible"
-        style={{ width: "var(--wf-px)", height: "var(--wf-px)" }}
-      />
-      <header
-        role={collapsible ? "button" : undefined}
-        tabIndex={collapsible ? 0 : undefined}
-        aria-expanded={collapsible ? collapse.expanded : undefined}
-        aria-controls={collapsible ? collapse.contentId : undefined}
-        onClick={collapse.toggleExpanded}
-        onKeyDown={collapse.handleHeaderKeyDown}
-        className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 px-8 py-7 ${
-          collapse.contentVisible ? "border-b border-beige-200" : ""
-        } ${
-          collapsible
-            ? "cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-400"
-            : ""
-        }`}
-      >
-        <div className="grid min-w-0 gap-3">
-          {menu.showTime && data.timeLabel && (
-            <p className="text-sm font-medium uppercase text-brand-400">{data.timeLabel} Uhr</p>
-          )}
-          <h2 className="text-3xl font-extrabold">{menu.displayName}</h2>
-        </div>
-        {collapsible && (
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            className={`size-6 ${collapse.expanded ? "rotate-180" : ""}`}
-          >
-            <path
-              d="m6 9 6 6 6-6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+    visibility && (
+      <article
+        ref={layout.articleRef}
+        className={cn(
+          "wf relative w-full overflow-hidden border border-beige-200 bg-neutral-lightest text-black",
+          scaled && "is-scaled",
+          !collapsible && "flex h-full flex-col",
         )}
-      </header>
-
-      <div
-        id={collapse.contentId}
-        aria-hidden={!collapse.contentVisible}
-        hidden={!collapse.contentVisible}
       >
-        <div className="grid gap-10 px-8 py-6">
-          {menu.showDescription && menu.description && (
-            <div className="[&_p]:m-0" dangerouslySetInnerHTML={{ __html: menu.description }} />
+        <span
+          ref={layout.scaleProbeRef}
+          aria-hidden="true"
+          className="pointer-events-none invisible absolute"
+          style={{ width: "var(--wf-px)", height: "var(--wf-px)" }}
+        />
+        <header
+          role={collapsible ? "button" : undefined}
+          tabIndex={collapsible ? 0 : undefined}
+          aria-expanded={collapsible ? collapse.expanded : undefined}
+          aria-controls={collapsible ? collapse.contentId : undefined}
+          onClick={collapse.toggleExpanded}
+          onKeyDown={collapse.handleHeaderKeyDown}
+          className={cn(
+            "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 p-6",
+            (collapse.contentVisible || animation.borderVisible) &&
+              "border-b border-beige-200",
+            collapsible &&
+              "group cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-400",
           )}
-          {data.sections.map((section) => (
-            <section key={section.category.slug} className="grid gap-8">
-              <CategoryBlock
-                category={section.category}
-                items={section.items}
-                compact={layout.compact}
-                scaled={scaled}
-              />
-              {section.subcategories.map((subcategory) => (
+        >
+          <div className="grid min-w-0 gap-2">
+            {data.metaLabel && (
+              <p className="text-sm font-medium tracking-[0.05em] text-brand-400 uppercase">
+                {data.metaLabel}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-4">
+              <h2
+                className={cn(
+                  "text-3xl font-extrabold",
+                  collapsible &&
+                    "transition-colors duration-200 [transition-timing-function:ease] group-hover:text-brand-400",
+                )}
+              >
+                {menu.displayName}
+              </h2>
+              {menu.isSeasonal && (
+                <span className="bg-beige-100 px-2 py-1 text-xs font-semibold uppercase">
+                  Saisonal
+                </span>
+              )}
+            </div>
+          </div>
+          {collapsible && (
+            <Plus
+              ref={animation.iconRef}
+              aria-hidden="true"
+              strokeWidth={1.5}
+              strokeLinecap="butt"
+              strokeLinejoin="miter"
+              className="size-[calc(24*var(--wf-px))] transition-colors duration-200 [transition-timing-function:ease] group-hover:text-brand-400"
+            />
+          )}
+        </header>
+
+        <div
+          ref={animation.contentRef}
+          id={collapse.contentId}
+          aria-hidden={!collapse.contentVisible}
+          className={cn(collapsible && "overflow-hidden", !collapsible && "min-h-0 flex-1")}
+        >
+          <div
+            className={cn(
+              "grid gap-10 p-6",
+              !collapsible && "h-full content-start overflow-y-auto",
+            )}
+          >
+            {menu.showDescription &&
+              (descriptionContent ? (
+                <div className="[&_p]:m-0">{descriptionContent}</div>
+              ) : (
+                menu.description && (
+                  <div
+                    className="[&_p]:m-0"
+                    dangerouslySetInnerHTML={{ __html: menu.description }}
+                  />
+                )
+              ))}
+            {data.sections.map((section) => (
+              <section key={section.category.slug} className="grid gap-6">
                 <CategoryBlock
-                  key={subcategory.category.slug}
-                  category={subcategory.category}
-                  items={subcategory.items}
+                  category={section.category}
+                  items={section.items}
                   compact={layout.compact}
-                  subcategory
                   scaled={scaled}
                 />
-              ))}
-            </section>
-          ))}
+                {section.subcategories.map((subcategory) => (
+                  <CategoryBlock
+                    key={subcategory.category.slug}
+                    category={subcategory.category}
+                    items={subcategory.items}
+                    compact={layout.compact}
+                    subcategory
+                    scaled={scaled}
+                  />
+                ))}
+              </section>
+            ))}
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    )
   );
 }

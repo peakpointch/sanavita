@@ -1,8 +1,28 @@
 import { CollectionList, Payload, fetchOwnDocument } from "peakflow";
 
-function cmsPath(path: string): string {
-  const isLocalPreview = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-  return `${isLocalPreview ? "/webflow-proxy" : ""}/cms/${path}`;
+const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1"]);
+const PUBLISHED_HOSTNAMES = new Set([
+  "sanavita-ag.webflow.io",
+  "sanavita-ag.ch",
+  "www.sanavita-ag.ch",
+]);
+
+export function canFetchCmsDocuments(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const hostname = window.location.hostname;
+  return LOCAL_HOSTNAMES.has(hostname) || PUBLISHED_HOSTNAMES.has(hostname);
+}
+
+function fetchCmsDocument(path: string): Promise<Document> {
+  const pathname = `/cms/${path}`;
+  const hostname = window.location.hostname;
+
+  if (LOCAL_HOSTNAMES.has(hostname)) {
+    return fetchOwnDocument(`/webflow-proxy${pathname}`);
+  }
+
+  return fetchOwnDocument(pathname);
 }
 
 export const slugSchema = Payload.define(
@@ -97,8 +117,17 @@ export type MenuDrink = Payload.Parsed<typeof drinkSchema>;
 export type MenuCategory = Payload.Parsed<typeof categorySchema>;
 export type Menu = Payload.Parsed<typeof menuSchema>;
 
+export interface CmsPayload {
+  menus: Menu[];
+  categories: MenuCategory[];
+  dishes: MenuDish[];
+  drinks: MenuDrink[];
+}
+
+let cmsMenuPayloadPromise: Promise<CmsPayload> | undefined;
+
 export async function getMenus(): Promise<Menu[]> {
-  const menusRoot = await fetchOwnDocument(cmsPath("menus"));
+  const menusRoot = await fetchCmsDocument("menus");
   const menuListElement = CollectionList.select("wrapper", "menus", {
     doc: menusRoot,
   });
@@ -115,7 +144,7 @@ export async function getMenus(): Promise<Menu[]> {
 }
 
 export async function getDishes(): Promise<MenuDish[]> {
-  const dishesRoot = await fetchOwnDocument(cmsPath("dishes"));
+  const dishesRoot = await fetchCmsDocument("dishes");
   const dishListElement = CollectionList.select("wrapper", "dishes", {
     doc: dishesRoot,
   });
@@ -129,7 +158,7 @@ export async function getDishes(): Promise<MenuDish[]> {
 }
 
 export async function getDrinks(): Promise<MenuDrink[]> {
-  const drinksRoot = await fetchOwnDocument(cmsPath("drinks"));
+  const drinksRoot = await fetchCmsDocument("drinks");
   const drinkListElement = CollectionList.select("wrapper", "drinks", {
     doc: drinksRoot,
   });
@@ -143,7 +172,7 @@ export async function getDrinks(): Promise<MenuDrink[]> {
 }
 
 export async function getCategories(): Promise<MenuCategory[]> {
-  const categoriesRoot = await fetchOwnDocument(cmsPath("categories"));
+  const categoriesRoot = await fetchCmsDocument("categories");
   const categoryListElement = CollectionList.select("wrapper", "categories", {
     doc: categoriesRoot,
   });
@@ -154,4 +183,15 @@ export async function getCategories(): Promise<MenuCategory[]> {
   });
 
   return categoryList.parse();
+}
+
+export function getMenuPayload(): Promise<CmsPayload> {
+  cmsMenuPayloadPromise ??= Promise.all([
+    getMenus(),
+    getCategories(),
+    getDishes(),
+    getDrinks(),
+  ]).then(([menus, categories, dishes, drinks]) => ({ menus, categories, dishes, drinks }));
+
+  return cmsMenuPayloadPromise;
 }

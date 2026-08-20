@@ -32,9 +32,18 @@ export function formatTime(value?: number): string {
   if (value === undefined) return "";
 
   const hours = value <= 24 ? Math.floor(value) : Math.floor(value / 60);
-  const minutes = value <= 24 ? Math.round((value - hours) * 60) : Math.round(value % 60);
+  const minutes = value <= 24 ? Math.round((value - hours) * 100) : Math.round(value % 60);
 
-  return `${hours.toString().padStart(2, "0")}.${minutes.toString().padStart(2, "0")}`;
+  return `${hours}:${minutes.toString().padStart(2, "0")}`;
+}
+
+export function formatDate(value?: Date): string {
+  if (!value || Number.isNaN(value.getTime())) return "";
+
+  const day = value.getDate().toString().padStart(2, "0");
+  const month = (value.getMonth() + 1).toString().padStart(2, "0");
+
+  return `${day}.${month}.${value.getFullYear()}`;
 }
 
 function getDrinkOfferLabel(offer: MenuDrink["offers"][number]): string {

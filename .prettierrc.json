@@ -4,6 +4,9 @@
   "printWidth": 100,
   "semi": true,
   "htmlWhitespaceSensitivity": "ignore",
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindStylesheet": "./src/styles/components/globals.css",
+  "tailwindFunctions": ["cn"],
   "overrides": [
     {
       "files": ["*.html"],

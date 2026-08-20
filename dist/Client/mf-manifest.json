@@ -1,0 +1,156 @@
+{
+  "id": "_SanavitaComponents",
+  "name": "_SanavitaComponents",
+  "metaData": {
+    "name": "_SanavitaComponents",
+    "type": "app",
+    "buildInfo": {
+      "buildVersion": "0.2.0-beta.6",
+      "buildName": "sanavita"
+    },
+    "remoteEntry": {
+      "name": "remoteEntry.js",
+      "path": "",
+      "type": "global"
+    },
+    "types": {
+      "path": "",
+      "name": "",
+      "zip": "",
+      "api": ""
+    },
+    "globalName": "_SanavitaComponents",
+    "pluginVersion": "2.5.1",
+    "publicPath": "http://localhost/"
+  },
+  "shared": [],
+  "remotes": [],
+  "exposes": [
+    {
+      "id": "_SanavitaComponents:@webflow_renderer",
+      "name": "@webflow_renderer",
+      "assets": {
+        "js": {
+          "sync": [
+            "467.js",
+            "__federation_expose_scope_webflow_renderer.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [],
+          "async": []
+        }
+      },
+      "path": "./@webflow_renderer"
+    },
+    {
+      "id": "_SanavitaComponents:Clock",
+      "name": "Clock",
+      "assets": {
+        "js": {
+          "sync": [
+            "467.js",
+            "394.js",
+            "__federation_expose_Clock.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [
+            "c607850bcfeca225a668.css"
+          ],
+          "async": []
+        }
+      },
+      "path": "./Clock"
+    },
+    {
+      "id": "_SanavitaComponents:MenuCard",
+      "name": "MenuCard",
+      "assets": {
+        "js": {
+          "sync": [
+            "467.js",
+            "__federation_expose_MenuCard.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [
+            "c607850bcfeca225a668.css"
+          ],
+          "async": []
+        }
+      },
+      "path": "./MenuCard"
+    },
+    {
+      "id": "_SanavitaComponents:MenuItem",
+      "name": "MenuItem",
+      "assets": {
+        "js": {
+          "sync": [
+            "467.js",
+            "__federation_expose_MenuItem.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [
+            "c607850bcfeca225a668.css"
+          ],
+          "async": []
+        }
+      },
+      "path": "./MenuItem"
+    },
+    {
+      "id": "_SanavitaComponents:MenuList",
+      "name": "MenuList",
+      "assets": {
+        "js": {
+          "sync": [
+            "467.js",
+            "394.js",
+            "139.js",
+            "__federation_expose_MenuList.js"
+          ],
+          "async": [
+            "196.js",
+            "443.js"
+          ]
+        },
+        "css": {
+          "sync": [
+            "c607850bcfeca225a668.css"
+          ],
+          "async": []
+        }
+      },
+      "path": "./MenuList"
+    },
+    {
+      "id": "_SanavitaComponents:WeatherWidget",
+      "name": "WeatherWidget",
+      "assets": {
+        "js": {
+          "sync": [
+            "467.js",
+            "394.js",
+            "925.js",
+            "__federation_expose_WeatherWidget.js"
+          ],
+          "async": []
+        },
+        "css": {
+          "sync": [
+            "c607850bcfeca225a668.css"
+          ],
+          "async": []
+        }
+      },
+      "path": "./WeatherWidget"
+    }
+  ]
+}
