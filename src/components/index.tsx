@@ -15,8 +15,8 @@ function App() {
   return (
     <div className="min-h-screen p-10 flex flex-col gap-32 items-center justify-center bg-brand-950 text-white">
       {/* Component Environments */}
-      {/* <TV /> */}
-      <Screen />
+      <TV />
+      {/* <Screen /> */}
     </div>
   );
 }

@@ -106,7 +106,7 @@ export function WeatherWidget({
 
   return (
     visibility && (
-      <div className={`wf grid gap-16 ${scaled ? "is-scaled" : ""}`}>
+      <div className={`wf tv grid gap-16 ${scaled ? "is-scaled" : ""}`}>
         {/* CURRENT WEATHER */}
         <div className="flex items-center gap-16">
           {/* ICON & TEMP */}
@@ -127,7 +127,7 @@ export function WeatherWidget({
           {/* DETAILS */}
           <div className="grid gap-4">
             {/* --- FEELS LIKE --- */}
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Thermometer
                 className=""
                 style={{
@@ -141,7 +141,7 @@ export function WeatherWidget({
             </div>
 
             {/* --- WIND --- */}
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Wind
                 className=""
                 style={{
@@ -155,7 +155,7 @@ export function WeatherWidget({
             </div>
 
             {/* --- HUMIDITY --- */}
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Droplet
                 className=""
                 style={{
@@ -171,7 +171,7 @@ export function WeatherWidget({
         </div>
 
         {/* DIVIDER */}
-        <div className="w-full h-0 border-white border-t"></div>
+        <div className="h-0 w-full border-t border-white"></div>
 
         {/* FORECAST */}
         <div className="grid gap-8">

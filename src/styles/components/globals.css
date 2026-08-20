@@ -132,6 +132,10 @@
   --wf-font-size-tiny: var(--_scalable-design-system---text--tiny);
 }
 
+.wf.is-scaled.tv {
+  --tw-spacing: calc(4 * var(--wf-px));
+}
+
 @keyframes skeleton-scan {
   from {
     background-position: 200% 0;
