@@ -38,7 +38,7 @@ export function Clock({
   return (
     visibility && (
       <div className={`wf tv grid gap-2 ${scaled ? "is-scaled" : ""}`}>
-        <div className="text-7xl font-extrabold">
+        <div className="text-8xl font-extrabold">
           {time}
           <span className="ml-4 text-lg opacity-68">Uhr</span>
         </div>

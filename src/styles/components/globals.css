@@ -72,6 +72,8 @@
   --text-6xl--line-height: var(--wf-line-height-h2);
   --text-7xl: var(--wf-font-size-h1);
   --text-7xl--line-height: var(--wf-line-height-h1);
+  --text-8xl: var(--wf-font-size-display);
+  --text-8xl--line-height: var(--wf-line-height-display);
 
   --spacing: var(--tw-spacing);
   --border-width: var(--wf-px);
@@ -84,6 +86,7 @@
   --wf-rem: 1rem;
   --tw-spacing: calc(4 * var(--wf-px));
 
+  --wf-font-size-display: calc(5.5 * var(--wf-rem) );
   --wf-font-size-h1: var(--_typography---font--size--h1);
   --wf-font-size-h2: var(--_typography---font--size--h2);
   --wf-font-size-h3: var(--_typography---font--size--h3);
@@ -96,6 +99,7 @@
   --wf-font-size-small: var(--_typography---font--size--small);
   --wf-font-size-tiny: var(--_typography---font--size--tiny);
 
+  --wf-line-height-display: 1.1;
   --wf-line-height-h1: 1.1;
   --wf-line-height-h2: 1.1;
   --wf-line-height-h3: 1.2;
