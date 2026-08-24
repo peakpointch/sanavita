@@ -50,7 +50,7 @@ export function WeatherWidget({
   showMinMaxTemp = false,
   weatherDelay = 10,
   forecastDelay = 180,
-  prod = true,
+  prod = false,
   scaled = true,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
