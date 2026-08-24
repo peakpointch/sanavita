@@ -64,11 +64,11 @@ importers:
         specifier: ^5.2.0
         version: 5.2.0(supports-color@8.1.1)(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.49.2))
       '@webflow/data-types':
-        specifier: ^2.1.0
-        version: 2.1.0
+        specifier: ^2.1.1
+        version: 2.1.1
       '@webflow/react':
-        specifier: ^2.1.0
-        version: 2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^2.1.1
+        version: 2.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       libswitch:
         specifier: github:peakpointch/libswitch#v0.1.1
         version: https://codeload.github.com/peakpointch/libswitch/tar.gz/4940236470d22afdeed38c4cfbb0058ab77da6cb
@@ -809,11 +809,11 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
-  '@webflow/data-types@2.1.0':
-    resolution: {integrity: sha512-2mN7oE6Lkl501TozJt4WLFaxuY4jfdxlW/Prfbl98pSRfFeAAgZsspkYCFNYqn97iscgtyU5ikr4nhUI79Q5+g==}
+  '@webflow/data-types@2.1.1':
+    resolution: {integrity: sha512-zkuc0BiCngxIZx0/W/jHofDLML4oM2dDRA+AwmGoPg1FLb+YVzF8j4sGRWdBV329tqviLWHlw2DO/GsEn4Ishg==}
 
-  '@webflow/react@2.1.0':
-    resolution: {integrity: sha512-Mrj2Scr+xrHkHPHyqE85knYmY3Avxq0zYSYZOqQKON1FuF0FX4pmGEerJpH3Kjv53Z6f1CN3pSVri8KjA1rJXQ==}
+  '@webflow/react@2.1.1':
+    resolution: {integrity: sha512-yqJv2Yid/FHMnUPFfO2PNKjUaEuAy7q1Iz891kVGXL7jNVuNiOO1yH85kA4DRt1MuO0MjZKk8PZJr6sLxNwljA==}
     peerDependencies:
       react: '>=18 <20'
       react-dom: '>=18 <20'
@@ -2054,11 +2054,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@webflow/data-types@2.1.0': {}
+  '@webflow/data-types@2.1.1': {}
 
-  '@webflow/react@2.1.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@webflow/react@2.1.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@webflow/data-types': 2.1.0
+      '@webflow/data-types': 2.1.1
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
