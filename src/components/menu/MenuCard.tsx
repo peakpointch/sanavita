@@ -235,6 +235,7 @@ export function MenuCard({
   return (
     visibility && (
       <article
+        id={menu.slug}
         ref={layout.articleRef}
         className={cn(
           "wf relative w-full overflow-hidden border border-beige-200 bg-neutral-lightest text-black",
@@ -257,8 +258,7 @@ export function MenuCard({
           onKeyDown={collapse.handleHeaderKeyDown}
           className={cn(
             "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 p-6",
-            (collapse.contentVisible || animation.borderVisible) &&
-              "border-b border-beige-200",
+            (collapse.contentVisible || animation.borderVisible) && "border-b border-beige-200",
             collapsible &&
               "group cursor-pointer select-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-400",
           )}
