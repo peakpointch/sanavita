@@ -158,8 +158,25 @@
   animation: skeleton-scan 2.5s linear infinite;
 }
 
+.weather-skeleton-scan {
+  --weather-skeleton-base: color-mix(in srgb, var(--white) 14%, transparent);
+  --weather-skeleton-highlight: color-mix(in srgb, var(--focus-state) 28%, var(--white));
+
+  background-color: var(--weather-skeleton-base);
+  background-image: linear-gradient(
+    90deg,
+    transparent 25%,
+    var(--weather-skeleton-highlight) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-scan 2.5s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-scan {
+  .skeleton-scan,
+  .weather-skeleton-scan {
     animation: none;
   }
 }

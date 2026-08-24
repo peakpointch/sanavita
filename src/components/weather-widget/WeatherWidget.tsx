@@ -7,6 +7,7 @@ import { Droplet, Thermometer, Wind } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { type DayForecast, fetchCurrentWeather, fetchForecast, getDaysFromForecast } from "./utils";
+import { WeatherWidgetSkeleton } from "./WeatherWidgetSkeleton";
 
 export interface WeatherWidgetProps {
   /** Controls the visibility of this component */
@@ -96,7 +97,16 @@ export function WeatherWidget({
   }, [prod]);
 
   if (loading) {
-    return <div className={`wf text-base ${scaled ? "is-scaled" : ""}`}>Wird geladen...</div>;
+    return (
+      visibility && (
+        <WeatherWidgetSkeleton
+          days={days}
+          scaled={scaled}
+          showMinMaxTemp={showMinMaxTemp}
+          variant={variant}
+        />
+      )
+    );
   }
 
   const { weather, forecast } = data;

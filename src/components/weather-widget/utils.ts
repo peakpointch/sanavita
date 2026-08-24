@@ -12,9 +12,14 @@ const openWeather = new OpenWeatherMap({
   units: "metric",
 });
 
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 export async function fetchCurrentWeather(prod: boolean = true): Promise<WeatherDay> {
   return new Promise(async (resolve) => {
     if (!prod) {
+      await wait(5000);
       return resolve(currentWeather);
     }
 
@@ -26,6 +31,7 @@ export async function fetchCurrentWeather(prod: boolean = true): Promise<Weather
 export async function fetchForecast(prod: boolean = true): Promise<WeatherForecast> {
   return new Promise(async (resolve) => {
     if (!prod) {
+      await wait(5000);
       return resolve(forecast);
     }
 
