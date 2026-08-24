@@ -25,7 +25,7 @@ export function isDrink(item: MenuItem): item is MenuDrink {
 }
 
 function formatPrice(price?: number): string {
-  return price === undefined ? "" : priceFormatter.format(price);
+  return typeof price === "number" && Number.isFinite(price) ? priceFormatter.format(price) : "";
 }
 
 export function formatTime(value?: number): string {
@@ -47,8 +47,8 @@ export function formatDate(value?: Date): string {
 }
 
 function getDrinkOfferLabel(offer: MenuDrink["offers"][number]): string {
-  const amount = offer.amount === undefined ? "" : String(offer.amount);
-  const quantity = [amount, offer.unit].filter(Boolean).join(" ");
+  const hasAmount = typeof offer.amount === "number" && Number.isFinite(offer.amount);
+  const quantity = hasAmount ? [String(offer.amount), offer.unit].filter(Boolean).join(" ") : "";
   const price = formatPrice(offer.price);
 
   return [quantity, price].filter(Boolean).join(" | ");
