@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunk_SanavitaComponents=self.webpackChunk_SanavitaComponents||[]).push([[895],{8547(e,n,a){a.r(n),a.d(n,{default:()=>t});const t={env:"Client",Renderer:a(6467).$x}}}]);

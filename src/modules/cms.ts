@@ -1,7 +1,5 @@
 import { CollectionList, Payload, fetchOwnDocument } from "peakflow";
 
-declare const __USE_WEBFLOW_PROXY__: boolean;
-
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1"]);
 const PUBLISHED_HOSTNAMES = new Set([
   "sanavita-ag.webflow.io",
@@ -14,17 +12,6 @@ export function canFetchCmsDocuments(): boolean {
 
   const hostname = window.location.hostname;
   return LOCAL_HOSTNAMES.has(hostname) || PUBLISHED_HOSTNAMES.has(hostname);
-}
-
-function fetchCmsDocument(path: string): Promise<Document> {
-  const pathname = `/cms/${path}`;
-  const useWebflowProxy = typeof __USE_WEBFLOW_PROXY__ !== "undefined" && __USE_WEBFLOW_PROXY__;
-
-  if (useWebflowProxy) {
-    return fetchOwnDocument(`/webflow-proxy${pathname}`);
-  }
-
-  return fetchOwnDocument(pathname);
 }
 
 export const slugSchema = Payload.define(
@@ -129,7 +116,7 @@ export interface CmsPayload {
 let cmsMenuPayloadPromise: Promise<CmsPayload> | undefined;
 
 export async function getMenus(): Promise<Menu[]> {
-  const menusRoot = await fetchCmsDocument("menus");
+  const menusRoot = await fetchOwnDocument("/cms/menus");
   const menuListElement = CollectionList.select("wrapper", "menus", {
     doc: menusRoot,
   });
@@ -146,7 +133,7 @@ export async function getMenus(): Promise<Menu[]> {
 }
 
 export async function getDishes(): Promise<MenuDish[]> {
-  const dishesRoot = await fetchCmsDocument("dishes");
+  const dishesRoot = await fetchOwnDocument("/cms/dishes");
   const dishListElement = CollectionList.select("wrapper", "dishes", {
     doc: dishesRoot,
   });
@@ -160,7 +147,7 @@ export async function getDishes(): Promise<MenuDish[]> {
 }
 
 export async function getDrinks(): Promise<MenuDrink[]> {
-  const drinksRoot = await fetchCmsDocument("drinks");
+  const drinksRoot = await fetchOwnDocument("/cms/drinks");
   const drinkListElement = CollectionList.select("wrapper", "drinks", {
     doc: drinksRoot,
   });
@@ -174,7 +161,7 @@ export async function getDrinks(): Promise<MenuDrink[]> {
 }
 
 export async function getCategories(): Promise<MenuCategory[]> {
-  const categoriesRoot = await fetchCmsDocument("categories");
+  const categoriesRoot = await fetchOwnDocument("/cms/categories");
   const categoryListElement = CollectionList.select("wrapper", "categories", {
     doc: categoriesRoot,
   });
