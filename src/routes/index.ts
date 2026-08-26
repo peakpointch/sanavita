@@ -1,5 +1,5 @@
 import { WFRoute } from "@xatom/core";
-import peakflow, { PdfEmbed, PdfEmbedFile, Script, Stylesheet, Payload } from "peakflow";
+import { peakflow, PdfEmbed, Script, Stylesheet, Payload } from "peakflow";
 import { initVimePlayer } from "peakflow/video";
 import app from "@/manifest.js";
 import { initCircleTabs } from "@/routes/jobs/circle-tabs.js";
