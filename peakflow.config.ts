@@ -25,7 +25,7 @@ export default defineConfig({
     {
       name: "website",
       modules: ["./dist/app.js"],
-      version: "0.2.0-beta.6",
+      version: "0.2.0-beta.8",
       pages: [
         "!/anmeldung-wohnen-mit-service",
         "!/admin",
@@ -55,7 +55,7 @@ export default defineConfig({
     {
       name: "screen",
       modules: ["./dist/screen.js"],
-      version: "0.2.0-beta.5",
+      version: "0.2.0-beta.8",
       pages: ["/screen/**/*"],
     },
     {
