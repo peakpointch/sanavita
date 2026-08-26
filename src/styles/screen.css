@@ -1,0 +1,29 @@
+.screen-container {
+  display: grid;
+}
+
+html.wf-design-mode .screen-container,
+.screen-container.is-scaled {
+  --_scalable-design-system---scaled-px: min(
+    calc(1/var(--_scalable-design-system---design-width) * 100vw),
+    calc(1/var(--_scalable-design-system---design-height) * 100vh)
+  );
+  --_scalable-design-system---scaled-rem: min(
+    calc(16/var(--_scalable-design-system---design-width) * 100vw),
+    calc(16/var(--_scalable-design-system---design-height) * 100vh)
+  );
+  --_scalable-design-system---scaled-width: min(
+    100vw,
+    calc(
+      100vh * var(--_scalable-design-system---design-width) /
+        var(--_scalable-design-system---design-height)
+    )
+  );
+  --_scalable-design-system---scaled-height: min(
+    100vh,
+    calc(
+      100vw * var(--_scalable-design-system---design-height) /
+        var(--_scalable-design-system---design-width)
+    )
+  );
+}
