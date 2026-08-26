@@ -19,7 +19,7 @@ export default defineConfig({
     webflowSubdomain: "sanavita-ag",
     port: 4000,
     livereload: true,
-    watchList: ["./src/", "../../peakflow/src/form/"],
+    watchList: ["./src/"],
   },
   environments: [
     {
