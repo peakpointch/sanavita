@@ -5,7 +5,7 @@ export interface PeakflowApp {
 
 export const app: PeakflowApp = {
   name: "sanavita",
-  version: "0.2.0-beta.5",
+  version: "0.2.0-beta.7",
 };
 
 export default app;
