@@ -31,7 +31,7 @@ importers:
         version: 1.2.10
       peakflow:
         specifier: github:peakpointch/peakflow#main
-        version: https://codeload.github.com/peakpointch/peakflow/tar.gz/d97285d38835c64426283deb57fa27d2f09ac7c8
+        version: https://codeload.github.com/peakpointch/peakflow/tar.gz/4b2089f637ff953f4553814d86618897bb413b90
       peakflow-cli:
         specifier: link:../../tools/peakflow-cli
         version: link:../../tools/peakflow-cli
@@ -909,8 +909,8 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
-  dompurify@3.4.13:
-    resolution: {integrity: sha512-2vmYIoqjze2d+kakP8S/nS5shfsl587kzwEjcGlTdiksUVgFHnFCsLYDVj/JNqJVOQZGSYBTmuycv0PodwmnMQ==}
+  dompurify@3.4.14:
+    resolution: {integrity: sha512-dVoH9z+MY+C9IilgGCk3YfFqjLi3fChm2OiKJMzh6axrJ5qwxqWaZamgmHrpv22CN/KdbZJuGEGgfQoL00LTdg==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -1193,8 +1193,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanostores@1.5.1:
-    resolution: {integrity: sha512-DNIX+HyFpo14fKGe0NsX9/aPzdKGiSZwX5xEMpDwQrDdo2iTiUYunOCCQLYwJrziKVe8ZOtVvcv0dEVI8lMx2g==}
+  nanostores@1.5.2:
+    resolution: {integrity: sha512-B0UbxzK1s0CN8Xht6r+7iT5+xV8PTaRERR1nATeplRv1Rw5YLWfVAid0hkqY3EceqpG4RjTk8GAwIxQY39Rnwg==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
   node-fetch@2.7.0:
@@ -1231,9 +1231,9 @@ packages:
   path@0.12.7:
     resolution: {integrity: sha512-aXXC6s+1w7otVF9UletFkFcDsJeO7lSZBPUQhtb5O0xJe8LtYhj/GxldoL09bBj9+ZmE2hNoHqQSFMN5fikh4Q==}
 
-  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/d97285d38835c64426283deb57fa27d2f09ac7c8:
-    resolution: {gitHosted: true, integrity: sha512-FBCRBk0qwjsfqBdMKOOS4iXQ7iVFJI3/BiMv9trJrUt9UPNWfheOB9ROVRhTFJjbN2J1h3dEe5pY9YzdxF5j7Q==, tarball: https://codeload.github.com/peakpointch/peakflow/tar.gz/d97285d38835c64426283deb57fa27d2f09ac7c8}
-    version: 0.3.0-alpha.11
+  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/4b2089f637ff953f4553814d86618897bb413b90:
+    resolution: {gitHosted: true, integrity: sha512-S13VcRqJ+buDw6VTZfx00+go/CmpiL3aippmKhsQnvFuwWquCTAkl7M6gj5wWm1TZP4n/GeKwhVwLxXIXhbDqQ==, tarball: https://codeload.github.com/peakpointch/peakflow/tar.gz/4b2089f637ff953f4553814d86618897bb413b90}
+    version: 0.3.0-alpha.14
 
   performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
@@ -2017,7 +2017,7 @@ snapshots:
       '@uploadcare/upload-client': 6.21.0
       keyux: 0.11.6
       lit: 3.3.3
-      nanostores: 1.5.1
+      nanostores: 1.5.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -2144,7 +2144,7 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
-  dompurify@3.4.13:
+  dompurify@3.4.14:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
     optional: true
@@ -2313,7 +2313,7 @@ snapshots:
     optionalDependencies:
       canvg: 3.0.11
       core-js: 3.50.0
-      dompurify: 3.4.13
+      dompurify: 3.4.14
       html2canvas: 1.4.1
 
   keyux@0.11.6: {}
@@ -2421,7 +2421,7 @@ snapshots:
 
   nanoid@3.3.18: {}
 
-  nanostores@1.5.1: {}
+  nanostores@1.5.2: {}
 
   node-fetch@2.7.0:
     dependencies:
@@ -2452,7 +2452,7 @@ snapshots:
       process: 0.11.10
       util: 0.10.4
 
-  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/d97285d38835c64426283deb57fa27d2f09ac7c8:
+  peakflow@https://codeload.github.com/peakpointch/peakflow/tar.gz/4b2089f637ff953f4553814d86618897bb413b90:
     dependencies:
       '@calcom/embed-core': 1.5.3
       '@uploadcare/file-uploader': 1.33.1
