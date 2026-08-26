@@ -1,7 +1,6 @@
 allowBuilds:
   core-js: true
   esbuild: true
-auditConfig: {}
 minimumReleaseAgeExclude:
   - elliptic@6.6.2
   - koa@3.0.3

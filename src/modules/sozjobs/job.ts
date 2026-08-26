@@ -16,7 +16,7 @@ export async function initJobItemPage() {
 
   const renderer = new Renderer(document.body, {
     attributeName: "job",
-    pathPrefix: "renderer"
+    pathPrefix: "renderer",
   });
 
   const renderData = getJobRenderData({

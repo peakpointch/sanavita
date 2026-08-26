@@ -1,5 +1,5 @@
 import { WFRoute } from "@xatom/core";
-import peakflow, { PdfEmbed, PdfEmbedFile, Script, Stylesheet, payload } from "peakflow";
+import { peakflow, PdfEmbed, Script, Stylesheet, Payload } from "peakflow";
 import { initVimePlayer } from "peakflow/video";
 import app from "@/manifest.js";
 import { initCircleTabs } from "@/routes/jobs/circle-tabs.js";
@@ -99,7 +99,20 @@ export const routes = async () => {
       },
     });
 
-    const file = payload.get<PdfEmbedFile>("file");
+    const payload = Payload.define(
+      {
+        type: Payload.String(),
+        name: Payload.String(),
+        url: Payload.String(),
+        externalUrl: Payload.String(),
+        isExternal: Payload.Boolean(),
+      },
+      {
+        primitivesFromString: true,
+      },
+    );
+
+    const file = payload.get("file");
     await embed.preview(file);
   });
 };
@@ -130,7 +143,7 @@ export const loadUploadcareStylesheet = (): void => {
     href: `https://cdn.jsdelivr.net/gh/peakpointch/${app.name}@v${app.version}/src/styles/uploadcare.css`,
   });
 
-  ucStyles.setAttribute("data-devflow-local", "src/styles/uploadcare.css");
-  ucStyles.setAttribute("data-devflow-hmr", "true");
+  ucStyles.setAttribute("data-peakflow-local", "src/styles/uploadcare.css");
+  ucStyles.setAttribute("data-peakflow-hmr", "true");
   ucStyles.load();
 };

@@ -6,12 +6,8 @@ import { de } from "date-fns/locale";
 import { Droplet, Thermometer, Wind } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import {
-  type DayForecast,
-  fetchCurrentWeather,
-  fetchForecast,
-  getDaysFromForecast,
-} from "./utils";
+import { type DayForecast, fetchCurrentWeather, fetchForecast, getDaysFromForecast } from "./utils";
+import { WeatherWidgetSkeleton } from "./WeatherWidgetSkeleton";
 
 export interface WeatherWidgetProps {
   /** Controls the visibility of this component */
@@ -45,6 +41,7 @@ export interface WeatherWidgetProps {
    * Whether to fetch the weather from the api. Only use `false` in development mode.
    */
   prod?: boolean;
+  scaled?: boolean;
 }
 
 export function WeatherWidget({
@@ -54,7 +51,8 @@ export function WeatherWidget({
   showMinMaxTemp = false,
   weatherDelay = 10,
   forecastDelay = 180,
-  prod = true,
+  prod = false,
+  scaled = true,
 }: WeatherWidgetProps) {
   const [data, setData] = React.useState<{
     weather: WeatherDay;
@@ -88,14 +86,8 @@ export function WeatherWidget({
     initData();
 
     // Refresh weather & forecast every X minutes
-    const weatherInterval = setInterval(
-      updateWeather,
-      weatherDelay * 60 * 1000
-    );
-    const forecastInterval = setInterval(
-      updateForecast,
-      forecastDelay * 60 * 1000
-    );
+    const weatherInterval = setInterval(updateWeather, weatherDelay * 60 * 1000);
+    const forecastInterval = setInterval(updateForecast, forecastDelay * 60 * 1000);
 
     // Clear intervals on unmount
     return () => {
@@ -104,7 +96,18 @@ export function WeatherWidget({
     };
   }, [prod]);
 
-  if (loading) return <div className="text-tv-regular">Wird geladen...</div>;
+  if (loading) {
+    return (
+      visibility && (
+        <WeatherWidgetSkeleton
+          days={days}
+          scaled={scaled}
+          showMinMaxTemp={showMinMaxTemp}
+          variant={variant}
+        />
+      )
+    );
+  }
 
   const { weather, forecast } = data;
   const forecastDays = getDaysFromForecast(forecast, prod);
@@ -113,7 +116,7 @@ export function WeatherWidget({
 
   return (
     visibility && (
-      <div className="grid gap-16">
+      <div className={`wf tv grid gap-16 ${scaled ? "is-scaled" : ""}`}>
         {/* CURRENT WEATHER */}
         <div className="flex items-center gap-16">
           {/* ICON & TEMP */}
@@ -121,60 +124,56 @@ export function WeatherWidget({
             <MainIcon
               className={cn(iconColor)}
               style={{
-                height: `calc(6 * var(--tv-rem))`,
-                width: `calc(6 * var(--tv-rem))`,
+                height: `calc(6 * var(--wf-rem))`,
+                width: `calc(6 * var(--wf-rem))`,
               }}
             />
             <div className="grid gap-2">
-              <span className="text-tv-h2 font-semibold">
-                {Math.round(weather.main.temp)}°C
-              </span>
-              <span className="text-tv-medium">
-                {omwDe.main[weather.weather[0].main]}
-              </span>
+              <span className="text-6xl font-semibold">{Math.round(weather.main.temp)}°C</span>
+              <span className="text-lg">{omwDe.main[weather.weather[0].main]}</span>
             </div>
           </div>
 
           {/* DETAILS */}
           <div className="grid gap-4">
             {/* --- FEELS LIKE --- */}
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Thermometer
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--tv-rem))`,
-                  width: `calc(3.25 * var(--tv-rem))`,
+                  height: `calc(3.25 * var(--wf-rem))`,
+                  width: `calc(3.25 * var(--wf-rem))`,
                 }}
               />
-              <span className="text-tv-regular">
+              <span className="text-base">
                 Gefühlt wie: {Math.round(weather.main.feels_like)}°C
               </span>
             </div>
 
             {/* --- WIND --- */}
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Wind
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--tv-rem))`,
-                  width: `calc(3.25 * var(--tv-rem))`,
+                  height: `calc(3.25 * var(--wf-rem))`,
+                  width: `calc(3.25 * var(--wf-rem))`,
                 }}
               />
-              <span className="text-tv-regular">
+              <span className="text-base">
                 Windgeschwindikeit: {Math.round(weather.wind.speed)} km/h
               </span>
             </div>
 
             {/* --- HUMIDITY --- */}
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Droplet
                 className=""
                 style={{
-                  height: `calc(3.25 * var(--tv-rem))`,
-                  width: `calc(3.25 * var(--tv-rem))`,
+                  height: `calc(3.25 * var(--wf-rem))`,
+                  width: `calc(3.25 * var(--wf-rem))`,
                 }}
               />
-              <span className="text-tv-regular">
+              <span className="text-base">
                 Luftfeuchtigkeit: {Math.round(weather.main.humidity)}%
               </span>
             </div>
@@ -182,18 +181,12 @@ export function WeatherWidget({
         </div>
 
         {/* DIVIDER */}
-        <div className="w-full h-0 border-white border-t-tv"></div>
+        <div className="h-0 w-full border-t border-white"></div>
 
         {/* FORECAST */}
         <div className="grid gap-8">
-          <span className="text-tv-medium font-medium">
-            {days}-Tages-Vorhersage
-          </span>
-          <div
-            className={cn(
-              variant === "horizontal" ? "flex gap-24" : "flex flex-col gap-16"
-            )}
-          >
+          <span className="text-lg font-medium">{days}-Tages-Vorhersage</span>
+          <div className={cn(variant === "horizontal" ? "flex gap-24" : "flex flex-col gap-16")}>
             {forecastDays.slice(0, days).map((data) => (
               <WeatherForecastDay
                 key={data.date.toISOString()}
@@ -217,7 +210,7 @@ export function WeatherForecastDay({
 }) {
   return (
     <div className="flex flex-col items-center gap-8">
-      <span className="text-tv-regular">
+      <span className="text-base">
         {format(day.date, "EEEE", {
           locale: de,
         })}
@@ -225,15 +218,15 @@ export function WeatherForecastDay({
       <day.icon.node
         className={cn(day.icon.color)}
         style={{
-          height: `calc(3.25 * var(--tv-rem))`,
-          width: `calc(3.25 * var(--tv-rem))`,
+          height: `calc(3.25 * var(--wf-rem))`,
+          width: `calc(3.25 * var(--wf-rem))`,
         }}
       />
-      {!showMinMaxTemp && <span className="text-tv-regular">{day.temp}°C</span>}
+      {!showMinMaxTemp && <span className="text-base">{day.temp}°C</span>}
       {showMinMaxTemp && (
         <>
-          <span className="text-tv-regular">{day.maxTemp}°C</span>
-          <span className="text-tv-regular">{day.minTemp}°C</span>
+          <span className="text-base">{day.maxTemp}°C</span>
+          <span className="text-base">{day.minTemp}°C</span>
         </>
       )}
     </div>

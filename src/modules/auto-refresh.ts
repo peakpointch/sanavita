@@ -7,11 +7,7 @@ import {
   mergeOptions,
   wf,
 } from "peakflow";
-import {
-  type HTMLCodeIslandElement,
-  codeIslandRefresh,
-  initCodeIsland,
-} from "peakflow/webflow";
+import { type HTMLCodeIslandElement, codeIslandRefresh, initCodeIsland } from "peakflow/webflow";
 import Swiper from "swiper";
 
 type RefreshMode =
@@ -82,19 +78,17 @@ const warning = {
 const error = {
   pageWrapperNotFound: new Error(
     `Refresh: page-wrapper not found. In "page" mode, the page-wrapper must be tagged with the ${selector(
-      "page-wrapper"
-    )} attribute.`
+      "page-wrapper",
+    )} attribute.`,
   ),
   modeNotImplemented: (mode?: string) =>
-    new Error(
-      `Refresh: mode ${mode ? `"${mode} "` : ""}is not yet implemented`
-    ),
+    new Error(`Refresh: mode ${mode ? `"${mode} "` : ""}is not yet implemented`),
   modeNotDefined: (mode?: string) =>
     new Error(`Refresh: mode ${mode ? `"${mode} "` : ""}does not exist`),
 };
 
 export function onRefreshScript(
-  callback: (e: CustomEvent<RefreshScriptDetail>) => Promise<void> | void
+  callback: (e: CustomEvent<RefreshScriptDetail>) => Promise<void> | void,
 ): void {
   const onEvent = async (e: CustomEvent<RefreshScriptDetail>) => {
     await callback(e);
@@ -103,7 +97,7 @@ export function onRefreshScript(
     window.dispatchEvent(
       new CustomEvent<RefreshScriptDestroyDetail>("refresh:script:destroyed", {
         detail: { refreshId: e.detail.refreshId },
-      })
+      }),
     );
   };
 
@@ -130,10 +124,7 @@ function childrenRefresh(node: Element, newNode: Element): Element {
   return newNode;
 }
 
-function documentRefresh(
-  node: Document | Element,
-  newNode: Document | Element
-): Element {
+function documentRefresh(node: Document | Element, newNode: Document | Element): Element {
   const doc = node.getRootNode() as Document;
   const newDoc = newNode.getRootNode() as Document;
 
@@ -145,20 +136,14 @@ function documentRefresh(
   return doc.documentElement;
 }
 
-function bodyRefresh(
-  node: Document | Element,
-  newNode: Document | Element
-): Element {
+function bodyRefresh(node: Document | Element, newNode: Document | Element): Element {
   const doc = node.getRootNode() as Document;
   const newDoc = newNode.getRootNode() as Document;
 
   return defaultRefresh(doc.body, newDoc.body);
 }
 
-function pageRefresh(
-  node: Document | Element,
-  newNode: Document | Element
-): Element {
+function pageRefresh(node: Document | Element, newNode: Document | Element): Element {
   const doc = node.getRootNode() as Document;
   const newDoc = newNode.getRootNode() as Document;
 
@@ -175,7 +160,7 @@ function pageRefresh(
 function cmsRefresh(node: Element, newNode: Element): HTMLElement {
   if (!isHTMLElement(node) || !isHTMLElement(newNode)) {
     throw new Error(
-      `Refresh: Both 'node' and 'newNode' have to be of type 'HTMLElement' in "cms" mode.`
+      `Refresh: Both 'node' and 'newNode' have to be of type 'HTMLElement' in "cms" mode.`,
     );
   }
 
@@ -188,7 +173,7 @@ function cmsRefresh(node: Element, newNode: Element): HTMLElement {
   }
 
   // Default case: only refresh the list items
-  list.listElement.replaceChildren(...refreshList.listElement.children);
+  list.listElement.replaceChildren(...refreshList.elements);
 
   return list.component;
 }
@@ -196,7 +181,7 @@ function cmsRefresh(node: Element, newNode: Element): HTMLElement {
 function swiperRefresh(node: Element, newNode: Element): HTMLElement {
   if (!isSwiperElement(node) || !isSwiperElement(newNode)) {
     throw new Error(
-      `Refresh: Both 'node' and 'newNode' have to be a '[data-swiper-element="component"]' element in "swiper" mode.`
+      `Refresh: Both 'node' and 'newNode' have to be a '[data-swiper-element="component"]' element in "swiper" mode.`,
     );
   }
 
@@ -210,7 +195,7 @@ function swiperRefresh(node: Element, newNode: Element): HTMLElement {
 
   if (typeof swiper.removeAllSlides !== "function") {
     throw new Error(
-      `Refresh: Refresheable swiper instances must be instantiated with the module "Manipulation".`
+      `Refresh: Refresheable swiper instances must be instantiated with the module "Manipulation".`,
     );
   }
 
@@ -237,7 +222,7 @@ function codeComponentRefresh(node: Element, newNode: Element): HTMLElement {
 function scriptRefresh(node: Element, newNode: Element): void {
   if (!isHTMLScriptElement(node) || !isHTMLScriptElement(newNode)) {
     throw new Error(
-      `Refresh: Both 'node' and 'newNode' have to be of type HTMLScriptElement in "script" mode.`
+      `Refresh: Both 'node' and 'newNode' have to be of type HTMLScriptElement in "script" mode.`,
     );
   }
 
@@ -271,9 +256,7 @@ function readMode(element: Element): RefreshMode {
 }
 
 function readCloneNode(element: Element): boolean | null {
-  return element.hasAttribute(attr.clone)
-    ? wf.hasAttr(element, attr.clone)
-    : null;
+  return element.hasAttribute(attr.clone) ? wf.hasAttr(element, attr.clone) : null;
 }
 
 function isHTMLElement(element: Node): element is HTMLElement {
@@ -285,11 +268,7 @@ function isHTMLScriptElement(element: Node): element is HTMLScriptElement {
 }
 
 function isSwiperElement(element: Node): element is SwiperHTMLElement {
-  return (
-    element &&
-    element instanceof HTMLElement &&
-    element.hasAttribute(Slider.attr.element)
-  );
+  return element && element instanceof HTMLElement && element.hasAttribute(Slider.attr.element);
 }
 
 function validateContext<T extends BaseContext>(ctx?: T | void): ctx is T {
@@ -327,7 +306,7 @@ async function refreshAllCodeComponents(node: Element): Promise<void> {
     codeIslands.map(async (island) => {
       await initCodeIsland(island);
       island.render(island.props);
-    })
+    }),
   );
 }
 
@@ -357,12 +336,12 @@ function refreshAllScripts(node: Element) {
   window.dispatchEvent(
     new CustomEvent("refresh:script", {
       detail: { refreshId, root: node },
-    })
+    }),
   );
 
   const escapeHatchInterval = setTimeout(() => {
     console.warn(
-      "Refresh 'refreshAllScripts': The scripts being refreshed did not destroy themselves on time. This might result in memory leaks or unintended side effects. Refreshing scripts now..."
+      "Refresh 'refreshAllScripts': The scripts being refreshed did not destroy themselves on time. This might result in memory leaks or unintended side effects. Refreshing scripts now...",
     );
     finish();
   }, 10000);
@@ -385,7 +364,7 @@ const defaultRefreshNodeOptions: RefreshNodeOptions = {
 function refreshNode<T extends Element>(
   node: T,
   newNode: T,
-  options?: Partial<RefreshNodeOptions>
+  options?: Partial<RefreshNodeOptions>,
 ): T {
   const opts = mergeOptions(defaultRefreshNodeOptions, options);
   const mode = opts.modeOverride ?? readMode(node);
@@ -464,7 +443,7 @@ const defaultRefreshNodesOptions: RefreshNodesOptions = {
 function refreshNodes(
   container: Document | Element,
   newContainer: Document | Element,
-  options?: Partial<RefreshNodesOptions>
+  options?: Partial<RefreshNodesOptions>,
 ): void {
   const opts = mergeOptions(defaultRefreshNodesOptions, options);
 
@@ -492,7 +471,7 @@ function refreshNodes(
     if (!valid) {
       const val = (ctx || {}) as any;
       console.warn(
-        `Refresh: Invalid context for element with id "${val.id}" in mode "${val.mode}"`
+        `Refresh: Invalid context for element with id "${val.id}" in mode "${val.mode}"`,
       );
       return;
     }
@@ -531,21 +510,16 @@ interface RefreshOwnOptions {
   beforeNodeRefresh: RefreshCallback<RefreshNodeContext>;
 }
 
-async function refreshOwnNodes(
-  options?: Partial<RefreshOwnOptions>
-): Promise<void> {
+async function refreshOwnNodes(options?: Partial<RefreshOwnOptions>): Promise<void> {
   const opts = mergeOptions(defaultAutoRefreshOptions, options);
   const doc = document;
-  const newDoc = await fetchOwnDocument(
-    `${location.pathname}?ts=${Date.now()}`,
-    {
-      cache: "no-cache",
-      headers: {
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
-      },
-    }
-  );
+  const newDoc = await fetchOwnDocument(`${location.pathname}?ts=${Date.now()}`, {
+    cache: "no-cache",
+    headers: {
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+    },
+  });
 
   const ctx: RefreshContext = {
     doc,
@@ -613,9 +587,7 @@ const defaultAutoRefreshOptions: AutoRefreshOptions = {
   onError: () => undefined,
 };
 
-function autoRefresh(
-  options?: Partial<AutoRefreshOptions>
-): AutoRefreshContext {
+function autoRefresh(options?: Partial<AutoRefreshOptions>): AutoRefreshContext {
   const opts = mergeOptions(defaultAutoRefreshOptions, options);
 
   /** Count amount of times a*/
@@ -633,7 +605,7 @@ function autoRefresh(
       if (opts.retry && failed <= opts.maxRetries) {
         console.error(
           `Auto refresh failed ${failed}x. Trying again in ${opts.retryAfter}s...\n`,
-          error
+          error,
         );
         //@ts-ignore
         setTimeout(refresh, opts.retryAfter * 1000);
@@ -650,7 +622,7 @@ function autoRefresh(
     //@ts-ignore
     interval = setInterval(
       refresh,
-      opts.delay * 1000 // Refresh delay in seconds
+      opts.delay * 1000, // Refresh delay in seconds
     );
   }
 

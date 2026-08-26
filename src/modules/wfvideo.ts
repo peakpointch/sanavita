@@ -8,8 +8,7 @@ const PLAY_BUTTON_SELECTOR = '[data-player-button="play"]';
 const MUTE_BUTTON_SELECTOR = '[data-player-button="mute"]';
 
 export function createVideoComponent(component: HTMLElement) {
-  const videoElement =
-    component.querySelector<HTMLVideoElement>(VIDEO_SELECTOR);
+  const videoElement = component.querySelector<HTMLVideoElement>(VIDEO_SELECTOR);
   const controls = component.querySelector<HTMLElement>(CONTROLS_SELECTOR);
   const playButton = component.querySelector(PLAY_BUTTON_SELECTOR);
   const muteButton = component.querySelector(MUTE_BUTTON_SELECTOR);
@@ -36,12 +35,8 @@ export function createVideoComponent(component: HTMLElement) {
 
   // Function to toggle play/pause
   function togglePlay() {
-    const pauseState = playButton.querySelector(
-      '[data-player-button-state="pause"]'
-    );
-    const playState = playButton.querySelector(
-      '[data-player-button-state="play"]'
-    );
+    const pauseState = playButton.querySelector('[data-player-button-state="pause"]');
+    const playState = playButton.querySelector('[data-player-button-state="play"]');
 
     // Toggle video play/pause
     if (videoElement.paused) {
@@ -59,12 +54,8 @@ export function createVideoComponent(component: HTMLElement) {
   function toggleMute() {
     console.log("MUTE BUTTON PRESSED");
 
-    const muteState = muteButton.querySelector(
-      '[data-player-button-state="unmuted"]'
-    );
-    const unmuteState = muteButton.querySelector(
-      '[data-player-button-state="muted"]'
-    );
+    const muteState = muteButton.querySelector('[data-player-button-state="unmuted"]');
+    const unmuteState = muteButton.querySelector('[data-player-button-state="muted"]');
 
     // Toggle video mute/unmute
     if (videoElement.muted) {
@@ -97,9 +88,7 @@ export function createVideoComponent(component: HTMLElement) {
 }
 
 export function initWfVideo(doc: Document | Element = document) {
-  const components = doc.querySelectorAll<HTMLElement>(
-    VIDEO_COMPONENT_SELECTOR
-  );
+  const components = doc.querySelectorAll<HTMLElement>(VIDEO_COMPONENT_SELECTOR);
 
   components.forEach((component) => {
     createVideoComponent(component);

@@ -85,7 +85,9 @@
   }
 
   .werte-circle_item .heading-topic.text-size-tiny {
-    transition: margin 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    transition:
+      margin 0.2s ease-in-out,
+      opacity 0.2s ease-in-out;
   }
 
   .werte-circle_item.active .heading-topic.text-size-tiny {

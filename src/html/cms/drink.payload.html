@@ -1,0 +1,28 @@
+<script type="application/json" data-payload-element="embed" data-payload-id="{{wf:Slug|Dynamo}}" data-cms-id="drinks">
+  {
+    "slug": "{{wf:Slug|Dynamo}}",
+    "displayName": "{{wf:Name|Dynamo}}",
+    "description": "{{dom:description}}",
+    "offers": [
+      {
+        "price": "{{wf:Preis|Dynamo}}",
+        "amount": "{{wf:Menge|Dynamo}}",
+        "unit": "{{wf:Messwert der Menge|Dynamo}}"
+      },
+      {
+        "price": "{{wf:Preis 2 (Optional)|Dynamo}}",
+        "amount": "{{wf:Menge 2 (Optional)|Dynamo}}",
+        "unit": "{{wf:Messwert der Menge 2 (Optional)|Dynamo}}"
+      },
+      {
+        "price": "{{wf:Preis 3 (Optional)|Dynamo}}",
+        "amount": "{{wf:Menge 3 (Optional)|Dynamo}}",
+        "unit": "{{wf:Messwert der Menge 3 (Optional)|Dynamo}}"
+      }
+    ],
+    "menuId": "{{wf:Getränkekarte/Slug|Dynamo}}",
+    "categoryId": "{{wf:Getränke Kategorie/Slug|Dynamo}}"
+  }
+</script>
+
+<div data-payload-element="var" data-payload-var="description">{{wf:Beschreibung|Dynamo}}</div>

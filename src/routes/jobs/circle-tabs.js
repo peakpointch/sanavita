@@ -1,8 +1,6 @@
 export function initCircleTabs() {
   if (window.matchMedia("(min-width: 768px)").matches) {
-    const allTabComponents = document.querySelectorAll(
-      '[pp-tabs="tabs-component"]',
-    );
+    const allTabComponents = document.querySelectorAll('[pp-tabs="tabs-component"]');
     allTabComponents.forEach((component) => {
       const tabPaneList = component.querySelector('[pp-tabs="all-tab-panes"]');
       const tabpanes = component.querySelectorAll('[pp-tabs="tabpane"]');
@@ -85,8 +83,7 @@ export function initCircleTabs() {
             nextTab.focus();
             nextTab.click();
           } else if (e.key === "ArrowLeft") {
-            const prevTab =
-              tab.previousElementSibling || tablist.lastElementChild;
+            const prevTab = tab.previousElementSibling || tablist.lastElementChild;
             prevTab.focus();
             prevTab.click();
           }

@@ -17,6 +17,12 @@ export default declareComponent(Clock, {
       defaultValue: true,
     }),
 
+    scaled: props.Boolean({
+      group: "Style",
+      name: "Scaled",
+      defaultValue: true,
+    }),
+
     timeFormat: props.String({
       group: "Uhr",
       name: "Uhrzeit Format",

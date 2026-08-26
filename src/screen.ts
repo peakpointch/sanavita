@@ -1,5 +1,4 @@
 import { onReady, WFRoute } from "@xatom/core";
-import { initBistroMenus } from "./modules/menu";
 import { initDigitalSignage } from "./modules/screen/home";
 import { initWfVideo } from "./modules/wfvideo";
 import peakflow from "peakflow";
@@ -15,7 +14,6 @@ onReady(() => {
   }
 
   new WFRoute("/screen/bistro").execute(() => {
-    initBistroMenus();
     peakflow.execute("inlinecms", "swiper");
     peakflow.execute("dateflow");
   });

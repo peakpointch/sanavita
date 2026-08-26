@@ -63,8 +63,7 @@ export function getJobRenderData(data: {
     {
       name: "contract-type",
       value: (() => {
-        return contractTypes.find((type) => type.key === job.contracttype)
-          ?.value;
+        return contractTypes.find((type) => type.key === job.contracttype)?.value;
       })(),
       type: "text",
       visibility: true,
@@ -118,27 +117,17 @@ export async function initSozjobsList() {
     });
   }
 
-  const formSelectField = document.querySelector<HTMLElement>(
-    "[data-form-select-target]",
-  );
-  const jobComponent = document.querySelector<HTMLElement>(
-    '[data-job-element="component"]',
-  );
-  const jobList = jobComponent.querySelector<HTMLElement>(
-    '[data-job-element="list"]',
-  );
-  const jobEmptyState = jobComponent.querySelector<HTMLElement>(
-    '[data-job-element="empty-state"]',
-  );
+  const formSelectField = document.querySelector<HTMLElement>("[data-form-select-target]");
+  const jobComponent = document.querySelector<HTMLElement>('[data-job-element="component"]');
+  const jobList = jobComponent.querySelector<HTMLElement>('[data-job-element="list"]');
+  const jobEmptyState = jobComponent.querySelector<HTMLElement>('[data-job-element="empty-state"]');
   const jobLoadingTemplate = jobComponent.querySelectorAll<HTMLElement>(
     '[data-job-element="loading"]',
   );
-  const jobCardTemplate = jobComponent.querySelector<HTMLElement>(
-    '[data-job-element="template"]',
-  );
+  const jobCardTemplate = jobComponent.querySelector<HTMLElement>('[data-job-element="template"]');
   const renderer = new Renderer(jobList, {
     attributeName: "job",
-    pathPrefix: "renderer"
+    pathPrefix: "renderer",
   });
 
   let displayedJobs = 3; // Start with the first 3 jobs
@@ -165,9 +154,7 @@ export async function initSozjobsList() {
 
   // Load More Button
   if (jobs.length > displayedJobs) {
-    const loadButton = jobComponent.querySelector(
-      '[data-job-element="pagination"]',
-    );
+    const loadButton = jobComponent.querySelector('[data-job-element="pagination"]');
     loadButton.classList.remove("hide");
 
     loadButton.addEventListener("click", () => {
