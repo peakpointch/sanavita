@@ -17,7 +17,7 @@
     "lucide-react": "^0.562.0",
     "openweathermap-ts": "^1.2.10",
     "peakflow": "github:peakpointch/peakflow#main",
-    "peakflow-cli": "link:..\\..\\tools\\peakflow-cli",
+    "peakflow-cli": "github:peakpointch/peakflow-cli#main",
     "semver": "^7.8.5",
     "swiper": "^12.2.0",
     "tailwind-merge": "^3.6.0",
