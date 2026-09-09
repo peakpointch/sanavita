@@ -20,6 +20,6 @@ onReady(() => {
 function global(): void {
   overrideWebflowScroll({
     defaultOffset: 99,
-    defaultBehaviour: "smooth",
+    defaultBehavior: "smooth",
   });
 }
