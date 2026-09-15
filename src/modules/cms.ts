@@ -5,13 +5,18 @@ const PUBLISHED_HOSTNAMES = new Set([
   "sanavita-ag.webflow.io",
   "sanavita-ag.ch",
   "www.sanavita-ag.ch",
+  "sanavita-preview.grownext.ch"
 ]);
 
 export function canFetchCmsDocuments(): boolean {
   if (typeof window === "undefined") return false;
 
   const hostname = window.location.hostname;
-  return LOCAL_HOSTNAMES.has(hostname) || PUBLISHED_HOSTNAMES.has(hostname);
+  return (
+    LOCAL_HOSTNAMES.has(hostname) ||
+    PUBLISHED_HOSTNAMES.has(hostname) ||
+    hostname.endsWith(".trycloudflare.com")
+  );
 }
 
 export const slugSchema = Payload.define(
