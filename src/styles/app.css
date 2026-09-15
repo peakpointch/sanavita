@@ -10,3 +10,10 @@
 @import "./screen.css";
 @import "./swiper.css";
 @import "./tabs.css";
+
+.w-webflow-badge,
+body > .w-webflow-badge,
+a.w-webflow-badge[href] {
+  display: none !important;
+  visibility: hidden !important;
+}
