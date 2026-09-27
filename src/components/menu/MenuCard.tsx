@@ -238,7 +238,7 @@ export function MenuCard({
         id={menu.slug}
         ref={layout.articleRef}
         className={cn(
-          "wf relative w-full overflow-hidden border border-beige-200 bg-neutral-lightest text-black",
+          "wf relative w-full overflow-hidden border border-beige-200 bg-brand-50 text-black",
           scaled && "is-scaled",
           !collapsible && "flex h-full flex-col",
         )}

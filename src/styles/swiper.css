@@ -40,8 +40,8 @@ html.wf-design-mode [data-swiper-slides-per-view="3"] .swiper-slide:not(.placeho
 }
 
 .swiper {
-  --swiper-pagination-color: var(--brand-50);
-  --swiper-pagination-bullet-inactive-color: var(--brand-50);
+  --swiper-pagination-color: var(--color--beige-50);
+  --swiper-pagination-bullet-inactive-color: var(--color--beige-50);
   --swiper-pagination-bullet-inactive-opacity: 0.6;
 }
 

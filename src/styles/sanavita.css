@@ -1,18 +1,6 @@
 :root {
   /* RENAMING CSS VARIABLES */
-  --brand-50: var(--brand-color--brand-50);
-  --brand-400: var(--brand-color--brand-400);
-  --brand-800: var(--brand-color--brand-800);
-  --brand-900: var(--brand-color--brand-900);
-  --brand-950: var(--brand-color--brand-950);
-  --white: var(--neutral-color--white);
-  --black: var(--neutral-color--black);
-  --neutral-lightest: var(--neutral-color--neutral-lightest);
-  --neutral: var(--neutral-color--neutral);
-  --beige-100: var(--neutral-color--beige-100);
-  --beige-200: var(--neutral-color--beige-200);
-  --neutral-dark: var(--neutral-color--neutral-dark);
-  --disabled-bg: var(--disabled-bg);
+  --disabled-bg: var(--color-disabled-bg);
   --background-overlay: var(--background-color--background-overlay);
   --circle-size: var(--circle--circle-size);
   --success-green: var(--system-color--success-green);
@@ -24,64 +12,66 @@
   --beige-dark: var(--beige-dark);
 }
 
+/*
 [section-style="lightest"] {
-  background-color: var(--neutral-color--neutral-lightest);
+  background-color: var(--color--brand-50);
 }
 
 [section-style="branded"],
 [section-style="light"] {
-  background-color: var(--brand-color--brand-50);
+  background-color: var(--color--beige-50);
 }
 
 [section-style="brand"] {
-  background-color: var(--brand-color--brand-400);
+  background-color: var(--color--brand-400);
 }
 
 [section-style="brand"] .text-rich-text i,
 [section-style="brand"] .text-rich-text em {
-  color: var(--neutral-color--beige-100);
+  color: var(--color--beige-100);
 }
 
 [section-style="beige"] {
-  background-color: var(--neutral-color--beige-100);
+  background-color: var(--color--beige-100);
 }
 
 [section-style="dark"] {
-  background-color: var(--neutral-color--neutral-darker);
-  color: var(--neutral-color--neutral-lightest);
+  background-color: var(--color--neutral-700);
+  color: var(--color--neutral-50);
 }
 
 [section-style="dark"] .w-richtext:not(.card .w-richtext, .daily_card .w-richtext) {
-  color: var(--neutral-color--neutral-lightest);
+  color: var(--color--neutral-50);
 }
 
 [section-style="dark"] .accordion-item:not(.is-simple) .w-richtext,
 [section-style="dark"] .card .w-richtext {
-  color: var(--text-color--text-primary); /* Or reset to whatever style you want */
+  color: var(--text-color--text-primary);
 }
 
 [section-style="sonnenweg-100"] {
-  background-color: var(--brand-color--sonnenweg-100);
+  background-color: var(--color--sonnenweg-100);
 }
 
 [section-style="sonnenweg-200"] {
-  background-color: var(--brand-color--sonnenweg-200);
+  background-color: var(--color--sonnenweg-200);
 }
 
 [section-style="sonnenweg-200"] .heading-topic {
-  color: var(--brand-color--brand-900);
+  color: var(--color--brand-800);
 }
 
 [section-style="branded"] .circle-background {
-  background-color: var(--beige-100);
+  background-color: var(--color--beige-100);
 }
+*/
 
 [background-color="dark"] {
-  background-color: var(--brand-900);
+  background-color: var(--color--neutral-800);
 }
 
 [background-color="light"] {
-  background-color: var(--brand-50);
+  background-color: var(--color--beige-50);
 }
 
 [possibly-empty="true"]:empty,
@@ -133,12 +123,8 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
   text-decoration: underline;
 }
 
-[section-style="branded"] .circle-background {
-  background-color: var(--beige-100);
-}
-
 [background-color="dark"] {
-  background-color: var(--brand-900);
+  background-color: var(--color-brand-900);
 }
 * {
   scroll-margin-top: 5.5rem;
@@ -170,7 +156,7 @@ a:hover:not(:has(*), .button, .button-arrow, .nav_link, .button-tertiary) {
 }
 
 .w-richtext ol li::marker {
-  color: var(--brand-400);
+  color: var(--color--brand-400);
 }
 
 [data-max-width-label-container="true"],
@@ -475,11 +461,11 @@ div:has(> .background-image)::before {
 
 .nav_menu-wrap::-webkit-scrollbar {
   width: 0.5rem;
-  background-color: var(--base-color-neutral--neutral-dark);
+  background-color: var(--color--neutral-700);
 }
 
 .nav_menu-wrap::-webkit-scrollbar-thumb {
-  background-color: var(--base-color-brand--brand-400);
+  background-color: var(--color--brand-400);
 }
 
 .w-nav-overlay [data-nav-menu-open] {

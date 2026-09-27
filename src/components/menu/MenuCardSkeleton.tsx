@@ -13,7 +13,7 @@ export function MenuCardSkeleton({ collapsed = false, scaled = false }: MenuCard
       role="status"
       aria-label="Menü wird geladen"
       className={cn(
-        "wf w-full overflow-hidden border border-beige-200 bg-neutral-lightest",
+        "wf w-full overflow-hidden border border-beige-200 bg-brand-50",
         scaled && "is-scaled",
       )}
     >

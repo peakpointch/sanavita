@@ -11,7 +11,7 @@
 }
 
 .checkbox-dropdown:has(.tab_link-wohnungen.fs-cmsfilter_active) {
-  background-color: var(--neutral-color--beige-100);
+  background-color: var(--color--beige-100);
 }
 
 .checkbox-dropdown:has(.tab_link-wohnungen.fs-cmsfilter_active) svg[data-filled="false"] {
@@ -27,7 +27,7 @@
 }
 
 .checkbox-dropdown > .select-header:hover {
-  background-color: var(--neutral-color--beige-100);
+  background-color: var(--color--beige-100);
 }
 
 label:has(~ input[required]):not(.custom-checkbox-field)::after,
@@ -41,7 +41,7 @@ label:not(.w-radio, .w-checkbox):has(~ * input[required])::after,
 .form_label-wrapper:not(.w-radio, .w-checkbox):has(~ [data-required="required"]) label::after,
 .form_label-wrapper:not(.w-radio, .w-checkbox):has(~ * input[required]) label::after {
   content: " *";
-  color: var(--brand-color--brand-400);
+  color: var(--color--brand-400);
 }
 
 .relative:has(~ .form-modal) {
@@ -58,7 +58,7 @@ label:not(.w-radio, .w-checkbox):has(~ * input[required])::after,
 }
 
 .aform-person:hover [parent-hover="true"] {
-  color: var(--brand-400);
+  color: var(--color--brand-400);
 }
 
 @media screen and (max-width: 479px) {
