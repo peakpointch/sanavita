@@ -1,24 +1,45 @@
 import { onReady, WFRoute } from "@xatom/core";
 import { initDigitalSignage } from "./modules/screen/home";
 import { initWfVideo } from "./modules/wfvideo";
-import peakflow from "peakflow";
+import { peakflow, Dataset } from "peakflow";
 
 onReady(() => {
-  const homeRoutes = ["/screen/home-lindenpark", "/screen/home-rzl", "/screen/home-sonnenweg"];
+  const dataset = Dataset.define({
+    isPreview: Dataset.Boolean("data-admin-preview", false),
+    previewRoute: Dataset.String("data-preview-route"),
+  });
+
+  const { isPreview, previewRoute } = dataset.parse(document.documentElement);
+
+  // Route matching helper
+  const handleRoute = (route: string, callback: () => void) => {
+    if (isPreview) {
+      if (previewRoute === route) callback();
+    } else {
+      new WFRoute(route).execute(callback);
+    }
+  };
+
+  const homeRoutes = [
+    "/screen/home",
+    "/screen/home-lindenpark",
+    "/screen/home-rzl",
+    "/screen/home-sonnenweg",
+  ];
   for (const route of homeRoutes) {
-    new WFRoute(route).execute(() => {
+    handleRoute(route, () => {
       peakflow.execute("inlinecms", "swiper");
-      initDigitalSignage();
+      initDigitalSignage({ preview: isPreview });
       peakflow.execute("dateflow");
     });
   }
 
-  new WFRoute("/screen/bistro").execute(() => {
+  handleRoute("/screen/bistro", () => {
     peakflow.execute("inlinecms", "swiper");
     peakflow.execute("dateflow");
   });
 
-  new WFRoute("/screen/video-home").execute(() => {
+  handleRoute("/screen/video-home", () => {
     initWfVideo(document);
   });
 });

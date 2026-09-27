@@ -21,14 +21,93 @@ const filterAttributes = Renderer.defineAttributes({
 
 type OverlayFilterAttrs = typeof filterAttributes;
 
-function getScreen(): string {
+type ScreenParams = {
+  date: Date | null;
+  mode: AdminPreviewMode;
+  overlayId: string | null;
+  preview: boolean;
+  screenId: string | null;
+};
+
+export type AdminPreviewMode = "live" | "overlay" | "time";
+
+export type AdminPreviewParams = {
+  date: string | null;
+  mode: AdminPreviewMode;
+  screenId: string | null;
+  overlayId: string | null;
+};
+
+export type AdminPreviewMessage = {
+  type: "admin.update_preview_params";
+  params: AdminPreviewParams;
+};
+
+type DigitalSignageOptions = {
+  preview?: boolean;
+};
+
+function isAdminPreviewMode(value: unknown): value is AdminPreviewMode {
+  return value === "live" || value === "overlay" || value === "time";
+}
+
+function isValidDate(date: unknown): date is Date {
+  return date instanceof Date && !isNaN(date.getTime());
+}
+
+function getParamsFromUrl(preview = false): ScreenParams {
   const params = new URLSearchParams(window.location.search);
-  return params.get("id") || "";
+  const overlayId = params.get("overlayId")?.trim() || null;
+  const dateParam = params.get("date")?.trim() || null;
+  const date = dateParam ? new Date(dateParam) : null;
+  const modeParam = params.get("mode");
+
+  return {
+    date: isValidDate(date) ? date : null,
+    mode: isAdminPreviewMode(modeParam) ? modeParam : overlayId ? "overlay" : "live",
+    overlayId,
+    preview: preview || params.get("preview")?.trim() === "true",
+    screenId: params.get("screenId")?.trim() || params.get("id")?.trim() || null,
+  };
+}
+
+function isAdminPreviewMessage(data: unknown): data is AdminPreviewMessage {
+  if (typeof data !== "object" || data === null) return false;
+
+  const message = data as Partial<AdminPreviewMessage>;
+  if (message.type !== "admin.update_preview_params") return false;
+  if (typeof message.params !== "object" || message.params === null) return false;
+
+  const params = message.params as Partial<AdminPreviewParams>;
+  const date = params.date;
+
+  return (
+    isAdminPreviewMode(params.mode) &&
+    (params.overlayId === null || typeof params.overlayId === "string") &&
+    (params.screenId === null || typeof params.screenId === "string") &&
+    (date === null || (typeof date === "string" && isValidDate(new Date(date))))
+  );
+}
+
+function isMessageFromParent(event: MessageEvent): boolean {
+  if (event.source !== window.parent) return false;
+
+  try {
+    return event.origin === window.parent.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 class ElementManager<F extends OverlayFilterAttrs> {
   public data: RenderData<F>; // All available elements
-  public screen: string;
+  public params: ScreenParams = {
+    date: null,
+    mode: "live",
+    overlayId: null,
+    preview: false,
+    screenId: null,
+  };
   private filteredData: typeof this.data; // Elements currently visible in the swiper
   private swiper: Swiper; // Assuming swiper is a valid instance.
   private collectionElement: HTMLElement; // Global element containing all possible HTMLElements (hidden designs)
@@ -41,7 +120,6 @@ class ElementManager<F extends OverlayFilterAttrs> {
 
   constructor(allElements: RenderData<F>, swiper: Swiper, collectionElement: HTMLElement) {
     this.data = allElements;
-    this.screen = getScreen();
     this.filteredData = []; // Track currently visible elements
     this.swiper = swiper;
     this.collectionElement = collectionElement; // Global element where HTMLElements are located (hidden)
@@ -51,23 +129,31 @@ class ElementManager<F extends OverlayFilterAttrs> {
   // Filters the RenderData and returns the elements that should be shown
   private filterElements(): RenderData<OverlayFilterAttrs> {
     this.filteredData = [...this.data].filter((entry) => {
-      if (!entry.props.screen) entry.props.screen = "";
-      entry.props.screen = entry.props.screen.toLowerCase();
+      // Overlay matching
+      if (this.params.preview && this.params.mode === "overlay") {
+        return this.params.overlayId !== null && entry.instance === this.params.overlayId;
+      }
 
-      let matchScreen = entry.props.screen === this.screen;
-      if (!entry.props.screen || !this.screen) {
+      // Screen matching
+      entry.props.screen = entry.props.screen?.toLowerCase() || "";
+      const screenId = this.params.screenId?.toLowerCase() || null;
+      let matchScreen = entry.props.screen === screenId;
+      if (!entry.props.screen || !screenId) {
         matchScreen = true;
       }
 
       const startDate = entry.props.startDate;
       const endDate = entry.props.endDate;
 
-      const now = new Date();
+      const now =
+        this.params.preview && this.params.mode === "time" && isValidDate(this.params.date)
+          ? this.params.date
+          : new Date();
 
       const inRange = startDate <= now && now <= endDate;
 
       if (entry.props.useTimeOfDayRange) {
-        const inTimeRange = isNowInTimeOfDayRange(startDate, endDate);
+        const inTimeRange = isDateInTimeOfDayRange(now, startDate, endDate);
         return matchScreen && inRange && inTimeRange;
       } else {
         return matchScreen && inRange;
@@ -203,31 +289,29 @@ class ElementManager<F extends OverlayFilterAttrs> {
   }
 }
 
-function isNowInTimeOfDayRange(startDate: Date, endDate: Date): boolean {
-  const now = new Date();
-
-  const todayStart = new Date();
-  todayStart.setHours(
+function isDateInTimeOfDayRange(date: Date, startDate: Date, endDate: Date): boolean {
+  const dateStart = new Date(date);
+  dateStart.setHours(
     startDate.getHours(),
     startDate.getMinutes(),
     startDate.getSeconds(),
     startDate.getMilliseconds(),
   );
 
-  const todayEnd = new Date();
-  todayEnd.setHours(
+  const dateEnd = new Date(date);
+  dateEnd.setHours(
     endDate.getHours(),
     endDate.getMinutes(),
     endDate.getSeconds(),
     endDate.getMilliseconds(),
   );
 
-  if (todayEnd >= todayStart) {
+  if (dateEnd >= dateStart) {
     // Normal case
-    return todayStart <= now && now <= todayEnd;
+    return dateStart <= date && date <= dateEnd;
   } else {
     // Wrap-around midnight case e.g. 22:00-02:00
-    return todayStart <= now || now <= todayEnd;
+    return dateStart <= date || date <= dateEnd;
   }
 }
 
@@ -268,7 +352,7 @@ function setTestItem(data: RenderData<OverlayFilterAttrs>, config: TestItemConfi
   console.log("TestItem:", item);
 }
 
-export function initDigitalSignage() {
+export function initDigitalSignage({ preview = false }: DigitalSignageOptions = {}) {
   const collectionElement = document.body.querySelector<HTMLElement>(
     wfCollectionSelector("screen"),
   );
@@ -312,9 +396,30 @@ export function initDigitalSignage() {
   }
 
   const manager = new ElementManager(collection.getData(), swiper, collectionElement);
-  setInterval(() => {
-    manager.update();
-  }, 3000);
+
+  manager.params = getParamsFromUrl(preview);
+
+  if (manager.params.preview) {
+    window.addEventListener("message", (event) => {
+      if (!isMessageFromParent(event) || !isAdminPreviewMessage(event.data)) return;
+
+      const { overlayId, screenId, date } = event.data.params;
+
+      manager.params = {
+        ...manager.params,
+        mode: event.data.params.mode,
+        overlayId: overlayId !== undefined ? overlayId : manager.params.overlayId,
+        screenId: screenId !== undefined ? screenId : manager.params.screenId,
+        date: date ? new Date(date) : null,
+      };
+
+      manager.update();
+    });
+  } else {
+    setInterval(() => {
+      manager.update();
+    }, 3000);
+  }
 
   //@ts-ignore
   window.newscollection = collection;
