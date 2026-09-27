@@ -110,8 +110,11 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
           icon={Presentation}
         />
 
-        <ResizablePanelGroup orientation="horizontal" className="min-h-0 min-w-0 flex-1">
-          <ResizablePanel defaultSize={40} minSize={25} className="p-8">
+        <ResizablePanelGroup
+          orientation="horizontal"
+          className="min-h-0 min-w-0 flex-1 overflow-clip!"
+        >
+          <ResizablePanel defaultSize={150} minSize={400} className="overflow-clip! p-8">
             <ControlPanel
               selectedScreen={selectedScreen}
               availableOverlays={availableOverlays}
@@ -130,7 +133,7 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={60} minSize={35} className="p-8">
+          <ResizablePanel minSize={300} className="p-8">
             <PreviewFrame iframeRef={iframeRef} onIframeLoad={syncIframe} />
           </ResizablePanel>
         </ResizablePanelGroup>
