@@ -5,7 +5,7 @@ const PUBLISHED_HOSTNAMES = new Set([
   "sanavita-ag.webflow.io",
   "sanavita-ag.ch",
   "www.sanavita-ag.ch",
-  "sanavita-preview.grownext.ch"
+  "sanavita-preview.grownext.ch",
 ]);
 
 export function canFetchCmsDocuments(): boolean {
@@ -106,10 +106,37 @@ export const menuSchema = Payload.define(
   },
 );
 
+export const overlaySchema = Payload.define(
+  {
+    internalName: Payload.String(),
+    slug: Payload.String(),
+    lindenpark: Payload.Boolean(),
+    sonnenweg: Payload.Boolean(),
+    residenzZurLinde: Payload.Boolean(),
+    type: Payload.String(),
+    startDate: (dateStr) => new Date(dateStr),
+    endDate: (dateStr) => new Date(dateStr),
+    useTimeOfDayRange: Payload.Boolean(),
+    priority: Payload.Number({ required: false, default: 10 }),
+    image: Payload.String({ required: false }),
+    time: Payload.String(),
+    title: Payload.String(),
+    description: Payload.String(),
+    personName: Payload.String({ required: false }),
+    birthday: Payload.Number({ required: false }),
+    room: Payload.String({ required: false }),
+    newsId: Payload.String({ required: false }),
+  },
+  {
+    primitivesFromString: true,
+  },
+);
+
 export type MenuDish = Payload.Parsed<typeof dishSchema>;
 export type MenuDrink = Payload.Parsed<typeof drinkSchema>;
 export type MenuCategory = Payload.Parsed<typeof categorySchema>;
 export type Menu = Payload.Parsed<typeof menuSchema>;
+export type Overlay = Payload.Parsed<typeof overlaySchema>;
 
 export interface CmsPayload {
   menus: Menu[];
@@ -177,6 +204,20 @@ export async function getCategories(): Promise<MenuCategory[]> {
   });
 
   return categoryList.parse();
+}
+
+export async function getOverlays(): Promise<Overlay[]> {
+  const overlaysRoot = await fetchOwnDocument("/cms/overlays");
+  const overlayListElement = CollectionList.select("wrapper", "overlays", {
+    doc: overlaysRoot,
+  });
+
+  const overlayList = new CollectionList(overlayListElement, {
+    id: "overlays",
+    schema: overlaySchema,
+  });
+
+  return overlayList.parse();
 }
 
 export function getMenuPayload(): Promise<CmsPayload> {
