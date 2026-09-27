@@ -8,7 +8,7 @@ type AdminHeaderProps = {
 
 export function AdminHeader({ title, description, icon: Icon }: AdminHeaderProps) {
   return (
-    <header className="flex w-full flex-col gap-1 border-b border-brand-800/10 pb-6">
+    <header className="flex w-full flex-col gap-1 border-b border-brand-800/10 p-8">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-800/10 text-brand-800">
           <Icon className="h-5 w-5" />

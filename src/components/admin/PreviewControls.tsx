@@ -114,7 +114,7 @@ export function ControlPanel({
   });
 
   return (
-    <div className="flex flex-col gap-6 rounded-xl border border-brand-800/10 bg-white p-6 shadow-sm @3xl:sticky @3xl:top-8 @3xl:col-span-5">
+    <div className="sticky top-8 flex h-fit flex-col gap-6 self-start">
       <div className="flex items-center gap-2 border-b border-brand-800/10 pb-4">
         <SlidersHorizontal className="h-4 w-4 text-brand-800/70" />
         <h2 className="text-lg font-semibold text-brand-800">Konfiguration</h2>

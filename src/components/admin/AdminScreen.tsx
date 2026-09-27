@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { fetchOwnDocument } from "peakflow";
 import { Presentation } from "lucide-react";
 
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { getOverlays, Overlay } from "@/modules/cms";
 import type {
   AdminPreviewMessage,
@@ -102,31 +103,37 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
 
   return (
     <main className="wf @container h-screen w-full overflow-auto" ref={portalContainerRef}>
-      <div className="flex h-auto w-full flex-col items-start gap-8 p-8">
+      <div className="flex min-h-full w-full flex-col items-start">
         <AdminHeader
           title="Bildschirm-Vorschau"
           description="Verwalten und simulieren Sie die Display-Inhalte für verschiedene Standorte."
           icon={Presentation}
         />
 
-        <div className="grid w-full grid-cols-1 items-start gap-8 @3xl:grid-cols-12">
-          <ControlPanel
-            selectedScreen={selectedScreen}
-            availableOverlays={availableOverlays}
-            selectedOverlayId={selectedOverlayId}
-            portalContainerRef={portalContainerRef}
-            onSelectScreen={setSelectedScreen}
-            onSelectOverlay={handleSelectOverlay}
-            previewEnabled={previewEnabled}
-            onPreviewEnabledChange={handlePreviewEnabledChange}
-            previewMode={previewMode}
-            onPreviewModeChange={handlePreviewModeChange}
-            simulationDate={simulationDate}
-            onSimulationDateChange={setSimulationDate}
-          />
+        <ResizablePanelGroup orientation="horizontal" className="min-h-0 min-w-0 flex-1">
+          <ResizablePanel defaultSize={40} minSize={25} className="p-8">
+            <ControlPanel
+              selectedScreen={selectedScreen}
+              availableOverlays={availableOverlays}
+              selectedOverlayId={selectedOverlayId}
+              portalContainerRef={portalContainerRef}
+              onSelectScreen={setSelectedScreen}
+              onSelectOverlay={handleSelectOverlay}
+              previewEnabled={previewEnabled}
+              onPreviewEnabledChange={handlePreviewEnabledChange}
+              previewMode={previewMode}
+              onPreviewModeChange={handlePreviewModeChange}
+              simulationDate={simulationDate}
+              onSimulationDateChange={setSimulationDate}
+            />
+          </ResizablePanel>
 
-          <PreviewFrame iframeRef={iframeRef} onIframeLoad={syncIframe} />
-        </div>
+          <ResizableHandle />
+
+          <ResizablePanel defaultSize={60} minSize={35} className="p-8">
+            <PreviewFrame iframeRef={iframeRef} onIframeLoad={syncIframe} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </main>
   );
