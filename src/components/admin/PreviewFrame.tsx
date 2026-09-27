@@ -1,4 +1,4 @@
-import type { RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
 type PreviewFrameProps = {
   iframeRef: RefObject<HTMLIFrameElement | null>;
@@ -6,6 +6,37 @@ type PreviewFrameProps = {
 };
 
 export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
+  const previewRef = useRef<HTMLDivElement | null>(null);
+  const [iframeScale, setIframeScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const preview = previewRef.current;
+    if (!preview) return;
+
+    const updateScale = (availableWidth: number) => {
+      const designWidth = Number.parseFloat(
+        getComputedStyle(preview).getPropertyValue("--wf-design-width"),
+      );
+
+      if (!Number.isFinite(designWidth) || designWidth <= 0 || availableWidth <= 0) return;
+
+      setIframeScale(availableWidth / designWidth);
+    };
+
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) updateScale(entry.contentRect.width);
+    });
+
+    observer.observe(preview);
+
+    const computedStyle = getComputedStyle(preview);
+    const horizontalPadding =
+      Number.parseFloat(computedStyle.paddingLeft) + Number.parseFloat(computedStyle.paddingRight);
+    updateScale(preview.clientWidth - horizontalPadding);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="flex flex-col gap-3 @3xl:col-span-7">
       <div className="flex items-center justify-between px-1">
@@ -19,6 +50,7 @@ export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
       </div>
 
       <div
+        ref={previewRef}
         className="wf is-scaled custom preview relative w-full overflow-hidden rounded-xl border border-brand-800/20 bg-brand-800 p-8 shadow-md"
         style={{
           aspectRatio: "var(--wf-design-width) / var(--wf-design-height)",
@@ -27,7 +59,13 @@ export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
         <iframe
           ref={iframeRef}
           title="Screen Preview"
-          className="h-full w-full rounded-lg border-none"
+          className="rounded-lg border-none"
+          style={{
+            width: "calc(var(--wf-design-width) * 1px)",
+            height: "calc(var(--wf-design-height) * 1px)",
+            transform: `scale(${iframeScale})`,
+            transformOrigin: "top left",
+          }}
           onLoad={onIframeLoad}
         />
       </div>

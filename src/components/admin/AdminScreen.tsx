@@ -56,7 +56,7 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
 
     doc.documentElement.setAttribute("data-admin-preview", "true");
     doc.documentElement.setAttribute("data-preview-route", PREVIEW_ROUTE);
-    doc.querySelector(".screen-container")?.classList.add("is-scaled");
+    // doc.querySelector(".screen-container")?.classList.add("is-scaled");
     doc.querySelector(".w-webflow-badge")?.remove();
 
     iframe.srcdoc = doc.documentElement.outerHTML;
