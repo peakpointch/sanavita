@@ -86,9 +86,9 @@
   --sidebar-foreground: var(--neutral-700);
   --sidebar-primary: var(--neutral-700);
   --sidebar-primary-foreground: var(--white);
-  --sidebar-accent: color-mix(in oklch, var(--brand-400) 14%, var(--beige-50));
+  --sidebar-accent: var(--beige-100);
   --sidebar-accent-foreground: var(--neutral-700);
-  --sidebar-border: color-mix(in oklch, var(--neutral-700) 14%, transparent);
+  --sidebar-border: var(--beige-200);
   --sidebar-ring: var(--brand-400);
 }
 
@@ -120,9 +120,9 @@
   --sidebar-foreground: var(--beige-50);
   --sidebar-primary: var(--brand-400);
   --sidebar-primary-foreground: var(--neutral-700);
-  --sidebar-accent: color-mix(in oklch, var(--beige-50) 12%, var(--neutral-800));
+  --sidebar-accent: var(--neutral-700);
   --sidebar-accent-foreground: var(--beige-50);
-  --sidebar-border: color-mix(in oklch, var(--beige-50) 14%, transparent);
+  --sidebar-border: var(--neutral-600);
   --sidebar-ring: var(--brand-400);
 }
 
