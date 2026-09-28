@@ -70,6 +70,7 @@ export function ControlPanel({
   const timeValue = `${String(simulationDate.getHours()).padStart(2, "0")}:${String(simulationDate.getMinutes()).padStart(2, "0")}`;
   const [timeInput, setTimeInput] = useState(timeValue);
   const today = new Date();
+  today.setDate(today.getDate() - 7);
   today.setHours(0, 0, 0, 0);
   const futureOverlays = availableOverlays.filter((overlay) => {
     const endDate = new Date(overlay.endDate);
@@ -189,9 +190,7 @@ export function ControlPanel({
               <TabsTrigger value="time">Zeitreise</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="live">
-              {previewHint}
-            </TabsContent>
+            <TabsContent value="live">{previewHint}</TabsContent>
 
             <TabsContent value="overlay" className="animate-in fade-in slide-in-from-top-2">
               {previewHint}

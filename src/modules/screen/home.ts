@@ -17,6 +17,7 @@ const filterAttributes = Renderer.defineAttributes({
   screen: "string",
   "use-time-of-day-range": "boolean",
   priority: "number",
+  preview: "boolean",
 });
 
 type OverlayFilterAttrs = typeof filterAttributes;
@@ -34,6 +35,7 @@ export type AdminPreviewMode = "live" | "overlay" | "time";
 export type AdminPreviewParams = {
   date: string | null;
   mode: AdminPreviewMode;
+  preview: boolean;
   screenId: string | null;
   overlayId: string | null;
 };
@@ -129,6 +131,8 @@ class ElementManager<F extends OverlayFilterAttrs> {
   // Filters the RenderData and returns the elements that should be shown
   private filterElements(): RenderData<OverlayFilterAttrs> {
     this.filteredData = [...this.data].filter((entry) => {
+      const matchPreview = this.params.preview ? true : entry.props.preview === false;
+
       // Overlay matching
       if (this.params.preview && this.params.mode === "overlay") {
         return this.params.overlayId !== null && entry.instance === this.params.overlayId;
@@ -154,9 +158,9 @@ class ElementManager<F extends OverlayFilterAttrs> {
 
       if (entry.props.useTimeOfDayRange) {
         const inTimeRange = isDateInTimeOfDayRange(now, startDate, endDate);
-        return matchScreen && inRange && inTimeRange;
+        return matchPreview && matchScreen && inRange && inTimeRange;
       } else {
-        return matchScreen && inRange;
+        return matchPreview && matchScreen && inRange;
       }
     });
 
@@ -408,6 +412,7 @@ export function initDigitalSignage({ preview = false }: DigitalSignageOptions = 
       manager.params = {
         ...manager.params,
         mode: event.data.params.mode,
+        preview: event.data.params.preview,
         overlayId: overlayId !== undefined ? overlayId : manager.params.overlayId,
         screenId: screenId !== undefined ? screenId : manager.params.screenId,
         date: date ? new Date(date) : null,

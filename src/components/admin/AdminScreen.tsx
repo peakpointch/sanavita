@@ -69,6 +69,7 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
     const mode: AdminPreviewMode = previewEnabled ? previewMode : "live";
     const params: AdminPreviewParams = {
       mode,
+      preview: mode !== "live",
       overlayId: mode === "overlay" ? selectedOverlayId : null,
       screenId: selectedScreen === "any" ? null : selectedScreen,
       date: mode === "time" ? simulationDate.toISOString() : null,

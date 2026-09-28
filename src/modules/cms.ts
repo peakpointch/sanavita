@@ -118,6 +118,7 @@ export const overlaySchema = Payload.define(
     endDate: (dateStr) => new Date(dateStr),
     useTimeOfDayRange: Payload.Boolean(),
     priority: Payload.Number({ required: false, default: 10 }),
+    preview: Payload.Boolean({ required: false, default: false }),
     image: Payload.String({ required: false }),
     time: Payload.String(),
     title: Payload.String(),
