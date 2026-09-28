@@ -179,7 +179,12 @@ type SidebarNavigationProps = {
   mobile?: boolean;
 };
 
-function SidebarNavigation({ currentSlug, collapsed, onToggle, mobile = false }: SidebarNavigationProps) {
+function SidebarNavigation({
+  currentSlug,
+  collapsed,
+  onToggle,
+  mobile = false,
+}: SidebarNavigationProps) {
   const toggleLabel = mobile
     ? "Navigation schließen"
     : collapsed
@@ -211,7 +216,7 @@ function SidebarNavigation({ currentSlug, collapsed, onToggle, mobile = false }:
                 onClick={onToggle}
                 aria-label={toggleLabel}
                 title={toggleLabel}
-                className="pointer-events-none absolute inset-0 z-10 size-8! opacity-0 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-hover/sidebar-logo:pointer-events-auto group-hover/sidebar-logo:opacity-100 group-focus-within/sidebar-logo:pointer-events-auto group-focus-within/sidebar-logo:opacity-100"
+                className="pointer-events-none absolute inset-0 z-10 size-8! opacity-0 transition-opacity group-focus-within/sidebar-logo:pointer-events-auto group-focus-within/sidebar-logo:opacity-100 group-hover/sidebar-logo:pointer-events-auto group-hover/sidebar-logo:opacity-100 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               >
                 <PanelLeftOpen />
               </Button>

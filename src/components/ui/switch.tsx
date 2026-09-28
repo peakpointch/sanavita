@@ -42,11 +42,15 @@ function SwitchWithLabels({
 }) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <span className={cn("text-xs font-medium", checked ? "text-neutral-700/60" : "text-neutral-700")}>
+      <span
+        className={cn("text-xs font-medium", checked ? "text-neutral-700/60" : "text-neutral-700")}
+      >
         {disabledLabel}
       </span>
       <Switch checked={checked} {...props} />
-      <span className={cn("text-xs font-medium", checked ? "text-neutral-700" : "text-neutral-700/60")}>
+      <span
+        className={cn("text-xs font-medium", checked ? "text-neutral-700" : "text-neutral-700/60")}
+      >
         {enabledLabel}
       </span>
     </div>
