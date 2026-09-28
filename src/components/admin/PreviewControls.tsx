@@ -115,16 +115,16 @@ export function ControlPanel({
 
   return (
     <div className="sticky top-8 flex h-fit flex-col gap-6 self-start">
-      <div className="flex items-center gap-2 border-b border-brand-800/10 pb-4">
-        <SlidersHorizontal className="h-4 w-4 text-brand-800/70" />
-        <h2 className="text-lg font-semibold text-brand-800">Konfiguration</h2>
+      <div className="flex items-center gap-2 border-b border-neutral-700/10 pb-4">
+        <SlidersHorizontal className="h-4 w-4 text-neutral-700/70" />
+        <h2 className="text-lg font-semibold text-neutral-700">Konfiguration</h2>
       </div>
 
       <div className="flex flex-col gap-6">
         {/* --- Screen Configuration --- */}
         <div className="flex flex-col gap-4">
           <div className="grid gap-2">
-            <label className="text-xs font-semibold tracking-wider text-brand-800/60 uppercase">
+            <label className="text-xs font-semibold tracking-wider text-neutral-700/60 uppercase">
               Bildschirm
             </label>
             <Select value={selectedScreen} onValueChange={onSelectScreen}>
@@ -144,7 +144,7 @@ export function ControlPanel({
         {/* --- Preview Mode Configuration --- */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold tracking-wider text-brand-800/60 uppercase">
+            <label className="text-xs font-semibold tracking-wider text-neutral-700/60 uppercase">
               Vorschau
             </label>
             <SwitchWithLabels
@@ -158,7 +158,7 @@ export function ControlPanel({
           {previewEnabled && (
             <div className="animate-in fade-in slide-in-from-top-2 flex flex-col gap-5">
               <div className="flex items-center justify-between pt-4">
-                <span className="text-xs font-semibold tracking-wider text-brand-800/60 uppercase">
+                <span className="text-xs font-semibold tracking-wider text-neutral-700/60 uppercase">
                   Modus
                 </span>
                 <SwitchWithLabels
@@ -296,9 +296,9 @@ export function ControlPanel({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-8 justify-start border-brand-800/10 bg-white text-xs font-medium text-brand-800 shadow-sm"
+                            className="h-8 justify-start border-neutral-700/10 bg-white text-xs font-medium text-neutral-700 shadow-sm"
                           >
-                            <CalendarIcon className="mr-2 h-3.5 w-3.5 text-brand-800/70" />
+                            <CalendarIcon className="mr-2 h-3.5 w-3.5 text-neutral-700/70" />
                             {formattedDate}
                           </Button>
                         </PopoverTrigger>
@@ -317,7 +317,7 @@ export function ControlPanel({
                       </Popover>
 
                       {/* Inline Editable Time Field */}
-                      <div className="flex h-8 items-center gap-1 rounded-md border border-brand-800/10 bg-white px-2 py-1 text-xs font-semibold text-brand-800 tabular-nums shadow-sm focus-within:border-brand-800/20 focus-within:ring-1 focus-within:ring-brand-800">
+                      <div className="flex h-8 items-center gap-1 rounded-md border border-neutral-700/10 bg-white px-2 py-1 text-xs font-semibold text-neutral-700 tabular-nums shadow-sm focus-within:border-neutral-700/20 focus-within:ring-1 focus-within:ring-neutral-700">
                         <input
                           type="text"
                           inputMode="numeric"
@@ -356,7 +356,7 @@ export function ControlPanel({
                       onValueChange={handleSliderChange}
                       className="mt-1"
                     />
-                    <div className="flex justify-between px-1 text-[10px] font-medium text-brand-800/40">
+                    <div className="flex justify-between px-1 text-[10px] font-medium text-neutral-700/40">
                       <span>00:00</span>
                       <span>12:00</span>
                       <span>23:59</span>
@@ -369,8 +369,8 @@ export function ControlPanel({
         </div>
       </div>
 
-      <div className="mt-auto flex items-start gap-3 rounded-lg bg-brand-50 p-3.5 text-xs text-brand-800/80">
-        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-brand-800" />
+      <div className="mt-auto flex items-start gap-3 rounded-lg bg-brand-50 p-3.5 text-xs text-neutral-700/80">
+        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-neutral-700" />
         <span>
           {!previewEnabled
             ? "Im Live-Modus werden die aktuell geplanten Inhalte angezeigt."

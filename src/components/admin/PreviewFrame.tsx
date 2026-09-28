@@ -40,10 +40,10 @@ export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
   return (
     <div className="flex flex-col gap-3 @3xl:col-span-7">
       <div className="flex items-center justify-between px-1">
-        <span className="text-xs font-semibold tracking-wider text-brand-800/60 uppercase">
+        <span className="text-xs font-semibold tracking-wider text-neutral-700/60 uppercase">
           Anzeige-Vorschau
         </span>
-        <span className="inline-flex items-center gap-1.5 text-xs text-brand-800/60">
+        <span className="inline-flex items-center gap-1.5 text-xs text-neutral-700/60">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
           Aktiv
         </span>
@@ -51,7 +51,7 @@ export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
 
       <div
         ref={previewRef}
-        className="wf is-scaled custom preview relative w-full overflow-hidden rounded-xl border border-brand-800/20 bg-brand-800 p-8 shadow-md"
+        className="wf is-scaled custom preview relative w-full overflow-hidden rounded-xl border border-neutral-700/20 bg-neutral-700 p-8 shadow-md"
         style={{
           aspectRatio: "var(--wf-design-width) / var(--wf-design-height)",
         }}

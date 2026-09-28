@@ -29,17 +29,17 @@
   --beige-900: var(--color--beige-900);
   --beige-950: var(--color--beige-950);
 
-  --beutral-50: var(--color--beutral-50);
-  --beutral-100: var(--color--beutral-100);
-  --beutral-200: var(--color--beutral-200);
-  --beutral-300: var(--color--beutral-300);
-  --beutral-400: var(--color--beutral-400);
-  --beutral-500: var(--color--beutral-500);
-  --beutral-600: var(--color--beutral-600);
-  --beutral-700: var(--color--beutral-700);
-  --beutral-800: var(--color--beutral-800);
-  --beutral-900: var(--color--beutral-900);
-  --beutral-950: var(--color--beutral-950);
+  --neutral-50: var(--color--neutral-50);
+  --neutral-100: var(--color--neutral-100);
+  --neutral-200: var(--color--neutral-200);
+  --neutral-300: var(--color--neutral-300);
+  --neutral-400: var(--color--neutral-400);
+  --neutral-500: var(--color--neutral-500);
+  --neutral-600: var(--color--neutral-600);
+  --neutral-700: var(--color--neutral-700);
+  --neutral-800: var(--color--neutral-800);
+  --neutral-900: var(--color--neutral-900);
+  --neutral-950: var(--color--neutral-950);
 
   --sonnenweg-100: var(--color--sonnenweg-100);
   --sonnenweg-200: var(--color--sonnenweg-200);
@@ -127,18 +127,48 @@
 }
 
 @theme inline {
-  --color-sonnenweg-100: var(--sonnenweg-100);
-  --color-sonnenweg-200: var(--sonnenweg-200);
-  --color-sonnenweg-slate: var(--sonnenweg-slate);
   --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
   --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
   --color-brand-950: var(--brand-950);
-  --color-white: var(--white);
-  --color-black: var(--black);
+
+  --color-beige-50: var(--beige-50);
   --color-beige-100: var(--beige-100);
   --color-beige-200: var(--beige-200);
+  --color-beige-300: var(--beige-300);
+  --color-beige-400: var(--beige-400);
+  --color-beige-500: var(--beige-500);
+  --color-beige-600: var(--beige-600);
+  --color-beige-700: var(--beige-700);
+  --color-beige-800: var(--beige-800);
+  --color-beige-900: var(--beige-900);
+  --color-beige-950: var(--beige-950);
+
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+  --color-neutral-950: var(--neutral-950);
+
+  --color-sonnenweg-100: var(--sonnenweg-100);
+  --color-sonnenweg-200: var(--sonnenweg-200);
+  --color-sonnenweg-slate: var(--sonnenweg-slate);
+
+  --color-white: var(--white);
+  --color-black: var(--black);
   --color-neutral-lightest: var(--neutral-lightest);
   --color-neutral: var(--neutral);
   --color-neutral-dark: var(--neutral-dark);
