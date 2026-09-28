@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  ExternalLink,
   FileText,
   Presentation,
   PanelLeftClose,
@@ -19,6 +20,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -265,6 +267,25 @@ function SidebarNavigation({ currentSlug, collapsed, onToggle, mobile = false }:
             </SidebarGroup>
           ))}
         </SidebarContent>
+
+        <SidebarFooter className={cn("gap-1 pb-3", collapsed ? "px-1" : "px-2")}>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="text-neutral-700/70">
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noreferrer"
+                  title={collapsed ? "Website öffnen" : undefined}
+                  className="cursor-pointer!"
+                >
+                  <ExternalLink />
+                  <span className={collapsed ? "sr-only" : undefined}>Website öffnen</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
     </SidebarProvider>
   );

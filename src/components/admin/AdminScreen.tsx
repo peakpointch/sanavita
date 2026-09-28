@@ -102,7 +102,7 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
   if (!visibility) return null;
 
   return (
-    <main className="wf @container h-screen w-full overflow-auto" ref={portalContainerRef}>
+    <main className="wf @container h-screen w-full overflow-auto bg-white" ref={portalContainerRef}>
       <div className="flex min-h-full w-full flex-col items-start">
         <AdminHeader
           title="Bildschirm-Vorschau"
@@ -114,7 +114,7 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
           orientation="horizontal"
           className="min-h-0 min-w-0 flex-1 overflow-clip!"
         >
-          <ResizablePanel defaultSize={150} minSize={400} className="overflow-clip! p-8">
+          <ResizablePanel defaultSize="25%" minSize={425} className="overflow-clip! p-8">
             <ControlPanel
               selectedScreen={selectedScreen}
               availableOverlays={availableOverlays}
