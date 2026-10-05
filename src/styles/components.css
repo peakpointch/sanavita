@@ -1,0 +1,32 @@
+code-island .w-richtext {
+  word-break: break-word;
+  width: 100% !important;
+  transition: height 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  & :is(h1, h2, h3, h4) {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  & :is(h5, h6) {
+    margin-top: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  & p {
+    margin-bottom: 0.5rem;
+  }
+
+  & :is(ul, ol) {
+    margin-bottom: 1.5rem;
+  }
+
+  & ul {
+    padding-left: 2.3rem;
+  }
+
+  & blockquote {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
