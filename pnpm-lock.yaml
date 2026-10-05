@@ -88,11 +88,11 @@ importers:
         specifier: ^5.2.0
         version: 5.2.0(supports-color@8.1.1)(vite@7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.49.2))
       '@webflow/data-types':
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.5.0
+        version: 2.5.0
       '@webflow/react':
-        specifier: ^2.4.0
-        version: 2.4.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        specifier: ^2.5.0
+        version: 2.5.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       libswitch:
         specifier: github:peakpointch/libswitch#v0.1.1
         version: https://codeload.github.com/peakpointch/libswitch/tar.gz/4940236470d22afdeed38c4cfbb0058ab77da6cb
@@ -1674,14 +1674,14 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
-  '@webflow/data-types@2.4.0':
-    resolution: {integrity: sha512-dbam3BdmCjiG5ncQ6eqC77bNzV7fqla8f7WVdxdGRSUo2+ZmjkcBw6IlhwcJDcNuee7faObNCCXMmNIT2fce8Q==}
+  '@webflow/data-types@2.5.0':
+    resolution: {integrity: sha512-mlmZKwdGeTlPJe2qoOLm4oPuIni4CzkL9E5/K8AiU91MY3Kt2ghtizEKUwQnlpV9pOK/ogAkf32wvPSUF3Ys3A==}
 
-  '@webflow/functions@2.4.0':
-    resolution: {integrity: sha512-kEZZP5qwFWYChI3YV+M/J79r3xeCXfO/0skGbnXDr3ShQGoQ9wCK+F+lOW2d9x15K17R2MdimJjPsjw+VjTG2A==}
+  '@webflow/functions@2.5.0':
+    resolution: {integrity: sha512-zOmBKBK30zXnLowfbZKbOUm3SnJxrrsdZo7UXZMJKZV8JXNTni/GlLu4a9CME5Ihhw/fWlDLqXEu2xS38BX/TA==}
 
-  '@webflow/react@2.4.0':
-    resolution: {integrity: sha512-JQyGj+kFRUaVImF+xViTpA5RdUCl4CDQD9+yIJbYq9jk7UeJD2G1ZU/Jz/8UHz0/uIq/bWpTRQmxT12DuLwcRA==}
+  '@webflow/react@2.5.0':
+    resolution: {integrity: sha512-ta0pptYkfCf+9DxFNXhB3ucaK9wPgqwlydbMuEwdhQdHg08GJFpouf9jkFOt+LmQ5wqeQGgKWN9nE8I0sfdUgQ==}
     peerDependencies:
       react: '>=18 <20'
       react-dom: '>=18 <20'
@@ -4877,16 +4877,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@webflow/data-types@2.4.0': {}
+  '@webflow/data-types@2.5.0': {}
 
-  '@webflow/functions@2.4.0':
+  '@webflow/functions@2.5.0':
     dependencies:
-      '@webflow/data-types': 2.4.0
+      '@webflow/data-types': 2.5.0
 
-  '@webflow/react@2.4.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@webflow/react@2.5.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
-      '@webflow/data-types': 2.4.0
-      '@webflow/functions': 2.4.0
+      '@webflow/data-types': 2.5.0
+      '@webflow/functions': 2.5.0
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
