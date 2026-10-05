@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { fetchOwnDocument } from "peakflow";
 import { Presentation } from "lucide-react";
 
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getOverlays, Overlay } from "@/modules/cms";
 import type {
   AdminPreviewMessage,
@@ -19,6 +20,7 @@ type AdminScreenProps = {
 };
 
 const PREVIEW_ROUTE = "/screen/home";
+const STACKED_LAYOUT_BREAKPOINT = 768;
 
 const overlayScreenFields = {
   lindenpark: "lindenpark",
@@ -29,6 +31,7 @@ const overlayScreenFields = {
 export function AdminScreen({ visibility = true }: AdminScreenProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile();
 
   const [doc, setDoc] = useState<Document | null>(null);
   const [overlays, setOverlays] = useState<Overlay[]>([]);
@@ -39,6 +42,9 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
   const [previewEnabled, setPreviewEnabled] = useState(false);
   const [previewMode, setPreviewMode] = useState<Exclude<AdminPreviewMode, "live">>("overlay");
   const [simulationDate, setSimulationDate] = useState<Date>(new Date());
+  const [stackedLayout, setStackedLayout] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < STACKED_LAYOUT_BREAKPOINT,
+  );
 
   const availableOverlays =
     selectedScreen === "any"
@@ -48,6 +54,23 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
   useEffect(() => {
     fetchOwnDocument(`${PREVIEW_ROUTE}?preview=true`).then(setDoc).catch(console.error);
     getOverlays().then(setOverlays).catch(console.error);
+  }, []);
+
+  useLayoutEffect(() => {
+    const container = portalContainerRef.current;
+    if (!container) return;
+
+    const updateLayout = (width: number) => {
+      setStackedLayout(width < STACKED_LAYOUT_BREAKPOINT);
+    };
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) updateLayout(entry.contentRect.width);
+    });
+
+    updateLayout(container.clientWidth);
+    observer.observe(container);
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -60,7 +83,7 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
     doc.querySelector(".w-webflow-badge")?.remove();
 
     iframe.srcdoc = doc.documentElement.outerHTML;
-  }, [doc]);
+  }, [doc, stackedLayout]);
 
   // Unified sync effect: Pushes current state to the iframe automatically
   const syncIframe = () => {
@@ -102,42 +125,61 @@ export function AdminScreen({ visibility = true }: AdminScreenProps) {
 
   if (!visibility) return null;
 
+  const controls = (
+    <ControlPanel
+      selectedScreen={selectedScreen}
+      availableOverlays={availableOverlays}
+      selectedOverlayId={selectedOverlayId}
+      portalContainerRef={portalContainerRef}
+      onSelectScreen={setSelectedScreen}
+      onSelectOverlay={handleSelectOverlay}
+      previewEnabled={previewEnabled}
+      onPreviewEnabledChange={handlePreviewEnabledChange}
+      previewMode={previewMode}
+      onPreviewModeChange={handlePreviewModeChange}
+      simulationDate={simulationDate}
+      onSimulationDateChange={setSimulationDate}
+      sticky={!stackedLayout}
+    />
+  );
+  const preview = (
+    <PreviewFrame iframeRef={iframeRef} onIframeLoad={syncIframe} compact={stackedLayout} />
+  );
+
   return (
-    <main className="wf @container h-screen w-full overflow-auto bg-white" ref={portalContainerRef}>
+    <main className="wf @container h-dvh w-full overflow-auto bg-white" ref={portalContainerRef}>
       <div className="flex min-h-full w-full flex-col items-start">
         <AdminHeader
           title="Bildschirm-Vorschau"
           description="Verwalten und simulieren Sie die Display-Inhalte für verschiedene Standorte."
           icon={Presentation}
+          compact={stackedLayout}
+          reserveNavigationSpace={isMobile}
         />
 
-        <ResizablePanelGroup
-          orientation="horizontal"
-          className="min-h-0 min-w-0 flex-1 overflow-clip!"
-        >
-          <ResizablePanel defaultSize="25%" minSize={425} className="overflow-clip! p-8">
-            <ControlPanel
-              selectedScreen={selectedScreen}
-              availableOverlays={availableOverlays}
-              selectedOverlayId={selectedOverlayId}
-              portalContainerRef={portalContainerRef}
-              onSelectScreen={setSelectedScreen}
-              onSelectOverlay={handleSelectOverlay}
-              previewEnabled={previewEnabled}
-              onPreviewEnabledChange={handlePreviewEnabledChange}
-              previewMode={previewMode}
-              onPreviewModeChange={handlePreviewModeChange}
-              simulationDate={simulationDate}
-              onSimulationDateChange={setSimulationDate}
-            />
-          </ResizablePanel>
+        {stackedLayout ? (
+          <div className="flex w-full flex-1 flex-col">
+            <section className="w-full p-4 sm:p-8">{controls}</section>
+            <section className="w-full border-t border-neutral-700/10 p-4 sm:p-8">
+              {preview}
+            </section>
+          </div>
+        ) : (
+          <ResizablePanelGroup
+            orientation="horizontal"
+            className="min-h-0 min-w-0 flex-1 overflow-clip!"
+          >
+            <ResizablePanel defaultSize="25%" minSize={425} className="overflow-clip! p-8">
+              {controls}
+            </ResizablePanel>
 
-          <ResizableHandle />
+            <ResizableHandle />
 
-          <ResizablePanel minSize={300} className="p-8">
-            <PreviewFrame iframeRef={iframeRef} onIframeLoad={syncIframe} />
-          </ResizablePanel>
-        </ResizablePanelGroup>
+            <ResizablePanel minSize={300} className="p-8">
+              {preview}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
       </div>
     </main>
   );

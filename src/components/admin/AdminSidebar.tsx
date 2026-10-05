@@ -147,6 +147,7 @@ const MIN_SIDEBAR_WIDTH = 224;
 const MAX_SIDEBAR_WIDTH = 480;
 const DEFAULT_SIDEBAR_WIDTH = 260;
 const COLLAPSED_SIDEBAR_WIDTH = 56;
+const MAX_SIDEBAR_VIEWPORT_RATIO = 0.4;
 const SIDEBAR_STORAGE_KEY = "sanavita-admin-sidebar";
 
 type StoredSidebarPreferences = {
@@ -234,11 +235,14 @@ function SidebarNavigation({
               <Button
                 type="button"
                 variant="ghost"
-                size="icon-sm"
+                size={mobile ? "icon" : "icon-sm"}
                 onClick={onToggle}
                 aria-label={toggleLabel}
                 title={toggleLabel}
-                className="size-8! cursor-pointer! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                className={cn(
+                  "cursor-pointer! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  !mobile && "size-8!",
+                )}
               >
                 <PanelLeftClose />
               </Button>
@@ -302,8 +306,17 @@ export function AdminSidebar({ visibility = true }: AdminSidebarProps) {
   const [width, setWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [mobilePortalContainer, setMobilePortalContainer] = useState<HTMLDivElement | null>(null);
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === "undefined" ? Number.POSITIVE_INFINITY : window.innerWidth,
+  );
   const isMobile = useIsMobile();
   const resizeStartRef = useRef<{ pointerX: number; width: number } | null>(null);
+  const maximumAvailableWidth = Math.max(
+    MIN_SIDEBAR_WIDTH,
+    Math.min(MAX_SIDEBAR_WIDTH, Math.floor(viewportWidth * MAX_SIDEBAR_VIEWPORT_RATIO)),
+  );
+  const effectiveWidth = Math.min(width, maximumAvailableWidth);
 
   useEffect(() => {
     const preferences = getStoredSidebarPreferences();
@@ -328,12 +341,19 @@ export function AdminSidebar({ visibility = true }: AdminSidebarProps) {
     if (isMobile) setMobileOpen(false);
   }, [isMobile]);
 
+  useEffect(() => {
+    const updateViewportWidth = () => setViewportWidth(window.innerWidth);
+
+    window.addEventListener("resize", updateViewportWidth);
+    return () => window.removeEventListener("resize", updateViewportWidth);
+  }, []);
+
   const resize = (nextWidth: number) => {
-    setWidth(Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, nextWidth)));
+    setWidth(Math.min(maximumAvailableWidth, Math.max(MIN_SIDEBAR_WIDTH, nextWidth)));
   };
 
   const startResize = (event: ReactPointerEvent<HTMLDivElement>) => {
-    resizeStartRef.current = { pointerX: event.clientX, width };
+    resizeStartRef.current = { pointerX: event.clientX, width: effectiveWidth };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
@@ -355,42 +375,45 @@ export function AdminSidebar({ visibility = true }: AdminSidebarProps) {
 
   if (isMobile) {
     return (
-      <>
+      <div ref={setMobilePortalContainer} className="wf">
         {!mobileOpen && (
           <Button
             type="button"
             variant="ghost"
-            size="icon-sm"
+            size="icon"
             onClick={() => setMobileOpen(true)}
             aria-label="Navigation öffnen"
             title="Navigation öffnen"
-            className="fixed top-3 left-3 z-40 bg-sidebar text-sidebar-foreground shadow-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="wf fixed top-3 left-3 z-40 border-sidebar-border bg-sidebar text-sidebar-foreground shadow-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           >
             <PanelLeftOpen />
           </Button>
         )}
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent
-            side="left"
-            showCloseButton={false}
-            className="w-[min(17.5rem,calc(100vw-1.5rem))] border-0 bg-sidebar p-0"
-          >
-            <SidebarNavigation
-              currentSlug={currentSlug}
-              collapsed={false}
-              mobile
-              onToggle={() => setMobileOpen(false)}
-            />
-          </SheetContent>
-        </Sheet>
-      </>
+        {mobilePortalContainer && (
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetContent
+              container={mobilePortalContainer}
+              side="left"
+              showCloseButton={false}
+              className="w-[min(19rem,calc(100vw-1rem))]! border-0! bg-sidebar p-0"
+            >
+              <SidebarNavigation
+                currentSlug={currentSlug}
+                collapsed={false}
+                mobile
+                onToggle={() => setMobileOpen(false)}
+              />
+            </SheetContent>
+          </Sheet>
+        )}
+      </div>
     );
   }
 
   return (
     <div
-      className="wf relative h-screen shrink-0"
-      style={{ width: collapsed ? COLLAPSED_SIDEBAR_WIDTH : width }}
+      className="wf relative h-dvh shrink-0"
+      style={{ width: collapsed ? COLLAPSED_SIDEBAR_WIDTH : effectiveWidth }}
     >
       <SidebarNavigation
         currentSlug={currentSlug}
@@ -404,8 +427,8 @@ export function AdminSidebar({ visibility = true }: AdminSidebarProps) {
           aria-label="Sidebar-Breite ändern"
           aria-orientation="vertical"
           aria-valuemin={MIN_SIDEBAR_WIDTH}
-          aria-valuemax={MAX_SIDEBAR_WIDTH}
-          aria-valuenow={width}
+          aria-valuemax={maximumAvailableWidth}
+          aria-valuenow={effectiveWidth}
           tabIndex={0}
           className="absolute inset-y-0 right-0 z-20 w-6 translate-x-1/2 cursor-ew-resize! touch-none bg-transparent select-none after:pointer-events-none after:absolute after:inset-y-0 after:left-1/2 after:w-px after:-translate-x-1/2 after:bg-beige-200 hover:after:w-0.5 hover:after:bg-brand-400 focus-visible:after:w-0.5 focus-visible:after:bg-brand-400"
           onPointerDown={startResize}
@@ -415,11 +438,11 @@ export function AdminSidebar({ visibility = true }: AdminSidebarProps) {
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
               event.preventDefault();
-              resize(width - 16);
+              resize(effectiveWidth - 16);
             }
             if (event.key === "ArrowRight") {
               event.preventDefault();
-              resize(width + 16);
+              resize(effectiveWidth + 16);
             }
           }}
         />

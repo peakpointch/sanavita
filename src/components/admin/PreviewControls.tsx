@@ -51,6 +51,7 @@ type ControlPanelProps = {
   onPreviewModeChange: (mode: Exclude<AdminPreviewMode, "live">) => void;
   simulationDate: Date;
   onSimulationDateChange: (date: Date) => void;
+  sticky?: boolean;
 };
 
 export function ControlPanel({
@@ -66,6 +67,7 @@ export function ControlPanel({
   onPreviewModeChange,
   simulationDate,
   onSimulationDateChange,
+  sticky = true,
 }: ControlPanelProps) {
   const timeValue = `${String(simulationDate.getHours()).padStart(2, "0")}:${String(simulationDate.getMinutes()).padStart(2, "0")}`;
   const [timeInput, setTimeInput] = useState(timeValue);
@@ -147,7 +149,7 @@ export function ControlPanel({
   );
 
   return (
-    <div className="sticky top-8 flex h-fit flex-col gap-6 self-start">
+    <div className={cn("flex h-fit flex-col gap-6 self-start", sticky && "sticky top-8")}>
       <div className="flex items-center gap-2 border-b border-neutral-700/10 pb-4">
         <SlidersHorizontal className="h-4 w-4 text-neutral-700/70" />
         <h2 className="text-lg font-semibold text-neutral-700">Konfiguration</h2>

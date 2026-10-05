@@ -1,11 +1,13 @@
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { cn } from "cn";
 
 type PreviewFrameProps = {
   iframeRef: RefObject<HTMLIFrameElement | null>;
   onIframeLoad: () => void;
+  compact?: boolean;
 };
 
-export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
+export function PreviewFrame({ iframeRef, onIframeLoad, compact = false }: PreviewFrameProps) {
   const previewRef = useRef<HTMLDivElement | null>(null);
   const [iframeScale, setIframeScale] = useState(1);
 
@@ -51,7 +53,10 @@ export function PreviewFrame({ iframeRef, onIframeLoad }: PreviewFrameProps) {
 
       <div
         ref={previewRef}
-        className="wf is-scaled custom preview relative w-full overflow-hidden rounded-xl border border-neutral-700/20 bg-neutral-700 p-8 shadow-md"
+        className={cn(
+          "wf is-scaled custom preview relative w-full overflow-hidden rounded-xl border border-neutral-700/20 bg-neutral-700 shadow-md",
+          compact ? "p-[1rem]" : "p-8",
+        )}
         style={{
           aspectRatio: "var(--wf-design-width) / var(--wf-design-height)",
         }}
