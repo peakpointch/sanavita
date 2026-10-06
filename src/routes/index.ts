@@ -41,7 +41,7 @@ export const routes = async () => {
   });
 
   new WFRoute("/jobs").execute(() => {
-    initCircleTabs();
+    // initCircleTabs();
     initSozjobsList();
     peakflow.execute("uploadcare");
     loadUploadcareStylesheet();
