@@ -51,6 +51,7 @@ export const drinkSchema = Payload.define(
     slug: Payload.String(),
     displayName: Payload.String(),
     description: Payload.String(),
+    order: Payload.Number({ required: false, default: 0 }),
     offers: Payload.Array(
       Payload.Object({
         price: Payload.Number({ required: false }),
