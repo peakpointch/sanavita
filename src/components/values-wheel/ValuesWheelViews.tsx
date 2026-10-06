@@ -177,6 +177,8 @@ function DesktopWheelTabs({
             )}
             style={
               {
+                appearance: "none",
+                visibility: isReady ? "visible" : "hidden",
                 "--wheel-number-height": "1.5rem",
                 "--wheel-label-height": "1.25rem",
                 "--wheel-label-gap": "0.25rem",
