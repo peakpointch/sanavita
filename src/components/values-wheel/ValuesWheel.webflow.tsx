@@ -6,9 +6,6 @@ import "@/styles/components/globals.css";
 
 export default declareComponent(ValuesWheel, {
   name: "Werterad",
-  options: {
-    ssr: false,
-  },
   props: {
     layout: props.Variant({
       group: "Style",

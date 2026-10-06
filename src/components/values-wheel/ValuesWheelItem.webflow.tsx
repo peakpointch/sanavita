@@ -6,9 +6,6 @@ import "@/styles/components/globals.css";
 
 export default declareComponent(ValuesWheel.Item, {
   name: "Werterad Eintrag",
-  options: {
-    ssr: false,
-  },
   props: {
     visibility: props.Visibility({
       group: "Visibility",

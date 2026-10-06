@@ -7,9 +7,6 @@ import { AdminHome } from "./AdminHome";
 
 export default declareComponent(AdminHome, {
   name: "Admin / Home",
-  options: {
-    ssr: false,
-  },
   props: {
     visibility: props.Visibility({
       group: "Visibility",
