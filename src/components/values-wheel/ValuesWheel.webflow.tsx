@@ -43,6 +43,18 @@ export default declareComponent(ValuesWheel, {
       defaultValue: "Werte bei Sanavita",
       tooltip: "Nur auf mobilen Geräten sichtbar",
     }),
+    autoPlay: props.Boolean({
+      group: "Einstellungen",
+      name: "Autoplay",
+      defaultValue: true,
+    }),
+    autoPlayDuration: props.Number({
+      group: "Einstellungen",
+      name: "Autoplay Dauer (ms)",
+      defaultValue: 10000,
+      min: 0,
+      decimals: 0,
+    }),
     children: props.Slot({
       group: "Inhalt",
       name: "Content",

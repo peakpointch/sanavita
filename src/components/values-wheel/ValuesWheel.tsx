@@ -147,6 +147,8 @@ type ValuesWheelProps = {
   layout?: ValuesWheelLayout;
   heading?: string;
   children?: ReactNode;
+  autoPlay: boolean;
+  autoPlayDuration: number;
 };
 
 export function ValuesWheel({
@@ -157,9 +159,12 @@ export function ValuesWheel({
   layout = DEFAULT_VALUES_WHEEL_LAYOUT,
   heading = DEFAULT_VALUES_WHEEL_HEADING,
   children,
+  autoPlay = true,
+  autoPlayDuration = 10000,
 }: ValuesWheelProps) {
   const [activeIndex, setActiveIndex] = useState(toZeroBasedIndex(startIndex));
   const [isReady, setIsReady] = useState(false);
+  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(autoPlay);
   const id = useRef(`values-wheel-${Math.random().toString(36).slice(2)}`).current;
   const count = normalizeItemCount(itemCount);
   const selectedIndex = clampActiveIndex(activeIndex, count);
@@ -167,6 +172,22 @@ export function ValuesWheel({
   useEffect(() => {
     setIsReady(true);
   }, []);
+
+  useEffect(() => {
+    setIsAutoPlayEnabled(autoPlay);
+  }, [autoPlay]);
+
+  useEffect(() => {
+    if (!isAutoPlayEnabled || count <= 1) return;
+
+    const timeout = window.setTimeout(() => {
+      setActiveIndex((currentIndex) => (currentIndex + 1) % count);
+    }, autoPlayDuration);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [activeIndex, autoPlayDuration, count, isAutoPlayEnabled]);
 
   useEffect(() => {
     setActiveIndex(toZeroBasedIndex(startIndex));
@@ -177,6 +198,7 @@ export function ValuesWheel({
 
   function selectTab(index: number) {
     setActiveIndex(index);
+    setIsAutoPlayEnabled(false);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
