@@ -165,7 +165,9 @@ export function ValuesWheel({
   const [activeIndex, setActiveIndex] = useState(toZeroBasedIndex(startIndex));
   const [isReady, setIsReady] = useState(false);
   const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(autoPlay);
+  const [isInViewport, setIsInViewport] = useState(true);
   const id = useRef(`values-wheel-${Math.random().toString(36).slice(2)}`).current;
+  const wheelRootRef = useRef<HTMLDivElement | null>(null);
   const count = normalizeItemCount(itemCount);
   const selectedIndex = clampActiveIndex(activeIndex, count);
 
@@ -178,7 +180,24 @@ export function ValuesWheel({
   }, [autoPlay]);
 
   useEffect(() => {
-    if (!isAutoPlayEnabled || count <= 1) return;
+    const element = wheelRootRef.current;
+
+    if (!element || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInViewport(entry.isIntersecting && entry.intersectionRatio >= 0.25);
+      },
+      { threshold: [0, 0.25] },
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isAutoPlayEnabled || !isInViewport || count <= 1) return;
 
     const timeout = window.setTimeout(() => {
       setActiveIndex((currentIndex) => (currentIndex + 1) % count);
@@ -187,7 +206,7 @@ export function ValuesWheel({
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [activeIndex, autoPlayDuration, count, isAutoPlayEnabled]);
+  }, [activeIndex, autoPlayDuration, count, isAutoPlayEnabled, isInViewport]);
 
   useEffect(() => {
     setActiveIndex(toZeroBasedIndex(startIndex));
@@ -197,6 +216,11 @@ export function ValuesWheel({
   const mobileDragHandlers = useMobileWheelDrag();
 
   function selectTab(index: number) {
+    if (autoPlay && index === selectedIndex) {
+      setIsAutoPlayEnabled((enabled) => !enabled);
+      return;
+    }
+
     setActiveIndex(index);
     setIsAutoPlayEnabled(false);
   }
@@ -236,7 +260,7 @@ export function ValuesWheel({
   };
 
   return (
-    <div className="wf w-full md:p-14 md:pt-17">
+    <div ref={wheelRootRef} className="wf w-full md:p-14 md:pt-17">
       <div className="relative">
         {layout === "mini" && <MobileMiniWheel {...wheelViewProps} heading={heading} />}
 
