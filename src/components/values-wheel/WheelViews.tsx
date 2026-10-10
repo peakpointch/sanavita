@@ -234,7 +234,7 @@ export function MobileMiniWheel({
                 }
               >
                 {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
-                  <ValuesWheelProgress
+                  <WheelProgress
                     key={tabIndex}
                     animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
                     autoPlayDuration={autoPlayDuration}
@@ -343,7 +343,7 @@ function DesktopWheelTabs({
             }
           >
             {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
-              <ValuesWheelProgress
+              <WheelProgress
                 key={index}
                 animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
                 autoPlayDuration={autoPlayDuration}
@@ -380,7 +380,7 @@ function DesktopWheelTabs({
   );
 }
 
-type ValuesWheelProgressProps = {
+type WheelProgressProps = {
   animationPlayState: "paused" | "running";
   autoPlayDuration: number;
   isComplete: boolean;
@@ -388,13 +388,13 @@ type ValuesWheelProgressProps = {
   isPausing: boolean;
 };
 
-function ValuesWheelProgress({
+function WheelProgress({
   animationPlayState,
   autoPlayDuration,
   isComplete,
   isCollapsing,
   isPausing,
-}: ValuesWheelProgressProps) {
+}: WheelProgressProps) {
   const [progress, setProgress] = useState(0);
   const progressRef = useRef(0);
   const elapsedRef = useRef(0);
@@ -566,14 +566,14 @@ export function FullWheel({ layout, ...props }: FullWheelProps) {
   );
 }
 
-type ValuesWheelPanelProps = {
+type WheelPanelProps = {
   id: string;
   activeTabIndex: number;
   layout: WheelLayout;
   children?: ReactNode;
 };
 
-export function ValuesWheelPanel({ id, activeTabIndex, layout, children }: ValuesWheelPanelProps) {
+export function WheelPanel({ id, activeTabIndex, layout, children }: WheelPanelProps) {
   return (
     <div
       id={`${id}-panel-${activeTabIndex}`}

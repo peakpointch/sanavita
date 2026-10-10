@@ -1,10 +1,10 @@
 import { declareComponent } from "@webflow/react";
-import { ValuesWheel } from "./ValuesWheel";
+import { Wheel } from "./Wheel";
 import { props } from "@webflow/data-types";
 
 import "@/styles/components/globals.css";
 
-export default declareComponent(ValuesWheel.Item, {
+export default declareComponent(Wheel.Item, {
   name: "Werterad Eintrag",
   props: {
     visibility: props.Visibility({

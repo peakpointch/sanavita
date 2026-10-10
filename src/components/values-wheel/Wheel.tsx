@@ -12,9 +12,9 @@ import {
   type WheelTabMetadata,
   type WheelLayout,
 } from "./wheel-utils";
-import { FullWheel, MobileMiniWheel, ValuesWheelPanel } from "./ValuesWheelViews";
+import { FullWheel, MobileMiniWheel, WheelPanel } from "./WheelViews";
 
-type ValuesWheelItemProps = {
+type WheelItemProps = {
   wheelId?: string;
   index?: number;
   visibility?: boolean;
@@ -22,13 +22,13 @@ type ValuesWheelItemProps = {
   description?: ReactNode;
 };
 
-function ValuesWheelItem({
+function WheelItem({
   wheelId = DEFAULT_WHEEL_ID,
   index = 1,
   visibility = true,
   label = "Mehr",
   description,
-}: ValuesWheelItemProps) {
+}: WheelItemProps) {
   const zeroBasedIndex = toZeroBasedIndex(index);
   const tabMetadata = useMemo(() => ({ label, visible: visibility }), [label, visibility]);
   const isActive = useTab(wheelId, zeroBasedIndex, tabMetadata);
@@ -96,7 +96,7 @@ function ValuesWheelItem({
   );
 }
 
-type ValuesWheelProps = {
+type WheelProps = {
   wheelId?: string;
   visibility?: boolean;
   tabCount?: number;
@@ -108,7 +108,7 @@ type ValuesWheelProps = {
   autoPlayDuration: number;
 };
 
-export function ValuesWheel({
+export function Wheel({
   wheelId = DEFAULT_WHEEL_ID,
   visibility = true,
   tabCount = 1,
@@ -118,7 +118,7 @@ export function ValuesWheel({
   children,
   autoPlay = true,
   autoPlayDuration = 10000,
-}: ValuesWheelProps) {
+}: WheelProps) {
   const { mode } = useWebflowContext();
   const isAutoPlayAllowed = mode === "preview" || mode === "publish";
   const autoPlayConfigured = autoPlay && isAutoPlayAllowed;
@@ -195,9 +195,9 @@ export function ValuesWheel({
 
         <FullWheel {...wheelViewProps} {...mobileDragHandlers} layout={layout} />
 
-        <ValuesWheelPanel id={id} activeTabIndex={tabs.activeIndex} layout={layout}>
+        <WheelPanel id={id} activeTabIndex={tabs.activeIndex} layout={layout}>
           {children}
-        </ValuesWheelPanel>
+        </WheelPanel>
       </div>
 
       {!tabCount && <div>Keine Einträge</div>}
@@ -205,4 +205,4 @@ export function ValuesWheel({
   );
 }
 
-ValuesWheel.Item = ValuesWheelItem;
+Wheel.Item = WheelItem;

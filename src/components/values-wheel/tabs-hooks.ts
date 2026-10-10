@@ -1,10 +1,4 @@
-import {
-  type KeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   TABS_REGISTER,
@@ -21,11 +15,7 @@ type UseTabsOptions<TMetadata> = {
   initialIndex: number;
 };
 
-export function useTabs<TMetadata>({
-  groupId,
-  tabCount,
-  initialIndex,
-}: UseTabsOptions<TMetadata>) {
+export function useTabs<TMetadata>({ groupId, tabCount, initialIndex }: UseTabsOptions<TMetadata>) {
   const [registeredTabs, setRegisteredTabs] = useState<Record<number, TMetadata>>({});
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const activeIndex = Math.min(currentIndex, Math.max(tabCount - 1, 0));
@@ -83,32 +73,29 @@ export function useTabs<TMetadata>({
     setCurrentIndex((index) => (index + 1) % tabCount);
   }, [tabCount]);
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
 
-      const buttons = Array.from(
-        event.currentTarget
-          .closest('[role="tablist"]')
-          ?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [],
-      );
-      const currentPosition = buttons.findIndex(
-        (button) => Number(button.dataset.tabsIndex) === index,
-      );
+    const buttons = Array.from(
+      event.currentTarget
+        .closest('[role="tablist"]')
+        ?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [],
+    );
+    const currentPosition = buttons.findIndex(
+      (button) => Number(button.dataset.tabsIndex) === index,
+    );
 
-      if (currentPosition === -1 || buttons.length === 0) return;
+    if (currentPosition === -1 || buttons.length === 0) return;
 
-      event.preventDefault();
+    event.preventDefault();
 
-      const direction = event.key === "ArrowRight" ? 1 : -1;
-      const nextPosition = (currentPosition + direction + buttons.length) % buttons.length;
-      const nextButton = buttons[nextPosition];
+    const direction = event.key === "ArrowRight" ? 1 : -1;
+    const nextPosition = (currentPosition + direction + buttons.length) % buttons.length;
+    const nextButton = buttons[nextPosition];
 
-      nextButton.focus();
-      nextButton.click();
-    },
-    [],
-  );
+    nextButton.focus();
+    nextButton.click();
+  }, []);
 
   return {
     registeredTabs,

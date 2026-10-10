@@ -1,10 +1,10 @@
 import { declareComponent } from "@webflow/react";
-import { ValuesWheel } from "./ValuesWheel";
+import { Wheel } from "./Wheel";
 import { props } from "@webflow/data-types";
 
 import "@/styles/components/globals.css";
 
-export default declareComponent(ValuesWheel, {
+export default declareComponent(Wheel, {
   name: "Werterad",
   props: {
     layout: props.Variant({
