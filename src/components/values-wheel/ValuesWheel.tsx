@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { useWebflowContext } from "@webflow/react";
 
 import {
   VALUES_WHEEL_ITEM_REGISTER,
@@ -161,9 +162,12 @@ export function ValuesWheel({
   autoPlay = true,
   autoPlayDuration = 10000,
 }: ValuesWheelProps) {
+  const { mode } = useWebflowContext();
+  const isAutoPlayAllowed = mode === "preview" || mode === "publish";
+  const autoPlayConfigured = autoPlay && isAutoPlayAllowed;
   const [currentTabIndex, setCurrentTabIndex] = useState(toZeroBasedIndex(startIndex));
   const [hasMounted, setHasMounted] = useState(false);
-  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(autoPlay);
+  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(autoPlayConfigured);
   const [isInViewport, setIsInViewport] = useState(true);
   const id = useRef(`values-wheel-${Math.random().toString(36).slice(2)}`).current;
   const wheelRootRef = useRef<HTMLDivElement | null>(null);
@@ -175,8 +179,8 @@ export function ValuesWheel({
   }, []);
 
   useEffect(() => {
-    setIsAutoPlayEnabled(autoPlay);
-  }, [autoPlay]);
+    setIsAutoPlayEnabled(autoPlayConfigured);
+  }, [autoPlayConfigured]);
 
   useEffect(() => {
     const element = wheelRootRef.current;
@@ -224,7 +228,7 @@ export function ValuesWheel({
   const mobileDragHandlers = useMobileWheelDrag();
 
   function selectTab(index: number) {
-    if (autoPlay && index === activeTabIndex) {
+    if (autoPlayConfigured && index === activeTabIndex) {
       setIsAutoPlayEnabled((enabled) => !enabled);
     } else {
       setCurrentTabIndex(index);
