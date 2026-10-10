@@ -10,11 +10,10 @@ import {
 } from "./values-wheel-events";
 import { useMobileWheelDrag, useValuesWheelRegistry } from "./values-wheel-hooks";
 import {
-  clampActiveIndex,
+  clampTabIndex,
   DEFAULT_VALUES_WHEEL_HEADING,
   DEFAULT_VALUES_WHEEL_ID,
   DEFAULT_VALUES_WHEEL_LAYOUT,
-  normalizeItemCount,
   toZeroBasedIndex,
   VALUES_WHEEL_CONTENT_TRANSITION_DURATION,
   type ValuesWheelLayout,
@@ -142,7 +141,7 @@ function ValuesWheelItem({
 type ValuesWheelProps = {
   wheelId?: string;
   visibility?: boolean;
-  itemCount?: number;
+  tabCount?: number;
   startIndex?: number;
   layout?: ValuesWheelLayout;
   heading?: string;
@@ -154,7 +153,7 @@ type ValuesWheelProps = {
 export function ValuesWheel({
   wheelId = DEFAULT_VALUES_WHEEL_ID,
   visibility = true,
-  itemCount = 1,
+  tabCount = 1,
   startIndex = 1,
   layout = DEFAULT_VALUES_WHEEL_LAYOUT,
   heading = DEFAULT_VALUES_WHEEL_HEADING,
@@ -162,18 +161,17 @@ export function ValuesWheel({
   autoPlay = true,
   autoPlayDuration = 10000,
 }: ValuesWheelProps) {
-  const [activeIndex, setActiveIndex] = useState(toZeroBasedIndex(startIndex));
-  const [isReady, setIsReady] = useState(false);
+  const [currentTabIndex, setCurrentTabIndex] = useState(toZeroBasedIndex(startIndex));
+  const [hasMounted, setHasMounted] = useState(false);
   const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(autoPlay);
   const [isInViewport, setIsInViewport] = useState(true);
   const id = useRef(`values-wheel-${Math.random().toString(36).slice(2)}`).current;
   const wheelRootRef = useRef<HTMLDivElement | null>(null);
   const autoPlayRemainingRef = useRef(autoPlayDuration);
-  const count = normalizeItemCount(itemCount);
-  const selectedIndex = clampActiveIndex(activeIndex, count);
+  const activeTabIndex = clampTabIndex(currentTabIndex, tabCount);
 
   useEffect(() => {
-    setIsReady(true);
+    setHasMounted(true);
   }, []);
 
   useEffect(() => {
@@ -198,40 +196,40 @@ export function ValuesWheel({
   }, []);
 
   useEffect(() => {
-    setActiveIndex(toZeroBasedIndex(startIndex));
+    setCurrentTabIndex(toZeroBasedIndex(startIndex));
   }, [startIndex]);
 
   useEffect(() => {
     autoPlayRemainingRef.current = autoPlayDuration;
-  }, [activeIndex, autoPlayDuration]);
+  }, [currentTabIndex, autoPlayDuration]);
 
   useEffect(() => {
-    if (!isAutoPlayEnabled || !isInViewport || count <= 1) return;
+    const shouldAutoPlay = isAutoPlayEnabled && isInViewport && tabCount >= 1;
+    if (!shouldAutoPlay) return;
 
     const duration = Math.max(0, autoPlayRemainingRef.current);
     const startedAt = performance.now();
     const timeout = window.setTimeout(() => {
       autoPlayRemainingRef.current = 0;
-      setActiveIndex((currentIndex) => (currentIndex + 1) % count);
+      setCurrentTabIndex((current) => (current + 1) % tabCount);
     }, duration);
 
     return () => {
       autoPlayRemainingRef.current = Math.max(0, duration - (performance.now() - startedAt));
       window.clearTimeout(timeout);
     };
-  }, [activeIndex, autoPlayDuration, count, isAutoPlayEnabled, isInViewport]);
+  }, [currentTabIndex, autoPlayDuration, tabCount, isAutoPlayEnabled, isInViewport]);
 
-  const registeredItems = useValuesWheelRegistry(wheelId, selectedIndex);
+  const registeredItems = useValuesWheelRegistry(wheelId, activeTabIndex);
   const mobileDragHandlers = useMobileWheelDrag();
 
   function selectTab(index: number) {
-    if (autoPlay && index === selectedIndex) {
+    if (autoPlay && index === activeTabIndex) {
       setIsAutoPlayEnabled((enabled) => !enabled);
-      return;
+    } else {
+      setCurrentTabIndex(index);
+      setIsAutoPlayEnabled(false);
     }
-
-    setActiveIndex(index);
-    setIsAutoPlayEnabled(false);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
@@ -260,10 +258,10 @@ export function ValuesWheel({
 
   const wheelViewProps = {
     id,
-    count,
-    selectedIndex,
+    count: tabCount,
+    activeTabIndex,
     registeredItems,
-    isReady,
+    hasMounted,
     autoPlayDuration,
     isAutoPlayEnabled,
     isInViewport,
@@ -278,12 +276,12 @@ export function ValuesWheel({
 
         <FullWheel {...wheelViewProps} {...mobileDragHandlers} layout={layout} />
 
-        <ValuesWheelPanel id={id} selectedIndex={selectedIndex} layout={layout}>
+        <ValuesWheelPanel id={id} activeTabIndex={activeTabIndex} layout={layout}>
           {children}
         </ValuesWheelPanel>
       </div>
 
-      {!count && <div>Keine Einträge</div>}
+      {!tabCount && <div>Keine Einträge</div>}
     </div>
   );
 }

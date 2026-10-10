@@ -28,9 +28,9 @@ type HandleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) =>
 type WheelViewProps = {
   id: string;
   count: number;
-  selectedIndex: number;
+  activeTabIndex: number;
   registeredItems: Record<number, RegisteredItem>;
-  isReady: boolean;
+  hasMounted: boolean;
   autoPlayDuration: number;
   isAutoPlayEnabled: boolean;
   isInViewport: boolean;
@@ -42,20 +42,20 @@ type MobileMiniWheelProps = WheelViewProps & {
   heading: string;
 };
 
-function useTransitioningFromIndex(selectedIndex: number, isAutoPlayEnabled: boolean) {
-  const previousRef = useRef({ index: selectedIndex, isAutoPlayEnabled });
+function useTransitioningFromIndex(activeTabIndex: number, isAutoPlayEnabled: boolean) {
+  const previousRef = useRef({ index: activeTabIndex, isAutoPlayEnabled });
   const [transitioningFromIndex, setTransitioningFromIndex] = useState<number | null>(null);
-  const hasSelectionChanged = previousRef.current.index !== selectedIndex;
+  const hasSelectionChanged = previousRef.current.index !== activeTabIndex;
   const previousWasAutoPlaying = previousRef.current.isAutoPlayEnabled;
   const renderedTransitioningIndex = hasSelectionChanged
     ? previousRef.current.index
     : transitioningFromIndex;
 
   useEffect(() => {
-    if (previousRef.current.index === selectedIndex) return;
+    if (previousRef.current.index === activeTabIndex) return;
 
     const previous = previousRef.current;
-    previousRef.current = { index: selectedIndex, isAutoPlayEnabled };
+    previousRef.current = { index: activeTabIndex, isAutoPlayEnabled };
 
     if (!previous.isAutoPlayEnabled || !isAutoPlayEnabled) {
       setTransitioningFromIndex(null);
@@ -68,7 +68,7 @@ function useTransitioningFromIndex(selectedIndex: number, isAutoPlayEnabled: boo
     }, VALUES_WHEEL_BUTTON_TRANSITION_DURATION);
 
     return () => window.clearTimeout(timeout);
-  }, [isAutoPlayEnabled, selectedIndex]);
+  }, [isAutoPlayEnabled, activeTabIndex]);
 
   return previousWasAutoPlaying && isAutoPlayEnabled ? renderedTransitioningIndex : null;
 }
@@ -76,37 +76,37 @@ function useTransitioningFromIndex(selectedIndex: number, isAutoPlayEnabled: boo
 type AutoPlayPausePhase = "running" | "pausing" | "paused" | "restarting";
 
 function useAutoPlayPauseTransition(
-  selectedIndex: number,
+  activeTabIndex: number,
   isAutoPlayEnabled: boolean,
   isInViewport: boolean,
 ) {
   const isAutoPlayPaused = !isAutoPlayEnabled || !isInViewport;
-  const previousRef = useRef({ selectedIndex, isAutoPlayPaused });
+  const previousRef = useRef({ activeTabIndex, isAutoPlayPaused });
   const [phase, setPhase] = useState<AutoPlayPausePhase>(isAutoPlayPaused ? "paused" : "running");
   const [pausedIndex, setPausedIndex] = useState<number | null>(null);
   const hasJustPaused =
     !previousRef.current.isAutoPlayPaused &&
     isAutoPlayPaused &&
-    previousRef.current.selectedIndex === selectedIndex;
+    previousRef.current.activeTabIndex === activeTabIndex;
   const hasJustRestarted =
     previousRef.current.isAutoPlayPaused &&
     !isAutoPlayPaused &&
-    previousRef.current.selectedIndex === selectedIndex;
-  const isPauseTarget = pausedIndex === selectedIndex || hasJustPaused || hasJustRestarted;
+    previousRef.current.activeTabIndex === activeTabIndex;
+  const isPauseTarget = pausedIndex === activeTabIndex || hasJustPaused || hasJustRestarted;
 
   useEffect(() => {
     const previous = previousRef.current;
-    previousRef.current = { selectedIndex, isAutoPlayPaused };
+    previousRef.current = { activeTabIndex: activeTabIndex, isAutoPlayPaused };
 
     if (previous.isAutoPlayPaused !== isAutoPlayPaused) {
       if (isAutoPlayPaused) {
-        if (previous.selectedIndex !== selectedIndex) {
+        if (previous.activeTabIndex !== activeTabIndex) {
           setPausedIndex(null);
           setPhase("paused");
           return;
         }
 
-        setPausedIndex(selectedIndex);
+        setPausedIndex(activeTabIndex);
         setPhase("pausing");
         const timeout = window.setTimeout(() => {
           setPhase("paused");
@@ -115,7 +115,7 @@ function useAutoPlayPauseTransition(
         return () => window.clearTimeout(timeout);
       }
 
-      if (previous.selectedIndex !== selectedIndex) {
+      if (previous.activeTabIndex !== activeTabIndex) {
         setPausedIndex(null);
         setPhase("running");
         return;
@@ -130,11 +130,11 @@ function useAutoPlayPauseTransition(
       return () => window.clearTimeout(timeout);
     }
 
-    if (previous.selectedIndex !== selectedIndex) {
+    if (previous.activeTabIndex !== activeTabIndex) {
       setPausedIndex(null);
       setPhase(isAutoPlayPaused ? "paused" : "running");
     }
-  }, [isAutoPlayPaused, selectedIndex]);
+  }, [isAutoPlayPaused, activeTabIndex]);
 
   return {
     isPauseTarget,
@@ -147,9 +147,9 @@ function useAutoPlayPauseTransition(
 export function MobileMiniWheel({
   id,
   count,
-  selectedIndex,
+  activeTabIndex: activeTabIndex,
   registeredItems,
-  isReady,
+  hasMounted,
   autoPlayDuration,
   isAutoPlayEnabled,
   isInViewport,
@@ -157,9 +157,9 @@ export function MobileMiniWheel({
   onSelect,
   onKeyDown,
 }: MobileMiniWheelProps) {
-  const transitioningFromIndex = useTransitioningFromIndex(selectedIndex, isAutoPlayEnabled);
+  const transitioningFromIndex = useTransitioningFromIndex(activeTabIndex, isAutoPlayEnabled);
   const { isPauseTarget, isAutoPlayPaused, isPauseTransition } = useAutoPlayPauseTransition(
-    selectedIndex,
+    activeTabIndex,
     isAutoPlayEnabled,
     isInViewport,
   );
@@ -183,38 +183,38 @@ export function MobileMiniWheel({
           <span className="text-3xl font-semibold text-black">{heading}</span>
         </div>
         <div role="tablist" aria-label="Werte" className="block">
-          {Array.from({ length: count }, (_, index) => {
-            const registeredItem = registeredItems[index];
+          {Array.from({ length: count }, (_, tabIndex) => {
+            const registeredItem = registeredItems[tabIndex];
             if (registeredItem && !registeredItem.visible) return null;
 
-            const isActive = selectedIndex === index;
-            const isTransitioningFrom = transitioningFromIndex === index;
+            const isActive = activeTabIndex === tabIndex;
+            const isTransitioningFrom = transitioningFromIndex === tabIndex;
             const isCollapsing =
               isTransitioningFrom || (isActive && isPauseTarget && isAutoPlayPaused);
             const rotation = getWheelRotation(
-              index,
+              tabIndex,
               count,
-              selectedIndex,
+              activeTabIndex,
               MOBILE_ACTIVE_TAB_ROTATION,
               MOBILE_ROTATION_DIRECTION,
             );
 
             return (
               <button
-                key={index}
-                id={`${id}-mini-tab-${index}`}
-                data-values-wheel-index={index}
+                key={tabIndex}
+                id={`${id}-mini-tab-${tabIndex}`}
+                data-values-wheel-index={tabIndex}
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                aria-controls={`${id}-panel-${selectedIndex}`}
+                aria-controls={`${id}-panel-${activeTabIndex}`}
                 tabIndex={0}
-                onClick={() => onSelect(index)}
-                onKeyDown={(event) => onKeyDown(event, index)}
+                onClick={() => onSelect(tabIndex)}
+                onKeyDown={(event) => onKeyDown(event, tabIndex)}
                 className={cn(
                   "absolute top-1/2 left-1/2 z-10",
                   "flex cursor-pointer! items-center justify-center rounded-full border text-center",
-                  isReady &&
+                  hasMounted &&
                     "transition-[width,height,transform,background-color,border-color] duration-1000 ease-in-out",
                   "hover:border-beige-200 hover:bg-brand-50",
                   isActive
@@ -234,7 +234,7 @@ export function MobileMiniWheel({
               >
                 {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
                   <ValuesWheelProgress
-                    key={index}
+                    key={tabIndex}
                     animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
                     autoPlayDuration={autoPlayDuration}
                     isComplete={isTransitioningFrom}
@@ -245,11 +245,11 @@ export function MobileMiniWheel({
                 <span
                   className={cn(
                     "relative z-10 tracking-wide text-beige-800 uppercase",
-                    isReady && "transition-[font-size,font-weight] duration-1000 ease-in-out",
+                    hasMounted && "transition-[font-size,font-weight] duration-1000 ease-in-out",
                     isActive ? "text-md font-bold" : "text-xs font-medium",
                   )}
                 >
-                  {formatItemNumber(index)}
+                  {formatItemNumber(tabIndex)}
                 </span>
               </button>
             );
@@ -268,18 +268,18 @@ type FullWheelProps = WheelViewProps &
 function DesktopWheelTabs({
   id,
   count,
-  selectedIndex,
+  activeTabIndex,
   registeredItems,
-  isReady,
+  hasMounted,
   autoPlayDuration,
   isAutoPlayEnabled,
   isInViewport,
   onSelect,
   onKeyDown,
 }: WheelViewProps) {
-  const transitioningFromIndex = useTransitioningFromIndex(selectedIndex, isAutoPlayEnabled);
+  const transitioningFromIndex = useTransitioningFromIndex(activeTabIndex, isAutoPlayEnabled);
   const { isPauseTarget, isAutoPlayPaused, isPauseTransition } = useAutoPlayPauseTransition(
-    selectedIndex,
+    activeTabIndex,
     isAutoPlayEnabled,
     isInViewport,
   );
@@ -290,13 +290,13 @@ function DesktopWheelTabs({
         const registeredItem = registeredItems[index];
         if (registeredItem && !registeredItem.visible) return null;
 
-        const isActive = selectedIndex === index;
+        const isActive = activeTabIndex === index;
         const isTransitioningFrom = transitioningFromIndex === index;
         const isCollapsing = isTransitioningFrom || (isActive && isPauseTarget && isAutoPlayPaused);
         const rotation = getWheelRotation(
           index,
           count,
-          selectedIndex,
+          activeTabIndex,
           DESKTOP_ACTIVE_TAB_ROTATION,
           DESKTOP_ROTATION_DIRECTION,
         );
@@ -309,7 +309,7 @@ function DesktopWheelTabs({
             type="button"
             role="tab"
             aria-selected={isActive}
-            aria-controls={`${id}-panel-${selectedIndex}`}
+            aria-controls={`${id}-panel-${activeTabIndex}`}
             tabIndex={0}
             onClick={() => onSelect(index)}
             onKeyDown={(event) => onKeyDown(event, index)}
@@ -317,7 +317,7 @@ function DesktopWheelTabs({
               "absolute top-1/2 left-1/2 z-10",
               "flex flex-col items-center justify-center gap-(--wheel-label-gap)",
               "cursor-pointer! rounded-full border text-center",
-              isReady &&
+              hasMounted &&
                 "transition-[width,height,transform,background-color,border-color] duration-1000 ease-in-out",
               "hover:border-beige-200 hover:bg-brand-50",
               isActive
@@ -327,7 +327,7 @@ function DesktopWheelTabs({
             style={
               {
                 appearance: "none",
-                visibility: isReady ? "visible" : "hidden",
+                visibility: hasMounted ? "visible" : "hidden",
                 "--wheel-number-height": "1.5rem",
                 "--wheel-label-height": "1.25rem",
                 "--wheel-label-gap": "0.25rem",
@@ -488,7 +488,7 @@ type MobileTabListProps = WheelViewProps & ReturnType<typeof useMobileWheelDrag>
 function MobileTabList({
   id,
   count,
-  selectedIndex,
+  activeTabIndex,
   registeredItems,
   onSelect,
   onKeyDown,
@@ -513,7 +513,7 @@ function MobileTabList({
         const registeredItem = registeredItems[index];
         if (registeredItem && !registeredItem.visible) return null;
 
-        const isActive = selectedIndex === index;
+        const isActive = activeTabIndex === index;
 
         return (
           <button
@@ -523,7 +523,7 @@ function MobileTabList({
             type="button"
             role="tab"
             aria-selected={isActive}
-            aria-controls={`${id}-panel-${selectedIndex}`}
+            aria-controls={`${id}-panel-${activeTabIndex}`}
             tabIndex={0}
             onClick={() => onSelect(index)}
             onKeyDown={(event) => onKeyDown(event, index)}
@@ -565,18 +565,18 @@ export function FullWheel({ layout, ...props }: FullWheelProps) {
 
 type ValuesWheelPanelProps = {
   id: string;
-  selectedIndex: number;
+  activeTabIndex: number;
   layout: ValuesWheelLayout;
   children?: ReactNode;
 };
 
-export function ValuesWheelPanel({ id, selectedIndex, layout, children }: ValuesWheelPanelProps) {
+export function ValuesWheelPanel({ id, activeTabIndex, layout, children }: ValuesWheelPanelProps) {
   return (
     <div
-      id={`${id}-panel-${selectedIndex}`}
+      id={`${id}-panel-${activeTabIndex}`}
       role="tabpanel"
       aria-labelledby={
-        layout === "mini" ? `${id}-mini-tab-${selectedIndex}` : `${id}-tab-${selectedIndex}`
+        layout === "mini" ? `${id}-mini-tab-${activeTabIndex}` : `${id}-tab-${activeTabIndex}`
       }
       className={cn(
         "max-w-2xltext-center mx-auto",

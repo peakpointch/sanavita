@@ -10,7 +10,7 @@ import {
 } from "./values-wheel-events";
 import type { RegisteredItem } from "./values-wheel-utils";
 
-export function useValuesWheelRegistry(wheelId: string, selectedIndex: number) {
+export function useValuesWheelRegistry(wheelId: string, activeTabIndex: number) {
   const [registeredItems, setRegisteredItems] = useState<Record<number, RegisteredItem>>({});
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export function useValuesWheelRegistry(wheelId: string, selectedIndex: number) {
 
       window.dispatchEvent(
         new CustomEvent<ValuesWheelSelectDetail>(VALUES_WHEEL_SELECT, {
-          detail: { wheelId, index: selectedIndex },
+          detail: { wheelId, index: activeTabIndex },
         }),
       );
     };
@@ -53,13 +53,14 @@ export function useValuesWheelRegistry(wheelId: string, selectedIndex: number) {
       window.removeEventListener(VALUES_WHEEL_ITEM_REGISTER, handleRegister);
       window.removeEventListener(VALUES_WHEEL_ITEM_UNREGISTER, handleUnregister);
     };
-  }, [selectedIndex, wheelId]);
+  }, [activeTabIndex, wheelId]);
 
   useEffect(() => {
-    const detail: ValuesWheelSelectDetail = { wheelId, index: selectedIndex };
-
-    window.dispatchEvent(new CustomEvent(VALUES_WHEEL_SELECT, { detail }));
-  }, [selectedIndex, wheelId]);
+    const selectEvent = new CustomEvent<ValuesWheelSelectDetail>(VALUES_WHEEL_SELECT, {
+      detail: { wheelId, index: activeTabIndex },
+    });
+    window.dispatchEvent(selectEvent);
+  }, [activeTabIndex, wheelId]);
 
   return registeredItems;
 }

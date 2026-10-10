@@ -21,24 +21,20 @@ export function toZeroBasedIndex(value: number) {
   return Math.max(0, Math.trunc(value) - 1);
 }
 
-export function normalizeItemCount(value: number) {
-  return Math.max(0, Math.trunc(value));
-}
-
-export function clampActiveIndex(activeIndex: number, itemCount: number) {
-  return Math.min(activeIndex, Math.max(itemCount - 1, 0));
+export function clampTabIndex(activeTabIndex: number, itemCount: number) {
+  return Math.min(activeTabIndex, Math.max(itemCount - 1, 0));
 }
 
 export function getWheelRotation(
-  index: number,
-  itemCount: number,
-  selectedIndex: number,
+  tabIndex: number,
+  tabCount: number,
+  activeTabIndex: number,
   activeTabRotation: number,
   rotationDirection: number,
 ) {
-  const step = 360 / itemCount;
+  const step = 360 / tabCount;
 
-  return (index * step - selectedIndex * step) * rotationDirection + activeTabRotation;
+  return (tabIndex * step - activeTabIndex * step) * rotationDirection + activeTabRotation;
 }
 
 export function formatItemNumber(index: number) {

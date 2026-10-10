@@ -23,7 +23,7 @@ export default declareComponent(ValuesWheel, {
       name: "Werterad ID",
       defaultValue: "wheel-1",
     }),
-    itemCount: props.Number({
+    tabCount: props.Number({
       group: "Einstellungen",
       name: "Anzahl Einträge",
       defaultValue: 1,
