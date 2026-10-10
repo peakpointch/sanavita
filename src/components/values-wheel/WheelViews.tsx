@@ -204,7 +204,7 @@ export function MobileMiniWheel({
                 key={tabIndex}
                 id={`${id}-mini-tab-${tabIndex}`}
                 data-tabs-index={tabIndex}
-                data-values-wheel-index={tabIndex}
+                data-wheel-index={tabIndex}
                 type="button"
                 role="tab"
                 aria-selected={isActive}
@@ -307,7 +307,7 @@ function DesktopWheelTabs({
             key={index}
             id={`${id}-tab-${index}`}
             data-tabs-index={index}
-            data-values-wheel-index={index}
+            data-wheel-index={index}
             type="button"
             role="tab"
             aria-selected={isActive}
@@ -465,7 +465,7 @@ function WheelProgress({
     <span
       aria-hidden="true"
       className={cn(
-        "values-wheel-progress pointer-events-none absolute inset-0 z-0 rounded-full text-brand-400 transition-[padding] ease-in-out",
+        "wheel-progress pointer-events-none absolute inset-0 z-0 rounded-full text-brand-400 transition-[padding] ease-in-out",
         isPausing ? "duration-300" : "duration-1000",
       )}
       style={
@@ -522,7 +522,7 @@ function MobileTabList({
             key={index}
             id={`${id}-mobile-tab-${index}`}
             data-tabs-index={index}
-            data-values-wheel-index={index}
+            data-wheel-index={index}
             type="button"
             role="tab"
             aria-selected={isActive}

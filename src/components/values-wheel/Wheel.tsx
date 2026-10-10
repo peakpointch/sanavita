@@ -80,9 +80,9 @@ function WheelItem({
 
   return (
     <div
-      data-values-wheel-item="true"
-      data-values-wheel-id={wheelId}
-      data-values-wheel-index={index}
+      data-wheel-item="true"
+      data-wheel-id={wheelId}
+      data-wheel-index={index}
       hidden={!isMounted}
       aria-hidden={!isActive}
       className="transition-opacity duration-300 ease-in-out"
@@ -124,7 +124,7 @@ export function Wheel({
   const autoPlayConfigured = autoPlay && isAutoPlayAllowed;
   const [hasMounted, setHasMounted] = useState(false);
   const [isInViewport, setIsInViewport] = useState(true);
-  const id = useRef(`values-wheel-${Math.random().toString(36).slice(2)}`).current;
+  const id = useRef(`wheel-${Math.random().toString(36).slice(2)}`).current;
   const wheelRootRef = useRef<HTMLDivElement | null>(null);
   const tabs = useTabs<WheelTabMetadata>({
     groupId: wheelId,
