@@ -7,6 +7,8 @@ export const MOBILE_ACTIVE_TAB_ROTATION = 90;
 export const DESKTOP_ROTATION_DIRECTION = 1;
 export const MOBILE_ROTATION_DIRECTION = -1;
 export const VALUES_WHEEL_CONTENT_TRANSITION_DURATION = 300;
+export const VALUES_WHEEL_BUTTON_TRANSITION_DURATION = 1000;
+export const VALUES_WHEEL_PAUSE_TRANSITION_DURATION = 300;
 
 export type ValuesWheelLayout = "full" | "mini";
 

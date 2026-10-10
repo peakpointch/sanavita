@@ -1,16 +1,25 @@
 import { cn } from "@/lib/utils";
-import type { CSSProperties, KeyboardEvent, ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 
 import type { useMobileWheelDrag } from "./values-wheel-hooks";
 import {
-  DESKTOP_ACTIVE_TAB_ROTATION,
-  DESKTOP_ROTATION_DIRECTION,
   formatItemNumber,
   getWheelRotation,
-  MOBILE_ACTIVE_TAB_ROTATION,
-  MOBILE_ROTATION_DIRECTION,
   type RegisteredItem,
   type ValuesWheelLayout,
+  DESKTOP_ACTIVE_TAB_ROTATION,
+  DESKTOP_ROTATION_DIRECTION,
+  MOBILE_ACTIVE_TAB_ROTATION,
+  MOBILE_ROTATION_DIRECTION,
+  VALUES_WHEEL_BUTTON_TRANSITION_DURATION,
+  VALUES_WHEEL_PAUSE_TRANSITION_DURATION,
 } from "./values-wheel-utils";
 
 type SelectTab = (index: number) => void;
@@ -22,6 +31,9 @@ type WheelViewProps = {
   selectedIndex: number;
   registeredItems: Record<number, RegisteredItem>;
   isReady: boolean;
+  autoPlayDuration: number;
+  isAutoPlayEnabled: boolean;
+  isInViewport: boolean;
   onSelect: SelectTab;
   onKeyDown: HandleKeyDown;
 };
@@ -30,16 +42,128 @@ type MobileMiniWheelProps = WheelViewProps & {
   heading: string;
 };
 
+function useTransitioningFromIndex(selectedIndex: number, isAutoPlayEnabled: boolean) {
+  const previousRef = useRef({ index: selectedIndex, isAutoPlayEnabled });
+  const [transitioningFromIndex, setTransitioningFromIndex] = useState<number | null>(null);
+  const hasSelectionChanged = previousRef.current.index !== selectedIndex;
+  const previousWasAutoPlaying = previousRef.current.isAutoPlayEnabled;
+  const renderedTransitioningIndex = hasSelectionChanged
+    ? previousRef.current.index
+    : transitioningFromIndex;
+
+  useEffect(() => {
+    if (previousRef.current.index === selectedIndex) return;
+
+    const previous = previousRef.current;
+    previousRef.current = { index: selectedIndex, isAutoPlayEnabled };
+
+    if (!previous.isAutoPlayEnabled || !isAutoPlayEnabled) {
+      setTransitioningFromIndex(null);
+      return;
+    }
+
+    setTransitioningFromIndex(previous.index);
+    const timeout = window.setTimeout(() => {
+      setTransitioningFromIndex(null);
+    }, VALUES_WHEEL_BUTTON_TRANSITION_DURATION);
+
+    return () => window.clearTimeout(timeout);
+  }, [isAutoPlayEnabled, selectedIndex]);
+
+  return previousWasAutoPlaying && isAutoPlayEnabled ? renderedTransitioningIndex : null;
+}
+
+type AutoPlayPausePhase = "running" | "pausing" | "paused" | "restarting";
+
+function useAutoPlayPauseTransition(
+  selectedIndex: number,
+  isAutoPlayEnabled: boolean,
+  isInViewport: boolean,
+) {
+  const isAutoPlayPaused = !isAutoPlayEnabled || !isInViewport;
+  const previousRef = useRef({ selectedIndex, isAutoPlayPaused });
+  const [phase, setPhase] = useState<AutoPlayPausePhase>(isAutoPlayPaused ? "paused" : "running");
+  const [pausedIndex, setPausedIndex] = useState<number | null>(null);
+  const hasJustPaused =
+    !previousRef.current.isAutoPlayPaused &&
+    isAutoPlayPaused &&
+    previousRef.current.selectedIndex === selectedIndex;
+  const hasJustRestarted =
+    previousRef.current.isAutoPlayPaused &&
+    !isAutoPlayPaused &&
+    previousRef.current.selectedIndex === selectedIndex;
+  const isPauseTarget = pausedIndex === selectedIndex || hasJustPaused || hasJustRestarted;
+
+  useEffect(() => {
+    const previous = previousRef.current;
+    previousRef.current = { selectedIndex, isAutoPlayPaused };
+
+    if (previous.isAutoPlayPaused !== isAutoPlayPaused) {
+      if (isAutoPlayPaused) {
+        if (previous.selectedIndex !== selectedIndex) {
+          setPausedIndex(null);
+          setPhase("paused");
+          return;
+        }
+
+        setPausedIndex(selectedIndex);
+        setPhase("pausing");
+        const timeout = window.setTimeout(() => {
+          setPhase("paused");
+        }, VALUES_WHEEL_PAUSE_TRANSITION_DURATION);
+
+        return () => window.clearTimeout(timeout);
+      }
+
+      if (previous.selectedIndex !== selectedIndex) {
+        setPausedIndex(null);
+        setPhase("running");
+        return;
+      }
+
+      setPhase("restarting");
+      const timeout = window.setTimeout(() => {
+        setPhase("running");
+        setPausedIndex(null);
+      }, VALUES_WHEEL_PAUSE_TRANSITION_DURATION);
+
+      return () => window.clearTimeout(timeout);
+    }
+
+    if (previous.selectedIndex !== selectedIndex) {
+      setPausedIndex(null);
+      setPhase(isAutoPlayPaused ? "paused" : "running");
+    }
+  }, [isAutoPlayPaused, selectedIndex]);
+
+  return {
+    isPauseTarget,
+    isAutoPlayPaused,
+    isPauseTransition:
+      hasJustPaused || hasJustRestarted || phase === "pausing" || phase === "restarting",
+  };
+}
+
 export function MobileMiniWheel({
   id,
   count,
   selectedIndex,
   registeredItems,
   isReady,
+  autoPlayDuration,
+  isAutoPlayEnabled,
+  isInViewport,
   heading,
   onSelect,
   onKeyDown,
 }: MobileMiniWheelProps) {
+  const transitioningFromIndex = useTransitioningFromIndex(selectedIndex, isAutoPlayEnabled);
+  const { isPauseTarget, isAutoPlayPaused, isPauseTransition } = useAutoPlayPauseTransition(
+    selectedIndex,
+    isAutoPlayEnabled,
+    isInViewport,
+  );
+
   return (
     <div className="md:hidden">
       <div
@@ -64,6 +188,9 @@ export function MobileMiniWheel({
             if (registeredItem && !registeredItem.visible) return null;
 
             const isActive = selectedIndex === index;
+            const isTransitioningFrom = transitioningFromIndex === index;
+            const isCollapsing =
+              isTransitioningFrom || (isActive && isPauseTarget && isAutoPlayPaused);
             const rotation = getWheelRotation(
               index,
               count,
@@ -86,7 +213,7 @@ export function MobileMiniWheel({
                 onKeyDown={(event) => onKeyDown(event, index)}
                 className={cn(
                   "absolute top-1/2 left-1/2 z-10",
-                  "flex items-center justify-center rounded-full border text-center",
+                  "flex cursor-pointer! items-center justify-center rounded-full border text-center",
                   isReady &&
                     "transition-[width,height,transform,background-color,border-color] duration-1000 ease-in-out",
                   "hover:border-beige-200 hover:bg-brand-50",
@@ -105,9 +232,19 @@ export function MobileMiniWheel({
                   } as CSSProperties
                 }
               >
+                {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
+                  <ValuesWheelProgress
+                    key={index}
+                    animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
+                    autoPlayDuration={autoPlayDuration}
+                    isComplete={isTransitioningFrom}
+                    isCollapsing={isCollapsing}
+                    isPausing={isPauseTransition}
+                  />
+                )}
                 <span
                   className={cn(
-                    "tracking-wide text-beige-800 uppercase",
+                    "relative z-10 tracking-wide text-beige-800 uppercase",
                     isReady && "transition-[font-size,font-weight] duration-1000 ease-in-out",
                     isActive ? "text-md font-bold" : "text-xs font-medium",
                   )}
@@ -134,9 +271,19 @@ function DesktopWheelTabs({
   selectedIndex,
   registeredItems,
   isReady,
+  autoPlayDuration,
+  isAutoPlayEnabled,
+  isInViewport,
   onSelect,
   onKeyDown,
 }: WheelViewProps) {
+  const transitioningFromIndex = useTransitioningFromIndex(selectedIndex, isAutoPlayEnabled);
+  const { isPauseTarget, isAutoPlayPaused, isPauseTransition } = useAutoPlayPauseTransition(
+    selectedIndex,
+    isAutoPlayEnabled,
+    isInViewport,
+  );
+
   return (
     <div role="tablist" aria-label="Werte" className="hidden md:block">
       {Array.from({ length: count }, (_, index) => {
@@ -144,6 +291,8 @@ function DesktopWheelTabs({
         if (registeredItem && !registeredItem.visible) return null;
 
         const isActive = selectedIndex === index;
+        const isTransitioningFrom = transitioningFromIndex === index;
+        const isCollapsing = isTransitioningFrom || (isActive && isPauseTarget && isAutoPlayPaused);
         const rotation = getWheelRotation(
           index,
           count,
@@ -167,7 +316,7 @@ function DesktopWheelTabs({
             className={cn(
               "absolute top-1/2 left-1/2 z-10",
               "flex flex-col items-center justify-center gap-(--wheel-label-gap)",
-              "rounded-full border text-center",
+              "cursor-pointer! rounded-full border text-center",
               isReady &&
                 "transition-[width,height,transform,background-color,border-color] duration-1000 ease-in-out",
               "hover:border-beige-200 hover:bg-brand-50",
@@ -191,9 +340,19 @@ function DesktopWheelTabs({
               } as CSSProperties
             }
           >
+            {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
+              <ValuesWheelProgress
+                key={index}
+                animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
+                autoPlayDuration={autoPlayDuration}
+                isComplete={isTransitioningFrom}
+                isCollapsing={isCollapsing}
+                isPausing={isPauseTransition}
+              />
+            )}
             <span
               className={cn(
-                "flex h-(--wheel-number-height) items-center justify-center text-sm leading-none font-medium tracking-wide text-beige-800 uppercase transition-all duration-1000 ease-in-out",
+                "relative z-10 flex h-(--wheel-number-height) items-center justify-center text-sm leading-none font-medium tracking-wide text-beige-800 uppercase transition-all duration-1000 ease-in-out",
                 isActive ? "text-xl font-bold" : "text-sm font-medium",
               )}
               style={{
@@ -206,7 +365,7 @@ function DesktopWheelTabs({
             </span>
             <span
               className={cn(
-                "flex h-(--wheel-label-height) items-center text-sm leading-none font-medium tracking-wide text-beige-800 uppercase transition-opacity duration-500",
+                "relative z-10 flex h-(--wheel-label-height) items-center text-sm leading-none font-medium tracking-wide text-beige-800 uppercase transition-opacity duration-500",
                 isActive && "opacity-0",
               )}
             >
@@ -216,6 +375,111 @@ function DesktopWheelTabs({
         );
       })}
     </div>
+  );
+}
+
+type ValuesWheelProgressProps = {
+  animationPlayState: "paused" | "running";
+  autoPlayDuration: number;
+  isComplete: boolean;
+  isCollapsing: boolean;
+  isPausing: boolean;
+};
+
+function ValuesWheelProgress({
+  animationPlayState,
+  autoPlayDuration,
+  isComplete,
+  isCollapsing,
+  isPausing,
+}: ValuesWheelProgressProps) {
+  const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
+  const elapsedRef = useRef(0);
+  const lastTimestampRef = useRef<number | null>(null);
+  const frameRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    progressRef.current = 0;
+    elapsedRef.current = 0;
+    lastTimestampRef.current = null;
+    setProgress(0);
+  }, [autoPlayDuration]);
+
+  useEffect(() => {
+    if (isComplete) {
+      progressRef.current = 1;
+      elapsedRef.current = autoPlayDuration;
+      lastTimestampRef.current = null;
+      setProgress(1);
+      return;
+    }
+
+    if (frameRef.current !== null) {
+      cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+
+    if (animationPlayState === "paused") {
+      lastTimestampRef.current = null;
+      return;
+    }
+
+    const updateProgress = (timestamp: number) => {
+      if (lastTimestampRef.current === null) {
+        lastTimestampRef.current = timestamp;
+      }
+
+      elapsedRef.current += timestamp - lastTimestampRef.current;
+      lastTimestampRef.current = timestamp;
+
+      const nextProgress = Math.min(1, elapsedRef.current / autoPlayDuration);
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
+
+      if (nextProgress < 1) {
+        frameRef.current = requestAnimationFrame(updateProgress);
+      }
+    };
+
+    frameRef.current = requestAnimationFrame(updateProgress);
+
+    return () => {
+      if (frameRef.current !== null) {
+        cancelAnimationFrame(frameRef.current);
+        frameRef.current = null;
+      }
+
+      if (lastTimestampRef.current !== null) {
+        elapsedRef.current += performance.now() - lastTimestampRef.current;
+        lastTimestampRef.current = null;
+      }
+    };
+  }, [animationPlayState, autoPlayDuration, isComplete]);
+
+  if (autoPlayDuration <= 0) return null;
+
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "values-wheel-progress pointer-events-none absolute inset-0 z-0 rounded-full text-brand-400 transition-[padding] ease-in-out",
+        isPausing ? "duration-300" : "duration-1000",
+      )}
+      style={
+        {
+          background: `conic-gradient(currentColor ${isComplete ? 100 : progress * 100}%, transparent ${isComplete ? 100 : progress * 100}%)`,
+          padding: isCollapsing ? "0px" : "3px",
+        } as CSSProperties
+      }
+    >
+      <span
+        className={cn(
+          "block h-full w-full rounded-full transition-colors duration-1000 ease-in-out",
+          isComplete ? "bg-beige-100" : "bg-brand-50",
+        )}
+      />
+    </span>
   );
 }
 
@@ -266,7 +530,7 @@ function MobileTabList({
             className={cn(
               "flex shrink-0 items-center gap-3 rounded-full border px-4 py-3 text-left",
               "transition-colors",
-              "hover:border-beige-200 hover:bg-brand-50",
+              "cursor-pointer! hover:border-beige-200 hover:bg-brand-50",
               isActive ? "border-beige-200 bg-brand-50" : "border-border bg-beige-100",
             )}
           >
