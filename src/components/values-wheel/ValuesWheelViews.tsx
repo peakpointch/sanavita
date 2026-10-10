@@ -8,19 +8,19 @@ import {
   type ReactNode,
 } from "react";
 
-import type { useMobileWheelDrag } from "./values-wheel-hooks";
+import type { useMobileWheelDrag } from "./wheel-hooks";
 import {
   formatItemNumber,
   getWheelRotation,
-  type RegisteredItem,
-  type ValuesWheelLayout,
+  type WheelTabMetadata,
+  type WheelLayout,
   DESKTOP_ACTIVE_TAB_ROTATION,
   DESKTOP_ROTATION_DIRECTION,
   MOBILE_ACTIVE_TAB_ROTATION,
   MOBILE_ROTATION_DIRECTION,
-  VALUES_WHEEL_BUTTON_TRANSITION_DURATION,
-  VALUES_WHEEL_PAUSE_TRANSITION_DURATION,
-} from "./values-wheel-utils";
+  WHEEL_BUTTON_TRANSITION_DURATION,
+  WHEEL_PAUSE_TRANSITION_DURATION,
+} from "./wheel-utils";
 
 type SelectTab = (index: number) => void;
 type HandleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => void;
@@ -29,7 +29,7 @@ type WheelViewProps = {
   id: string;
   count: number;
   activeTabIndex: number;
-  registeredItems: Record<number, RegisteredItem>;
+  registeredTabs: Record<number, WheelTabMetadata>;
   hasMounted: boolean;
   autoPlayDuration: number;
   isAutoPlayEnabled: boolean;
@@ -65,7 +65,7 @@ function useTransitioningFromIndex(activeTabIndex: number, isAutoPlayEnabled: bo
     setTransitioningFromIndex(previous.index);
     const timeout = window.setTimeout(() => {
       setTransitioningFromIndex(null);
-    }, VALUES_WHEEL_BUTTON_TRANSITION_DURATION);
+    }, WHEEL_BUTTON_TRANSITION_DURATION);
 
     return () => window.clearTimeout(timeout);
   }, [isAutoPlayEnabled, activeTabIndex]);
@@ -110,7 +110,7 @@ function useAutoPlayPauseTransition(
         setPhase("pausing");
         const timeout = window.setTimeout(() => {
           setPhase("paused");
-        }, VALUES_WHEEL_PAUSE_TRANSITION_DURATION);
+        }, WHEEL_PAUSE_TRANSITION_DURATION);
 
         return () => window.clearTimeout(timeout);
       }
@@ -125,7 +125,7 @@ function useAutoPlayPauseTransition(
       const timeout = window.setTimeout(() => {
         setPhase("running");
         setPausedIndex(null);
-      }, VALUES_WHEEL_PAUSE_TRANSITION_DURATION);
+      }, WHEEL_PAUSE_TRANSITION_DURATION);
 
       return () => window.clearTimeout(timeout);
     }
@@ -148,7 +148,7 @@ export function MobileMiniWheel({
   id,
   count,
   activeTabIndex: activeTabIndex,
-  registeredItems,
+  registeredTabs,
   hasMounted,
   autoPlayDuration,
   isAutoPlayEnabled,
@@ -184,8 +184,8 @@ export function MobileMiniWheel({
         </div>
         <div role="tablist" aria-label="Werte" className="block">
           {Array.from({ length: count }, (_, tabIndex) => {
-            const registeredItem = registeredItems[tabIndex];
-            if (registeredItem && !registeredItem.visible) return null;
+            const registeredTab = registeredTabs[tabIndex];
+            if (registeredTab && !registeredTab.visible) return null;
 
             const isActive = activeTabIndex === tabIndex;
             const isTransitioningFrom = transitioningFromIndex === tabIndex;
@@ -203,6 +203,7 @@ export function MobileMiniWheel({
               <button
                 key={tabIndex}
                 id={`${id}-mini-tab-${tabIndex}`}
+                data-tabs-index={tabIndex}
                 data-values-wheel-index={tabIndex}
                 type="button"
                 role="tab"
@@ -262,14 +263,14 @@ export function MobileMiniWheel({
 
 type FullWheelProps = WheelViewProps &
   ReturnType<typeof useMobileWheelDrag> & {
-    layout: ValuesWheelLayout;
+    layout: WheelLayout;
   };
 
 function DesktopWheelTabs({
   id,
   count,
   activeTabIndex,
-  registeredItems,
+  registeredTabs,
   hasMounted,
   autoPlayDuration,
   isAutoPlayEnabled,
@@ -287,8 +288,8 @@ function DesktopWheelTabs({
   return (
     <div role="tablist" aria-label="Werte" className="hidden md:block">
       {Array.from({ length: count }, (_, index) => {
-        const registeredItem = registeredItems[index];
-        if (registeredItem && !registeredItem.visible) return null;
+        const registeredTab = registeredTabs[index];
+        if (registeredTab && !registeredTab.visible) return null;
 
         const isActive = activeTabIndex === index;
         const isTransitioningFrom = transitioningFromIndex === index;
@@ -305,6 +306,7 @@ function DesktopWheelTabs({
           <button
             key={index}
             id={`${id}-tab-${index}`}
+            data-tabs-index={index}
             data-values-wheel-index={index}
             type="button"
             role="tab"
@@ -369,7 +371,7 @@ function DesktopWheelTabs({
                 isActive && "opacity-0",
               )}
             >
-              {registeredItem?.label || "Mehr"}
+              {registeredTab?.label || "Mehr"}
             </span>
           </button>
         );
@@ -489,7 +491,7 @@ function MobileTabList({
   id,
   count,
   activeTabIndex,
-  registeredItems,
+  registeredTabs,
   onSelect,
   onKeyDown,
   onPointerDown,
@@ -510,8 +512,8 @@ function MobileTabList({
       className="mt-6 flex cursor-grab scrollbar-none gap-3 overflow-x-auto pb-2 select-none [-ms-overflow-style:none] active:cursor-grabbing md:hidden [&::-webkit-scrollbar]:hidden"
     >
       {Array.from({ length: count }, (_, index) => {
-        const registeredItem = registeredItems[index];
-        if (registeredItem && !registeredItem.visible) return null;
+        const registeredTab = registeredTabs[index];
+        if (registeredTab && !registeredTab.visible) return null;
 
         const isActive = activeTabIndex === index;
 
@@ -519,6 +521,7 @@ function MobileTabList({
           <button
             key={index}
             id={`${id}-mobile-tab-${index}`}
+            data-tabs-index={index}
             data-values-wheel-index={index}
             type="button"
             role="tab"
@@ -538,7 +541,7 @@ function MobileTabList({
               {formatItemNumber(index)}
             </span>
             <span className="text-sm font-medium tracking-wide text-brand-400 uppercase">
-              {registeredItem?.label || "Mehr"}
+              {registeredTab?.label || "Mehr"}
             </span>
           </button>
         );
@@ -566,7 +569,7 @@ export function FullWheel({ layout, ...props }: FullWheelProps) {
 type ValuesWheelPanelProps = {
   id: string;
   activeTabIndex: number;
-  layout: ValuesWheelLayout;
+  layout: WheelLayout;
   children?: ReactNode;
 };
 

@@ -1,24 +1,17 @@
-import { type KeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useWebflowContext } from "@webflow/react";
 
+import { useTab, useTabAutoplay, useTabs } from "./tabs-hooks";
+import { useMobileWheelDrag } from "./wheel-hooks";
 import {
-  VALUES_WHEEL_ITEM_REGISTER,
-  VALUES_WHEEL_ITEM_UNREGISTER,
-  VALUES_WHEEL_SELECT,
-  type ValuesWheelItemRegisterDetail,
-  type ValuesWheelItemUnregisterDetail,
-  type ValuesWheelSelectDetail,
-} from "./values-wheel-events";
-import { useMobileWheelDrag, useValuesWheelRegistry } from "./values-wheel-hooks";
-import {
-  clampTabIndex,
-  DEFAULT_VALUES_WHEEL_HEADING,
-  DEFAULT_VALUES_WHEEL_ID,
-  DEFAULT_VALUES_WHEEL_LAYOUT,
   toZeroBasedIndex,
-  VALUES_WHEEL_CONTENT_TRANSITION_DURATION,
-  type ValuesWheelLayout,
-} from "./values-wheel-utils";
+  DEFAULT_WHEEL_HEADING,
+  DEFAULT_WHEEL_ID,
+  DEFAULT_WHEEL_LAYOUT,
+  WHEEL_CONTENT_TRANSITION_DURATION,
+  type WheelTabMetadata,
+  type WheelLayout,
+} from "./wheel-utils";
 import { FullWheel, MobileMiniWheel, ValuesWheelPanel } from "./ValuesWheelViews";
 
 type ValuesWheelItemProps = {
@@ -30,14 +23,15 @@ type ValuesWheelItemProps = {
 };
 
 function ValuesWheelItem({
-  wheelId = DEFAULT_VALUES_WHEEL_ID,
+  wheelId = DEFAULT_WHEEL_ID,
   index = 1,
   visibility = true,
   label = "Mehr",
   description,
 }: ValuesWheelItemProps) {
   const zeroBasedIndex = toZeroBasedIndex(index);
-  const [isActive, setIsActive] = useState(zeroBasedIndex === 0);
+  const tabMetadata = useMemo(() => ({ label, visible: visibility }), [label, visibility]);
+  const isActive = useTab(wheelId, zeroBasedIndex, tabMetadata);
   const [isMounted, setIsMounted] = useState(zeroBasedIndex === 0);
   const [isContentVisible, setIsContentVisible] = useState(zeroBasedIndex === 0);
   const transitionTimeout = useRef<number | null>(null);
@@ -56,68 +50,31 @@ function ValuesWheelItem({
   }
 
   useEffect(() => {
-    const handleSelect = (event: Event) => {
-      const detail = (event as CustomEvent<ValuesWheelSelectDetail>).detail;
+    if (isActive === (isMounted && isContentVisible)) return;
 
-      if (detail?.wheelId !== wheelId) return;
+    clearContentTransition();
+    setIsContentVisible(false);
 
-      const nextIsActive = detail.index === zeroBasedIndex;
-
-      if (nextIsActive === isActive) return;
-
-      clearContentTransition();
-      setIsActive(nextIsActive);
-      setIsContentVisible(false);
-
-      if (nextIsActive) {
-        setIsMounted(false);
-        transitionTimeout.current = window.setTimeout(() => {
-          setIsMounted(true);
-          transitionFrame.current = window.requestAnimationFrame(() => {
-            setIsContentVisible(true);
-            transitionFrame.current = null;
-          });
-          transitionTimeout.current = null;
-        }, VALUES_WHEEL_CONTENT_TRANSITION_DURATION);
-        return;
-      }
-
+    if (isActive) {
+      setIsMounted(false);
       transitionTimeout.current = window.setTimeout(() => {
-        setIsMounted(false);
+        setIsMounted(true);
+        transitionFrame.current = window.requestAnimationFrame(() => {
+          setIsContentVisible(true);
+          transitionFrame.current = null;
+        });
         transitionTimeout.current = null;
-      }, VALUES_WHEEL_CONTENT_TRANSITION_DURATION);
-    };
+      }, WHEEL_CONTENT_TRANSITION_DURATION);
+      return;
+    }
 
-    window.addEventListener(VALUES_WHEEL_SELECT, handleSelect);
-
-    return () => {
-      window.removeEventListener(VALUES_WHEEL_SELECT, handleSelect);
-    };
-  }, [isActive, wheelId, zeroBasedIndex]);
+    transitionTimeout.current = window.setTimeout(() => {
+      setIsMounted(false);
+      transitionTimeout.current = null;
+    }, WHEEL_CONTENT_TRANSITION_DURATION);
+  }, [isActive]);
 
   useEffect(() => clearContentTransition, []);
-
-  useEffect(() => {
-    const detail: ValuesWheelItemRegisterDetail = {
-      wheelId,
-      index: zeroBasedIndex,
-      label,
-      visible: visibility,
-    };
-
-    window.dispatchEvent(new CustomEvent(VALUES_WHEEL_ITEM_REGISTER, { detail }));
-
-    return () => {
-      const unregisterDetail: ValuesWheelItemUnregisterDetail = {
-        wheelId,
-        index: zeroBasedIndex,
-      };
-
-      window.dispatchEvent(
-        new CustomEvent(VALUES_WHEEL_ITEM_UNREGISTER, { detail: unregisterDetail }),
-      );
-    };
-  }, [zeroBasedIndex, label, visibility, wheelId]);
 
   if (!visibility) return null;
 
@@ -144,7 +101,7 @@ type ValuesWheelProps = {
   visibility?: boolean;
   tabCount?: number;
   startIndex?: number;
-  layout?: ValuesWheelLayout;
+  layout?: WheelLayout;
   heading?: string;
   children?: ReactNode;
   autoPlay: boolean;
@@ -152,12 +109,12 @@ type ValuesWheelProps = {
 };
 
 export function ValuesWheel({
-  wheelId = DEFAULT_VALUES_WHEEL_ID,
+  wheelId = DEFAULT_WHEEL_ID,
   visibility = true,
   tabCount = 1,
   startIndex = 1,
-  layout = DEFAULT_VALUES_WHEEL_LAYOUT,
-  heading = DEFAULT_VALUES_WHEEL_HEADING,
+  layout = DEFAULT_WHEEL_LAYOUT,
+  heading = DEFAULT_WHEEL_HEADING,
   children,
   autoPlay = true,
   autoPlayDuration = 10000,
@@ -165,22 +122,19 @@ export function ValuesWheel({
   const { mode } = useWebflowContext();
   const isAutoPlayAllowed = mode === "preview" || mode === "publish";
   const autoPlayConfigured = autoPlay && isAutoPlayAllowed;
-  const [currentTabIndex, setCurrentTabIndex] = useState(toZeroBasedIndex(startIndex));
   const [hasMounted, setHasMounted] = useState(false);
-  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(autoPlayConfigured);
   const [isInViewport, setIsInViewport] = useState(true);
   const id = useRef(`values-wheel-${Math.random().toString(36).slice(2)}`).current;
   const wheelRootRef = useRef<HTMLDivElement | null>(null);
-  const autoPlayRemainingRef = useRef(autoPlayDuration);
-  const activeTabIndex = clampTabIndex(currentTabIndex, tabCount);
+  const tabs = useTabs<WheelTabMetadata>({
+    groupId: wheelId,
+    tabCount,
+    initialIndex: toZeroBasedIndex(startIndex),
+  });
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
-
-  useEffect(() => {
-    setIsAutoPlayEnabled(autoPlayConfigured);
-  }, [autoPlayConfigured]);
 
   useEffect(() => {
     const element = wheelRootRef.current;
@@ -199,63 +153,24 @@ export function ValuesWheel({
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    setCurrentTabIndex(toZeroBasedIndex(startIndex));
-  }, [startIndex]);
+  const { isAutoplayEnabled, setIsAutoplayEnabled } = useTabAutoplay({
+    enabled: autoPlayConfigured,
+    duration: autoPlayDuration,
+    currentIndex: tabs.currentIndex,
+    tabCount,
+    paused: !isInViewport,
+    onAdvance: tabs.selectNextTab,
+  });
 
-  useEffect(() => {
-    autoPlayRemainingRef.current = autoPlayDuration;
-  }, [currentTabIndex, autoPlayDuration]);
-
-  useEffect(() => {
-    const shouldAutoPlay = isAutoPlayEnabled && isInViewport && tabCount >= 1;
-    if (!shouldAutoPlay) return;
-
-    const duration = Math.max(0, autoPlayRemainingRef.current);
-    const startedAt = performance.now();
-    const timeout = window.setTimeout(() => {
-      autoPlayRemainingRef.current = 0;
-      setCurrentTabIndex((current) => (current + 1) % tabCount);
-    }, duration);
-
-    return () => {
-      autoPlayRemainingRef.current = Math.max(0, duration - (performance.now() - startedAt));
-      window.clearTimeout(timeout);
-    };
-  }, [currentTabIndex, autoPlayDuration, tabCount, isAutoPlayEnabled, isInViewport]);
-
-  const registeredItems = useValuesWheelRegistry(wheelId, activeTabIndex);
   const mobileDragHandlers = useMobileWheelDrag();
 
   function selectTab(index: number) {
-    if (autoPlayConfigured && index === activeTabIndex) {
-      setIsAutoPlayEnabled((enabled) => !enabled);
+    if (autoPlayConfigured && index === tabs.activeIndex) {
+      setIsAutoplayEnabled((enabled) => !enabled);
     } else {
-      setCurrentTabIndex(index);
-      setIsAutoPlayEnabled(false);
+      tabs.selectTab(index);
+      setIsAutoplayEnabled(false);
     }
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-
-    const buttons = Array.from(
-      event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("button") ?? [],
-    );
-    const currentPosition = buttons.findIndex(
-      (button) => Number(button.dataset.valuesWheelIndex) === index,
-    );
-
-    if (currentPosition === -1 || buttons.length === 0) return;
-
-    event.preventDefault();
-
-    const direction = event.key === "ArrowRight" ? 1 : -1;
-    const nextPosition = (currentPosition + direction + buttons.length) % buttons.length;
-    const nextButton = buttons[nextPosition];
-
-    nextButton.focus();
-    nextButton.click();
   }
 
   if (!visibility) return null;
@@ -263,14 +178,14 @@ export function ValuesWheel({
   const wheelViewProps = {
     id,
     count: tabCount,
-    activeTabIndex,
-    registeredItems,
+    activeTabIndex: tabs.activeIndex,
+    registeredTabs: tabs.registeredTabs,
     hasMounted,
     autoPlayDuration,
-    isAutoPlayEnabled,
+    isAutoPlayEnabled: isAutoplayEnabled,
     isInViewport,
     onSelect: selectTab,
-    onKeyDown: handleKeyDown,
+    onKeyDown: tabs.handleKeyDown,
   };
 
   return (
@@ -280,7 +195,7 @@ export function ValuesWheel({
 
         <FullWheel {...wheelViewProps} {...mobileDragHandlers} layout={layout} />
 
-        <ValuesWheelPanel id={id} activeTabIndex={activeTabIndex} layout={layout}>
+        <ValuesWheelPanel id={id} activeTabIndex={tabs.activeIndex} layout={layout}>
           {children}
         </ValuesWheelPanel>
       </div>
