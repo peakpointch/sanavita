@@ -36,6 +36,8 @@ function WheelItem({
   const [isContentVisible, setIsContentVisible] = useState(zeroBasedIndex === 0);
   const transitionTimeout = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
+  const transitionId = useRef(0);
+  const hasInitializedTransition = useRef(false);
 
   function clearContentTransition() {
     if (transitionTimeout.current !== null) {
@@ -50,16 +52,25 @@ function WheelItem({
   }
 
   useEffect(() => {
-    if (isActive === (isMounted && isContentVisible)) return;
-
+    const currentTransitionId = ++transitionId.current;
     clearContentTransition();
+
+    if (!hasInitializedTransition.current) {
+      hasInitializedTransition.current = true;
+      return clearContentTransition;
+    }
+
     setIsContentVisible(false);
 
     if (isActive) {
       setIsMounted(false);
       transitionTimeout.current = window.setTimeout(() => {
+        if (currentTransitionId !== transitionId.current) return;
+
         setIsMounted(true);
         transitionFrame.current = window.requestAnimationFrame(() => {
+          if (currentTransitionId !== transitionId.current) return;
+
           setIsContentVisible(true);
           transitionFrame.current = null;
         });
@@ -69,12 +80,14 @@ function WheelItem({
     }
 
     transitionTimeout.current = window.setTimeout(() => {
+      if (currentTransitionId !== transitionId.current) return;
+
       setIsMounted(false);
       transitionTimeout.current = null;
     }, WHEEL_CONTENT_TRANSITION_DURATION);
-  }, [isActive]);
 
-  useEffect(() => clearContentTransition, []);
+    return clearContentTransition;
+  }, [isActive]);
 
   if (!visibility) return null;
 
@@ -88,7 +101,8 @@ function WheelItem({
       className="transition-opacity duration-300 ease-in-out"
       style={{
         display: !isMounted ? "none" : undefined,
-        opacity: isContentVisible ? 1 : 0,
+        opacity: isActive && isContentVisible ? 1 : 0,
+        pointerEvents: isActive ? undefined : "none",
       }}
     >
       {description}
