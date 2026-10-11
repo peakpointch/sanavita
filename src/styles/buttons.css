@@ -2,7 +2,8 @@ a.main-link:hover .main-link-arrow {
   opacity: 100%;
 }
 
-.button-arrow {
+.button-arrow,
+.button-tertiary {
   position: relative;
 }
 
@@ -16,12 +17,20 @@ a.main-link:hover .main-link-arrow {
   width: 1.5em;
   height: 1.5em;
   position: absolute;
+  top: auto;
+  bottom: auto;
   right: 1.25em;
+  left: auto;
   content: "";
 }
 
-.button-tertiary.arrow-left {
-  background-position: 0% center;
+.button-tertiary:not(.is-icon)::after {
+  right: 0em;
+}
+
+.button-tertiary.arrow-left:not(.is-icon)::after {
+  right: auto;
+  left: 0rem;
 }
 
 .button[disabled] {
