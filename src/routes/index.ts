@@ -73,8 +73,7 @@ export const routes = async () => {
   });
 
   new WFRoute("/aktuelles/(.*)").execute(async () => {
-    peakflow.execute("inlinecms", "swiper");
-    peakflow.execute("dateflow");
+    peakflow.execute("dateflow", "inlinecms", "swiper");
   });
 
   new WFRoute("/dokumente").execute(() => {
