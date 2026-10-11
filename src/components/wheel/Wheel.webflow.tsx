@@ -4,14 +4,26 @@ import { props } from "@webflow/data-types";
 import { type ComponentProps } from "react";
 
 import "@/styles/components/globals.css";
+import { toZeroBasedIndex } from "./wheel-utils";
 
 type WebflowWheelProps = Omit<ComponentProps<typeof Wheel>, "autoplay"> & {
   enableAutoplay: boolean;
   autoplayDelay: number;
 };
 
-function WebflowWheel({ enableAutoplay, autoplayDelay, ...wheelProps }: WebflowWheelProps) {
-  return <Wheel {...wheelProps} autoplay={{ enabled: enableAutoplay, delay: autoplayDelay }} />;
+function WebflowWheel({
+  startIndex,
+  enableAutoplay,
+  autoplayDelay,
+  ...wheelProps
+}: WebflowWheelProps) {
+  return (
+    <Wheel
+      {...wheelProps}
+      startIndex={toZeroBasedIndex(startIndex)}
+      autoplay={{ enabled: enableAutoplay, delay: autoplayDelay }}
+    />
+  );
 }
 
 export default declareComponent(WebflowWheel, {

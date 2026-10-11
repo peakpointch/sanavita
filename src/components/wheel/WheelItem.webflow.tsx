@@ -1,10 +1,15 @@
 import { declareComponent } from "@webflow/react";
-import { Wheel } from "./Wheel";
+import { WheelItem, type WheelItemProps } from "./Wheel";
 import { props } from "@webflow/data-types";
 
 import "@/styles/components/globals.css";
+import { toZeroBasedIndex } from "./wheel-utils";
 
-export default declareComponent(Wheel.Item, {
+function WebflowWheelItem({ index, ...props }: WheelItemProps) {
+  return <WheelItem index={toZeroBasedIndex(index)} {...props} />;
+}
+
+export default declareComponent(WebflowWheelItem, {
   name: "Werterad Eintrag",
   props: {
     visibility: props.Visibility({

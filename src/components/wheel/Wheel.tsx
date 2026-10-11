@@ -14,7 +14,7 @@ import {
 } from "./wheel-utils";
 import { FullWheel, MobileMiniWheel, WheelPanel } from "./WheelViews";
 
-type WheelItemProps = {
+export type WheelItemProps = {
   wheelId?: string;
   index?: number;
   visibility?: boolean;
@@ -22,18 +22,17 @@ type WheelItemProps = {
   description?: ReactNode;
 };
 
-function WheelItem({
+export function WheelItem({
   wheelId = DEFAULT_WHEEL_ID,
-  index = 1,
+  index = 0,
   visibility = true,
   label = "Mehr",
   description,
 }: WheelItemProps) {
-  const zeroBasedIndex = toZeroBasedIndex(index);
   const tabMetadata = useMemo(() => ({ label, visible: visibility }), [label, visibility]);
-  const isActive = useTab(wheelId, zeroBasedIndex, tabMetadata);
-  const [isMounted, setIsMounted] = useState(zeroBasedIndex === 0);
-  const [isContentVisible, setIsContentVisible] = useState(zeroBasedIndex === 0);
+  const isActive = useTab(wheelId, index, tabMetadata);
+  const [isMounted, setIsMounted] = useState(index === 0);
+  const [isContentVisible, setIsContentVisible] = useState(index === 0);
   const transitionTimeout = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
   const transitionId = useRef(0);
@@ -128,7 +127,7 @@ export function Wheel({
   wheelId = DEFAULT_WHEEL_ID,
   visibility = true,
   tabCount = 1,
-  startIndex = 1,
+  startIndex = 0,
   layout = DEFAULT_WHEEL_LAYOUT,
   heading = DEFAULT_WHEEL_HEADING,
   children,
@@ -144,7 +143,7 @@ export function Wheel({
   const tabs = useTabs<WheelTabMetadata>({
     groupId: wheelId,
     tabCount,
-    initialIndex: toZeroBasedIndex(startIndex),
+    initialIndex: startIndex,
   });
 
   useEffect(() => {
@@ -223,5 +222,3 @@ export function Wheel({
     </div>
   );
 }
-
-Wheel.Item = WheelItem;
