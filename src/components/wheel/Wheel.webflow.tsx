@@ -11,7 +11,9 @@ type WebflowWheelProps = Omit<ComponentProps<typeof Wheel>, "autoplay"> & {
 };
 
 function WebflowWheel({ enableAutoplay, autoplayDelay, ...wheelProps }: WebflowWheelProps) {
-  return <Wheel {...wheelProps} autoplay={{ enabled: enableAutoplay, delay: autoplayDelay }} />;
+  return (
+    <Wheel {...wheelProps} autoplay={{ enabled: enableAutoplay, delay: autoplayDelay * 1000 }} />
+  );
 }
 
 export default declareComponent(WebflowWheel, {
@@ -53,8 +55,9 @@ export default declareComponent(WebflowWheel, {
     }),
     autoplayDelay: props.Number({
       group: "Einstellungen",
-      name: "Autoplay Verzögerung (ms)",
-      defaultValue: 10000,
+      name: "Autoplay Dauer",
+      tooltip: "Zeit in Sekunden",
+      defaultValue: 10,
       min: 0,
       decimals: 0,
     }),
