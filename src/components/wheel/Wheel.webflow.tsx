@@ -4,26 +4,14 @@ import { props } from "@webflow/data-types";
 import { type ComponentProps } from "react";
 
 import "@/styles/components/globals.css";
-import { toZeroBasedIndex } from "./wheel-utils";
 
 type WebflowWheelProps = Omit<ComponentProps<typeof Wheel>, "autoplay"> & {
   enableAutoplay: boolean;
   autoplayDelay: number;
 };
 
-function WebflowWheel({
-  startIndex,
-  enableAutoplay,
-  autoplayDelay,
-  ...wheelProps
-}: WebflowWheelProps) {
-  return (
-    <Wheel
-      {...wheelProps}
-      startIndex={toZeroBasedIndex(startIndex)}
-      autoplay={{ enabled: enableAutoplay, delay: autoplayDelay }}
-    />
-  );
+function WebflowWheel({ enableAutoplay, autoplayDelay, ...wheelProps }: WebflowWheelProps) {
+  return <Wheel {...wheelProps} autoplay={{ enabled: enableAutoplay, delay: autoplayDelay }} />;
 }
 
 export default declareComponent(WebflowWheel, {
@@ -45,16 +33,9 @@ export default declareComponent(WebflowWheel, {
       name: "Werterad ID",
       defaultValue: "wheel-1",
     }),
-    tabCount: props.Number({
+    initialTabId: props.Number({
       group: "Einstellungen",
-      name: "Anzahl Einträge",
-      defaultValue: 1,
-      min: 0,
-      decimals: 0,
-    }),
-    startIndex: props.Number({
-      group: "Einstellungen",
-      name: "Start item",
+      name: "Initial Tab ID",
       defaultValue: 1,
       min: 1,
       decimals: 0,

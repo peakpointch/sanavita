@@ -3,10 +3,15 @@ import { WheelItem, type WheelItemProps } from "./Wheel";
 import { props } from "@webflow/data-types";
 
 import "@/styles/components/globals.css";
-import { toZeroBasedIndex } from "./wheel-utils";
 
-function WebflowWheelItem({ index, ...props }: WheelItemProps) {
-  return <WheelItem index={toZeroBasedIndex(index)} {...props} />;
+type WebflowWheelItemProps = WheelItemProps & {
+  visibility?: boolean;
+};
+
+function WebflowWheelItem({ visibility = true, ...props }: WebflowWheelItemProps) {
+  if (!visibility) return null;
+
+  return <WheelItem {...props} />;
 }
 
 export default declareComponent(WebflowWheelItem, {
@@ -22,9 +27,9 @@ export default declareComponent(WebflowWheelItem, {
       name: "Wheel ID",
       defaultValue: "wheel-1",
     }),
-    index: props.Number({
+    tabId: props.Number({
       group: "Einstellungen",
-      name: "Item number",
+      name: "Tab ID",
       defaultValue: 1,
       min: 1,
       decimals: 0,

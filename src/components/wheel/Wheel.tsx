@@ -2,9 +2,9 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useWebflowContext } from "@webflow/react";
 
 import { useTab, useTabAutoplay, useTabs } from "./tabs-hooks";
+import type { TabId } from "./tabs-events";
 import { useMobileWheelDrag } from "./wheel-hooks";
 import {
-  toZeroBasedIndex,
   DEFAULT_WHEEL_HEADING,
   DEFAULT_WHEEL_ID,
   DEFAULT_WHEEL_LAYOUT,
@@ -16,23 +16,21 @@ import { FullWheel, MobileMiniWheel, WheelPanel } from "./WheelViews";
 
 export type WheelItemProps = {
   wheelId?: string;
-  index?: number;
-  visibility?: boolean;
+  tabId?: TabId;
   label?: string;
   description?: ReactNode;
 };
 
 export function WheelItem({
   wheelId = DEFAULT_WHEEL_ID,
-  index = 0,
-  visibility = true,
+  tabId = 1,
   label = "Mehr",
   description,
 }: WheelItemProps) {
-  const tabMetadata = useMemo(() => ({ label, visible: visibility }), [label, visibility]);
-  const isActive = useTab(wheelId, index, tabMetadata);
-  const [isMounted, setIsMounted] = useState(index === 0);
-  const [isContentVisible, setIsContentVisible] = useState(index === 0);
+  const tabMetadata = useMemo(() => ({ label }), [label]);
+  const isActive = useTab(wheelId, tabId, tabMetadata);
+  const [isMounted, setIsMounted] = useState(tabId === 1);
+  const [isContentVisible, setIsContentVisible] = useState(tabId === 1);
   const transitionTimeout = useRef<number | null>(null);
   const transitionFrame = useRef<number | null>(null);
   const transitionId = useRef(0);
@@ -88,13 +86,11 @@ export function WheelItem({
     return clearContentTransition;
   }, [isActive]);
 
-  if (!visibility) return null;
-
   return (
     <div
       data-wheel-item="true"
       data-wheel-id={wheelId}
-      data-wheel-index={index}
+      data-wheel-tab-id={tabId}
       hidden={!isMounted}
       aria-hidden={!isActive}
       className="transition-opacity duration-300 ease-in-out"
@@ -112,8 +108,7 @@ export function WheelItem({
 type WheelProps = {
   wheelId?: string;
   visibility?: boolean;
-  tabCount?: number;
-  startIndex?: number;
+  initialTabId?: TabId;
   layout?: WheelLayout;
   heading?: string;
   children?: ReactNode;
@@ -126,8 +121,7 @@ type WheelProps = {
 export function Wheel({
   wheelId = DEFAULT_WHEEL_ID,
   visibility = true,
-  tabCount = 1,
-  startIndex = 0,
+  initialTabId = 1,
   layout = DEFAULT_WHEEL_LAYOUT,
   heading = DEFAULT_WHEEL_HEADING,
   children,
@@ -142,8 +136,7 @@ export function Wheel({
   const wheelRootRef = useRef<HTMLDivElement | null>(null);
   const tabs = useTabs<WheelTabMetadata>({
     groupId: wheelId,
-    tabCount,
-    initialIndex: startIndex,
+    initialTabId,
   });
 
   useEffect(() => {
@@ -170,23 +163,23 @@ export function Wheel({
   const autoplay = useTabAutoplay({
     enabled: isAutoplayEnabled,
     delay: autoplayConfig.delay,
-    activeTabIndex: tabs.activeIndex,
-    tabCount,
+    activeTabId: tabs.activeTabId,
+    hasTabs: tabs.tabs.length > 0,
     suspended: !isInViewport,
     onAdvance: tabs.selectNextTab,
   });
 
   const mobileDragHandlers = useMobileWheelDrag();
 
-  function selectTab(index: number) {
-    if (isAutoplayEnabled && index === tabs.activeIndex) {
+  function selectTab(tabId: TabId) {
+    if (isAutoplayEnabled && tabId === tabs.activeTabId) {
       if (autoplay.status === "running") {
         autoplay.pause();
       } else if (autoplay.status === "paused") {
         autoplay.resume();
       }
     } else {
-      tabs.selectTab(index);
+      tabs.selectTab(tabId);
       autoplay.pause();
     }
   }
@@ -195,9 +188,8 @@ export function Wheel({
 
   const wheelViewProps = {
     id,
-    count: tabCount,
-    activeTabIndex: tabs.activeIndex,
-    registeredTabs: tabs.registeredTabs,
+    tabs: tabs.tabs,
+    activeTabId: tabs.activeTabId,
     hasMounted,
     autoplayDelay: autoplayConfig.delay,
     isAutoplayEnabled: autoplay.status === "running",
@@ -213,12 +205,12 @@ export function Wheel({
 
         <FullWheel {...wheelViewProps} {...mobileDragHandlers} layout={layout} />
 
-        <WheelPanel id={id} activeTabIndex={tabs.activeIndex} layout={layout}>
+        <WheelPanel id={id} activeTabId={tabs.activeTabId} layout={layout}>
           {children}
         </WheelPanel>
       </div>
 
-      {!tabCount && <div>Keine Einträge</div>}
+      {hasMounted && !tabs.tabs.length && <div>Keine Einträge</div>}
     </div>
   );
 }

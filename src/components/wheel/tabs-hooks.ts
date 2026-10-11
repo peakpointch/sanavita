@@ -1,30 +1,51 @@
-import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   TABS_REGISTER,
+  TABS_REQUEST_REGISTRATION,
   TABS_SELECT,
   TABS_UNREGISTER,
   type TabRegisterDetail,
+  type TabRegistrationRequestDetail,
+  type TabId,
   type TabSelectDetail,
   type TabUnregisterDetail,
 } from "./tabs-events";
 
 type UseTabsOptions<TMetadata> = {
   groupId: string;
-  tabCount: number;
-  initialIndex: number;
+  initialTabId: TabId;
 };
 
-export function useTabs<TMetadata>({ groupId, tabCount, initialIndex }: UseTabsOptions<TMetadata>) {
+export type RegisteredTab<TMetadata> = {
+  id: TabId;
+  metadata: TMetadata;
+};
+
+export function useTabs<TMetadata>({ groupId, initialTabId }: UseTabsOptions<TMetadata>) {
   const [registeredTabs, setRegisteredTabs] = useState<Record<number, TMetadata>>({});
-  const [currentIndex, setCurrentIndex] = useState(initialIndex);
-  const activeIndex = Math.min(currentIndex, Math.max(tabCount - 1, 0));
+  const [selectedTabId, setSelectedTabId] = useState(initialTabId);
+  const tabs = useMemo(
+    () =>
+      Object.entries(registeredTabs)
+        .map(([tabId, metadata]) => ({ id: Number(tabId), metadata }))
+        .sort((a, b) => a.id - b.id),
+    [registeredTabs],
+  );
+  const tabIds = useMemo(() => tabs.map((tab) => tab.id), [tabs]);
+  const activeTabId = tabIds.includes(selectedTabId)
+    ? selectedTabId
+    : tabIds.includes(initialTabId)
+      ? initialTabId
+      : (tabIds[0] ?? null);
 
   useEffect(() => {
-    setCurrentIndex(initialIndex);
-  }, [initialIndex]);
+    setSelectedTabId(initialTabId);
+  }, [initialTabId]);
 
   useEffect(() => {
+    setRegisteredTabs({});
+
     const handleRegister = (event: Event) => {
       const detail = (event as CustomEvent<TabRegisterDetail<TMetadata>>).detail;
 
@@ -32,10 +53,8 @@ export function useTabs<TMetadata>({ groupId, tabCount, initialIndex }: UseTabsO
 
       setRegisteredTabs((tabs) => ({
         ...tabs,
-        [detail.index]: detail.metadata as TMetadata,
+        [detail.tabId]: detail.metadata,
       }));
-
-      dispatchTabSelection(groupId, activeIndex);
     };
 
     const handleUnregister = (event: Event) => {
@@ -45,35 +64,45 @@ export function useTabs<TMetadata>({ groupId, tabCount, initialIndex }: UseTabsO
 
       setRegisteredTabs((tabs) => {
         const nextTabs = { ...tabs };
-        delete nextTabs[detail.index];
+        delete nextTabs[detail.tabId];
         return nextTabs;
       });
     };
 
     window.addEventListener(TABS_REGISTER, handleRegister);
     window.addEventListener(TABS_UNREGISTER, handleUnregister);
+    window.dispatchEvent(
+      new CustomEvent<TabRegistrationRequestDetail>(TABS_REQUEST_REGISTRATION, {
+        detail: { groupId },
+      }),
+    );
 
     return () => {
       window.removeEventListener(TABS_REGISTER, handleRegister);
       window.removeEventListener(TABS_UNREGISTER, handleUnregister);
     };
-  }, [activeIndex, groupId]);
+  }, [groupId]);
 
   useEffect(() => {
-    dispatchTabSelection(groupId, activeIndex);
-  }, [activeIndex, groupId]);
+    if (activeTabId === null) return;
 
-  const selectTab = useCallback((index: number) => {
-    setCurrentIndex(index);
+    dispatchTabSelection(groupId, activeTabId);
+  }, [activeTabId, groupId]);
+
+  const selectTab = useCallback((tabId: TabId) => {
+    setSelectedTabId(tabId);
   }, []);
 
   const selectNextTab = useCallback(() => {
-    if (tabCount < 1) return;
+    if (!tabIds.length || activeTabId === null) return;
 
-    setCurrentIndex((index) => (index + 1) % tabCount);
-  }, [tabCount]);
+    const currentPosition = tabIds.indexOf(activeTabId);
+    const nextPosition = (currentPosition + 1) % tabIds.length;
 
-  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    setSelectedTabId(tabIds[nextPosition]);
+  }, [activeTabId, tabIds]);
+
+  const handleKeyDown = useCallback((event: KeyboardEvent<HTMLButtonElement>, tabId: TabId) => {
     if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
 
     const buttons = Array.from(
@@ -81,9 +110,7 @@ export function useTabs<TMetadata>({ groupId, tabCount, initialIndex }: UseTabsO
         .closest('[role="tablist"]')
         ?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [],
     );
-    const currentPosition = buttons.findIndex(
-      (button) => Number(button.dataset.tabsIndex) === index,
-    );
+    const currentPosition = buttons.findIndex((button) => Number(button.dataset.tabId) === tabId);
 
     if (currentPosition === -1 || buttons.length === 0) return;
 
@@ -98,44 +125,54 @@ export function useTabs<TMetadata>({ groupId, tabCount, initialIndex }: UseTabsO
   }, []);
 
   return {
-    registeredTabs,
-    currentIndex,
-    activeIndex,
+    tabs,
+    activeTabId,
     selectTab,
     selectNextTab,
     handleKeyDown,
   };
 }
 
-export function useTab<TMetadata>(groupId: string, index: number, metadata?: TMetadata) {
-  const [isSelected, setIsSelected] = useState(index === 0);
+export function useTab<TMetadata>(groupId: string, tabId: TabId, metadata: TMetadata) {
+  const [isSelected, setIsSelected] = useState(tabId === 1);
 
   useEffect(() => {
+    const register = () => {
+      window.dispatchEvent(
+        new CustomEvent<TabRegisterDetail<TMetadata>>(TABS_REGISTER, {
+          detail: { groupId, tabId, metadata },
+        }),
+      );
+    };
     const handleSelect = (event: Event) => {
       const detail = (event as CustomEvent<TabSelectDetail>).detail;
 
       if (detail?.groupId !== groupId) return;
 
-      setIsSelected(detail.index === index);
+      setIsSelected(detail.tabId === tabId);
+    };
+    const handleRegistrationRequest = (event: Event) => {
+      const detail = (event as CustomEvent<TabRegistrationRequestDetail>).detail;
+
+      if (detail?.groupId !== groupId) return;
+
+      register();
     };
 
     window.addEventListener(TABS_SELECT, handleSelect);
-
-    window.dispatchEvent(
-      new CustomEvent<TabRegisterDetail<TMetadata>>(TABS_REGISTER, {
-        detail: { groupId, index, metadata },
-      }),
-    );
+    window.addEventListener(TABS_REQUEST_REGISTRATION, handleRegistrationRequest);
+    register();
 
     return () => {
       window.removeEventListener(TABS_SELECT, handleSelect);
+      window.removeEventListener(TABS_REQUEST_REGISTRATION, handleRegistrationRequest);
       window.dispatchEvent(
         new CustomEvent<TabUnregisterDetail>(TABS_UNREGISTER, {
-          detail: { groupId, index },
+          detail: { groupId, tabId },
         }),
       );
     };
-  }, [groupId, index, metadata]);
+  }, [groupId, tabId, metadata]);
 
   return isSelected;
 }
@@ -145,8 +182,8 @@ export type TabAutoplayStatus = "stopped" | "paused" | "running";
 type UseTabAutoplayOptions = {
   enabled: boolean;
   delay: number;
-  activeTabIndex: number;
-  tabCount: number;
+  activeTabId: TabId | null;
+  hasTabs: boolean;
   suspended: boolean;
   onAdvance: () => void;
 };
@@ -154,8 +191,8 @@ type UseTabAutoplayOptions = {
 export function useTabAutoplay({
   enabled,
   delay,
-  activeTabIndex,
-  tabCount,
+  activeTabId,
+  hasTabs,
   suspended,
   onAdvance,
 }: UseTabAutoplayOptions) {
@@ -171,7 +208,7 @@ export function useTabAutoplay({
 
   useEffect(() => {
     remainingTimeRef.current = delay;
-  }, [activeTabIndex, delay]);
+  }, [activeTabId, delay]);
 
   const start = useCallback(() => {
     if (!enabled) return;
@@ -196,7 +233,7 @@ export function useTabAutoplay({
   }, [enabled]);
 
   useEffect(() => {
-    if (status !== "running" || suspended || tabCount < 1) return;
+    if (status !== "running" || suspended || !hasTabs) return;
 
     const remainingTime = Math.max(0, remainingTimeRef.current);
     const startedAt = performance.now();
@@ -209,7 +246,7 @@ export function useTabAutoplay({
       remainingTimeRef.current = Math.max(0, remainingTime - (performance.now() - startedAt));
       window.clearTimeout(timeout);
     };
-  }, [activeTabIndex, delay, status, suspended, tabCount]);
+  }, [activeTabId, delay, hasTabs, status, suspended]);
 
   return {
     status,
@@ -220,10 +257,10 @@ export function useTabAutoplay({
   };
 }
 
-function dispatchTabSelection(groupId: string, index: number) {
+function dispatchTabSelection(groupId: string, tabId: TabId) {
   window.dispatchEvent(
     new CustomEvent<TabSelectDetail>(TABS_SELECT, {
-      detail: { groupId, index },
+      detail: { groupId, tabId },
     }),
   );
 }

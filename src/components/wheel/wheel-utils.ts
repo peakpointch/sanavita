@@ -14,25 +14,20 @@ export type WheelLayout = "full" | "mini";
 
 export type WheelTabMetadata = {
   label: string;
-  visible: boolean;
 };
 
-export function toZeroBasedIndex(value: number) {
-  return Math.max(0, Math.trunc(value) - 1);
-}
-
 export function getWheelRotation(
-  tabIndex: number,
-  tabCount: number,
-  activeTabIndex: number,
+  tabPosition: number,
+  tabTotal: number,
+  activeTabPosition: number,
   activeTabRotation: number,
   rotationDirection: number,
 ) {
-  const step = 360 / tabCount;
+  const step = 360 / tabTotal;
 
-  return (tabIndex * step - activeTabIndex * step) * rotationDirection + activeTabRotation;
+  return (tabPosition * step - activeTabPosition * step) * rotationDirection + activeTabRotation;
 }
 
-export function formatItemNumber(index: number) {
-  return String(index + 1).padStart(2, "0");
+export function formatItemNumber(tabPosition: number) {
+  return String(tabPosition + 1).padStart(2, "0");
 }
