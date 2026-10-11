@@ -261,17 +261,17 @@ layer base {
   --tw-spacing: calc(4 * var(--wf-px));
 
   --wf-font-size-display: calc(5.5 * var(--wf-rem));
-  --wf-font-size-h1: var(--_typography---font--size--h1);
-  --wf-font-size-h2: var(--_typography---font--size--h2);
-  --wf-font-size-h3: var(--_typography---font--size--h3);
-  --wf-font-size-h4: var(--_typography---font--size--h4);
-  --wf-font-size-h5: var(--_typography---font--size--h5);
-  --wf-font-size-h6: var(--_typography---font--size--h6);
-  --wf-font-size-large: var(--_typography---font--size--large);
-  --wf-font-size-medium: var(--_typography---font--size--medium);
-  --wf-font-size-regular: var(--_typography---font--size--regular);
-  --wf-font-size-small: var(--_typography---font--size--small);
-  --wf-font-size-tiny: var(--_typography---font--size--tiny);
+  --wf-font-size-h1: var(--_typography---font-size--h1);
+  --wf-font-size-h2: var(--_typography---font-size--h2);
+  --wf-font-size-h3: var(--_typography---font-size--h3);
+  --wf-font-size-h4: var(--_typography---font-size--h4);
+  --wf-font-size-h5: var(--_typography---font-size--h5);
+  --wf-font-size-h6: var(--_typography---font-size--h6);
+  --wf-font-size-large: var(--_typography---font-size--large);
+  --wf-font-size-medium: var(--_typography---font-size--medium);
+  --wf-font-size-regular: var(--_typography---font-size--regular);
+  --wf-font-size-small: var(--_typography---font-size--small);
+  --wf-font-size-tiny: var(--_typography---font-size--tiny);
 
   --wf-line-height-display: 1.1;
   --wf-line-height-h1: 1.1;
