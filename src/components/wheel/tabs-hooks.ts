@@ -140,39 +140,63 @@ export function useTab<TMetadata>(groupId: string, index: number, metadata?: TMe
   return isSelected;
 }
 
+export type TabAutoplayStatus = "stopped" | "paused" | "running";
+
 type UseTabAutoplayOptions = {
   enabled: boolean;
-  duration: number;
-  currentIndex: number;
+  delay: number;
+  activeTabIndex: number;
   tabCount: number;
-  paused: boolean;
+  suspended: boolean;
   onAdvance: () => void;
 };
 
 export function useTabAutoplay({
   enabled,
-  duration,
-  currentIndex,
+  delay,
+  activeTabIndex,
   tabCount,
-  paused,
+  suspended,
   onAdvance,
 }: UseTabAutoplayOptions) {
-  const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(enabled);
-  const remainingTimeRef = useRef(duration);
+  const [status, setStatus] = useState<TabAutoplayStatus>(enabled ? "running" : "stopped");
+  const remainingTimeRef = useRef(delay);
   const onAdvanceRef = useRef(onAdvance);
 
   onAdvanceRef.current = onAdvance;
 
   useEffect(() => {
-    setIsAutoplayEnabled(enabled);
+    setStatus(enabled ? "running" : "stopped");
   }, [enabled]);
 
   useEffect(() => {
-    remainingTimeRef.current = duration;
-  }, [currentIndex, duration]);
+    remainingTimeRef.current = delay;
+  }, [activeTabIndex, delay]);
+
+  const start = useCallback(() => {
+    if (!enabled) return;
+
+    remainingTimeRef.current = delay;
+    setStatus("running");
+  }, [delay, enabled]);
+
+  const stop = useCallback(() => {
+    remainingTimeRef.current = delay;
+    setStatus("stopped");
+  }, [delay]);
+
+  const pause = useCallback(() => {
+    setStatus((currentStatus) => (currentStatus === "running" ? "paused" : currentStatus));
+  }, []);
+
+  const resume = useCallback(() => {
+    if (!enabled) return;
+
+    setStatus((currentStatus) => (currentStatus === "paused" ? "running" : currentStatus));
+  }, [enabled]);
 
   useEffect(() => {
-    if (!isAutoplayEnabled || paused || tabCount < 1) return;
+    if (status !== "running" || suspended || tabCount < 1) return;
 
     const remainingTime = Math.max(0, remainingTimeRef.current);
     const startedAt = performance.now();
@@ -185,11 +209,14 @@ export function useTabAutoplay({
       remainingTimeRef.current = Math.max(0, remainingTime - (performance.now() - startedAt));
       window.clearTimeout(timeout);
     };
-  }, [currentIndex, duration, isAutoplayEnabled, paused, tabCount]);
+  }, [activeTabIndex, delay, status, suspended, tabCount]);
 
   return {
-    isAutoplayEnabled,
-    setIsAutoplayEnabled,
+    status,
+    start,
+    stop,
+    pause,
+    resume,
   };
 }
 

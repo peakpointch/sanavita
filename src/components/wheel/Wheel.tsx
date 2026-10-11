@@ -118,8 +118,10 @@ type WheelProps = {
   layout?: WheelLayout;
   heading?: string;
   children?: ReactNode;
-  autoPlay: boolean;
-  autoPlayDuration: number;
+  autoplay?: {
+    enabled: boolean;
+    delay: number;
+  };
 };
 
 export function Wheel({
@@ -130,12 +132,11 @@ export function Wheel({
   layout = DEFAULT_WHEEL_LAYOUT,
   heading = DEFAULT_WHEEL_HEADING,
   children,
-  autoPlay = true,
-  autoPlayDuration = 10000,
+  autoplay: autoplayConfig = { enabled: false, delay: 10000 },
 }: WheelProps) {
   const { mode } = useWebflowContext();
-  const isAutoPlayAllowed = mode === "preview" || mode === "publish";
-  const autoPlayConfigured = autoPlay && isAutoPlayAllowed;
+  const isAnimationAllowed = mode === "preview" || mode === "publish";
+  const isAutoplayEnabled = autoplayConfig.enabled && isAnimationAllowed;
   const [hasMounted, setHasMounted] = useState(false);
   const [isInViewport, setIsInViewport] = useState(true);
   const id = useRef(`wheel-${Math.random().toString(36).slice(2)}`).current;
@@ -167,23 +168,27 @@ export function Wheel({
     return () => observer.disconnect();
   }, []);
 
-  const { isAutoplayEnabled, setIsAutoplayEnabled } = useTabAutoplay({
-    enabled: autoPlayConfigured,
-    duration: autoPlayDuration,
-    currentIndex: tabs.currentIndex,
+  const autoplay = useTabAutoplay({
+    enabled: isAutoplayEnabled,
+    delay: autoplayConfig.delay,
+    activeTabIndex: tabs.activeIndex,
     tabCount,
-    paused: !isInViewport,
+    suspended: !isInViewport,
     onAdvance: tabs.selectNextTab,
   });
 
   const mobileDragHandlers = useMobileWheelDrag();
 
   function selectTab(index: number) {
-    if (autoPlayConfigured && index === tabs.activeIndex) {
-      setIsAutoplayEnabled((enabled) => !enabled);
+    if (isAutoplayEnabled && index === tabs.activeIndex) {
+      if (autoplay.status === "running") {
+        autoplay.pause();
+      } else if (autoplay.status === "paused") {
+        autoplay.resume();
+      }
     } else {
       tabs.selectTab(index);
-      setIsAutoplayEnabled(false);
+      autoplay.pause();
     }
   }
 
@@ -195,8 +200,8 @@ export function Wheel({
     activeTabIndex: tabs.activeIndex,
     registeredTabs: tabs.registeredTabs,
     hasMounted,
-    autoPlayDuration,
-    isAutoPlayEnabled: isAutoplayEnabled,
+    autoplayDelay: autoplayConfig.delay,
+    isAutoplayEnabled: autoplay.status === "running",
     isInViewport,
     onSelect: selectTab,
     onKeyDown: tabs.handleKeyDown,

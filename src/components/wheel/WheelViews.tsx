@@ -31,8 +31,8 @@ type WheelViewProps = {
   activeTabIndex: number;
   registeredTabs: Record<number, WheelTabMetadata>;
   hasMounted: boolean;
-  autoPlayDuration: number;
-  isAutoPlayEnabled: boolean;
+  autoplayDelay: number;
+  isAutoplayEnabled: boolean;
   isInViewport: boolean;
   onSelect: SelectTab;
   onKeyDown: HandleKeyDown;
@@ -42,11 +42,11 @@ type MobileMiniWheelProps = WheelViewProps & {
   heading: string;
 };
 
-function useTransitioningFromIndex(activeTabIndex: number, isAutoPlayEnabled: boolean) {
-  const previousRef = useRef({ index: activeTabIndex, isAutoPlayEnabled });
+function useTransitioningFromIndex(activeTabIndex: number, isAutoplayEnabled: boolean) {
+  const previousRef = useRef({ index: activeTabIndex, isAutoplayEnabled });
   const [transitioningFromIndex, setTransitioningFromIndex] = useState<number | null>(null);
   const hasSelectionChanged = previousRef.current.index !== activeTabIndex;
-  const previousWasAutoPlaying = previousRef.current.isAutoPlayEnabled;
+  const previousWasAutoplaying = previousRef.current.isAutoplayEnabled;
   const renderedTransitioningIndex = hasSelectionChanged
     ? previousRef.current.index
     : transitioningFromIndex;
@@ -55,9 +55,9 @@ function useTransitioningFromIndex(activeTabIndex: number, isAutoPlayEnabled: bo
     if (previousRef.current.index === activeTabIndex) return;
 
     const previous = previousRef.current;
-    previousRef.current = { index: activeTabIndex, isAutoPlayEnabled };
+    previousRef.current = { index: activeTabIndex, isAutoplayEnabled };
 
-    if (!previous.isAutoPlayEnabled || !isAutoPlayEnabled) {
+    if (!previous.isAutoplayEnabled || !isAutoplayEnabled) {
       setTransitioningFromIndex(null);
       return;
     }
@@ -68,38 +68,38 @@ function useTransitioningFromIndex(activeTabIndex: number, isAutoPlayEnabled: bo
     }, WHEEL_BUTTON_TRANSITION_DURATION);
 
     return () => window.clearTimeout(timeout);
-  }, [isAutoPlayEnabled, activeTabIndex]);
+  }, [isAutoplayEnabled, activeTabIndex]);
 
-  return previousWasAutoPlaying && isAutoPlayEnabled ? renderedTransitioningIndex : null;
+  return previousWasAutoplaying && isAutoplayEnabled ? renderedTransitioningIndex : null;
 }
 
-type AutoPlayPausePhase = "running" | "pausing" | "paused" | "restarting";
+type AutoplayPausePhase = "running" | "pausing" | "paused" | "restarting";
 
-function useAutoPlayPauseTransition(
+function useAutoplayPauseTransition(
   activeTabIndex: number,
-  isAutoPlayEnabled: boolean,
+  isAutoplayEnabled: boolean,
   isInViewport: boolean,
 ) {
-  const isAutoPlayPaused = !isAutoPlayEnabled || !isInViewport;
-  const previousRef = useRef({ activeTabIndex, isAutoPlayPaused });
-  const [phase, setPhase] = useState<AutoPlayPausePhase>(isAutoPlayPaused ? "paused" : "running");
+  const isAutoplayPaused = !isAutoplayEnabled || !isInViewport;
+  const previousRef = useRef({ activeTabIndex, isAutoplayPaused });
+  const [phase, setPhase] = useState<AutoplayPausePhase>(isAutoplayPaused ? "paused" : "running");
   const [pausedIndex, setPausedIndex] = useState<number | null>(null);
   const hasJustPaused =
-    !previousRef.current.isAutoPlayPaused &&
-    isAutoPlayPaused &&
+    !previousRef.current.isAutoplayPaused &&
+    isAutoplayPaused &&
     previousRef.current.activeTabIndex === activeTabIndex;
   const hasJustRestarted =
-    previousRef.current.isAutoPlayPaused &&
-    !isAutoPlayPaused &&
+    previousRef.current.isAutoplayPaused &&
+    !isAutoplayPaused &&
     previousRef.current.activeTabIndex === activeTabIndex;
   const isPauseTarget = pausedIndex === activeTabIndex || hasJustPaused || hasJustRestarted;
 
   useEffect(() => {
     const previous = previousRef.current;
-    previousRef.current = { activeTabIndex: activeTabIndex, isAutoPlayPaused };
+    previousRef.current = { activeTabIndex: activeTabIndex, isAutoplayPaused };
 
-    if (previous.isAutoPlayPaused !== isAutoPlayPaused) {
-      if (isAutoPlayPaused) {
+    if (previous.isAutoplayPaused !== isAutoplayPaused) {
+      if (isAutoplayPaused) {
         if (previous.activeTabIndex !== activeTabIndex) {
           setPausedIndex(null);
           setPhase("paused");
@@ -132,13 +132,13 @@ function useAutoPlayPauseTransition(
 
     if (previous.activeTabIndex !== activeTabIndex) {
       setPausedIndex(null);
-      setPhase(isAutoPlayPaused ? "paused" : "running");
+      setPhase(isAutoplayPaused ? "paused" : "running");
     }
-  }, [isAutoPlayPaused, activeTabIndex]);
+  }, [isAutoplayPaused, activeTabIndex]);
 
   return {
     isPauseTarget,
-    isAutoPlayPaused,
+    isAutoplayPaused,
     isPauseTransition:
       hasJustPaused || hasJustRestarted || phase === "pausing" || phase === "restarting",
   };
@@ -150,17 +150,17 @@ export function MobileMiniWheel({
   activeTabIndex: activeTabIndex,
   registeredTabs,
   hasMounted,
-  autoPlayDuration,
-  isAutoPlayEnabled,
+  autoplayDelay,
+  isAutoplayEnabled,
   isInViewport,
   heading,
   onSelect,
   onKeyDown,
 }: MobileMiniWheelProps) {
-  const transitioningFromIndex = useTransitioningFromIndex(activeTabIndex, isAutoPlayEnabled);
-  const { isPauseTarget, isAutoPlayPaused, isPauseTransition } = useAutoPlayPauseTransition(
+  const transitioningFromIndex = useTransitioningFromIndex(activeTabIndex, isAutoplayEnabled);
+  const { isPauseTarget, isAutoplayPaused, isPauseTransition } = useAutoplayPauseTransition(
     activeTabIndex,
-    isAutoPlayEnabled,
+    isAutoplayEnabled,
     isInViewport,
   );
 
@@ -190,7 +190,7 @@ export function MobileMiniWheel({
             const isActive = activeTabIndex === tabIndex;
             const isTransitioningFrom = transitioningFromIndex === tabIndex;
             const isCollapsing =
-              isTransitioningFrom || (isActive && isPauseTarget && isAutoPlayPaused);
+              isTransitioningFrom || (isActive && isPauseTarget && isAutoplayPaused);
             const rotation = getWheelRotation(
               tabIndex,
               count,
@@ -233,11 +233,11 @@ export function MobileMiniWheel({
                   } as CSSProperties
                 }
               >
-                {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
+                {((isActive && (isAutoplayEnabled || isPauseTarget)) || isTransitioningFrom) && (
                   <WheelProgress
                     key={tabIndex}
-                    animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
-                    autoPlayDuration={autoPlayDuration}
+                    animationPlayState={isInViewport && isAutoplayEnabled ? "running" : "paused"}
+                    autoplayDelay={autoplayDelay}
                     isComplete={isTransitioningFrom}
                     isCollapsing={isCollapsing}
                     isPausing={isPauseTransition}
@@ -272,16 +272,16 @@ function DesktopWheelTabs({
   activeTabIndex,
   registeredTabs,
   hasMounted,
-  autoPlayDuration,
-  isAutoPlayEnabled,
+  autoplayDelay,
+  isAutoplayEnabled,
   isInViewport,
   onSelect,
   onKeyDown,
 }: WheelViewProps) {
-  const transitioningFromIndex = useTransitioningFromIndex(activeTabIndex, isAutoPlayEnabled);
-  const { isPauseTarget, isAutoPlayPaused, isPauseTransition } = useAutoPlayPauseTransition(
+  const transitioningFromIndex = useTransitioningFromIndex(activeTabIndex, isAutoplayEnabled);
+  const { isPauseTarget, isAutoplayPaused, isPauseTransition } = useAutoplayPauseTransition(
     activeTabIndex,
-    isAutoPlayEnabled,
+    isAutoplayEnabled,
     isInViewport,
   );
 
@@ -293,7 +293,7 @@ function DesktopWheelTabs({
 
         const isActive = activeTabIndex === index;
         const isTransitioningFrom = transitioningFromIndex === index;
-        const isCollapsing = isTransitioningFrom || (isActive && isPauseTarget && isAutoPlayPaused);
+        const isCollapsing = isTransitioningFrom || (isActive && isPauseTarget && isAutoplayPaused);
         const rotation = getWheelRotation(
           index,
           count,
@@ -342,11 +342,11 @@ function DesktopWheelTabs({
               } as CSSProperties
             }
           >
-            {((isActive && (isAutoPlayEnabled || isPauseTarget)) || isTransitioningFrom) && (
+            {((isActive && (isAutoplayEnabled || isPauseTarget)) || isTransitioningFrom) && (
               <WheelProgress
                 key={index}
-                animationPlayState={isInViewport && isAutoPlayEnabled ? "running" : "paused"}
-                autoPlayDuration={autoPlayDuration}
+                animationPlayState={isInViewport && isAutoplayEnabled ? "running" : "paused"}
+                autoplayDelay={autoplayDelay}
                 isComplete={isTransitioningFrom}
                 isCollapsing={isCollapsing}
                 isPausing={isPauseTransition}
@@ -382,7 +382,7 @@ function DesktopWheelTabs({
 
 type WheelProgressProps = {
   animationPlayState: "paused" | "running";
-  autoPlayDuration: number;
+  autoplayDelay: number;
   isComplete: boolean;
   isCollapsing: boolean;
   isPausing: boolean;
@@ -390,7 +390,7 @@ type WheelProgressProps = {
 
 function WheelProgress({
   animationPlayState,
-  autoPlayDuration,
+  autoplayDelay,
   isComplete,
   isCollapsing,
   isPausing,
@@ -406,12 +406,12 @@ function WheelProgress({
     elapsedRef.current = 0;
     lastTimestampRef.current = null;
     setProgress(0);
-  }, [autoPlayDuration]);
+  }, [autoplayDelay]);
 
   useEffect(() => {
     if (isComplete) {
       progressRef.current = 1;
-      elapsedRef.current = autoPlayDuration;
+      elapsedRef.current = autoplayDelay;
       lastTimestampRef.current = null;
       setProgress(1);
       return;
@@ -435,7 +435,7 @@ function WheelProgress({
       elapsedRef.current += timestamp - lastTimestampRef.current;
       lastTimestampRef.current = timestamp;
 
-      const nextProgress = Math.min(1, elapsedRef.current / autoPlayDuration);
+      const nextProgress = Math.min(1, elapsedRef.current / autoplayDelay);
       progressRef.current = nextProgress;
       setProgress(nextProgress);
 
@@ -457,9 +457,9 @@ function WheelProgress({
         lastTimestampRef.current = null;
       }
     };
-  }, [animationPlayState, autoPlayDuration, isComplete]);
+  }, [animationPlayState, autoplayDelay, isComplete]);
 
-  if (autoPlayDuration <= 0) return null;
+  if (autoplayDelay <= 0) return null;
 
   return (
     <span

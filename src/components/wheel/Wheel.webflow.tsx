@@ -1,10 +1,20 @@
 import { declareComponent } from "@webflow/react";
 import { Wheel } from "./Wheel";
 import { props } from "@webflow/data-types";
+import { type ComponentProps } from "react";
 
 import "@/styles/components/globals.css";
 
-export default declareComponent(Wheel, {
+type WebflowWheelProps = Omit<ComponentProps<typeof Wheel>, "autoplay"> & {
+  enableAutoplay: boolean;
+  autoplayDelay: number;
+};
+
+function WebflowWheel({ enableAutoplay, autoplayDelay, ...wheelProps }: WebflowWheelProps) {
+  return <Wheel {...wheelProps} autoplay={{ enabled: enableAutoplay, delay: autoplayDelay }} />;
+}
+
+export default declareComponent(WebflowWheel, {
   name: "Werterad",
   props: {
     layout: props.Variant({
@@ -43,14 +53,14 @@ export default declareComponent(Wheel, {
       defaultValue: "Werte bei Sanavita",
       tooltip: "Nur auf mobilen Geräten sichtbar",
     }),
-    autoPlay: props.Boolean({
+    enableAutoplay: props.Boolean({
       group: "Einstellungen",
       name: "Autoplay",
       defaultValue: true,
     }),
-    autoPlayDuration: props.Number({
+    autoplayDelay: props.Number({
       group: "Einstellungen",
-      name: "Autoplay Dauer (ms)",
+      name: "Autoplay Verzögerung (ms)",
       defaultValue: 10000,
       min: 0,
       decimals: 0,
