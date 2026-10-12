@@ -1,5 +1,5 @@
 import { getSozjobsCollection, getSozjobsItem } from "./api";
-import { RenderData, Renderer } from "peakflow";
+import { RenderData, Renderer, wf } from "peakflow";
 import type { SozjobsContractType, SozjobsJob } from "./types";
 
 function createOption(value: string): HTMLOptionElement {
@@ -88,6 +88,11 @@ export function getJobRenderData(data: {
 function cloneTemplate<T extends Element>(template: T): T {
   const cloned = template.cloneNode(true) as T;
   cloned.classList.remove("hide");
+  cloned.classList.remove("hidden");
+  cloned.classList.remove(wf.class.invisible);
+  if (cloned instanceof HTMLElement) {
+    cloned.style.removeProperty("display");
+  }
   return cloned;
 }
 
